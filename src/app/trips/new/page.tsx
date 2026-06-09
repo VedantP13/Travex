@@ -10,6 +10,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Label } from "@/components/ui/label";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useToast } from "@/hooks/use-toast";
 import { db } from "@/lib/firebase/config";
 import { collection, addDoc, serverTimestamp } from "firebase/firestore";
@@ -179,6 +180,7 @@ export default function CreateTrip() {
                       <div className="flex items-center gap-3">
                         <Avatar className="h-8 w-8">
                           <AvatarImage src={p.avatar} />
+                          <AvatarFallback>{headName[0]}</AvatarFallback>
                         </Avatar>
                         <span className="font-bold text-sm tracking-tight">{headName}&apos;s family</span>
                       </div>
