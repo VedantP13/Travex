@@ -1,4 +1,3 @@
-
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -21,8 +20,8 @@
     --accent-foreground: 0 0% 100%;
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 0 0% 98%;
-    --border: 190 20% 85%;
-    --input: 190 20% 85%;
+    --border: 190 20% 80%;
+    --input: 190 20% 75%; /* Darkened for better visibility */
     --ring: 190 84% 28%;
     --radius: 1rem; /* 16px as requested */
   }

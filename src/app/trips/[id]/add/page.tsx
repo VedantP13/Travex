@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState, useEffect, useMemo } from "react";
@@ -140,7 +139,7 @@ export default function AddExpenseWizard() {
                 <Input 
                   type="number"
                   placeholder="0.00"
-                  className="h-20 text-4xl font-bold rounded-2xl pl-12 border-none shadow-sm focus-visible:ring-primary"
+                  className="h-20 text-4xl font-bold rounded-2xl pl-12 focus-visible:ring-primary shadow-sm"
                   value={formData.amount}
                   onChange={e => setFormData(prev => ({ ...prev, amount: e.target.value }))}
                 />
@@ -149,7 +148,7 @@ export default function AddExpenseWizard() {
               <div className="relative">
                 <Input 
                   placeholder="What was it for?"
-                  className="h-16 text-lg rounded-2xl pl-4 pr-12 border-none shadow-sm focus-visible:ring-primary"
+                  className="h-16 text-lg rounded-2xl pl-4 pr-12 focus-visible:ring-primary shadow-sm"
                   value={formData.description}
                   onChange={e => setFormData(prev => ({ ...prev, description: e.target.value }))}
                   onBlur={handleDescriptionBlur}
@@ -277,7 +276,7 @@ export default function AddExpenseWizard() {
                 <div className="relative">
                   <Input 
                     type="date"
-                    className="h-14 rounded-2xl pl-12 border-none shadow-sm focus-visible:ring-primary"
+                    className="h-14 rounded-2xl pl-12 focus-visible:ring-primary shadow-sm"
                     value={formData.date}
                     onChange={e => setFormData(prev => ({ ...prev, date: e.target.value }))}
                   />
@@ -291,7 +290,7 @@ export default function AddExpenseWizard() {
                   value={formData.paymentType} 
                   onValueChange={val => setFormData(prev => ({ ...prev, paymentType: val }))}
                 >
-                  <SelectTrigger className="h-14 rounded-2xl border-none shadow-sm focus:ring-primary">
+                  <SelectTrigger className="h-14 rounded-2xl shadow-sm focus:ring-primary">
                     <div className="flex items-center gap-3">
                       <CreditCard className="h-5 w-5 text-muted-foreground" />
                       <SelectValue placeholder="Payment method" />
@@ -311,7 +310,7 @@ export default function AddExpenseWizard() {
                 <div className="relative">
                   <Input 
                     placeholder="e.g. Dining, Travel, Fun"
-                    className="h-14 rounded-2xl pl-12 border-none shadow-sm focus-visible:ring-primary"
+                    className="h-14 rounded-2xl pl-12 focus-visible:ring-primary shadow-sm"
                     value={formData.category}
                     onChange={e => setFormData(prev => ({ ...prev, category: e.target.value }))}
                   />

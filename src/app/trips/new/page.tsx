@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState } from "react";
@@ -91,7 +90,7 @@ export default function CreateTrip() {
           <Label className="text-sm font-bold uppercase tracking-wider text-muted-foreground">Trip Name</Label>
           <Input 
             placeholder="e.g. Goa 2024, Europe Tour" 
-            className="h-14 text-lg rounded-2xl border-none shadow-sm focus-visible:ring-primary"
+            className="h-14 text-lg rounded-2xl focus-visible:ring-primary shadow-sm"
             value={name}
             onChange={e => setName(e.target.value)}
           />
@@ -106,7 +105,7 @@ export default function CreateTrip() {
           <div className="flex gap-2">
             <Input 
               placeholder="Add friend or member name..." 
-              className="h-12 rounded-xl border-none shadow-sm"
+              className="h-12 rounded-xl shadow-sm"
               value={newParticipantName}
               onChange={e => setNewParticipantName(e.target.value)}
               onKeyDown={e => e.key === 'Enter' && addParticipant()}
