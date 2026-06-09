@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState } from "react";
@@ -30,8 +29,7 @@ export default function ExplorePage() {
     <div className="max-w-md mx-auto min-h-screen flex flex-col bg-background pb-24">
       {/* Search Header */}
       <header className="px-safe-pad pt-8 pb-6 bg-white rounded-b-[2rem] shadow-sm">
-        <div className="flex items-center gap-2 mb-6">
-          <Compass className="h-6 w-6 text-primary" />
+        <div className="mb-6">
           <h1 className="text-2xl font-bold tracking-tight">Explore</h1>
         </div>
         

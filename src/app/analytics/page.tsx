@@ -18,8 +18,7 @@ export default function AnalyticsPage() {
   return (
     <div className="max-w-md mx-auto min-h-screen bg-background pb-24">
       <header className="px-safe-pad pt-12 pb-8 bg-foreground text-background rounded-b-[2rem]">
-        <h1 className="text-3xl font-bold flex items-center gap-3">
-          <BarChart3 className="h-8 w-8 text-accent" />
+        <h1 className="text-3xl font-bold">
           Analytics
         </h1>
         <p className="opacity-70 mt-1">Your spending patterns at a glance</p>
@@ -51,8 +50,7 @@ export default function AnalyticsPage() {
 
         <Card className="border-none shadow-sm bg-white rounded-2xl overflow-hidden">
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-bold flex items-center gap-2">
-              <PieChartIcon className="h-4 w-4 text-primary" />
+            <CardTitle className="text-sm font-bold">
               Category Breakdown
             </CardTitle>
           </CardHeader>

@@ -98,8 +98,7 @@ export default function Home() {
       {/* Recent Trips Section */}
       <main className="px-safe-pad pt-10 space-y-6">
         <div className="flex justify-between items-center">
-          <h2 className="text-lg font-bold flex items-center gap-2">
-            <Map className="h-5 w-5 text-primary" />
+          <h2 className="text-lg font-bold">
             Trip Collections
           </h2>
           <Button variant="link" className="text-primary text-xs font-bold p-0">See All</Button>
