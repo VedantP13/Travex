@@ -117,7 +117,7 @@ export default function Home() {
             <div className="h-14 w-14 rounded-2xl bg-primary/5 flex items-center justify-center text-primary group-hover:bg-white/20 group-hover:text-white transition-all shadow-sm">
               <Plus className="h-8 w-8" />
             </div>
-            <span className="text-[10px] font-extrabold text-muted-foreground text-center px-1 uppercase tracking-tighter group-hover:text-white transition-colors">New trip</span>
+            <span className="text-sm font-bold tracking-tight text-muted-foreground text-center group-hover:text-white transition-colors leading-tight">New trip</span>
           </Link>
         </div>
       </section>
