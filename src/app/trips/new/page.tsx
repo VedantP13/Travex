@@ -143,9 +143,16 @@ export default function CreateTrip() {
                   <div className="pl-13 space-y-2">
                     <div className="flex flex-wrap gap-2">
                       {p.familyMembers.map((fm) => (
-                        <Badge key={fm} variant="secondary" className="pl-3 pr-1 py-1 rounded-full flex items-center gap-1 bg-muted/50 border-none group">
-                          <span className="text-[10px] font-medium">{fm}</span>
-                          <X className="h-3 w-3 cursor-pointer hover:text-destructive" onClick={() => removeFamilyMember(p.id, fm)} />
+                        <Badge 
+                          key={fm} 
+                          variant="outline" 
+                          className="pl-3 pr-2 py-1.5 rounded-full flex items-center gap-2 bg-white border-primary/30 text-primary font-bold shadow-sm group animate-in zoom-in-95 duration-200"
+                        >
+                          <span className="text-[10px] font-bold uppercase tracking-wider">{fm}</span>
+                          <X 
+                            className="h-3.5 w-3.5 cursor-pointer text-muted-foreground hover:text-destructive transition-colors" 
+                            onClick={() => removeFamilyMember(p.id, fm)} 
+                          />
                         </Badge>
                       ))}
                       {activeFamilyMemberInput === p.id ? (
@@ -167,10 +174,10 @@ export default function CreateTrip() {
                         <Button 
                           variant="ghost" 
                           size="sm" 
-                          className="h-7 text-[10px] font-bold uppercase text-primary hover:bg-primary/5 p-0 px-2"
+                          className="h-7 text-[10px] font-bold uppercase text-primary hover:bg-primary/5 p-0 px-2 flex items-center gap-1"
                           onClick={() => setActiveFamilyMemberInput(p.id)}
                         >
-                          + Add Family Member
+                          <Plus className="h-3 w-3" /> Add Family Member
                         </Button>
                       )}
                     </div>
