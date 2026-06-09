@@ -1,4 +1,3 @@
-
 "use client";
 
 import Link from "next/link";
@@ -24,9 +23,9 @@ export function BottomNav() {
     <nav className="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-md bg-white border-t flex justify-around py-3 px-6 z-50">
       {navItems.map((item, idx) => {
         const isActive = pathname === item.href;
-        // Using a solid color (secondary) instead of an opacity modifier to avoid icon path overlap artifacts
-        // secondary is lighter than muted-foreground and remains opaque.
-        const colorClass = isActive ? "text-primary" : "text-secondary";
+        // Using a solid color (muted-foreground) instead of an opacity modifier to avoid icon path overlap artifacts.
+        // muted-foreground is now configured as a clear light grey in globals.css.
+        const colorClass = isActive ? "text-primary" : "text-muted-foreground";
 
         // Place the prominent FAB in the middle
         if (idx === 2) {

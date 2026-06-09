@@ -15,7 +15,7 @@
     --secondary: 190 31% 52%; /* Muted Teal #5B9EAD */
     --secondary-foreground: 0 0% 100%;
     --muted: 190 20% 88%;
-    --muted-foreground: 218 41% 30%;
+    --muted-foreground: 218 10% 65%; /* Lightened for clear unselected states */
     --accent: 37 93% 55%; /* Amber Orange #F5A623 */
     --accent-foreground: 0 0% 100%;
     --destructive: 0 84.2% 60.2%;
