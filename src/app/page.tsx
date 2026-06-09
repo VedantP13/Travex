@@ -69,7 +69,7 @@ export default function Home() {
 
       {/* Dynamic Trip Spotlight */}
       <section className="px-safe-pad -mt-8">
-        <div className="grid grid-cols-12 gap-3">
+        <div className="grid grid-cols-12 gap-3 items-stretch">
           {activeTrip ? (
             <Card className="col-span-9 border-2 border-white/20 shadow-xl bg-primary text-primary-foreground rounded-3xl p-5 flex flex-col justify-between group">
               <div>
@@ -89,18 +89,18 @@ export default function Home() {
             </Card>
           ) : (
             <Card className="col-span-9 border-2 border-white/20 shadow-xl bg-primary text-primary-foreground rounded-3xl p-5 flex items-center justify-center">
-               <p className="text-sm font-medium opacity-70">No active trips yet</p>
+               <p className="text-sm font-bold tracking-tight opacity-90">No active trips yet</p>
             </Card>
           )}
           
           <Link 
             href="/trips/new" 
-            className="col-span-3 bg-white shadow-xl rounded-3xl flex flex-col items-center justify-center gap-2 group hover:bg-muted transition-all duration-300 transform hover:-translate-y-0.5 border-2 border-accent/20 hover:border-accent"
+            className="col-span-3 bg-white shadow-xl rounded-3xl flex flex-col items-center justify-center p-4 gap-2 group hover:bg-muted transition-all duration-300 transform hover:-translate-y-0.5 border-2 border-accent/20 hover:border-accent"
           >
-            <div className="h-10 w-10 rounded-2xl bg-primary/5 flex items-center justify-center text-primary group-hover:scale-110 group-hover:bg-primary/10 transition-all">
-              <Plus className="h-5 w-5" />
+            <div className="h-12 w-12 rounded-2xl bg-primary/5 flex items-center justify-center text-primary group-hover:scale-110 group-hover:bg-primary/10 transition-all shadow-sm">
+              <Plus className="h-6 w-6" />
             </div>
-            <span className="text-[8px] font-extrabold text-muted-foreground text-center px-1">New trip</span>
+            <span className="text-[10px] font-extrabold text-muted-foreground text-center px-1 uppercase tracking-tighter group-hover:text-primary transition-colors">New trip</span>
           </Link>
         </div>
       </section>
