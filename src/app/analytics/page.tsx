@@ -18,10 +18,10 @@ export default function AnalyticsPage() {
   return (
     <div className="max-w-md mx-auto min-h-screen bg-background pb-24">
       <header className="px-safe-pad pt-12 pb-10 bg-foreground text-background rounded-b-[2.5rem] shadow-lg shadow-black/10">
-        <h1 className="text-3xl font-bold tracking-tight">
+        <h1 className="text-3xl font-bold tracking-tight text-background">
           Analytics
         </h1>
-        <p className="text-sm opacity-70 mt-1 font-medium">
+        <p className="text-sm opacity-70 mt-1 font-medium text-background">
           Your spending patterns at a glance
         </p>
       </header>
