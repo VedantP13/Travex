@@ -65,8 +65,8 @@ export default function Home() {
 
       {/* Dynamic Trip Spotlight */}
       <section className="px-safe-pad -mt-8">
-        <div className="grid grid-cols-6 gap-3">
-          <Card className="col-span-4 border-none shadow-xl bg-primary text-primary-foreground rounded-3xl p-5 flex flex-col justify-between group">
+        <div className="grid grid-cols-12 gap-3">
+          <Card className="col-span-9 border-none shadow-xl bg-primary text-primary-foreground rounded-3xl p-5 flex flex-col justify-between group">
             <div>
               <div className="flex items-center gap-2 mb-2">
                 <span className="h-2 w-2 rounded-full bg-accent animate-pulse" />
@@ -85,12 +85,12 @@ export default function Home() {
           
           <Link 
             href="/trips/new" 
-            className="col-span-2 bg-white shadow-xl rounded-3xl flex flex-col items-center justify-center gap-2 group hover:bg-muted/50 transition-colors border-none"
+            className="col-span-3 bg-white shadow-xl rounded-3xl flex flex-col items-center justify-center gap-2 group hover:bg-muted/50 transition-colors border-none"
           >
-            <div className="h-12 w-12 rounded-2xl bg-primary/5 flex items-center justify-center text-primary group-hover:scale-110 transition-transform">
-              <Plus className="h-6 w-6" />
+            <div className="h-10 w-10 rounded-2xl bg-primary/5 flex items-center justify-center text-primary group-hover:scale-110 transition-transform">
+              <Plus className="h-5 w-5" />
             </div>
-            <span className="text-[9px] font-bold uppercase tracking-wider text-muted-foreground">New Trip</span>
+            <span className="text-[8px] font-extrabold uppercase tracking-wider text-muted-foreground text-center px-1">New Trip</span>
           </Link>
         </div>
       </section>
