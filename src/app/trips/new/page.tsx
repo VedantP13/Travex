@@ -3,7 +3,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { ArrowLeft, Plus, X, UserPlus, Lightbulb, Loader2 } from "lucide-react";
+import { ArrowLeft, Plus, X, UserPlus, Lightbulb, Loader2, Calendar } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
@@ -29,6 +29,7 @@ export default function CreateTrip() {
   const firestore = useFirestore();
   
   const [name, setName] = useState("");
+  const [date, setDate] = useState("");
   const [isCreating, setIsCreating] = useState(false);
   const [participants, setParticipants] = useState<Participant[]>([
     { id: "p1", name: "Marco (You)", isUser: true, avatar: "https://picsum.photos/seed/user1/50/50", familyMembers: [] }
@@ -98,7 +99,6 @@ export default function CreateTrip() {
 
     setIsCreating(true);
     
-    // Safety check: ensure firestore is initialized
     if (!firestore) {
       toast({
         title: "Database connection failed",
@@ -112,10 +112,9 @@ export default function CreateTrip() {
     try {
       const tripRef = collection(firestore, "trips");
       
-      // We don't await the promise directly to prevent UI hanging if Firebase is offline/retrying
-      // Instead, we use a standard timeout or let the optimistic write happen
       addDoc(tripRef, {
         name: name.trim(),
+        date: date.trim() || null,
         participants: participants,
         createdAt: serverTimestamp(),
         status: "Active",
@@ -167,6 +166,20 @@ export default function CreateTrip() {
             value={name}
             onChange={e => setName(e.target.value)}
           />
+        </div>
+
+        <div className="space-y-4">
+          <Label className="text-sm font-bold text-muted-foreground ml-1">Trip date (Optional)</Label>
+          <div className="relative">
+            <Calendar className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground/50" />
+            <Input 
+              type="text"
+              placeholder="e.g. July 2024 or 12-15 Aug" 
+              className="h-14 text-lg rounded-2xl pl-12 focus-visible:ring-primary shadow-sm bg-white"
+              value={date}
+              onChange={e => setDate(e.target.value)}
+            />
+          </div>
         </div>
 
         <div className="space-y-4">
