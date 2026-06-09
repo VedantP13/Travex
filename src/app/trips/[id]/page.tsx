@@ -128,7 +128,7 @@ export default function TripDetails() {
                 <input 
                   type="text" 
                   placeholder="Search expenses..." 
-                  className="w-full bg-white rounded-xl py-2 pl-10 pr-4 text-sm border-none shadow-sm focus:ring-1 focus:ring-primary outline-none placeholder:text-muted-foreground/50"
+                  className="w-full bg-muted rounded-xl py-2 pl-10 pr-4 text-sm border-none shadow-sm focus:ring-1 focus:ring-primary outline-none placeholder:text-muted-foreground/50"
                 />
               </div>
               <Button size="icon" variant="outline" className="rounded-xl h-10 w-10 border-none bg-white shadow-sm">

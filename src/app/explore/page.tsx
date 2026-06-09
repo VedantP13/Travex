@@ -37,7 +37,7 @@ export default function ExplorePage() {
           <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
           <Input 
             placeholder="Search destinations..." 
-            className="h-14 pl-12 rounded-2xl bg-white focus-visible:ring-primary shadow-sm"
+            className="h-14 pl-12 rounded-2xl bg-muted focus-visible:ring-primary shadow-sm border-none"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
           />

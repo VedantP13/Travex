@@ -28,7 +28,7 @@ export default function FriendsPage() {
           <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
           <Input 
             placeholder="Find friends by name or ID..." 
-            className="h-14 pl-12 rounded-2xl bg-white border-none shadow-sm focus-visible:ring-primary"
+            className="h-14 pl-12 rounded-2xl bg-muted border-none shadow-sm focus-visible:ring-primary"
           />
         </div>
       </header>
