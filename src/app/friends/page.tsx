@@ -78,7 +78,7 @@ export default function FriendsPage() {
                         <User className="h-4 w-4" />
                         <span className="font-medium">View Profile</span>
                       </DropdownMenuItem>
-                      <DropdownMenuItem className="rounded-xl flex items-center gap-2 cursor-pointer py-2.5 text-destructive focus:text-destructive">
+                      <DropdownMenuItem className="rounded-xl flex items-center gap-2 cursor-pointer py-2.5 text-destructive focus:bg-destructive focus:text-destructive-foreground">
                         <UserX className="h-4 w-4" />
                         <span className="font-medium">Remove Friend</span>
                       </DropdownMenuItem>
