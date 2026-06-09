@@ -1,11 +1,17 @@
 "use client";
 
-import { UserPlus, Search, UserCheck } from "lucide-react";
+import { UserPlus, Search, MoreVertical, User, UserX } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Card, CardContent } from "@/components/ui/card";
 import { BottomNav } from "@/components/bottom-nav";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 const FRIENDS = [
   { name: "Sonia", status: "Active", avatar: "https://picsum.photos/seed/user2/100/100" },
@@ -60,9 +66,24 @@ export default function FriendsPage() {
                       </p>
                     </div>
                   </div>
-                  <Button size="icon" variant="ghost" className="text-primary hover:bg-primary/10 rounded-xl">
-                    <UserCheck className="h-5 w-5" />
-                  </Button>
+                  
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button size="icon" variant="ghost" className="text-muted-foreground hover:bg-primary/10 rounded-xl">
+                        <MoreVertical className="h-5 w-5" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end" className="rounded-2xl min-w-[160px] p-2">
+                      <DropdownMenuItem className="rounded-xl flex items-center gap-2 cursor-pointer py-2.5">
+                        <User className="h-4 w-4" />
+                        <span className="font-medium">View Profile</span>
+                      </DropdownMenuItem>
+                      <DropdownMenuItem className="rounded-xl flex items-center gap-2 cursor-pointer py-2.5 text-destructive focus:text-destructive">
+                        <UserX className="h-4 w-4" />
+                        <span className="font-medium">Remove Friend</span>
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
                 </CardContent>
               </Card>
             ))}
