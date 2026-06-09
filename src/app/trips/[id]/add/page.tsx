@@ -16,7 +16,8 @@ import {
   PieChart,
   User,
   Home,
-  MapPin
+  MapPin,
+  AlignLeft
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -167,13 +168,15 @@ export default function AddExpenseWizard() {
               </div>
 
               <div className="relative">
+                <AlignLeft className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground/50" />
                 <Input 
                   placeholder="What was it for?"
-                  className="h-16 text-lg rounded-2xl pl-4 pr-4 focus-visible:ring-primary shadow-sm"
+                  className="h-16 text-lg rounded-2xl pl-12 pr-4 focus-visible:ring-primary shadow-sm"
                   value={formData.description}
                   onChange={e => setFormData(prev => ({ ...prev, description: e.target.value }))}
                   onBlur={handleDescriptionBlur}
                 />
+                {isAnalyzing && <Loader2 className="absolute right-4 top-1/2 -translate-y-1/2 h-4 w-4 animate-spin text-primary" />}
               </div>
 
               <div className="space-y-3">
@@ -334,7 +337,6 @@ export default function AddExpenseWizard() {
                     onChange={e => setFormData(prev => ({ ...prev, category: e.target.value }))}
                   />
                   <Tag className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
-                  {isAnalyzing && <Loader2 className="absolute right-4 top-1/2 -translate-y-1/2 h-4 w-4 animate-spin text-primary" />}
                 </div>
                 <div className="flex flex-wrap gap-2 pt-2">
                   {["Dining", "Transport", "Stay", "Shopping"].map(cat => (
