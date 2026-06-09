@@ -3,7 +3,7 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import { Plus, Users, ChevronRight, Zap } from "lucide-react";
+import { Plus, Users, ChevronRight, Compass } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -56,7 +56,7 @@ export default function Home() {
         <div className="flex justify-between items-center mb-10">
           <div className="flex items-center gap-4">
             <div className="h-12 w-12 bg-accent rounded-2xl flex items-center justify-center shadow-xl shadow-accent/20 transition-transform hover:scale-105">
-              <Zap className="h-7 w-7 text-foreground fill-current" />
+              <Compass className="h-7 w-7 text-foreground fill-current" />
             </div>
             <div>
               <h1 className="text-2xl font-bold tracking-tight text-background">Travex</h1>
@@ -105,7 +105,7 @@ export default function Home() {
             </Card>
           ) : (
             <Card className="col-span-8 border-none shadow-2xl bg-primary text-primary-foreground rounded-[2rem] p-6 flex flex-col items-center justify-center text-center">
-               <Zap className="h-10 w-10 text-accent mb-3 opacity-50" />
+               <Compass className="h-10 w-10 text-accent mb-3 opacity-50" />
                <p className="text-sm font-bold tracking-tight opacity-90 leading-tight">No active adventures yet</p>
             </Card>
           )}
@@ -137,7 +137,7 @@ export default function Home() {
 
         {loading ? (
           <div className="flex flex-col items-center py-24 text-muted-foreground gap-3">
-            <Zap className="h-10 w-10 animate-pulse text-primary" />
+            <Compass className="h-10 w-10 animate-pulse text-primary" />
             <p className="text-sm font-bold tracking-tight">Gathering your journeys...</p>
           </div>
         ) : error ? (

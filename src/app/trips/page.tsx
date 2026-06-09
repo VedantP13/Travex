@@ -4,7 +4,7 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { ArrowLeft, Plus, Users, Zap, Search } from "lucide-react";
+import { ArrowLeft, Plus, Users, Compass, Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -75,7 +75,7 @@ export default function AllTripsPage() {
       <main className="px-safe-pad pt-8 space-y-6 flex-1">
         {loading ? (
           <div className="flex flex-col items-center py-20 text-muted-foreground gap-3">
-            <Zap className="h-10 w-10 animate-pulse text-primary" />
+            <Compass className="h-10 w-10 animate-pulse text-primary" />
             <p className="text-sm font-bold">Bringing your trips to life...</p>
           </div>
         ) : filteredTrips.length > 0 ? (
@@ -129,7 +129,7 @@ export default function AllTripsPage() {
              <p className="text-lg font-bold text-foreground">No trips found</p>
              <p className="text-sm text-muted-foreground mt-2 mb-6">Try searching for something else or start a new adventure.</p>
              <Link href="/trips/new">
-               <Button className="font-bold rounded-2xl px-10 h-14 shadow-lg shadow-primary/20 bg-primary hover:bg-primary/90 transition-transform hover:scale-105">
+               <Button className="font-bold rounded-2xl px-10 h-14 shadow-lg shadow-primary/20 bg-primary hover:bg-primary/90 transition-transform hover:scale-110">
                  Create new trip
                </Button>
              </Link>
