@@ -1,8 +1,8 @@
+
 "use client";
 
-import { useState, useEffect } from "react";
 import Link from "next/link";
-import { Plus, Users, ChevronRight, Compass, Map } from "lucide-react";
+import { Plus, ChevronRight, Compass, Map, Users } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -10,42 +10,11 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { PlaceHolderImages } from "@/lib/placeholder-images";
 import { cn } from "@/lib/utils";
 import { BottomNav } from "@/components/bottom-nav";
-import { db } from "@/lib/firebase/config";
-import { collection, onSnapshot, query, orderBy } from "firebase/firestore";
-import { useToast } from "@/hooks/use-toast";
 import { AnimatedCompass } from "@/components/animated-compass";
+import { useTrips } from "@/context/trips-context";
 
 export default function Home() {
-  const [trips, setTrips] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(false);
-  const { toast } = useToast();
-
-  useEffect(() => {
-    const q = query(collection(db, "trips"), orderBy("createdAt", "desc"));
-    const unsubscribe = onSnapshot(q, 
-      (snapshot) => {
-        const tripData = snapshot.docs.map(doc => ({
-          id: doc.id,
-          ...doc.data()
-        }));
-        setTrips(tripData);
-        setLoading(false);
-        setError(false);
-      },
-      (error) => {
-        console.error("Firestore connection failed:", error);
-        setError(true);
-        setLoading(false);
-        toast({
-          title: "Connection error",
-          description: "Could not sync trips. Please check your Firebase config.",
-          variant: "destructive"
-        });
-      }
-    );
-    return () => unsubscribe();
-  }, [toast]);
+  const { trips, loading, error } = useTrips();
 
   const activeTrip = trips.find(t => t.status === "Active") || trips[0];
 
@@ -154,7 +123,7 @@ export default function Home() {
           </div>
         ) : (
           <div className="grid gap-6">
-            {trips.length > 0 ? trips.map((trip) => (
+            {trips.length > 0 ? trips.slice(0, 3).map((trip) => (
               <Link key={trip.id} href={`/trips/${trip.id}`}>
                 <Card className="overflow-hidden border-none shadow-sm hover:shadow-lg transition-all bg-white rounded-[2rem] group">
                   <div className="h-36 w-full relative">

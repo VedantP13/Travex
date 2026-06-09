@@ -29,25 +29,26 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { suggestExpenseCategory } from "@/ai/flows/suggest-expense-category";
 import { useToast } from "@/hooks/use-toast";
 import { db } from "@/lib/firebase/config";
-import { collection, onSnapshot, addDoc, doc, updateDoc, increment, serverTimestamp, query, orderBy } from "firebase/firestore";
+import { collection, addDoc, doc, updateDoc, increment, serverTimestamp, onSnapshot } from "firebase/firestore";
+import { useTrips } from "@/context/trips-context";
 
 export default function AddExpenseWizard() {
   const router = useRouter();
   const params = useParams();
   const { toast } = useToast();
+  const { trips } = useTrips();
   
   const [step, setStep] = useState(1);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [isPosting, setIsPosting] = useState(false);
-  const [trips, setTrips] = useState<any[]>([]);
   const [selectedTripId, setSelectedTripId] = useState<string>((params?.id as string) || "");
   const [currentTrip, setCurrentTrip] = useState<any>(null);
   
   const [formData, setFormData] = useState({
     description: "",
     amount: "",
-    payerId: "p1",
-    payerName: "Marco",
+    payerId: "",
+    payerName: "",
     splitType: "equal_person",
     selectedIndividuals: [] as string[],
     date: new Date().toISOString().split('T')[0],
@@ -55,26 +56,21 @@ export default function AddExpenseWizard() {
     category: ""
   });
 
+  // Set default selectedTripId if not provided
   useEffect(() => {
-    const q = query(collection(db, "trips"), orderBy("createdAt", "desc"));
-    const unsubscribe = onSnapshot(q, (snapshot) => {
-      const tripData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-      setTrips(tripData);
-      if (!selectedTripId && tripData.length > 0) {
-        setSelectedTripId(tripData[0].id);
-      }
-    });
-    return () => unsubscribe();
-  }, []);
+    if (!selectedTripId && trips.length > 0) {
+      setSelectedTripId(trips[0].id);
+    }
+  }, [selectedTripId, trips]);
 
+  // Sync current trip details and set default payer
   useEffect(() => {
     if (!selectedTripId) return;
     const unsubscribe = onSnapshot(doc(db, "trips", selectedTripId), (snapshot) => {
       if (snapshot.exists()) {
         const data = snapshot.data();
         setCurrentTrip({ id: snapshot.id, ...data });
-        // Set default payer to first participant if exists
-        if (data.participants?.length > 0) {
+        if (data.participants?.length > 0 && !formData.payerId) {
           setFormData(prev => ({ 
             ...prev, 
             payerId: data.participants[0].id,
@@ -84,7 +80,7 @@ export default function AddExpenseWizard() {
       }
     });
     return () => unsubscribe();
-  }, [selectedTripId]);
+  }, [selectedTripId, formData.payerId]);
 
   const allTargets = useMemo(() => {
     if (!currentTrip?.participants) return [];
@@ -104,9 +100,9 @@ export default function AddExpenseWizard() {
     } else if (formData.splitType === 'equal_family') {
       setFormData(prev => ({ ...prev, selectedIndividuals: currentTrip?.participants?.map((p: any) => p.id) || [] }));
     } else if (formData.splitType === 'just_me') {
-      setFormData(prev => ({ ...prev, selectedIndividuals: ["p1"] }));
+      setFormData(prev => ({ ...prev, selectedIndividuals: [formData.payerId || "p1"] }));
     }
-  }, [formData.splitType, allTargets, currentTrip]);
+  }, [formData.splitType, allTargets, currentTrip, formData.payerId]);
 
   const handleDescriptionBlur = async () => {
     if (formData.description.length > 3 && !formData.category) {
@@ -137,7 +133,6 @@ export default function AddExpenseWizard() {
         createdAt: serverTimestamp(),
       });
 
-      // Update total spent in trip doc
       await updateDoc(doc(db, "trips", selectedTripId), {
         totalSpent: increment(amount)
       });
@@ -310,7 +305,7 @@ export default function AddExpenseWizard() {
                             <AvatarImage src={p.avatar} />
                           </Avatar>
                           <span className="text-xs font-bold">
-                            {showAsFamily ? `${p.name}'s family` : p.name} {p.name === "Marco" && !showAsFamily ? "(You)" : ""}
+                            {showAsFamily ? `${p.name}'s family` : p.name} {p.name === "Marco" ? "(You)" : ""}
                           </span>
                         </div>
                         {isSelected && <Check className="h-4 w-4 text-primary" />}

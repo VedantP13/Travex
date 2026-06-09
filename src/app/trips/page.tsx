@@ -1,9 +1,10 @@
+
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { ArrowLeft, Plus, Users, Search, Compass } from "lucide-react";
+import { ArrowLeft, Plus, Users, Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -11,41 +12,13 @@ import { Input } from "@/components/ui/input";
 import { PlaceHolderImages } from "@/lib/placeholder-images";
 import { cn } from "@/lib/utils";
 import { BottomNav } from "@/components/bottom-nav";
-import { db } from "@/lib/firebase/config";
-import { collection, onSnapshot, query, orderBy } from "firebase/firestore";
-import { useToast } from "@/hooks/use-toast";
 import { AnimatedCompass } from "@/components/animated-compass";
+import { useTrips } from "@/context/trips-context";
 
 export default function AllTripsPage() {
   const router = useRouter();
-  const [trips, setTrips] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
+  const { trips, loading, error } = useTrips();
   const [searchQuery, setSearchQuery] = useState("");
-  const { toast } = useToast();
-
-  useEffect(() => {
-    const q = query(collection(db, "trips"), orderBy("createdAt", "desc"));
-    const unsubscribe = onSnapshot(q, 
-      (snapshot) => {
-        const tripData = snapshot.docs.map(doc => ({
-          id: doc.id,
-          ...doc.data()
-        }));
-        setTrips(tripData);
-        setLoading(false);
-      },
-      (error) => {
-        console.error("Firestore connection failed:", error);
-        toast({
-          title: "Connection error",
-          description: "Could not sync trips. Please check your Firebase config.",
-          variant: "destructive"
-        });
-        setLoading(false);
-      }
-    );
-    return () => unsubscribe();
-  }, [toast]);
 
   const filteredTrips = trips.filter(t => 
     t.name.toLowerCase().includes(searchQuery.toLowerCase())
@@ -77,6 +50,11 @@ export default function AllTripsPage() {
           <div className="flex flex-col items-center py-20 text-muted-foreground gap-3">
             <AnimatedCompass className="h-10 w-10 text-primary" />
             <p className="text-sm font-bold">Bringing your trips to life...</p>
+          </div>
+        ) : error ? (
+          <div className="text-center py-20 bg-destructive/5 rounded-3xl border-2 border-dashed border-destructive/20 px-8">
+             <p className="text-sm font-bold text-destructive">Could not load trips</p>
+             <Button variant="outline" className="mt-4 rounded-xl" onClick={() => window.location.reload()}>Retry</Button>
           </div>
         ) : filteredTrips.length > 0 ? (
           <div className="grid gap-5">
