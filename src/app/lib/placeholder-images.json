@@ -20,6 +20,18 @@
       "imageHint": "paris eiffel"
     },
     {
+      "id": "trip-tokyo",
+      "description": "Neon lights of Shinjuku at night",
+      "imageUrl": "https://picsum.photos/seed/tokyo/600/400",
+      "imageHint": "tokyo city night"
+    },
+    {
+      "id": "trip-rome",
+      "description": "The Colosseum under a clear blue sky",
+      "imageUrl": "https://picsum.photos/seed/rome/600/400",
+      "imageHint": "rome colosseum"
+    },
+    {
       "id": "avatar-1",
       "description": "Profile picture of a smiling traveler",
       "imageUrl": "https://picsum.photos/seed/avatar1/150/150",

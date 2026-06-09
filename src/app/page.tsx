@@ -1,11 +1,13 @@
+
 import Link from "next/link";
-import { Plus, Wallet, Map, Users, TrendingUp, ChevronRight } from "lucide-react";
+import { Plus, Map, Users, TrendingUp } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { PlaceHolderImages } from "@/lib/placeholder-images";
 import { cn } from "@/lib/utils";
+import { BottomNav } from "@/components/bottom-nav";
 
 const TRIPS = [
   {
@@ -137,32 +139,7 @@ export default function Home() {
         </div>
       </main>
 
-      {/* Bottom Nav Simulation */}
-      <nav className="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-md bg-white border-t flex justify-around py-3 px-6 z-50">
-        <Link href="/" className="text-primary flex flex-col items-center">
-          <Wallet className="h-6 w-6" />
-          <span className="text-[10px] mt-1 font-bold">Wallet</span>
-        </Link>
-        <div className="text-muted-foreground flex flex-col items-center opacity-50">
-          <Map className="h-6 w-6" />
-          <span className="text-[10px] mt-1 font-medium">Explore</span>
-        </div>
-        <div className="absolute -top-6 left-1/2 -translate-x-1/2">
-          <Link href="/trips/bali-2024/add">
-            <Button size="icon" className="h-12 w-12 rounded-full shadow-lg shadow-primary/40 bg-accent hover:bg-accent/90">
-              <Plus className="h-6 w-6" />
-            </Button>
-          </Link>
-        </div>
-        <div className="text-muted-foreground flex flex-col items-center opacity-50">
-          <Users className="h-6 w-6" />
-          <span className="text-[10px] mt-1 font-medium">Friends</span>
-        </div>
-        <div className="text-muted-foreground flex flex-col items-center opacity-50">
-          <div className="h-6 w-6 rounded-full border-2 border-muted-foreground flex items-center justify-center text-[8px] font-bold">M</div>
-          <span className="text-[10px] mt-1 font-medium">Profile</span>
-        </div>
-      </nav>
+      <BottomNav />
     </div>
   );
 }
