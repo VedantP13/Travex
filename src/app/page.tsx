@@ -66,7 +66,7 @@ export default function Home() {
       {/* Dynamic Trip Spotlight */}
       <section className="px-safe-pad -mt-8">
         <div className="grid grid-cols-12 gap-3">
-          <Card className="col-span-9 border-none shadow-xl bg-primary text-primary-foreground rounded-3xl p-5 flex flex-col justify-between group">
+          <Card className="col-span-9 border-2 border-white/10 shadow-xl bg-primary text-primary-foreground rounded-3xl p-5 flex flex-col justify-between group">
             <div>
               <div className="flex items-center gap-2 mb-2">
                 <span className="h-2 w-2 rounded-full bg-accent animate-pulse" />
