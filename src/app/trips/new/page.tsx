@@ -144,10 +144,10 @@ export default function CreateTrip() {
 
                     <div className="space-y-3">
                       <div className="flex flex-wrap gap-2 items-center">
-                        {/* Primary Member (Head) - Styled as a normal capsule without X */}
+                        {/* Primary Member (Head) - Styled as a normal capsule with a subtle light fill */}
                         <Badge 
                           variant="outline" 
-                          className="px-3 py-1.5 rounded-full flex items-center gap-2 bg-white border-primary/30 text-primary font-bold shadow-sm"
+                          className="px-3 py-1.5 rounded-full flex items-center gap-2 bg-primary/5 border-primary/30 text-primary font-bold shadow-sm"
                         >
                           <span className="text-[10px] font-bold uppercase tracking-wider">{headName}</span>
                         </Badge>
