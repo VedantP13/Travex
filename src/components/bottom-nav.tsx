@@ -1,3 +1,4 @@
+
 "use client";
 
 import Link from "next/link";
@@ -23,8 +24,6 @@ export function BottomNav() {
     <nav className="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-md bg-white border-t flex justify-around py-3 px-6 z-50">
       {navItems.map((item, idx) => {
         const isActive = pathname === item.href;
-        // Using a solid color (muted-foreground) instead of an opacity modifier to avoid icon path overlap artifacts.
-        // muted-foreground is now configured as a clear light grey in globals.css.
         const colorClass = isActive ? "text-primary" : "text-muted-foreground";
 
         // Place the prominent FAB in the middle
@@ -36,7 +35,7 @@ export function BottomNav() {
                   <Link href={`/trips/${activeTripId}/add`}>
                     <Button 
                       size="icon" 
-                      className="h-14 w-14 rounded-full shadow-xl shadow-primary/40 bg-accent hover:bg-accent/90 border-4 border-white"
+                      className="h-14 w-14 rounded-full shadow-xl shadow-primary/40 bg-accent hover:bg-accent transition-all duration-300 hover:scale-110 active:scale-95 border-4 border-white"
                       title="Add expense"
                     >
                       <Plus className="h-7 w-7" />

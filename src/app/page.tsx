@@ -95,9 +95,9 @@ export default function Home() {
           
           <Link 
             href="/trips/new" 
-            className="col-span-3 bg-white shadow-xl rounded-3xl flex flex-col items-center justify-center gap-2 group hover:bg-muted/50 transition-colors border-2 border-accent/20"
+            className="col-span-3 bg-white shadow-xl rounded-3xl flex flex-col items-center justify-center gap-2 group hover:bg-muted transition-all duration-300 transform hover:-translate-y-0.5 border-2 border-accent/20 hover:border-accent"
           >
-            <div className="h-10 w-10 rounded-2xl bg-primary/5 flex items-center justify-center text-primary group-hover:scale-110 transition-transform">
+            <div className="h-10 w-10 rounded-2xl bg-primary/5 flex items-center justify-center text-primary group-hover:scale-110 group-hover:bg-primary/10 transition-all">
               <Plus className="h-5 w-5" />
             </div>
             <span className="text-[8px] font-extrabold text-muted-foreground text-center px-1">New trip</span>
