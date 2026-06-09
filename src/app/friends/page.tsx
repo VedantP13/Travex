@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import { UserPlus, Search, MoreVertical, User, UserX } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -12,6 +13,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { cn } from "@/lib/utils";
 
 const FRIENDS = [
   { name: "Sonia", status: "Active", avatar: "https://picsum.photos/seed/user2/100/100" },
@@ -20,6 +22,8 @@ const FRIENDS = [
 ];
 
 export default function FriendsPage() {
+  const [activeMenuName, setActiveMenuName] = useState<string | null>(null);
+
   return (
     <div className="max-w-md mx-auto min-h-screen bg-background pb-24">
       <header className="px-safe-pad pt-12 pb-8 bg-white rounded-b-[2rem] shadow-sm">
@@ -50,43 +54,56 @@ export default function FriendsPage() {
         <section className="space-y-4">
           <h2 className="text-xl font-bold text-foreground tracking-tight">Your Friends</h2>
           <div className="grid gap-3">
-            {FRIENDS.map((friend) => (
-              <Card key={friend.name} className="border-none shadow-sm bg-white rounded-2xl overflow-hidden">
-                <CardContent className="p-4 flex items-center justify-between">
-                  <div className="flex items-center gap-4">
-                    <Avatar className="h-12 w-12">
-                      <AvatarImage src={friend.avatar} />
-                      <AvatarFallback>{friend.name[0]}</AvatarFallback>
-                    </Avatar>
-                    <div>
-                      <h3 className="font-bold text-base">{friend.name}</h3>
-                      <p className="text-[10px] uppercase font-bold text-muted-foreground flex items-center gap-1.5 mt-0.5">
-                        <span className={`h-2 w-2 rounded-full ${friend.status === 'Active' ? 'bg-green-500' : 'bg-muted-foreground'}`} />
-                        {friend.status}
-                      </p>
+            {FRIENDS.map((friend) => {
+              const isDimmed = activeMenuName !== null && activeMenuName !== friend.name;
+              
+              return (
+                <Card 
+                  key={friend.name} 
+                  className={cn(
+                    "border-none shadow-sm bg-white rounded-2xl overflow-hidden transition-all duration-300",
+                    isDimmed && "opacity-30 grayscale-[0.5] scale-[0.98] blur-[0.5px]"
+                  )}
+                >
+                  <CardContent className="p-4 flex items-center justify-between">
+                    <div className="flex items-center gap-4">
+                      <Avatar className="h-12 w-12">
+                        <AvatarImage src={friend.avatar} />
+                        <AvatarFallback>{friend.name[0]}</AvatarFallback>
+                      </Avatar>
+                      <div>
+                        <h3 className="font-bold text-base">{friend.name}</h3>
+                        <p className="text-[10px] uppercase font-bold text-muted-foreground flex items-center gap-1.5 mt-0.5">
+                          <span className={cn(
+                            "h-2 w-2 rounded-full",
+                            friend.status === 'Active' ? 'bg-green-500' : 'bg-muted-foreground'
+                          )} />
+                          {friend.status}
+                        </p>
+                      </div>
                     </div>
-                  </div>
-                  
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button size="icon" variant="ghost" className="text-muted-foreground hover:bg-primary/10 rounded-xl">
-                        <MoreVertical className="h-5 w-5" />
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end" className="rounded-2xl min-w-[160px] p-2">
-                      <DropdownMenuItem className="rounded-xl flex items-center gap-2 cursor-pointer py-2.5">
-                        <User className="h-4 w-4" />
-                        <span className="font-medium">View Profile</span>
-                      </DropdownMenuItem>
-                      <DropdownMenuItem className="rounded-xl flex items-center gap-2 cursor-pointer py-2.5 text-destructive focus:bg-destructive focus:text-destructive-foreground">
-                        <UserX className="h-4 w-4" />
-                        <span className="font-medium">Remove Friend</span>
-                      </DropdownMenuItem>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-                </CardContent>
-              </Card>
-            ))}
+                    
+                    <DropdownMenu onOpenChange={(open) => setActiveMenuName(open ? friend.name : null)}>
+                      <DropdownMenuTrigger asChild>
+                        <Button size="icon" variant="ghost" className="text-muted-foreground hover:bg-primary/10 rounded-xl">
+                          <MoreVertical className="h-5 w-5" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end" className="rounded-2xl min-w-[160px] p-2">
+                        <DropdownMenuItem className="rounded-xl flex items-center gap-2 cursor-pointer py-2.5">
+                          <User className="h-4 w-4" />
+                          <span className="font-medium">View Profile</span>
+                        </DropdownMenuItem>
+                        <DropdownMenuItem className="rounded-xl flex items-center gap-2 cursor-pointer py-2.5 text-destructive focus:bg-destructive focus:text-destructive-foreground">
+                          <UserX className="h-4 w-4" />
+                          <span className="font-medium">Remove Friend</span>
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  </CardContent>
+                </Card>
+              );
+            })}
           </div>
         </section>
       </main>
