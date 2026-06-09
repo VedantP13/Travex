@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { ArrowLeft, Plus, Users, X, UserPlus, Save, Sparkles } from "lucide-react";
+import { ArrowLeft, Plus, Users, X, UserPlus, Save, Lightbulb } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
@@ -116,7 +116,7 @@ export default function CreateTrip() {
           </div>
 
           <Alert className="bg-primary/10 border-primary/30 rounded-2xl py-3">
-            <Sparkles className="h-5 w-5 text-primary" />
+            <Lightbulb className="h-5 w-5 text-primary" />
             <AlertDescription className="text-xs text-foreground/80 font-medium leading-relaxed">
               Traveling with others? Add their names! This helps Travex split costs perfectly by individual person or family later.
             </AlertDescription>
