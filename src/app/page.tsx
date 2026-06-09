@@ -39,9 +39,14 @@ export default function Home() {
       {/* Header */}
       <header className="px-safe-pad pt-8 pb-10 bg-foreground text-background rounded-b-[2.5rem] shadow-2xl shadow-black/10">
         <div className="flex justify-between items-center mb-8">
-          <div>
-            <h1 className="text-2xl font-bold tracking-tight">Travex</h1>
-            <p className="text-sm opacity-70">Welcome back, Marco</p>
+          <div className="flex items-center gap-3">
+            <div className="h-10 w-10 bg-accent rounded-xl flex items-center justify-center shadow-lg shadow-accent/20">
+              <Zap className="h-6 w-6 text-foreground fill-current" />
+            </div>
+            <div>
+              <h1 className="text-2xl font-bold tracking-tight">Travex</h1>
+              <p className="text-sm opacity-70">Welcome back, Marco</p>
+            </div>
           </div>
           <Link href="/profile">
             <Avatar className="h-10 w-10 border-2 border-accent hover:scale-105 transition-transform shadow-lg shadow-black/20">
