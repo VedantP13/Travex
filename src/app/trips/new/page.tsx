@@ -99,20 +99,10 @@ export default function CreateTrip() {
 
     setIsCreating(true);
     
-    if (!firestore) {
-      toast({
-        title: "Database connection failed",
-        description: "Firestore could not be initialized. Please check your config.",
-        variant: "destructive"
-      });
-      setIsCreating(false);
-      return;
-    }
-
     try {
       const tripRef = collection(firestore, "trips");
       
-      addDoc(tripRef, {
+      const docRef = await addDoc(tripRef, {
         name: name.trim(),
         date: date.trim() || null,
         participants: participants,
@@ -121,26 +111,21 @@ export default function CreateTrip() {
         totalSpent: 0,
         yourBalance: 0,
         image: `https://picsum.photos/seed/${Math.random()}/600/400`
-      }).then(() => {
-        toast({
-          title: "Trip created!",
-          description: `${name} has been set up successfully.`,
-        });
-        router.push("/");
-      }).catch((err) => {
-        console.error("Firestore error:", err);
-        toast({
-          title: "Error creating trip",
-          description: err.message || "Something went wrong.",
-          variant: "destructive"
-        });
-        setIsCreating(false);
       });
 
-    } catch (error: any) {
       toast({
-        title: "Error",
-        description: error.message,
+        title: "Trip created!",
+        description: `${name} has been set up successfully.`,
+      });
+      
+      // Redirect to the new trip page
+      router.push(`/trips/${docRef.id}`);
+
+    } catch (error: any) {
+      console.error("Firestore error:", error);
+      toast({
+        title: "Error creating trip",
+        description: error.message || "Something went wrong.",
         variant: "destructive"
       });
       setIsCreating(false);

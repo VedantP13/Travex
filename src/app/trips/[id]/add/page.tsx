@@ -29,7 +29,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { suggestExpenseCategory } from "@/ai/flows/suggest-expense-category";
 import { useToast } from "@/hooks/use-toast";
-import { db } from "@/lib/firebase/config";
+import { useFirestore } from "@/firebase";
 import { collection, addDoc, doc, updateDoc, increment, serverTimestamp, onSnapshot } from "firebase/firestore";
 import { useTrips } from "@/context/trips-context";
 import Link from "next/link";
@@ -39,6 +39,7 @@ export default function AddExpenseWizard() {
   const router = useRouter();
   const params = useParams();
   const { toast } = useToast();
+  const firestore = useFirestore();
   const { trips, loading: tripsLoading } = useTrips();
   
   const [step, setStep] = useState(1);
@@ -68,8 +69,8 @@ export default function AddExpenseWizard() {
 
   // Sync current trip details and set default payer
   useEffect(() => {
-    if (!selectedTripId) return;
-    const unsubscribe = onSnapshot(doc(db, "trips", selectedTripId), (snapshot) => {
+    if (!selectedTripId || !firestore) return;
+    const unsubscribe = onSnapshot(doc(firestore, "trips", selectedTripId), (snapshot) => {
       if (snapshot.exists()) {
         const data = snapshot.data();
         setCurrentTrip({ id: snapshot.id, ...data });
@@ -83,7 +84,7 @@ export default function AddExpenseWizard() {
       }
     });
     return () => unsubscribe();
-  }, [selectedTripId, formData.payerId]);
+  }, [selectedTripId, formData.payerId, firestore]);
 
   const allTargets = useMemo(() => {
     if (!currentTrip?.participants) return [];
@@ -125,18 +126,19 @@ export default function AddExpenseWizard() {
   const prevStep = () => setStep(prev => Math.max(prev - 1, 1));
 
   const handlePostExpense = async () => {
-    if (!selectedTripId || !formData.amount || !formData.description) return;
+    if (!selectedTripId || !formData.amount || !formData.description || !firestore) return;
     setIsPosting(true);
     try {
       const amount = parseFloat(formData.amount);
-      const expenseRef = collection(db, "trips", selectedTripId, "expenses");
+      const expenseRef = collection(firestore, "trips", selectedTripId, "expenses");
+      
       await addDoc(expenseRef, {
         ...formData,
         amount: amount,
         createdAt: serverTimestamp(),
       });
 
-      await updateDoc(doc(db, "trips", selectedTripId), {
+      await updateDoc(doc(firestore, "trips", selectedTripId), {
         totalSpent: increment(amount)
       });
 
@@ -146,12 +148,12 @@ export default function AddExpenseWizard() {
       });
       router.push(`/trips/${selectedTripId}`);
     } catch (error: any) {
+      console.error("Error posting expense:", error);
       toast({
         title: "Failed to post",
-        description: error.message,
+        description: error.message || "Something went wrong.",
         variant: "destructive"
       });
-    } finally {
       setIsPosting(false);
     }
   };
