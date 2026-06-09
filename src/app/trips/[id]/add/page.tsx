@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useEffect, useMemo } from "react";
@@ -15,7 +16,8 @@ import {
   Users,
   PieChart,
   User,
-  Home
+  Home,
+  MapPin
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -27,6 +29,11 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { suggestExpenseCategory } from "@/ai/flows/suggest-expense-category";
 import { useToast } from "@/hooks/use-toast";
 
+const TRIPS = [
+  { id: "bali-2024", name: "Summer in Bali" },
+  { id: "paris-fall", name: "Paris Fashion Week" }
+];
+
 const PARTICIPANTS = [
   { id: "p1", name: "Marco", avatar: "https://picsum.photos/seed/user1/50/50", familyMembers: ["Family 1A", "Family 1B"] },
   { id: "p2", name: "Sonia", avatar: "https://picsum.photos/seed/user2/50/50", familyMembers: ["Family 2A"] },
@@ -36,24 +43,26 @@ const PARTICIPANTS = [
 
 export default function AddExpenseWizard() {
   const router = useRouter();
-  const { id } = useParams();
+  const params = useParams();
   const { toast } = useToast();
   
   const [step, setStep] = useState(1);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const [selectedTripId, setSelectedTripId] = useState<string>((params?.id as string) || "bali-2024");
   
   const [formData, setFormData] = useState({
     description: "",
     amount: "",
     payerId: "p1",
     splitType: "equal_person",
-    selectedIndividuals: [] as string[], // IDs or Family Member unique keys
+    selectedIndividuals: [] as string[],
     date: new Date().toISOString().split('T')[0],
     paymentType: "UPI",
     category: ""
   });
 
-  // Flat list of all possible targets
+  const currentTrip = useMemo(() => TRIPS.find(t => t.id === selectedTripId), [selectedTripId]);
+
   const allTargets = useMemo(() => {
     const targets: { id: string; name: string; parentId: string; type: 'participant' | 'family' }[] = [];
     PARTICIPANTS.forEach(p => {
@@ -65,16 +74,12 @@ export default function AddExpenseWizard() {
     return targets;
   }, []);
 
-  // Update selection based on split type
   useEffect(() => {
     if (formData.splitType === 'equal_person') {
-      // Default selects all members of all families
       setFormData(prev => ({ ...prev, selectedIndividuals: allTargets.map(t => t.id) }));
     } else if (formData.splitType === 'equal_family') {
-      // Default selects all families (the heads)
       setFormData(prev => ({ ...prev, selectedIndividuals: PARTICIPANTS.map(p => p.id) }));
     } else if (formData.splitType === 'just_me') {
-      // Just you
       setFormData(prev => ({ ...prev, selectedIndividuals: ["p1"] }));
     }
   }, [formData.splitType, allTargets]);
@@ -128,9 +133,26 @@ export default function AddExpenseWizard() {
       <main className="flex-1 px-safe-pad py-8 overflow-y-auto">
         {step === 1 && (
           <div className="space-y-8 animate-in fade-in slide-in-from-right-4 duration-300">
-            <div className="space-y-2">
-              <h1 className="text-2xl font-bold">Amount</h1>
-              <p className="text-muted-foreground">How much and who paid?</p>
+            <div className="space-y-3">
+              <div className="flex justify-between items-center">
+                <h1 className="text-2xl font-bold">Amount</h1>
+                <Select value={selectedTripId} onValueChange={(val) => setSelectedTripId(val)}>
+                  <SelectTrigger className="w-[160px] h-9 rounded-2xl border-primary/20 bg-primary/5 text-primary font-bold text-[10px] focus:ring-0">
+                    <MapPin className="h-3 w-3 mr-1.5" />
+                    <SelectValue placeholder="Select Trip" />
+                  </SelectTrigger>
+                  <SelectContent className="rounded-2xl border-none shadow-2xl">
+                    {TRIPS.map(trip => (
+                      <SelectItem key={trip.id} value={trip.id} className="text-xs font-bold py-3">
+                        {trip.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <p className="text-sm text-muted-foreground">
+                Adding to <span className="text-primary font-bold">{currentTrip?.name}</span>
+              </p>
             </div>
 
             <div className="space-y-6">
@@ -157,7 +179,7 @@ export default function AddExpenseWizard() {
               </div>
 
               <div className="space-y-3">
-                <Label className="text-[10px] font-bold text-muted-foreground ml-1">Who paid?</Label>
+                <Label className="text-sm font-bold text-muted-foreground ml-1">Who paid?</Label>
                 <div className="grid grid-cols-2 gap-3">
                   {PARTICIPANTS.map(p => (
                     <Card 
@@ -236,7 +258,6 @@ export default function AddExpenseWizard() {
                         {isSelected && <Check className="h-4 w-4 text-primary" />}
                       </div>
                       
-                      {/* Hide internal family members when in 'Per Family' mode to avoid confusion */}
                       {!showAsFamily && p.familyMembers.length > 0 && (
                         <div className="pl-6 grid grid-cols-1 gap-2">
                           {p.familyMembers.map(fm => {
@@ -272,7 +293,7 @@ export default function AddExpenseWizard() {
 
             <div className="space-y-6">
               <div className="space-y-3">
-                <Label className="text-[10px] font-bold text-muted-foreground ml-1">Date</Label>
+                <Label className="text-sm font-bold text-muted-foreground ml-1">Date</Label>
                 <div className="relative">
                   <Input 
                     type="date"
@@ -285,7 +306,7 @@ export default function AddExpenseWizard() {
               </div>
 
               <div className="space-y-3">
-                <Label className="text-[10px] font-bold text-muted-foreground ml-1">Payment type</Label>
+                <Label className="text-sm font-bold text-muted-foreground ml-1">Payment type</Label>
                 <Select 
                   value={formData.paymentType} 
                   onValueChange={val => setFormData(prev => ({ ...prev, paymentType: val }))}
@@ -306,7 +327,7 @@ export default function AddExpenseWizard() {
               </div>
 
               <div className="space-y-3">
-                <Label className="text-[10px] font-bold text-muted-foreground ml-1">Category tags</Label>
+                <Label className="text-sm font-bold text-muted-foreground ml-1">Category tags</Label>
                 <div className="relative">
                   <Input 
                     placeholder="e.g. Dining, Travel, Fun"
@@ -338,7 +359,7 @@ export default function AddExpenseWizard() {
       <footer className="p-safe-pad border-t bg-white sticky bottom-0 z-10">
         <Button 
           className="w-full h-14 rounded-2xl text-lg font-bold shadow-lg shadow-primary/20 flex items-center justify-center gap-2"
-          onClick={step === 3 ? () => router.push(`/trips/${id}`) : nextStep}
+          onClick={step === 3 ? () => router.push(`/trips/${selectedTripId}`) : nextStep}
           disabled={step === 1 && (!formData.description || !formData.amount)}
         >
           {step === 3 ? "Post expense" : "Next step"}
