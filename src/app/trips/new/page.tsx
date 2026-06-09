@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState } from "react";
@@ -90,7 +91,7 @@ export default function CreateTrip() {
           <Label className="text-sm font-bold uppercase tracking-wider text-muted-foreground ml-1">Trip Name</Label>
           <Input 
             placeholder="e.g. Goa 2024, Europe Tour" 
-            className="h-14 text-lg rounded-2xl focus-visible:ring-primary shadow-sm"
+            className="h-14 text-lg rounded-2xl focus-visible:ring-primary shadow-sm bg-white"
             value={name}
             onChange={e => setName(e.target.value)}
           />
@@ -105,7 +106,7 @@ export default function CreateTrip() {
           <div className="flex gap-2">
             <Input 
               placeholder="Who's coming with you?" 
-              className="h-12 rounded-xl shadow-sm"
+              className="h-12 rounded-xl shadow-sm bg-white"
               value={newParticipantName}
               onChange={e => setNewParticipantName(e.target.value)}
               onKeyDown={e => e.key === 'Enter' && addParticipant()}
@@ -115,7 +116,7 @@ export default function CreateTrip() {
             </Button>
           </div>
 
-          <Alert className="bg-primary/10 border-primary/30 rounded-2xl py-3">
+          <Alert className="bg-primary/10 border-primary/30 rounded-2xl py-3 shadow-sm">
             <Lightbulb className="h-5 w-5 text-primary" />
             <AlertDescription className="text-xs text-foreground/80 font-medium leading-relaxed">
               Traveling with others? Add their names! This helps Travex split costs perfectly by individual person or family later.
@@ -141,7 +142,7 @@ export default function CreateTrip() {
                   </div>
 
                   <div className="pl-13 space-y-2">
-                    <div className="flex flex-wrap gap-2">
+                    <div className="flex flex-wrap gap-2 items-center">
                       {p.familyMembers.map((fm) => (
                         <Badge 
                           key={fm} 
@@ -160,7 +161,7 @@ export default function CreateTrip() {
                           <Input 
                             autoFocus
                             placeholder="Add member name..." 
-                            className="h-8 text-xs rounded-lg"
+                            className="h-8 text-xs rounded-lg bg-white"
                             value={newFamilyMemberName}
                             onChange={e => setNewFamilyMemberName(e.target.value)}
                             onKeyDown={e => e.key === 'Enter' && addFamilyMember(p.id)}
@@ -174,10 +175,10 @@ export default function CreateTrip() {
                         <Button 
                           variant="ghost" 
                           size="sm" 
-                          className="h-7 text-[10px] font-bold uppercase text-primary hover:bg-primary/5 p-0 px-2 flex items-center gap-1"
+                          className="h-7 text-[10px] font-bold uppercase text-primary hover:bg-primary/20 hover:text-primary p-0 px-3 flex items-center gap-1 bg-primary/5 rounded-full transition-colors border border-primary/10"
                           onClick={() => setActiveFamilyMemberInput(p.id)}
                         >
-                          <Plus className="h-3 w-3" /> Add Family Member
+                          <Plus className="h-3.5 w-3.5" /> Add Family Member
                         </Button>
                       )}
                     </div>
