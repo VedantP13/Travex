@@ -50,8 +50,7 @@ const AutomateCategoryMappingImprovementOutputSchema = z.object({
   reasoning: z
     .string()
     .describe('An explanation for the suggested mapping rule or new category.'),
-  confidenceScore: z
-umber().describe(
+  confidenceScore: z.number().describe(
     'A confidence score (0-1) for the suggestion, where 1 is highly confident.'
   ),
 });

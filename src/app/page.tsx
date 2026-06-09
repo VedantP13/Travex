@@ -15,7 +15,7 @@ const TRIPS = [
     totalSpent: 1250.00,
     yourBalance: -45.50,
     participants: 4,
-    image: PlaceHolderImages.find(img => img.id === "trip-bali")?.imageUrl,
+    image: (PlaceHolderImages || []).find(img => img.id === "trip-bali")?.imageUrl,
     status: "Active"
   },
   {
@@ -25,7 +25,7 @@ const TRIPS = [
     totalSpent: 890.20,
     yourBalance: 120.00,
     participants: 2,
-    image: PlaceHolderImages.find(img => img.id === "trip-paris")?.imageUrl,
+    image: (PlaceHolderImages || []).find(img => img.id === "trip-paris")?.imageUrl,
     status: "Upcoming"
   }
 ];
@@ -49,11 +49,11 @@ export default function Home() {
         <div className="grid grid-cols-2 gap-4">
           <div className="bg-primary/20 backdrop-blur-sm p-4 rounded-2xl border border-primary/30">
             <p className="text-xs opacity-70 mb-1">You Owe</p>
-            <p className="text-xl font-bold">$142.00</p>
+            <p className="text-xl font-bold">₹142.00</p>
           </div>
           <div className="bg-accent/20 backdrop-blur-sm p-4 rounded-2xl border border-accent/30">
             <p className="text-xs opacity-70 mb-1">Owed to You</p>
-            <p className="text-xl font-bold text-accent">$285.50</p>
+            <p className="text-xl font-bold text-accent">₹285.50</p>
           </div>
         </div>
       </header>
@@ -119,7 +119,7 @@ export default function Home() {
                 <CardContent className="px-4 pb-4 pt-0 border-t mt-1 pt-3 flex justify-between items-center">
                   <div>
                     <p className="text-[10px] uppercase text-muted-foreground font-semibold">Total Expense</p>
-                    <p className="text-sm font-bold">${trip.totalSpent.toFixed(2)}</p>
+                    <p className="text-sm font-bold">₹{trip.totalSpent.toFixed(2)}</p>
                   </div>
                   <div className="text-right">
                     <p className="text-[10px] uppercase text-muted-foreground font-semibold">Your Balance</p>
@@ -127,7 +127,7 @@ export default function Home() {
                       "text-sm font-bold",
                       trip.yourBalance < 0 ? "text-destructive" : "text-primary"
                     )}>
-                      {trip.yourBalance < 0 ? "-" : "+"}${Math.abs(trip.yourBalance).toFixed(2)}
+                      {trip.yourBalance < 0 ? "-" : "+"}₹{Math.abs(trip.yourBalance).toFixed(2)}
                     </p>
                   </div>
                 </CardContent>

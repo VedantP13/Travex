@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useParams, useRouter } from "next/navigation";
@@ -13,7 +12,8 @@ import {
   ShoppingBag, 
   Home, 
   Plane,
-  MoreVertical
+  MoreVertical,
+  Plus
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -147,7 +147,7 @@ export default function TripDetails() {
                     <p className="text-xs text-muted-foreground">Paid by <span className="font-medium text-foreground">{item.paidBy}</span> • {item.date}</p>
                   </div>
                   <div className="text-right">
-                    <p className="font-bold text-sm">${item.amount.toFixed(2)}</p>
+                    <p className="font-bold text-sm">₹{item.amount.toFixed(2)}</p>
                     <Badge variant="secondary" className="text-[9px] h-4 font-normal mt-1">
                       {item.participants.length} Split
                     </Badge>
@@ -161,7 +161,7 @@ export default function TripDetails() {
           <TabsContent value="balances" className="mt-6 space-y-4">
             <div className="bg-foreground text-background p-6 rounded-2xl mb-6">
               <p className="text-xs opacity-70 mb-1">Current Standing</p>
-              <p className="text-2xl font-bold">You owe $45.50</p>
+              <p className="text-2xl font-bold">You owe ₹45.50</p>
               <div className="mt-4 flex gap-2">
                 <Button className="bg-accent hover:bg-accent/90 text-foreground font-bold flex-1">Settle Up</Button>
                 <Button variant="outline" className="border-white/20 hover:bg-white/10 flex-1">Remind All</Button>
@@ -186,7 +186,7 @@ export default function TripDetails() {
                   </div>
                 </div>
                 <div className="text-right">
-                  <p className={`font-bold ${member.color}`}>${member.amount.toFixed(2)}</p>
+                  <p className={`font-bold ${member.color}`}>₹{member.amount.toFixed(2)}</p>
                   <ChevronRight className="h-4 w-4 text-muted-foreground ml-auto mt-1" />
                 </div>
               </div>
@@ -208,5 +208,3 @@ export default function TripDetails() {
     </div>
   );
 }
-
-import { Plus } from "lucide-react";
