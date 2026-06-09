@@ -1,8 +1,9 @@
+
 "use client";
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { ArrowLeft, Plus, Users, X, UserPlus, Lightbulb } from "lucide-react";
+import { ArrowLeft, Plus, X, UserPlus, Lightbulb, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
@@ -10,11 +11,14 @@ import { Badge } from "@/components/ui/badge";
 import { Label } from "@/components/ui/label";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { useToast } from "@/hooks/use-toast";
+import { db } from "@/lib/firebase/config";
+import { collection, addDoc, serverTimestamp } from "firebase/firestore";
 
 type Participant = {
   id: string;
   name: string;
   isUser: boolean;
+  avatar: string;
   familyMembers: string[];
 };
 
@@ -22,8 +26,9 @@ export default function CreateTrip() {
   const router = useRouter();
   const { toast } = useToast();
   const [name, setName] = useState("");
+  const [isCreating, setIsCreating] = useState(false);
   const [participants, setParticipants] = useState<Participant[]>([
-    { id: "p1", name: "Marco (You)", isUser: true, familyMembers: [] }
+    { id: "p1", name: "Marco (You)", isUser: true, avatar: "https://picsum.photos/seed/user1/50/50", familyMembers: [] }
   ]);
   const [newParticipantName, setNewParticipantName] = useState("");
   const [activeFamilyMemberInput, setActiveFamilyMemberInput] = useState<string | null>(null);
@@ -35,6 +40,7 @@ export default function CreateTrip() {
       id: Math.random().toString(36).substr(2, 9),
       name: newParticipantName.trim(),
       isUser: false,
+      avatar: `https://picsum.photos/seed/${Math.random()}/50/50`,
       familyMembers: []
     };
     setParticipants([...participants, newP]);
@@ -50,7 +56,6 @@ export default function CreateTrip() {
     if (!newFamilyMemberName.trim()) return;
     setParticipants(participants.map(p => {
       if (p.id === participantId) {
-        // Avoid duplicate names in the same family
         if (p.familyMembers.includes(newFamilyMemberName.trim())) return p;
         return { ...p, familyMembers: [...p.familyMembers, newFamilyMemberName.trim()] };
       }
@@ -69,43 +74,52 @@ export default function CreateTrip() {
     }));
   };
 
-  const handleSaveTrip = () => {
-    // Validation
+  const handleSaveTrip = async () => {
     if (!name.trim()) {
       toast({
-        title: "Missing Trip Name",
+        title: "Missing trip name",
         description: "Please give your trip a name to continue.",
         variant: "destructive"
       });
       return;
     }
 
-    // Auto-add pending participant name if present
-    let finalParticipants = [...participants];
-    if (newParticipantName.trim()) {
-      const newP: Participant = {
-        id: Math.random().toString(36).substr(2, 9),
-        name: newParticipantName.trim(),
-        isUser: false,
-        familyMembers: []
-      };
-      finalParticipants.push(newP);
-    }
-
-    if (finalParticipants.length < 2) {
+    if (participants.length < 2) {
       toast({
-        title: "Missing Friends",
+        title: "Missing friends",
         description: "Add at least one friend to split expenses with.",
         variant: "destructive"
       });
       return;
     }
 
-    toast({
-      title: "Trip Created!",
-      description: `${name} has been set up successfully.`,
-    });
-    router.push("/");
+    setIsCreating(true);
+    try {
+      const tripRef = collection(db, "trips");
+      await addDoc(tripRef, {
+        name: name.trim(),
+        participants: participants,
+        createdAt: serverTimestamp(),
+        status: "Active",
+        totalSpent: 0,
+        yourBalance: 0,
+        image: `https://picsum.photos/seed/${Math.random()}/600/400`
+      });
+
+      toast({
+        title: "Trip created!",
+        description: `${name} has been set up successfully.`,
+      });
+      router.push("/");
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error.message,
+        variant: "destructive"
+      });
+    } finally {
+      setIsCreating(false);
+    }
   };
 
   return (
@@ -122,7 +136,7 @@ export default function CreateTrip() {
         <div className="space-y-4">
           <Label className="text-sm font-bold text-muted-foreground ml-1">Trip name</Label>
           <Input 
-            placeholder="e.g. Goa 2024, Europe Tour" 
+            placeholder="e.g. Goa 2024, Europe tour" 
             className="h-14 text-lg rounded-2xl focus-visible:ring-primary shadow-sm bg-white"
             value={name}
             onChange={e => setName(e.target.value)}
@@ -163,9 +177,9 @@ export default function CreateTrip() {
                   <CardContent className="p-4 space-y-4">
                     <div className="flex justify-between items-center">
                       <div className="flex items-center gap-3">
-                        <div className="h-8 w-8 rounded-lg bg-primary/10 flex items-center justify-center text-primary font-bold text-xs">
-                          {headName[0]}
-                        </div>
+                        <Avatar className="h-8 w-8">
+                          <AvatarImage src={p.avatar} />
+                        </Avatar>
                         <span className="font-bold text-sm tracking-tight">{headName}&apos;s family</span>
                       </div>
                       {p.id !== "p1" && (
@@ -237,8 +251,14 @@ export default function CreateTrip() {
         <Button 
           className="w-full h-14 rounded-2xl text-lg font-bold shadow-lg shadow-primary/20 bg-primary hover:bg-primary/90"
           onClick={handleSaveTrip}
+          disabled={isCreating}
         >
-          Create trip group
+          {isCreating ? (
+            <>
+              <Loader2 className="h-5 w-5 animate-spin mr-2" />
+              Creating...
+            </>
+          ) : "Create trip group"}
         </Button>
       </footer>
     </div>

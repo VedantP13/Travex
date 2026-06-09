@@ -28,18 +28,8 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { suggestExpenseCategory } from "@/ai/flows/suggest-expense-category";
 import { useToast } from "@/hooks/use-toast";
-
-const TRIPS = [
-  { id: "bali-2024", name: "Summer in Bali" },
-  { id: "paris-fall", name: "Paris Fashion Week" }
-];
-
-const PARTICIPANTS = [
-  { id: "p1", name: "Marco", avatar: "https://picsum.photos/seed/user1/50/50", familyMembers: ["Family 1A", "Family 1B"] },
-  { id: "p2", name: "Sonia", avatar: "https://picsum.photos/seed/user2/50/50", familyMembers: ["Family 2A"] },
-  { id: "p3", name: "Leo", avatar: "https://picsum.photos/seed/user3/50/50", familyMembers: [] },
-  { id: "p4", name: "Julie", avatar: "https://picsum.photos/seed/user4/50/50", familyMembers: [] },
-];
+import { db } from "@/lib/firebase/config";
+import { collection, onSnapshot, addDoc, doc, updateDoc, increment, serverTimestamp, query, orderBy } from "firebase/firestore";
 
 export default function AddExpenseWizard() {
   const router = useRouter();
@@ -48,12 +38,16 @@ export default function AddExpenseWizard() {
   
   const [step, setStep] = useState(1);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
-  const [selectedTripId, setSelectedTripId] = useState<string>((params?.id as string) || "bali-2024");
+  const [isPosting, setIsPosting] = useState(false);
+  const [trips, setTrips] = useState<any[]>([]);
+  const [selectedTripId, setSelectedTripId] = useState<string>((params?.id as string) || "");
+  const [currentTrip, setCurrentTrip] = useState<any>(null);
   
   const [formData, setFormData] = useState({
     description: "",
     amount: "",
     payerId: "p1",
+    payerName: "Marco",
     splitType: "equal_person",
     selectedIndividuals: [] as string[],
     date: new Date().toISOString().split('T')[0],
@@ -61,28 +55,58 @@ export default function AddExpenseWizard() {
     category: ""
   });
 
-  const currentTrip = useMemo(() => TRIPS.find(t => t.id === selectedTripId), [selectedTripId]);
+  useEffect(() => {
+    const q = query(collection(db, "trips"), orderBy("createdAt", "desc"));
+    const unsubscribe = onSnapshot(q, (snapshot) => {
+      const tripData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      setTrips(tripData);
+      if (!selectedTripId && tripData.length > 0) {
+        setSelectedTripId(tripData[0].id);
+      }
+    });
+    return () => unsubscribe();
+  }, []);
+
+  useEffect(() => {
+    if (!selectedTripId) return;
+    const unsubscribe = onSnapshot(doc(db, "trips", selectedTripId), (snapshot) => {
+      if (snapshot.exists()) {
+        const data = snapshot.data();
+        setCurrentTrip({ id: snapshot.id, ...data });
+        // Set default payer to first participant if exists
+        if (data.participants?.length > 0) {
+          setFormData(prev => ({ 
+            ...prev, 
+            payerId: data.participants[0].id,
+            payerName: data.participants[0].name
+          }));
+        }
+      }
+    });
+    return () => unsubscribe();
+  }, [selectedTripId]);
 
   const allTargets = useMemo(() => {
+    if (!currentTrip?.participants) return [];
     const targets: { id: string; name: string; parentId: string; type: 'participant' | 'family' }[] = [];
-    PARTICIPANTS.forEach(p => {
+    currentTrip.participants.forEach((p: any) => {
       targets.push({ id: p.id, name: p.name, parentId: p.id, type: 'participant' });
-      p.familyMembers.forEach(fm => {
+      p.familyMembers?.forEach((fm: string) => {
         targets.push({ id: `${p.id}-${fm}`, name: fm, parentId: p.id, type: 'family' });
       });
     });
     return targets;
-  }, []);
+  }, [currentTrip]);
 
   useEffect(() => {
     if (formData.splitType === 'equal_person') {
       setFormData(prev => ({ ...prev, selectedIndividuals: allTargets.map(t => t.id) }));
     } else if (formData.splitType === 'equal_family') {
-      setFormData(prev => ({ ...prev, selectedIndividuals: PARTICIPANTS.map(p => p.id) }));
+      setFormData(prev => ({ ...prev, selectedIndividuals: currentTrip?.participants?.map((p: any) => p.id) || [] }));
     } else if (formData.splitType === 'just_me') {
       setFormData(prev => ({ ...prev, selectedIndividuals: ["p1"] }));
     }
-  }, [formData.splitType, allTargets]);
+  }, [formData.splitType, allTargets, currentTrip]);
 
   const handleDescriptionBlur = async () => {
     if (formData.description.length > 3 && !formData.category) {
@@ -100,6 +124,39 @@ export default function AddExpenseWizard() {
 
   const nextStep = () => setStep(prev => Math.min(prev + 1, 3));
   const prevStep = () => setStep(prev => Math.max(prev - 1, 1));
+
+  const handlePostExpense = async () => {
+    if (!selectedTripId || !formData.amount || !formData.description) return;
+    setIsPosting(true);
+    try {
+      const amount = parseFloat(formData.amount);
+      const expenseRef = collection(db, "trips", selectedTripId, "expenses");
+      await addDoc(expenseRef, {
+        ...formData,
+        amount: amount,
+        createdAt: serverTimestamp(),
+      });
+
+      // Update total spent in trip doc
+      await updateDoc(doc(db, "trips", selectedTripId), {
+        totalSpent: increment(amount)
+      });
+
+      toast({
+        title: "Expense posted!",
+        description: `Successfully added ₹${amount.toFixed(2)} to ${currentTrip?.name}.`
+      });
+      router.push(`/trips/${selectedTripId}`);
+    } catch (error: any) {
+      toast({
+        title: "Failed to post",
+        description: error.message,
+        variant: "destructive"
+      });
+    } finally {
+      setIsPosting(false);
+    }
+  };
 
   const toggleSelection = (targetId: string) => {
     setFormData(prev => {
@@ -142,7 +199,7 @@ export default function AddExpenseWizard() {
                     <SelectValue placeholder="Select trip" />
                   </SelectTrigger>
                   <SelectContent className="rounded-2xl border-none shadow-2xl">
-                    {TRIPS.map(trip => (
+                    {trips.map(trip => (
                       <SelectItem key={trip.id} value={trip.id} className="text-xs font-bold py-3">
                         {trip.name}
                       </SelectItem>
@@ -151,7 +208,7 @@ export default function AddExpenseWizard() {
                 </Select>
               </div>
               <p className="text-sm text-muted-foreground">
-                Adding to <span className="text-primary font-bold">{currentTrip?.name}</span>
+                Adding to <span className="text-primary font-bold">{currentTrip?.name || "..."}</span>
               </p>
             </div>
 
@@ -182,15 +239,15 @@ export default function AddExpenseWizard() {
               <div className="space-y-3">
                 <Label className="text-sm font-bold text-muted-foreground ml-1">Who paid?</Label>
                 <div className="grid grid-cols-2 gap-3">
-                  {PARTICIPANTS.map(p => (
+                  {currentTrip?.participants?.map((p: any) => (
                     <Card 
                       key={p.id}
                       className={`p-3 rounded-2xl border-2 transition-all cursor-pointer flex items-center gap-3 ${formData.payerId === p.id ? 'border-primary bg-primary/5' : 'border-transparent shadow-sm'}`}
-                      onClick={() => setFormData(prev => ({ ...prev, payerId: p.id }))}
+                      onClick={() => setFormData(prev => ({ ...prev, payerId: p.id, payerName: p.name }))}
                     >
                       <Avatar className="h-8 w-8">
                         <AvatarImage src={p.avatar} />
-                        <AvatarFallback>{p.name[0]}</AvatarFallback>
+                        <AvatarFallback>{p.name?.[0]}</AvatarFallback>
                       </Avatar>
                       <span className="font-bold text-sm truncate">{p.name === "Marco" ? "You" : p.name}</span>
                     </Card>
@@ -238,7 +295,7 @@ export default function AddExpenseWizard() {
               </div>
               
               <div className="space-y-4 max-h-[300px] overflow-y-auto pr-2">
-                {PARTICIPANTS.map(p => {
+                {currentTrip?.participants?.map((p: any) => {
                   const isSelected = formData.selectedIndividuals.includes(p.id);
                   const showAsFamily = formData.splitType === 'equal_family';
                   
@@ -259,9 +316,9 @@ export default function AddExpenseWizard() {
                         {isSelected && <Check className="h-4 w-4 text-primary" />}
                       </div>
                       
-                      {!showAsFamily && p.familyMembers.length > 0 && (
+                      {!showAsFamily && p.familyMembers?.length > 0 && (
                         <div className="pl-6 grid grid-cols-1 gap-2">
-                          {p.familyMembers.map(fm => {
+                          {p.familyMembers.map((fm: string) => {
                             const fmId = `${p.id}-${fm}`;
                             const isFmSelected = formData.selectedIndividuals.includes(fmId);
                             return (
@@ -359,11 +416,20 @@ export default function AddExpenseWizard() {
       <footer className="p-safe-pad border-t bg-white sticky bottom-0 z-10">
         <Button 
           className="w-full h-14 rounded-2xl text-lg font-bold shadow-lg shadow-primary/20 flex items-center justify-center gap-2"
-          onClick={step === 3 ? () => router.push(`/trips/${selectedTripId}`) : nextStep}
-          disabled={step === 1 && (!formData.description || !formData.amount)}
+          onClick={step === 3 ? handlePostExpense : nextStep}
+          disabled={isPosting || (step === 1 && (!formData.description || !formData.amount))}
         >
-          {step === 3 ? "Post expense" : "Next step"}
-          {step !== 3 && <ChevronRight className="h-5 w-5" />}
+          {isPosting ? (
+            <>
+              <Loader2 className="h-5 w-5 animate-spin" />
+              Posting...
+            </>
+          ) : (
+            <>
+              {step === 3 ? "Post expense" : "Next step"}
+              {step !== 3 && <ChevronRight className="h-5 w-5" />}
+            </>
+          )}
         </Button>
       </footer>
     </div>

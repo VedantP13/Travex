@@ -1,6 +1,7 @@
 
 "use client";
 
+import { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { 
   ArrowLeft, 
@@ -12,71 +13,80 @@ import {
   Car, 
   ShoppingBag, 
   Home, 
-  Plane,
   MoreVertical,
-  Plus
+  Plus,
+  Loader2
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-
-const FEED_ITEMS = [
-  {
-    id: 1,
-    title: "Dinner at La Favela",
-    amount: 85.50,
-    category: "Dining",
-    icon: Utensils,
-    paidBy: "Marco",
-    date: "Today, 8:30 PM",
-    participants: ["Marco", "Sonia", "Leo", "Julie"]
-  },
-  {
-    id: 2,
-    title: "Grab to Seminyak",
-    amount: 12.00,
-    category: "Transport",
-    icon: Car,
-    paidBy: "Julie",
-    date: "Today, 4:15 PM",
-    participants: ["Marco", "Julie"]
-  },
-  {
-    id: 3,
-    title: "Villa Rent",
-    amount: 450.00,
-    category: "Rent",
-    icon: Home,
-    paidBy: "Sonia",
-    date: "Yesterday",
-    participants: ["Marco", "Sonia", "Leo", "Julie"]
-  },
-  {
-    id: 4,
-    title: "Beach Club Entry",
-    amount: 60.00,
-    category: "Entertainment",
-    icon: ShoppingBag,
-    paidBy: "Leo",
-    date: "Aug 14",
-    participants: ["Marco", "Leo"]
-  }
-];
+import { db } from "@/lib/firebase/config";
+import { doc, onSnapshot, collection, query, orderBy, getDoc } from "firebase/firestore";
 
 export default function TripDetails() {
   const router = useRouter();
   const { id } = useParams();
+  const [trip, setTrip] = useState<any>(null);
+  const [expenses, setExpenses] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    if (!id) return;
+
+    // Listen to trip document
+    const tripUnsubscribe = onSnapshot(doc(db, "trips", id as string), (snapshot) => {
+      if (snapshot.exists()) {
+        setTrip({ id: snapshot.id, ...snapshot.data() });
+      }
+    });
+
+    // Listen to expenses subcollection
+    const expensesQuery = query(
+      collection(db, "trips", id as string, "expenses"),
+      orderBy("date", "desc")
+    );
+    const expensesUnsubscribe = onSnapshot(expensesQuery, (snapshot) => {
+      const expenseData = snapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data()
+      }));
+      setExpenses(expenseData);
+      setLoading(false);
+    });
+
+    return () => {
+      tripUnsubscribe();
+      expensesUnsubscribe();
+    };
+  }, [id]);
+
+  const getCategoryIcon = (cat: string) => {
+    switch (cat) {
+      case 'Dining': return Utensils;
+      case 'Transport': return Car;
+      case 'Stay': return Home;
+      case 'Shopping': return ShoppingBag;
+      default: return MoreVertical;
+    }
+  };
 
   const getCategoryColor = (cat: string) => {
     switch (cat) {
       case 'Dining': return 'bg-orange-100 text-orange-600';
       case 'Transport': return 'bg-blue-100 text-blue-600';
-      case 'Rent': return 'bg-purple-100 text-purple-600';
+      case 'Stay': return 'bg-purple-100 text-purple-600';
       default: return 'bg-teal-100 text-teal-600';
     }
   };
+
+  if (loading && !trip) {
+    return (
+      <div className="max-w-md mx-auto min-h-screen flex items-center justify-center bg-white">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    );
+  }
 
   return (
     <div className="max-w-md mx-auto min-h-screen bg-white flex flex-col">
@@ -85,33 +95,32 @@ export default function TripDetails() {
         <Button variant="ghost" size="icon" onClick={() => router.push('/')}>
           <ArrowLeft className="h-6 w-6" />
         </Button>
-        <h1 className="text-lg font-bold">Summer in Bali</h1>
+        <h1 className="text-lg font-bold">{trip?.name || "Trip details"}</h1>
         <Button variant="ghost" size="icon">
           <Settings className="h-5 w-5" />
         </Button>
       </header>
 
       {/* Quick Summary */}
-      <div className="px-safe-pad py-6 bg-background">
+      <div className="px-safe-pad py-6 bg-background flex-1">
         <div className="flex gap-4 items-center mb-6">
           <Avatar className="h-16 w-16 rounded-2xl border-4 border-white shadow-sm">
-            <AvatarImage src="https://picsum.photos/seed/trip1/150/150" />
-            <AvatarFallback>IB</AvatarFallback>
+            <AvatarImage src={trip?.image || `https://picsum.photos/seed/${id}/150/150`} />
+            <AvatarFallback>{trip?.name?.[0] || "T"}</AvatarFallback>
           </Avatar>
           <div>
             <div className="flex items-center gap-2 mb-1">
-              <Badge variant="outline" className="text-[10px] font-bold tracking-tight">Active trip</Badge>
-              <span className="text-xs text-muted-foreground italic">Aug 12 - 25</span>
+              <Badge variant="outline" className="text-[10px] font-bold tracking-tight">{trip?.status || "Active"}</Badge>
+              <span className="text-xs text-muted-foreground italic">{trip?.date || "No dates"}</span>
             </div>
-            <h2 className="text-xl font-bold">Summer in Bali</h2>
+            <h2 className="text-xl font-bold">{trip?.name}</h2>
             <div className="flex -space-x-2 mt-2">
-              {[1, 2, 3, 4].map(i => (
-                <Avatar key={i} className="h-6 w-6 border-2 border-white">
-                  <AvatarImage src={`https://picsum.photos/seed/user${i}/50/50`} />
-                  <AvatarFallback>U{i}</AvatarFallback>
+              {trip?.participants?.map((p: any, idx: number) => (
+                <Avatar key={idx} className="h-6 w-6 border-2 border-white">
+                  <AvatarImage src={p.avatar || `https://picsum.photos/seed/user${idx}/50/50`} />
+                  <AvatarFallback>{p.name?.[0]}</AvatarFallback>
                 </Avatar>
               ))}
-              <div className="h-6 w-6 rounded-full bg-muted border-2 border-white flex items-center justify-center text-[8px] font-bold">+2</div>
             </div>
           </div>
         </div>
@@ -138,31 +147,35 @@ export default function TripDetails() {
             </div>
 
             <div className="space-y-4">
-              {FEED_ITEMS.map(item => (
-                <div key={item.id} className="bg-white p-4 rounded-2xl shadow-sm border border-transparent hover:border-primary/10 transition-colors flex items-center gap-4 group">
-                  <div className={`h-12 w-12 rounded-2xl flex items-center justify-center shrink-0 ${getCategoryColor(item.category)}`}>
-                    <item.icon className="h-6 w-6" />
+              {expenses.length > 0 ? expenses.map(item => {
+                const Icon = getCategoryIcon(item.category);
+                return (
+                  <div key={item.id} className="bg-white p-4 rounded-2xl shadow-sm border border-transparent hover:border-primary/10 transition-colors flex items-center gap-4 group">
+                    <div className={`h-12 w-12 rounded-2xl flex items-center justify-center shrink-0 ${getCategoryColor(item.category)}`}>
+                      <Icon className="h-6 w-6" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <h3 className="font-bold text-sm truncate">{item.description}</h3>
+                      <p className="text-xs text-muted-foreground">Paid by <span className="font-medium text-foreground">{item.payerName || "Someone"}</span> • {item.date}</p>
+                    </div>
+                    <div className="text-right">
+                      <p className="font-bold text-sm">₹{parseFloat(item.amount || 0).toFixed(2)}</p>
+                      <Badge variant="secondary" className="text-[9px] h-4 font-normal mt-1">
+                        {item.splitType === 'equal_person' ? 'All split' : 'Custom'}
+                      </Badge>
+                    </div>
                   </div>
-                  <div className="flex-1 min-w-0">
-                    <h3 className="font-bold text-sm truncate">{item.title}</h3>
-                    <p className="text-xs text-muted-foreground">Paid by <span className="font-medium text-foreground">{item.paidBy}</span> • {item.date}</p>
-                  </div>
-                  <div className="text-right">
-                    <p className="font-bold text-sm">₹{item.amount.toFixed(2)}</p>
-                    <Badge variant="secondary" className="text-[9px] h-4 font-normal mt-1">
-                      {item.participants.length} split
-                    </Badge>
-                  </div>
-                  <MoreVertical className="h-4 w-4 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
-                </div>
-              ))}
+                );
+              }) : (
+                <div className="text-center py-10 opacity-50 italic text-sm">No expenses yet. Add one!</div>
+              )}
             </div>
           </TabsContent>
 
           <TabsContent value="balances" className="mt-6 space-y-4">
             <div className="bg-foreground text-background p-6 rounded-2xl mb-6">
               <p className="text-xs opacity-70 mb-1">Current standing</p>
-              <p className="text-2xl font-bold">You owe ₹45.50</p>
+              <p className="text-2xl font-bold">You are even</p>
               <div className="mt-4 flex gap-2">
                 <Button className="bg-accent hover:bg-accent/90 text-foreground font-bold flex-1">Settle up</Button>
                 <Button variant="outline" className="border-white/20 hover:bg-white/10 flex-1">Remind all</Button>
@@ -170,24 +183,20 @@ export default function TripDetails() {
             </div>
 
             <h4 className="text-xs font-bold text-muted-foreground tracking-tight mb-2">Member breakdown</h4>
-            {[
-              { name: "Sonia", status: "You owe", amount: 65.00, color: "text-destructive" },
-              { name: "Leo", status: "Owes you", amount: 19.50, color: "text-primary" },
-              { name: "Julie", status: "Owes you", amount: 45.00, color: "text-primary" },
-            ].map((member, idx) => (
+            {trip?.participants?.map((member: any, idx: number) => (
               <div key={idx} className="bg-white p-4 rounded-2xl shadow-sm flex items-center justify-between">
                 <div className="flex items-center gap-3">
                   <Avatar className="h-10 w-10">
-                    <AvatarImage src={`https://picsum.photos/seed/user${idx+2}/50/50`} />
-                    <AvatarFallback>{member.name[0]}</AvatarFallback>
+                    <AvatarImage src={member.avatar || `https://picsum.photos/seed/user${idx+2}/50/50`} />
+                    <AvatarFallback>{member.name?.[0]}</AvatarFallback>
                   </Avatar>
                   <div>
                     <h5 className="font-bold text-sm">{member.name}</h5>
-                    <p className="text-xs text-muted-foreground">{member.status}</p>
+                    <p className="text-xs text-muted-foreground">Settled up</p>
                   </div>
                 </div>
                 <div className="text-right">
-                  <p className={`font-bold ${member.color}`}>₹{member.amount.toFixed(2)}</p>
+                  <p className={`font-bold text-muted-foreground`}>₹0.00</p>
                   <ChevronRight className="h-4 w-4 text-muted-foreground ml-auto mt-1" />
                 </div>
               </div>
