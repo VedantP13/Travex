@@ -1,3 +1,4 @@
+
 "use client";
 
 import Link from "next/link";
@@ -22,6 +23,11 @@ export function BottomNav() {
   return (
     <nav className="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-md bg-white border-t flex justify-around py-3 px-6 z-50">
       {navItems.map((item, idx) => {
+        const isActive = pathname === item.href;
+        // Using a lower opacity variant of the muted foreground to achieve a light grey 
+        // that still feels solid and consistent with the theme's colors.
+        const colorClass = isActive ? "text-primary" : "text-muted-foreground/40";
+
         // Place the prominent FAB in the middle
         if (idx === 2) {
           return (
@@ -44,11 +50,11 @@ export function BottomNav() {
                   href={item.href} 
                   className={cn(
                     "flex flex-col items-center transition-colors ml-4",
-                    pathname === item.href ? "text-primary" : "text-muted-foreground"
+                    colorClass
                   )}
                 >
                   <item.icon className="h-6 w-6" />
-                  <span className={cn("text-[10px] mt-1", pathname === item.href ? "font-bold" : "font-medium")}>
+                  <span className={cn("text-[10px] mt-1", isActive ? "font-bold" : "font-medium")}>
                     {item.label}
                   </span>
                 </Link>
@@ -63,11 +69,11 @@ export function BottomNav() {
             href={item.href} 
             className={cn(
               "flex flex-col items-center transition-colors",
-              pathname === item.href ? "text-primary" : "text-muted-foreground"
+              colorClass
             )}
           >
             <item.icon className="h-6 w-6" />
-            <span className={cn("text-[10px] mt-1", pathname === item.href ? "font-bold" : "font-medium")}>
+            <span className={cn("text-[10px] mt-1", isActive ? "font-bold" : "font-medium")}>
               {item.label}
             </span>
           </Link>

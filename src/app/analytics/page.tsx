@@ -57,7 +57,7 @@ export default function AnalyticsPage() {
               Category breakdown
             </CardTitle>
           </CardHeader>
-          <CardContent className="pt-0 pb-8">
+          <CardContent className="pt-0 pb-10">
             <div className="h-[220px]">
               <ResponsiveContainer width="100%" height="100%">
                 <PieChart>
@@ -90,7 +90,7 @@ export default function AnalyticsPage() {
         </Card>
 
         <section className="space-y-4">
-          <h2 className="text-xl font-bold text-foreground tracking-tight">Recent insights</h2>
+          <h2 className="text-xl font-bold text-foreground tracking-tight ml-1">Recent insights</h2>
           <div className="bg-primary/10 border border-primary/20 p-4 rounded-2xl">
             <p className="text-sm font-medium text-foreground">
               You've spent <span className="text-primary font-bold">₹450</span> on Dining this week. That's 15% lower than your average! Good job!
