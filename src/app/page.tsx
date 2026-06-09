@@ -1,4 +1,3 @@
-
 import Link from "next/link";
 import { Plus, Map, Users, TrendingUp } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -42,10 +41,12 @@ export default function Home() {
             <h1 className="text-2xl font-bold tracking-tight">Travex</h1>
             <p className="text-sm opacity-70">Welcome back, Marco</p>
           </div>
-          <Avatar className="h-10 w-10 border-2 border-accent">
-            <AvatarImage src="https://picsum.photos/seed/user1/100/100" />
-            <AvatarFallback>MC</AvatarFallback>
-          </Avatar>
+          <Link href="/profile">
+            <Avatar className="h-10 w-10 border-2 border-accent hover:scale-105 transition-transform">
+              <AvatarImage src="https://picsum.photos/seed/user1/100/100" />
+              <AvatarFallback>MC</AvatarFallback>
+            </Avatar>
+          </Link>
         </div>
 
         <div className="grid grid-cols-2 gap-4">
@@ -69,18 +70,18 @@ export default function Home() {
             </div>
             <span className="text-[10px] font-medium uppercase tracking-wider">New Trip</span>
           </Link>
-          <div className="flex flex-col items-center gap-1 group opacity-50 cursor-not-allowed">
-            <div className="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center text-primary">
+          <Link href="/friends" className="flex flex-col items-center gap-1 group">
+            <div className="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center text-primary group-hover:bg-primary group-hover:text-white transition-all">
               <Users className="h-6 w-6" />
             </div>
             <span className="text-[10px] font-medium uppercase tracking-wider">Friends</span>
-          </div>
-          <div className="flex flex-col items-center gap-1 group opacity-50 cursor-not-allowed">
-            <div className="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center text-primary">
+          </Link>
+          <Link href="/analytics" className="flex flex-col items-center gap-1 group">
+            <div className="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center text-primary group-hover:bg-primary group-hover:text-white transition-all">
               <TrendingUp className="h-6 w-6" />
             </div>
             <span className="text-[10px] font-medium uppercase tracking-wider">Analytics</span>
-          </div>
+          </Link>
         </div>
       </section>
 
@@ -97,7 +98,7 @@ export default function Home() {
         <div className="grid gap-4">
           {TRIPS.map((trip) => (
             <Link key={trip.id} href={`/trips/${trip.id}`}>
-              <Card className="overflow-hidden border-none shadow-sm hover:shadow-md transition-shadow">
+              <Card className="overflow-hidden border-none shadow-sm hover:shadow-md transition-shadow bg-white">
                 <div className="h-32 w-full relative">
                   <img 
                     src={trip.image} 
