@@ -35,12 +35,12 @@ export default function FriendsPage() {
 
       <main className="px-safe-pad pt-8 space-y-6">
         <section className="space-y-4">
-          <h2 className="text-xs font-bold uppercase tracking-widest text-muted-foreground ml-1">Friend Requests (0)</h2>
+          <h2 className="text-lg font-bold text-foreground">Friend Requests</h2>
           <p className="text-sm text-muted-foreground italic text-center py-4">No pending requests</p>
         </section>
 
         <section className="space-y-4">
-          <h2 className="text-xs font-bold uppercase tracking-widest text-muted-foreground ml-1">Your Friends ({FRIENDS.length})</h2>
+          <h2 className="text-lg font-bold text-foreground">Your Friends</h2>
           <div className="grid gap-3">
             {FRIENDS.map((friend) => (
               <Card key={friend.name} className="border-none shadow-sm bg-white rounded-2xl overflow-hidden">
