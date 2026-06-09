@@ -1,0 +1,71 @@
+
+{
+  "entities": {
+    "Trip": {
+      "title": "Trip",
+      "description": "A travel group containing participants and expenses.",
+      "type": "object",
+      "properties": {
+        "name": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "status": { "type": "string", "enum": ["Active", "Completed", "Upcoming"] },
+        "participants": {
+          "type": "array",
+          "items": {
+            "$ref": "#/backend/entities/Participant"
+          }
+        }
+      },
+      "required": ["name", "participants"]
+    },
+    "Participant": {
+      "title": "Participant",
+      "description": "A member of a trip, can be an app user or a guest.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "name": { "type": "string" },
+        "isUser": { "type": "boolean" },
+        "userId": { "type": "string" },
+        "familyMembers": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "Names of family members associated with this participant."
+        }
+      },
+      "required": ["id", "name", "isUser"]
+    },
+    "Expense": {
+      "title": "Expense",
+      "description": "An individual transaction within a trip.",
+      "type": "object",
+      "properties": {
+        "description": { "type": "string" },
+        "amount": { "type": "number" },
+        "payerId": { "type": "string" },
+        "date": { "type": "string", "format": "date-time" },
+        "paymentType": { "type": "string", "enum": ["UPI", "Cash", "Card", "Net Banking"] },
+        "category": { "type": "string" },
+        "splitType": { "type": "string", "enum": ["equal_person", "equal_family", "custom", "just_me"] },
+        "splits": {
+          "type": "object",
+          "description": "A map of participant IDs/family member names to their share of the expense."
+        }
+      },
+      "required": ["description", "amount", "payerId", "date", "splitType"]
+    }
+  },
+  "auth": {
+    "providers": ["google.com"]
+  },
+  "firestore": {
+    "/trips/{tripId}": {
+      "schema": "Trip",
+      "description": "Root collection for trips."
+    },
+    "/trips/{tripId}/expenses/{expenseId}": {
+      "schema": "Expense",
+      "description": "Subcollection for expenses within a trip."
+    }
+  }
+}
