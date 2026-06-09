@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import { Plus, Users, ChevronRight } from "lucide-react";
+import { Plus, Users, ChevronRight, Compass } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -56,7 +56,7 @@ export default function Home() {
         <div className="flex justify-between items-center mb-10">
           <div className="flex items-center gap-4">
             <div className="h-12 w-12 bg-accent rounded-2xl flex items-center justify-center shadow-xl shadow-accent/20 transition-transform hover:scale-105">
-              <AnimatedCompass className="h-7 w-7 text-foreground" />
+              <Compass className="h-7 w-7 text-foreground" />
             </div>
             <div>
               <h1 className="text-2xl font-bold tracking-tight text-background">Travex</h1>
@@ -105,7 +105,7 @@ export default function Home() {
             </Card>
           ) : (
             <Card className="col-span-8 border-none shadow-2xl bg-primary text-primary-foreground rounded-[2rem] p-6 flex flex-col items-center justify-center text-center">
-               <AnimatedCompass className="h-10 w-10 text-accent mb-3 opacity-50" />
+               <Compass className="h-10 w-10 text-accent mb-3 opacity-50" />
                <p className="text-sm font-bold tracking-tight opacity-90 leading-tight">No active adventures yet</p>
             </Card>
           )}
@@ -196,7 +196,7 @@ export default function Home() {
             )) : (
               <div className="text-center py-20 bg-white rounded-[2rem] border-2 border-dashed border-muted/50 px-10">
                  <div className="h-16 w-16 bg-muted/30 rounded-full flex items-center justify-center mx-auto mb-4">
-                   <AnimatedCompass className="h-8 w-8 text-muted-foreground/50" />
+                   <Compass className="h-8 w-8 text-muted-foreground/50" />
                  </div>
                  <p className="text-lg font-bold text-foreground">No trips yet</p>
                  <p className="text-sm text-muted-foreground mt-2 mb-8">Split expenses effortlessly on your next trip.</p>
