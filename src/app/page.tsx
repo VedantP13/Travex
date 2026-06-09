@@ -196,7 +196,7 @@ export default function Home() {
             )) : (
               <div className="text-center py-20 bg-white rounded-[2rem] border-2 border-dashed border-muted/50 px-10">
                  <div className="h-16 w-16 bg-muted/30 rounded-full flex items-center justify-center mx-auto mb-4">
-                   <Compass className="h-8 w-8 text-muted-foreground/50" />
+                   <Plus className="h-8 w-8 text-muted-foreground/50" />
                  </div>
                  <p className="text-lg font-bold text-foreground">No trips yet</p>
                  <p className="text-sm text-muted-foreground mt-2 mb-8">Split expenses effortlessly on your next trip.</p>
