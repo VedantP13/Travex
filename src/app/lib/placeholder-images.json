@@ -1,0 +1,29 @@
+
+{
+  "placeholderImages": [
+    {
+      "id": "hero-travel",
+      "description": "Aerial view of a coastal city at sunset",
+      "imageUrl": "https://picsum.photos/seed/travel1/1200/600",
+      "imageHint": "travel sunset coastal"
+    },
+    {
+      "id": "trip-bali",
+      "description": "Lush tropical jungle and villa in Bali",
+      "imageUrl": "https://picsum.photos/seed/bali/600/400",
+      "imageHint": "bali tropical"
+    },
+    {
+      "id": "trip-paris",
+      "description": "Eiffel Tower viewed from a distance",
+      "imageUrl": "https://picsum.photos/seed/paris/600/400",
+      "imageHint": "paris eiffel"
+    },
+    {
+      "id": "avatar-1",
+      "description": "Profile picture of a smiling traveler",
+      "imageUrl": "https://picsum.photos/seed/avatar1/150/150",
+      "imageHint": "portrait traveler"
+    }
+  ]
+}
