@@ -37,7 +37,7 @@ export function BottomNav() {
                   href={item.href} 
                   className={cn(
                     "flex flex-col items-center transition-colors ml-4",
-                    pathname === item.href ? "text-primary" : "text-muted-foreground"
+                    pathname === item.href ? "text-primary" : "text-muted-foreground/30"
                   )}
                 >
                   <item.icon className="h-6 w-6" />
@@ -50,32 +50,13 @@ export function BottomNav() {
           );
         }
 
-        // Just handle the shift for the first two items
-        if (idx > 2) {
-           return (
-            <Link 
-              key={item.label} 
-              href={item.href} 
-              className={cn(
-                "flex flex-col items-center transition-colors",
-                pathname === item.href ? "text-primary" : "text-muted-foreground"
-              )}
-            >
-              <item.icon className="h-6 w-6" />
-              <span className={cn("text-[10px] mt-1", pathname === item.href ? "font-bold" : "font-medium")}>
-                {item.label}
-              </span>
-            </Link>
-          );
-        }
-
         return (
           <Link 
             key={item.label} 
             href={item.href} 
             className={cn(
               "flex flex-col items-center transition-colors",
-              pathname === item.href ? "text-primary" : "text-muted-foreground"
+              pathname === item.href ? "text-primary" : "text-muted-foreground/30"
             )}
           >
             <item.icon className="h-6 w-6" />
