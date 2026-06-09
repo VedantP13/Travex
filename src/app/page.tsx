@@ -44,8 +44,8 @@ export default function Home() {
               <Zap className="h-6 w-6 text-foreground fill-current" />
             </div>
             <div>
-              <h1 className="text-2xl font-bold tracking-tight">Travex</h1>
-              <p className="text-sm opacity-70">Welcome back, Marco</p>
+              <h1 className="text-2xl font-bold tracking-tight text-background">Travex</h1>
+              <p className="text-sm opacity-70 text-background">Welcome back, Marco</p>
             </div>
           </div>
           <Link href="/profile">

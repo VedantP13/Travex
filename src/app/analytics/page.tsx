@@ -21,6 +21,9 @@ export default function AnalyticsPage() {
         <h1 className="text-3xl font-bold tracking-tight">
           Analytics
         </h1>
+        <p className="text-sm opacity-70 mt-1 font-medium">
+          Your spending patterns at a glance
+        </p>
       </header>
 
       <main className="px-safe-pad pt-8 space-y-6">
