@@ -21,29 +21,38 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { db } from "@/lib/firebase/config";
-import { doc, onSnapshot, collection, query, orderBy, getDoc } from "firebase/firestore";
+import { useFirestore } from "@/firebase";
+import { doc, onSnapshot, collection, query, orderBy } from "firebase/firestore";
+import { errorEmitter } from "@/firebase/error-emitter";
+import { FirestorePermissionError } from "@/firebase/errors";
 
 export default function TripDetails() {
   const router = useRouter();
   const { id } = useParams();
+  const firestore = useFirestore();
   const [trip, setTrip] = useState<any>(null);
   const [expenses, setExpenses] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (!id) return;
+    if (!id || !firestore) return;
 
     // Listen to trip document
-    const tripUnsubscribe = onSnapshot(doc(db, "trips", id as string), (snapshot) => {
+    const tripUnsubscribe = onSnapshot(doc(firestore, "trips", id as string), (snapshot) => {
       if (snapshot.exists()) {
         setTrip({ id: snapshot.id, ...snapshot.data() });
       }
+    }, async (serverError) => {
+      const permissionError = new FirestorePermissionError({
+        path: `trips/${id}`,
+        operation: 'get',
+      });
+      errorEmitter.emit('permission-error', permissionError);
     });
 
     // Listen to expenses subcollection
     const expensesQuery = query(
-      collection(db, "trips", id as string, "expenses"),
+      collection(firestore, "trips", id as string, "expenses"),
       orderBy("date", "desc")
     );
     const expensesUnsubscribe = onSnapshot(expensesQuery, (snapshot) => {
@@ -53,13 +62,19 @@ export default function TripDetails() {
       }));
       setExpenses(expenseData);
       setLoading(false);
+    }, async (serverError) => {
+      const permissionError = new FirestorePermissionError({
+        path: `trips/${id}/expenses`,
+        operation: 'list',
+      });
+      errorEmitter.emit('permission-error', permissionError);
     });
 
     return () => {
       tripUnsubscribe();
       expensesUnsubscribe();
     };
-  }, [id]);
+  }, [id, firestore]);
 
   const getCategoryIcon = (cat: string) => {
     switch (cat) {

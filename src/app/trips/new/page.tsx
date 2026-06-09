@@ -14,6 +14,8 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useToast } from "@/hooks/use-toast";
 import { useFirestore } from "@/firebase";
 import { collection, addDoc, serverTimestamp } from "firebase/firestore";
+import { errorEmitter } from "@/firebase/error-emitter";
+import { FirestorePermissionError } from "@/firebase/errors";
 
 type Participant = {
   id: string;
@@ -78,7 +80,7 @@ export default function CreateTrip() {
     }));
   };
 
-  const handleSaveTrip = async () => {
+  const handleSaveTrip = () => {
     if (!name.trim()) {
       toast({
         title: "Missing trip name",
@@ -99,37 +101,38 @@ export default function CreateTrip() {
 
     setIsCreating(true);
     
-    try {
-      const tripRef = collection(firestore, "trips");
-      
-      const docRef = await addDoc(tripRef, {
-        name: name.trim(),
-        date: date.trim() || null,
-        participants: participants,
-        createdAt: serverTimestamp(),
-        status: "Active",
-        totalSpent: 0,
-        yourBalance: 0,
-        image: `https://picsum.photos/seed/${Math.random()}/600/400`
-      });
+    const tripRef = collection(firestore, "trips");
+    const tripData = {
+      name: name.trim(),
+      date: date.trim() || null,
+      participants: participants,
+      createdAt: serverTimestamp(),
+      status: "Active",
+      totalSpent: 0,
+      yourBalance: 0,
+      image: `https://picsum.photos/seed/${Math.random()}/600/400`
+    };
 
+    // Non-blocking write: Initiate addDoc and navigate immediately
+    const docPromise = addDoc(tripRef, tripData);
+    
+    // Get the client-generated ID from the promise or just navigate after calling addDoc
+    // addDoc returns a Promise<DocumentReference>
+    docPromise.then((docRef) => {
       toast({
         title: "Trip created!",
         description: `${name} has been set up successfully.`,
       });
-      
-      // Redirect to the new trip page
       router.push(`/trips/${docRef.id}`);
-
-    } catch (error: any) {
-      console.error("Firestore error:", error);
-      toast({
-        title: "Error creating trip",
-        description: error.message || "Something went wrong.",
-        variant: "destructive"
+    }).catch(async (error) => {
+      const permissionError = new FirestorePermissionError({
+        path: tripRef.path,
+        operation: 'create',
+        requestResourceData: tripData,
       });
+      errorEmitter.emit('permission-error', permissionError);
       setIsCreating(false);
-    }
+    });
   };
 
   return (

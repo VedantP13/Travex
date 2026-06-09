@@ -34,6 +34,8 @@ import { collection, addDoc, doc, updateDoc, increment, serverTimestamp, onSnaps
 import { useTrips } from "@/context/trips-context";
 import Link from "next/link";
 import { AnimatedCompass } from "@/components/animated-compass";
+import { errorEmitter } from "@/firebase/error-emitter";
+import { FirestorePermissionError } from "@/firebase/errors";
 
 export default function AddExpenseWizard() {
   const router = useRouter();
@@ -125,37 +127,43 @@ export default function AddExpenseWizard() {
   const nextStep = () => setStep(prev => Math.min(prev + 1, 3));
   const prevStep = () => setStep(prev => Math.max(prev - 1, 1));
 
-  const handlePostExpense = async () => {
+  const handlePostExpense = () => {
     if (!selectedTripId || !formData.amount || !formData.description || !firestore) return;
     setIsPosting(true);
-    try {
-      const amount = parseFloat(formData.amount);
-      const expenseRef = collection(firestore, "trips", selectedTripId, "expenses");
-      
-      await addDoc(expenseRef, {
-        ...formData,
-        amount: amount,
-        createdAt: serverTimestamp(),
+    
+    const amount = parseFloat(formData.amount);
+    const expenseRef = collection(firestore, "trips", selectedTripId, "expenses");
+    const expenseData = {
+      ...formData,
+      amount: amount,
+      createdAt: serverTimestamp(),
+    };
+
+    // Non-blocking write
+    addDoc(expenseRef, expenseData)
+      .then(() => {
+        toast({
+          title: "Expense posted!",
+          description: `Successfully added ₹${amount.toFixed(2)} to ${currentTrip?.name}.`
+        });
+        router.push(`/trips/${selectedTripId}`);
+      })
+      .catch(async (error) => {
+        const permissionError = new FirestorePermissionError({
+          path: expenseRef.path,
+          operation: 'create',
+          requestResourceData: expenseData,
+        });
+        errorEmitter.emit('permission-error', permissionError);
+        setIsPosting(false);
       });
 
-      await updateDoc(doc(firestore, "trips", selectedTripId), {
-        totalSpent: increment(amount)
-      });
-
-      toast({
-        title: "Expense posted!",
-        description: `Successfully added ₹${amount.toFixed(2)} to ${currentTrip?.name}.`
-      });
-      router.push(`/trips/${selectedTripId}`);
-    } catch (error: any) {
-      console.error("Error posting expense:", error);
-      toast({
-        title: "Failed to post",
-        description: error.message || "Something went wrong.",
-        variant: "destructive"
-      });
-      setIsPosting(false);
-    }
+    // Optimistically update trip total
+    updateDoc(doc(firestore, "trips", selectedTripId), {
+      totalSpent: increment(amount)
+    }).catch(async (error) => {
+       // Silently handle or emit if critical
+    });
   };
 
   const toggleSelection = (targetId: string) => {
