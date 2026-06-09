@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useRouter } from "next/navigation";
@@ -6,9 +7,11 @@ import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Card, CardContent } from "@/components/ui/card";
 import { BottomNav } from "@/components/bottom-nav";
+import { useToast } from "@/hooks/use-toast";
 
 export default function ProfilePage() {
   const router = useRouter();
+  const { toast } = useToast();
 
   const settings = [
     { icon: User, label: "Personal Information", value: "Marco Rossi" },
@@ -17,6 +20,13 @@ export default function ProfilePage() {
     { icon: Bell, label: "Notifications", value: "Push & Email" },
     { icon: CreditCard, label: "Default Currency", value: "Indian Rupee (₹)" },
   ];
+
+  const handleEditProfile = () => {
+    toast({
+      title: "Edit Profile",
+      description: "Profile editing is currently a placeholder for the prototype.",
+    });
+  };
 
   return (
     <div className="max-w-md mx-auto min-h-screen bg-background pb-24">
@@ -37,7 +47,7 @@ export default function ProfilePage() {
             <h2 className="text-2xl font-bold">Marco Rossi</h2>
             <p className="text-muted-foreground text-sm">Member since July 2024</p>
           </div>
-          <Button variant="outline" className="rounded-full px-8">Edit profile</Button>
+          <Button variant="outline" className="rounded-full px-8" onClick={handleEditProfile}>Edit profile</Button>
         </div>
 
         <div className="space-y-4">
