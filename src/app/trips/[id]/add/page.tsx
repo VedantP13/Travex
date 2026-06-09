@@ -189,8 +189,8 @@ export default function AddExpenseWizard() {
         </header>
         <main className="flex-1 flex flex-col items-center justify-center px-safe-pad">
           <div className="text-center py-14 bg-white rounded-[2rem] border-2 border-dashed border-muted/50 px-10 max-w-sm mx-auto shadow-sm">
-            <div className="h-14 w-14 bg-muted/30 rounded-full flex items-center justify-center mx-auto mb-4">
-              <Plus className="h-6 w-6 text-muted-foreground/50" />
+            <div className="h-16 w-16 bg-muted/20 rounded-full flex items-center justify-center mx-auto mb-6 shadow-sm">
+              <Plus className="h-7 w-7 text-muted-foreground/40" />
             </div>
             <h2 className="text-lg font-bold text-foreground">No trips found</h2>
             <p className="text-sm text-muted-foreground mt-1 mb-6 leading-relaxed">

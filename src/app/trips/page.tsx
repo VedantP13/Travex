@@ -101,8 +101,8 @@ export default function AllTripsPage() {
           </div>
         ) : (
           <div className="text-center py-14 bg-white rounded-[2rem] border-2 border-dashed border-muted/50 px-10">
-             <div className="h-14 w-14 bg-muted/30 rounded-full flex items-center justify-center mx-auto mb-4">
-               <Plus className="h-6 w-6 text-muted-foreground/50" />
+             <div className="h-16 w-16 bg-muted/20 rounded-full flex items-center justify-center mx-auto mb-6 shadow-sm">
+               <Plus className="h-7 w-7 text-muted-foreground/40" />
              </div>
              <p className="text-lg font-bold text-foreground">No trips found</p>
              <p className="text-sm text-muted-foreground mt-1 mb-6">Try searching for something else or start a new adventure.</p>
