@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { UserPlus, Search, MoreVertical, User, UserX } from "lucide-react";
+import { Search, MoreVertical, User, UserX } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -30,17 +30,7 @@ export default function FriendsPage() {
   return (
     <div className="max-w-md mx-auto min-h-screen bg-background pb-24">
       <header className="px-safe-pad pt-12 pb-8 bg-white rounded-b-[2rem] shadow-sm">
-        <div className="flex justify-between items-center mb-6">
-          <h1 className="text-3xl font-bold text-foreground">Friends</h1>
-          <Button 
-            size="icon" 
-            variant="outline" 
-            className="rounded-full h-12 w-12 border-primary/20 bg-primary/5 text-primary"
-            title="Add Friend"
-          >
-            <UserPlus className="h-6 w-6" />
-          </Button>
-        </div>
+        <h1 className="text-3xl font-bold text-foreground mb-6">Friends</h1>
         
         <div className="relative">
           <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
