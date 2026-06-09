@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { ArrowLeft, Plus, Users, X, UserPlus, Save, AlertCircle } from "lucide-react";
+import { ArrowLeft, Plus, Users, X, UserPlus, Save, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
@@ -24,7 +24,7 @@ export default function CreateTrip() {
     { id: "p1", name: "Marco (You)", isUser: true, familyMembers: [] }
   ]);
   const [newParticipantName, setNewParticipantName] = useState("");
-  const [activeFamilyMemberInput, setActiveFamilyMemberInput] = useState<string | null>(null);
+  const [activeFamilyMemberInput, setActiveFamilyMemberInput] = string | null>(null);
   const [newFamilyMemberName, setNewFamilyMemberName] = useState("");
 
   const addParticipant = () => {
@@ -87,7 +87,7 @@ export default function CreateTrip() {
 
       <main className="flex-1 px-safe-pad py-8 space-y-8 overflow-y-auto">
         <div className="space-y-4">
-          <Label className="text-sm font-bold uppercase tracking-wider text-muted-foreground">Trip Name</Label>
+          <Label className="text-sm font-bold uppercase tracking-wider text-muted-foreground ml-1">Trip Name</Label>
           <Input 
             placeholder="e.g. Goa 2024, Europe Tour" 
             className="h-14 text-lg rounded-2xl focus-visible:ring-primary shadow-sm"
@@ -98,13 +98,13 @@ export default function CreateTrip() {
 
         <div className="space-y-4">
           <div className="flex justify-between items-end">
-            <Label className="text-sm font-bold uppercase tracking-wider text-muted-foreground">Participants & Families</Label>
-            <span className="text-[10px] text-primary font-bold">{participants.length} added</span>
+            <Label className="text-sm font-bold uppercase tracking-wider text-muted-foreground ml-1">Friends & Families</Label>
+            <span className="text-[10px] text-primary font-bold">{participants.length} people added</span>
           </div>
           
           <div className="flex gap-2">
             <Input 
-              placeholder="Add friend or member name..." 
+              placeholder="Who's coming with you?" 
               className="h-12 rounded-xl shadow-sm"
               value={newParticipantName}
               onChange={e => setNewParticipantName(e.target.value)}
@@ -115,10 +115,10 @@ export default function CreateTrip() {
             </Button>
           </div>
 
-          <Alert className="bg-primary/5 border-primary/20 rounded-xl">
-            <AlertCircle className="h-4 w-4 text-primary" />
-            <AlertDescription className="text-[10px] text-primary-foreground/70 font-medium">
-              Add family members to each participant for accurate "Per Person" splitting.
+          <Alert className="bg-primary/10 border-primary/30 rounded-2xl py-3">
+            <Sparkles className="h-5 w-5 text-primary" />
+            <AlertDescription className="text-xs text-foreground/80 font-medium leading-relaxed">
+              Going with family? Add everyone's names! This helps Travex split costs perfectly by individual person later.
             </AlertDescription>
           </Alert>
 
@@ -152,7 +152,7 @@ export default function CreateTrip() {
                         <div className="flex gap-1 w-full mt-2 animate-in fade-in slide-in-from-top-1">
                           <Input 
                             autoFocus
-                            placeholder="Family member name..." 
+                            placeholder="Add member name..." 
                             className="h-8 text-xs rounded-lg"
                             value={newFamilyMemberName}
                             onChange={e => setNewFamilyMemberName(e.target.value)}
