@@ -1,10 +1,9 @@
-
 "use client";
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { ArrowLeft, Plus, Users, Compass, Search } from "lucide-react";
+import { ArrowLeft, Plus, Users, Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -15,6 +14,7 @@ import { BottomNav } from "@/components/bottom-nav";
 import { db } from "@/lib/firebase/config";
 import { collection, onSnapshot, query, orderBy } from "firebase/firestore";
 import { useToast } from "@/hooks/use-toast";
+import { AnimatedCompass } from "@/components/animated-compass";
 
 export default function AllTripsPage() {
   const router = useRouter();
@@ -75,7 +75,7 @@ export default function AllTripsPage() {
       <main className="px-safe-pad pt-8 space-y-6 flex-1">
         {loading ? (
           <div className="flex flex-col items-center py-20 text-muted-foreground gap-3">
-            <Compass className="h-10 w-10 animate-pulse text-primary" />
+            <AnimatedCompass className="h-10 w-10 text-primary" />
             <p className="text-sm font-bold">Bringing your trips to life...</p>
           </div>
         ) : filteredTrips.length > 0 ? (
@@ -124,7 +124,7 @@ export default function AllTripsPage() {
         ) : (
           <div className="text-center py-20 bg-white rounded-3xl border-2 border-dashed border-muted px-8">
              <div className="h-16 w-16 bg-muted rounded-full flex items-center justify-center mx-auto mb-4">
-               <Search className="h-8 w-8 text-muted-foreground" />
+               <AnimatedCompass className="h-8 w-8 text-muted-foreground" />
              </div>
              <p className="text-lg font-bold text-foreground">No trips found</p>
              <p className="text-sm text-muted-foreground mt-2 mb-6">Try searching for something else or start a new adventure.</p>

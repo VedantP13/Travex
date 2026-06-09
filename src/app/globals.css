@@ -38,3 +38,19 @@
     @apply font-headline text-foreground;
   }
 }
+
+@layer utilities {
+  .animate-compass-needle {
+    animation: compass-needle 3s ease-in-out infinite;
+    transform-origin: center;
+  }
+
+  @keyframes compass-needle {
+    0% { transform: rotate(0deg); }
+    20% { transform: rotate(180deg); }
+    40% { transform: rotate(140deg); }
+    60% { transform: rotate(280deg); }
+    80% { transform: rotate(240deg); }
+    100% { transform: rotate(360deg); }
+  }
+}
