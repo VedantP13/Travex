@@ -157,7 +157,7 @@ export default function AddExpenseWizard() {
               </div>
 
               <div className="space-y-3">
-                <Label className="text-xs font-bold uppercase tracking-wider text-muted-foreground ml-1">Who Paid?</Label>
+                <Label className="text-[10px] font-bold text-muted-foreground ml-1">Who paid?</Label>
                 <div className="grid grid-cols-2 gap-3">
                   {PARTICIPANTS.map(p => (
                     <Card 
@@ -187,10 +187,10 @@ export default function AddExpenseWizard() {
 
             <div className="grid grid-cols-2 gap-3">
               {[
-                { id: "equal_person", label: "Per Person", icon: Users, desc: "Include all members" },
-                { id: "equal_family", label: "Per Family", icon: Home, desc: "One per family unit" },
+                { id: "equal_person", label: "Per person", icon: Users, desc: "Include all members" },
+                { id: "equal_family", label: "Per family", icon: Home, desc: "One per family unit" },
                 { id: "custom", label: "Custom", icon: PieChart, desc: "Pick individuals" },
-                { id: "just_me", label: "Just You", icon: User, desc: "100% to you" }
+                { id: "just_me", label: "Just you", icon: User, desc: "100% to you" }
               ].map(mode => (
                 <Card 
                   key={mode.id}
@@ -208,10 +208,10 @@ export default function AddExpenseWizard() {
 
             <div className="bg-white p-5 rounded-2xl border border-dashed border-primary/20 space-y-4">
               <div className="flex justify-between items-center">
-                <p className="text-xs font-bold text-primary uppercase tracking-widest">
-                  {formData.splitType === 'equal_family' ? "Family Selection" : "Active Split Selection"}
+                <p className="text-xs font-bold text-primary">
+                  {formData.splitType === 'equal_family' ? "Family selection" : "Active split selection"}
                 </p>
-                <Badge variant="outline" className="text-[10px]">{formData.selectedIndividuals.length} Selected</Badge>
+                <Badge variant="outline" className="text-[10px]">{formData.selectedIndividuals.length} selected</Badge>
               </div>
               
               <div className="space-y-4 max-h-[300px] overflow-y-auto pr-2">
@@ -230,7 +230,7 @@ export default function AddExpenseWizard() {
                             <AvatarImage src={p.avatar} />
                           </Avatar>
                           <span className="text-xs font-bold">
-                            {showAsFamily ? `${p.name}'s Family` : p.name} {p.name === "Marco" && !showAsFamily ? "(You)" : ""}
+                            {showAsFamily ? `${p.name}'s family` : p.name} {p.name === "Marco" && !showAsFamily ? "(You)" : ""}
                           </span>
                         </div>
                         {isSelected && <Check className="h-4 w-4 text-primary" />}
@@ -272,7 +272,7 @@ export default function AddExpenseWizard() {
 
             <div className="space-y-6">
               <div className="space-y-3">
-                <Label className="text-xs font-bold uppercase tracking-wider text-muted-foreground ml-1">Date</Label>
+                <Label className="text-[10px] font-bold text-muted-foreground ml-1">Date</Label>
                 <div className="relative">
                   <Input 
                     type="date"
@@ -285,7 +285,7 @@ export default function AddExpenseWizard() {
               </div>
 
               <div className="space-y-3">
-                <Label className="text-xs font-bold uppercase tracking-wider text-muted-foreground ml-1">Payment Type</Label>
+                <Label className="text-[10px] font-bold text-muted-foreground ml-1">Payment type</Label>
                 <Select 
                   value={formData.paymentType} 
                   onValueChange={val => setFormData(prev => ({ ...prev, paymentType: val }))}
@@ -306,7 +306,7 @@ export default function AddExpenseWizard() {
               </div>
 
               <div className="space-y-3">
-                <Label className="text-xs font-bold uppercase tracking-wider text-muted-foreground ml-1">Category Tags</Label>
+                <Label className="text-[10px] font-bold text-muted-foreground ml-1">Category tags</Label>
                 <div className="relative">
                   <Input 
                     placeholder="e.g. Dining, Travel, Fun"
@@ -322,7 +322,7 @@ export default function AddExpenseWizard() {
                     <Badge 
                       key={cat} 
                       variant={formData.category.includes(cat) ? "default" : "outline"}
-                      className="cursor-pointer px-3 py-1 rounded-full text-[10px] font-bold uppercase border-primary/20"
+                      className="cursor-pointer px-3 py-1 rounded-full text-[10px] font-bold border-primary/20"
                       onClick={() => setFormData(prev => ({ ...prev, category: cat }))}
                     >
                       {cat}
@@ -341,7 +341,7 @@ export default function AddExpenseWizard() {
           onClick={step === 3 ? () => router.push(`/trips/${id}`) : nextStep}
           disabled={step === 1 && (!formData.description || !formData.amount)}
         >
-          {step === 3 ? "Post Expense" : "Next Step"}
+          {step === 3 ? "Post expense" : "Next step"}
           {step !== 3 && <ChevronRight className="h-5 w-5" />}
         </Button>
       </footer>

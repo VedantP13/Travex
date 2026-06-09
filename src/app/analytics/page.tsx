@@ -32,7 +32,7 @@ export default function AnalyticsPage() {
             <CardContent className="p-4">
               <div className="flex items-center gap-2 text-destructive mb-1">
                 <TrendingUp className="h-4 w-4" />
-                <span className="text-[10px] font-bold uppercase">Spending</span>
+                <span className="text-[10px] font-bold">Spending</span>
               </div>
               <p className="text-xl font-bold">₹2,450</p>
               <p className="text-[10px] text-muted-foreground mt-1">+12% from last month</p>
@@ -42,7 +42,7 @@ export default function AnalyticsPage() {
             <CardContent className="p-4">
               <div className="flex items-center gap-2 text-primary mb-1">
                 <TrendingDown className="h-4 w-4" />
-                <span className="text-[10px] font-bold uppercase">Saving</span>
+                <span className="text-[10px] font-bold">Saving</span>
               </div>
               <p className="text-xl font-bold">₹1,120</p>
               <p className="text-[10px] text-muted-foreground mt-1">Across 3 active trips</p>
@@ -53,7 +53,7 @@ export default function AnalyticsPage() {
         <Card className="border-none shadow-sm bg-white rounded-2xl overflow-hidden">
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-bold">
-              Category Breakdown
+              Category breakdown
             </CardTitle>
           </CardHeader>
           <CardContent className="h-[250px] pt-0">
@@ -87,7 +87,7 @@ export default function AnalyticsPage() {
         </Card>
 
         <section className="space-y-4">
-          <h2 className="text-xs font-bold uppercase tracking-widest text-muted-foreground ml-1">Recent Insights</h2>
+          <h2 className="text-xl font-bold text-foreground tracking-tight">Recent insights</h2>
           <div className="bg-primary/10 border border-primary/20 p-4 rounded-2xl">
             <p className="text-sm font-medium text-foreground">
               You've spent <span className="text-primary font-bold">₹450</span> on Dining this week. That's 15% lower than your average! Good job!

@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState } from "react";
@@ -115,13 +114,13 @@ export default function CreateTrip() {
         <Button variant="ghost" size="icon" onClick={() => router.back()}>
           <ArrowLeft className="h-6 w-6" />
         </Button>
-        <h1 className="text-lg font-bold">Create New Trip</h1>
+        <h1 className="text-lg font-bold">Create new trip</h1>
         <div className="w-10" />
       </header>
 
       <main className="flex-1 px-safe-pad py-8 space-y-8 overflow-y-auto">
         <div className="space-y-4">
-          <Label className="text-sm font-bold uppercase tracking-wider text-muted-foreground ml-1">Trip Name</Label>
+          <Label className="text-sm font-bold text-muted-foreground ml-1">Trip name</Label>
           <Input 
             placeholder="e.g. Goa 2024, Europe Tour" 
             className="h-14 text-lg rounded-2xl focus-visible:ring-primary shadow-sm bg-white"
@@ -132,7 +131,7 @@ export default function CreateTrip() {
 
         <div className="space-y-4">
           <div className="flex justify-between items-end">
-            <Label className="text-sm font-bold uppercase tracking-wider text-muted-foreground ml-1">Friends & Families</Label>
+            <Label className="text-sm font-bold text-muted-foreground ml-1">Friends & families</Label>
             <span className="text-[10px] text-primary font-bold">{participants.length} groups added</span>
           </div>
           
@@ -167,7 +166,7 @@ export default function CreateTrip() {
                         <div className="h-8 w-8 rounded-lg bg-primary/10 flex items-center justify-center text-primary font-bold text-xs">
                           {headName[0]}
                         </div>
-                        <span className="font-bold text-sm tracking-tight">{headName}&apos;s Family</span>
+                        <span className="font-bold text-sm tracking-tight">{headName}&apos;s family</span>
                       </div>
                       {p.id !== "p1" && (
                         <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive" onClick={() => removeParticipant(p.id)}>
@@ -182,7 +181,7 @@ export default function CreateTrip() {
                           variant="outline" 
                           className="px-3 py-1.5 rounded-full flex items-center gap-2 bg-primary/5 border-primary/30 text-primary font-bold shadow-sm"
                         >
-                          <span className="text-[10px] font-bold uppercase tracking-wider">{headName}</span>
+                          <span className="text-[10px] font-bold">{headName}</span>
                         </Badge>
 
                         {p.familyMembers.map((fm) => (
@@ -191,7 +190,7 @@ export default function CreateTrip() {
                             variant="outline" 
                             className="pl-3 pr-2 py-1.5 rounded-full flex items-center gap-2 bg-white border-primary/30 text-primary font-bold shadow-sm group animate-in zoom-in-95 duration-200"
                           >
-                            <span className="text-[10px] font-bold uppercase tracking-wider">{fm}</span>
+                            <span className="text-[10px] font-bold">{fm}</span>
                             <X 
                               className="h-3.5 w-3.5 cursor-pointer text-muted-foreground hover:text-destructive transition-colors" 
                               onClick={() => removeFamilyMember(p.id, fm)} 
@@ -218,10 +217,10 @@ export default function CreateTrip() {
                           <Button 
                             variant="ghost" 
                             size="sm" 
-                            className="h-7 text-[10px] font-bold uppercase text-primary hover:bg-primary/20 hover:text-primary p-0 px-3 flex items-center gap-1 bg-primary/5 rounded-full transition-colors border border-primary/10"
+                            className="h-7 text-[10px] font-bold text-primary hover:bg-primary/20 hover:text-primary p-0 px-3 flex items-center gap-1 bg-primary/5 rounded-full transition-colors border border-primary/10"
                             onClick={() => setActiveFamilyMemberInput(p.id)}
                           >
-                            <Plus className="h-3.5 w-3.5" /> Add Family Member
+                            <Plus className="h-3.5 w-3.5" /> Add family member
                           </Button>
                         )}
                       </div>
@@ -239,7 +238,7 @@ export default function CreateTrip() {
           className="w-full h-14 rounded-2xl text-lg font-bold shadow-lg shadow-primary/20 bg-primary hover:bg-primary/90"
           onClick={handleSaveTrip}
         >
-          Create Trip Group
+          Create trip group
         </Button>
       </footer>
     </div>

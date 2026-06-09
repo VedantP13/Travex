@@ -37,11 +37,11 @@ export default function ProfilePage() {
             <h2 className="text-2xl font-bold">Marco Rossi</h2>
             <p className="text-muted-foreground text-sm">Member since July 2024</p>
           </div>
-          <Button variant="outline" className="rounded-full px-8">Edit Profile</Button>
+          <Button variant="outline" className="rounded-full px-8">Edit profile</Button>
         </div>
 
         <div className="space-y-4">
-          <h3 className="text-xs font-bold uppercase tracking-widest text-muted-foreground ml-1">Account Settings</h3>
+          <h3 className="text-xl font-bold text-foreground tracking-tight ml-1">Account settings</h3>
           <div className="grid gap-3">
             {settings.map((item) => (
               <Card key={item.label} className="border-none shadow-sm bg-white rounded-2xl">
@@ -51,7 +51,7 @@ export default function ProfilePage() {
                       <item.icon className="h-5 w-5" />
                     </div>
                     <div>
-                      <p className="text-[10px] text-muted-foreground font-semibold uppercase">{item.label}</p>
+                      <p className="text-[10px] text-muted-foreground font-semibold">{item.label}</p>
                       <p className="text-sm font-bold">{item.value}</p>
                     </div>
                   </div>

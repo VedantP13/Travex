@@ -58,11 +58,11 @@ export default function Home() {
 
         <div className="grid grid-cols-2 gap-4">
           <div className="bg-white/5 backdrop-blur-md p-5 rounded-3xl border border-white/10">
-            <p className="text-[10px] font-bold uppercase tracking-widest opacity-60 mb-2">You Owe</p>
+            <p className="text-[10px] font-bold opacity-60 mb-2">You owe</p>
             <p className="text-2xl font-bold">₹142.00</p>
           </div>
           <div className="bg-accent/10 backdrop-blur-md p-5 rounded-3xl border border-accent/20">
-            <p className="text-[10px] font-bold uppercase tracking-widest text-accent mb-2">Owed to You</p>
+            <p className="text-[10px] font-bold text-accent mb-2">Owed to you</p>
             <p className="text-2xl font-bold text-accent">₹285.50</p>
           </div>
         </div>
@@ -71,20 +71,20 @@ export default function Home() {
       {/* Dynamic Trip Spotlight */}
       <section className="px-safe-pad -mt-8">
         <div className="grid grid-cols-12 gap-3">
-          <Card className="col-span-9 border-2 border-white/10 shadow-xl bg-primary text-primary-foreground rounded-3xl p-5 flex flex-col justify-between group">
+          <Card className="col-span-9 border-2 border-white/20 shadow-xl bg-primary text-primary-foreground rounded-3xl p-5 flex flex-col justify-between group">
             <div>
               <div className="flex items-center gap-2 mb-2">
                 <span className="h-2 w-2 rounded-full bg-accent animate-pulse" />
-                <span className="text-[9px] font-bold uppercase tracking-widest opacity-80">Ongoing: {activeTrip.name}</span>
+                <span className="text-[9px] font-bold opacity-80">Ongoing: {activeTrip.name}</span>
               </div>
-              <p className="text-xl font-bold">₹{activeTrip.totalSpent.toFixed(2)} Spent</p>
-              <p className="text-[10px] opacity-60 mt-1 uppercase font-semibold">{activeTrip.participants} friends splitting</p>
+              <p className="text-xl font-bold">₹{activeTrip.totalSpent.toFixed(2)} spent</p>
+              <p className="text-[10px] opacity-60 mt-1 font-semibold">{activeTrip.participants} friends splitting</p>
             </div>
             <Link 
               href={`/trips/${activeTrip.id}/add`} 
-              className="mt-6 flex items-center gap-2 text-xs font-bold uppercase text-accent hover:opacity-80 transition-opacity"
+              className="mt-6 flex items-center gap-2 text-xs font-bold text-accent hover:opacity-80 transition-opacity"
             >
-              Add Expense <ChevronRight className="h-3 w-3" />
+              Add expense <ChevronRight className="h-3 w-3" />
             </Link>
           </Card>
           
@@ -95,7 +95,7 @@ export default function Home() {
             <div className="h-10 w-10 rounded-2xl bg-primary/5 flex items-center justify-center text-primary group-hover:scale-110 transition-transform">
               <Plus className="h-5 w-5" />
             </div>
-            <span className="text-[8px] font-extrabold uppercase tracking-wider text-muted-foreground text-center px-1">New Trip</span>
+            <span className="text-[8px] font-extrabold text-muted-foreground text-center px-1">New trip</span>
           </Link>
         </div>
       </section>
@@ -103,10 +103,10 @@ export default function Home() {
       {/* Recent Trips Section */}
       <main className="px-safe-pad pt-10 space-y-6">
         <div className="flex justify-between items-center">
-          <h2 className="text-lg font-bold">
-            Trip Collections
+          <h2 className="text-xl font-bold text-foreground tracking-tight">
+            Trip collections
           </h2>
-          <Button variant="link" className="text-primary text-xs font-bold p-0">See All</Button>
+          <Button variant="link" className="text-primary text-xs font-bold p-0">See all</Button>
         </div>
 
         <div className="grid gap-5">
@@ -120,14 +120,14 @@ export default function Home() {
                     className="h-full w-full object-cover"
                     data-ai-hint="trip landscape"
                   />
-                  <Badge className="absolute top-4 right-4 bg-white/90 text-foreground border-none backdrop-blur-md font-bold text-[10px] uppercase">
+                  <Badge className="absolute top-4 right-4 bg-white/90 text-foreground border-none backdrop-blur-md font-bold text-[10px]">
                     {trip.status}
                   </Badge>
                 </div>
                 <CardHeader className="p-5 space-y-1">
                   <div className="flex justify-between items-start">
                     <CardTitle className="text-base font-bold">{trip.name}</CardTitle>
-                    <span className="text-[10px] font-bold px-3 py-1 bg-muted rounded-full flex items-center gap-1.5 uppercase tracking-wider text-muted-foreground">
+                    <span className="text-[10px] font-bold px-3 py-1 bg-muted rounded-full flex items-center gap-1.5">
                       <Users className="h-3 w-3" /> {trip.participants}
                     </span>
                   </div>
@@ -135,11 +135,11 @@ export default function Home() {
                 </CardHeader>
                 <div className="px-5 pb-5 pt-0 flex justify-between items-center">
                   <div>
-                    <p className="text-[10px] uppercase text-muted-foreground font-bold tracking-widest mb-1">Total</p>
+                    <p className="text-[10px] text-muted-foreground font-bold mb-1">Total</p>
                     <p className="text-sm font-bold">₹{trip.totalSpent.toFixed(2)}</p>
                   </div>
                   <div className="text-right">
-                    <p className="text-[10px] uppercase text-muted-foreground font-bold tracking-widest mb-1">Balance</p>
+                    <p className="text-[10px] text-muted-foreground font-bold mb-1">Balance</p>
                     <p className={cn(
                       "text-sm font-bold",
                       trip.yourBalance < 0 ? "text-destructive" : "text-primary"
