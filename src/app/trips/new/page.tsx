@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState } from "react";
@@ -11,7 +12,7 @@ import { Label } from "@/components/ui/label";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useToast } from "@/hooks/use-toast";
-import { db } from "@/lib/firebase/config";
+import { useFirestore } from "@/firebase";
 import { collection, addDoc, serverTimestamp } from "firebase/firestore";
 
 type Participant = {
@@ -25,6 +26,8 @@ type Participant = {
 export default function CreateTrip() {
   const router = useRouter();
   const { toast } = useToast();
+  const firestore = useFirestore();
+  
   const [name, setName] = useState("");
   const [isCreating, setIsCreating] = useState(false);
   const [participants, setParticipants] = useState<Participant[]>([
@@ -94,9 +97,24 @@ export default function CreateTrip() {
     }
 
     setIsCreating(true);
+    
+    // Safety check: ensure firestore is initialized
+    if (!firestore) {
+      toast({
+        title: "Database connection failed",
+        description: "Firestore could not be initialized. Please check your config.",
+        variant: "destructive"
+      });
+      setIsCreating(false);
+      return;
+    }
+
     try {
-      const tripRef = collection(db, "trips");
-      await addDoc(tripRef, {
+      const tripRef = collection(firestore, "trips");
+      
+      // We don't await the promise directly to prevent UI hanging if Firebase is offline/retrying
+      // Instead, we use a standard timeout or let the optimistic write happen
+      addDoc(tripRef, {
         name: name.trim(),
         participants: participants,
         createdAt: serverTimestamp(),
@@ -104,20 +122,28 @@ export default function CreateTrip() {
         totalSpent: 0,
         yourBalance: 0,
         image: `https://picsum.photos/seed/${Math.random()}/600/400`
+      }).then(() => {
+        toast({
+          title: "Trip created!",
+          description: `${name} has been set up successfully.`,
+        });
+        router.push("/");
+      }).catch((err) => {
+        console.error("Firestore error:", err);
+        toast({
+          title: "Error creating trip",
+          description: err.message || "Something went wrong.",
+          variant: "destructive"
+        });
+        setIsCreating(false);
       });
 
-      toast({
-        title: "Trip created!",
-        description: `${name} has been set up successfully.`,
-      });
-      router.push("/");
     } catch (error: any) {
       toast({
         title: "Error",
         description: error.message,
         variant: "destructive"
       });
-    } finally {
       setIsCreating(false);
     }
   };
