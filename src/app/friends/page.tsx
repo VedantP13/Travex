@@ -21,6 +21,9 @@ const FRIENDS = [
   { name: "Julie", status: "Offline", avatar: "https://picsum.photos/seed/user4/100/100" },
 ];
 
+// Currently empty to demonstrate the conditional hiding of the section
+const PENDING_REQUESTS: any[] = [];
+
 export default function FriendsPage() {
   const [activeMenuName, setActiveMenuName] = useState<string | null>(null);
 
@@ -44,12 +47,33 @@ export default function FriendsPage() {
       </header>
 
       <main className="px-safe-pad pt-8 space-y-8">
-        <section className="space-y-4">
-          <h2 className="text-xl font-bold text-foreground tracking-tight">Friend Requests</h2>
-          <p className="text-sm text-muted-foreground italic text-center py-4 bg-white/40 rounded-2xl border border-dashed border-muted">
-            No pending requests
-          </p>
-        </section>
+        {PENDING_REQUESTS.length > 0 && (
+          <section className="space-y-4">
+            <h2 className="text-xl font-bold text-foreground tracking-tight">Friend Requests</h2>
+            <div className="grid gap-3">
+              {PENDING_REQUESTS.map((request) => (
+                <Card key={request.name} className="border-none shadow-sm bg-white rounded-2xl overflow-hidden">
+                  <CardContent className="p-4 flex items-center justify-between">
+                    <div className="flex items-center gap-4">
+                      <Avatar className="h-10 w-10">
+                        <AvatarImage src={request.avatar} />
+                        <AvatarFallback>{request.name[0]}</AvatarFallback>
+                      </Avatar>
+                      <div>
+                        <h3 className="font-bold text-sm">{request.name}</h3>
+                        <p className="text-[10px] text-muted-foreground uppercase font-bold">Wants to be friends</p>
+                      </div>
+                    </div>
+                    <div className="flex gap-2">
+                      <Button size="sm" className="h-8 rounded-lg px-3">Accept</Button>
+                      <Button size="sm" variant="ghost" className="h-8 rounded-lg px-3 text-muted-foreground">Decline</Button>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          </section>
+        )}
 
         <section className="space-y-4">
           <h2 className="text-xl font-bold text-foreground tracking-tight">Your Friends</h2>
