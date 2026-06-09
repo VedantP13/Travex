@@ -99,7 +99,7 @@ export default function CreateTrip() {
         <div className="space-y-4">
           <div className="flex justify-between items-end">
             <Label className="text-sm font-bold uppercase tracking-wider text-muted-foreground ml-1">Friends & Families</Label>
-            <span className="text-[10px] text-primary font-bold">{participants.length} people added</span>
+            <span className="text-[10px] text-primary font-bold">{participants.length} groups added</span>
           </div>
           
           <div className="flex gap-2">
@@ -123,68 +123,83 @@ export default function CreateTrip() {
           </Alert>
 
           <div className="space-y-4 pt-2">
-            {participants.map((p) => (
-              <Card key={p.id} className="rounded-2xl border-none shadow-sm overflow-hidden bg-white">
-                <CardContent className="p-4 space-y-3">
-                  <div className="flex justify-between items-center">
-                    <div className="flex items-center gap-3">
-                      <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold">
-                        {p.name[0]}
-                      </div>
-                      <span className="font-bold">{p.name}</span>
-                    </div>
-                    {p.id !== "p1" && (
-                      <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive" onClick={() => removeParticipant(p.id)}>
-                        <X className="h-4 w-4" />
-                      </Button>
-                    )}
-                  </div>
-
-                  <div className="pl-13 space-y-2">
-                    <div className="flex flex-wrap gap-2 items-center">
-                      {p.familyMembers.map((fm) => (
-                        <Badge 
-                          key={fm} 
-                          variant="outline" 
-                          className="pl-3 pr-2 py-1.5 rounded-full flex items-center gap-2 bg-white border-primary/30 text-primary font-bold shadow-sm group animate-in zoom-in-95 duration-200"
-                        >
-                          <span className="text-[10px] font-bold uppercase tracking-wider">{fm}</span>
-                          <X 
-                            className="h-3.5 w-3.5 cursor-pointer text-muted-foreground hover:text-destructive transition-colors" 
-                            onClick={() => removeFamilyMember(p.id, fm)} 
-                          />
-                        </Badge>
-                      ))}
-                      {activeFamilyMemberInput === p.id ? (
-                        <div className="flex gap-1 w-full mt-2 animate-in fade-in slide-in-from-top-1">
-                          <Input 
-                            autoFocus
-                            placeholder="Add member name..." 
-                            className="h-8 text-xs rounded-lg bg-white"
-                            value={newFamilyMemberName}
-                            onChange={e => setNewFamilyMemberName(e.target.value)}
-                            onKeyDown={e => e.key === 'Enter' && addFamilyMember(p.id)}
-                            onBlur={() => {
-                              if (!newFamilyMemberName.trim()) setActiveFamilyMemberInput(null);
-                            }}
-                          />
-                          <Button size="sm" className="h-8 px-3 rounded-lg bg-primary" onClick={() => addFamilyMember(p.id)}>Add</Button>
+            {participants.map((p) => {
+              const headName = p.name.replace(" (You)", "");
+              return (
+                <Card key={p.id} className="rounded-2xl border-none shadow-sm overflow-hidden bg-white">
+                  <CardContent className="p-4 space-y-4">
+                    <div className="flex justify-between items-center">
+                      <div className="flex items-center gap-3">
+                        <div className="h-8 w-8 rounded-lg bg-primary/10 flex items-center justify-center text-primary font-bold text-xs">
+                          {headName[0]}
                         </div>
-                      ) : (
-                        <Button 
-                          variant="ghost" 
-                          size="sm" 
-                          className="h-7 text-[10px] font-bold uppercase text-primary hover:bg-primary/20 hover:text-primary p-0 px-3 flex items-center gap-1 bg-primary/5 rounded-full transition-colors border border-primary/10"
-                          onClick={() => setActiveFamilyMemberInput(p.id)}
-                        >
-                          <Plus className="h-3.5 w-3.5" /> Add Family Member
+                        <span className="font-bold text-sm tracking-tight">{headName}&apos;s Family</span>
+                      </div>
+                      {p.id !== "p1" && (
+                        <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive" onClick={() => removeParticipant(p.id)}>
+                          <X className="h-4 w-4" />
                         </Button>
                       )}
                     </div>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
+
+                    <div className="space-y-3">
+                      <div className="flex flex-wrap gap-2 items-center">
+                        {/* Primary Member (Head) */}
+                        <Badge 
+                          variant="outline" 
+                          className="px-3 py-1.5 rounded-full flex items-center gap-2 bg-muted/20 border-transparent text-foreground font-bold"
+                        >
+                          <span className="text-[10px] font-bold uppercase tracking-wider">{headName}</span>
+                          <span className="text-[8px] bg-primary/10 text-primary px-1 rounded uppercase tracking-tighter">Head</span>
+                        </Badge>
+
+                        {/* Additional Family Members */}
+                        {p.familyMembers.map((fm) => (
+                          <Badge 
+                            key={fm} 
+                            variant="outline" 
+                            className="pl-3 pr-2 py-1.5 rounded-full flex items-center gap-2 bg-white border-primary/30 text-primary font-bold shadow-sm group animate-in zoom-in-95 duration-200"
+                          >
+                            <span className="text-[10px] font-bold uppercase tracking-wider">{fm}</span>
+                            <X 
+                              className="h-3.5 w-3.5 cursor-pointer text-muted-foreground hover:text-destructive transition-colors" 
+                              onClick={() => removeFamilyMember(p.id, fm)} 
+                            />
+                          </Badge>
+                        ))}
+                        
+                        {/* Add Family Member Trigger */}
+                        {activeFamilyMemberInput === p.id ? (
+                          <div className="flex gap-1 items-center w-full sm:w-auto animate-in fade-in slide-in-from-top-1">
+                            <Input 
+                              autoFocus
+                              placeholder="Name..." 
+                              className="h-8 text-xs rounded-lg bg-white w-24 sm:w-32"
+                              value={newFamilyMemberName}
+                              onChange={e => setNewFamilyMemberName(e.target.value)}
+                              onKeyDown={e => e.key === 'Enter' && addFamilyMember(p.id)}
+                              onBlur={() => {
+                                if (!newFamilyMemberName.trim()) setActiveFamilyMemberInput(null);
+                              }}
+                            />
+                            <Button size="sm" className="h-8 px-3 rounded-lg bg-primary" onClick={() => addFamilyMember(p.id)}>Add</Button>
+                          </div>
+                        ) : (
+                          <Button 
+                            variant="ghost" 
+                            size="sm" 
+                            className="h-7 text-[10px] font-bold uppercase text-primary hover:bg-primary/20 hover:text-primary p-0 px-3 flex items-center gap-1 bg-primary/5 rounded-full transition-colors border border-primary/10"
+                            onClick={() => setActiveFamilyMemberInput(p.id)}
+                          >
+                            <Plus className="h-3.5 w-3.5" /> Add Family Member
+                          </Button>
+                        )}
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              );
+            })}
           </div>
         </div>
       </main>
