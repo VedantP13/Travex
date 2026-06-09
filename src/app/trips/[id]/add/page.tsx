@@ -22,6 +22,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
+import { Label } from "@/components/ui/label";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { suggestExpenseCategory } from "@/ai/flows/suggest-expense-category";
@@ -47,13 +48,13 @@ export default function AddExpenseWizard() {
     amount: "",
     payerId: "p1",
     splitType: "equal_person",
-    selectedIndividuals: [] as string[], // IDs or Family Member Names
+    selectedIndividuals: [] as string[], // IDs or Family Member unique keys
     date: new Date().toISOString().split('T')[0],
     paymentType: "UPI",
     category: ""
   });
 
-  // Flat list of all possible split targets
+  // Flat list of all possible targets
   const allTargets = useMemo(() => {
     const targets: { id: string; name: string; parentId: string; type: 'participant' | 'family' }[] = [];
     PARTICIPANTS.forEach(p => {
@@ -65,15 +66,19 @@ export default function AddExpenseWizard() {
     return targets;
   }, []);
 
-  // Default selection based on split type
+  // Update selection based on split type
   useEffect(() => {
     if (formData.splitType === 'equal_person') {
+      // Default selects all members of all families
       setFormData(prev => ({ ...prev, selectedIndividuals: allTargets.map(t => t.id) }));
     } else if (formData.splitType === 'equal_family') {
+      // Default selects all families (the heads)
       setFormData(prev => ({ ...prev, selectedIndividuals: PARTICIPANTS.map(p => p.id) }));
     } else if (formData.splitType === 'just_me') {
+      // Just you
       setFormData(prev => ({ ...prev, selectedIndividuals: ["p1"] }));
     }
+    // Custom keeps current selection or starts empty if switched from somewhere else
   }, [formData.splitType, allTargets]);
 
   const handleDescriptionBlur = async () => {
@@ -126,7 +131,7 @@ export default function AddExpenseWizard() {
         {step === 1 && (
           <div className="space-y-8 animate-in fade-in slide-in-from-right-4 duration-300">
             <div className="space-y-2">
-              <h1 className="text-2xl font-bold">The Basics</h1>
+              <h1 className="text-2xl font-bold">Page 1: Amount</h1>
               <p className="text-muted-foreground">How much and who paid?</p>
             </div>
 
@@ -178,16 +183,16 @@ export default function AddExpenseWizard() {
         {step === 2 && (
           <div className="space-y-8 animate-in fade-in slide-in-from-right-4 duration-300">
             <div className="space-y-2">
-              <h1 className="text-2xl font-bold">Split Strategy</h1>
+              <h1 className="text-2xl font-bold">Page 2: Split</h1>
               <p className="text-muted-foreground">How should we divide ₹{formData.amount || '0.00'}?</p>
             </div>
 
             <div className="grid grid-cols-2 gap-3">
               {[
-                { id: "equal_person", label: "Per Person", icon: Users, desc: "Equal share for all" },
-                { id: "equal_family", label: "Per Family", icon: Home, desc: "One share per unit" },
+                { id: "equal_person", label: "Per Person", icon: Users, desc: "All family members" },
+                { id: "equal_family", label: "Per Family", icon: Home, desc: "One per family unit" },
                 { id: "custom", label: "Custom", icon: PieChart, desc: "Pick individuals" },
-                { id: "just_me", label: "Just Me", icon: User, desc: "Full amount" }
+                { id: "just_me", label: "Just You", icon: User, desc: "100% to you" }
               ].map(mode => (
                 <Card 
                   key={mode.id}
@@ -205,7 +210,7 @@ export default function AddExpenseWizard() {
 
             <div className="bg-white p-5 rounded-2xl border border-dashed border-primary/20 space-y-4">
               <div className="flex justify-between items-center">
-                <p className="text-xs font-bold text-primary uppercase tracking-widest">Selected to Split</p>
+                <p className="text-xs font-bold text-primary uppercase tracking-widest">Active Split Selection</p>
                 <Badge variant="outline" className="text-[10px]">{formData.selectedIndividuals.length} Selected</Badge>
               </div>
               
@@ -220,7 +225,7 @@ export default function AddExpenseWizard() {
                         <Avatar className="h-6 w-6">
                           <AvatarImage src={p.avatar} />
                         </Avatar>
-                        <span className="text-xs font-bold">{p.name}</span>
+                        <span className="text-xs font-bold">{p.name} {p.name === "Marco" ? "(You)" : ""}</span>
                       </div>
                       {formData.selectedIndividuals.includes(p.id) && <Check className="h-4 w-4 text-primary" />}
                     </div>
@@ -235,7 +240,7 @@ export default function AddExpenseWizard() {
                               className={`flex items-center justify-between p-2 rounded-lg border text-[11px] transition-all cursor-pointer ${isSelected ? 'bg-accent/10 border-accent' : 'bg-muted/20 border-transparent opacity-60'}`}
                               onClick={() => toggleSelection(fmId)}
                             >
-                              <span className="font-medium text-muted-foreground">Family: {fm}</span>
+                              <span className="font-medium text-muted-foreground">{fm}</span>
                               {isSelected && <Check className="h-3 w-3 text-accent" />}
                             </div>
                           );
@@ -252,13 +257,13 @@ export default function AddExpenseWizard() {
         {step === 3 && (
           <div className="space-y-8 animate-in fade-in slide-in-from-right-4 duration-300">
             <div className="space-y-2">
-              <h1 className="text-2xl font-bold">Last Details</h1>
-              <p className="text-muted-foreground">Finish it up with date and category.</p>
+              <h1 className="text-2xl font-bold">Page 3: Details</h1>
+              <p className="text-muted-foreground">Date, payment, and category tags.</p>
             </div>
 
             <div className="space-y-6">
               <div className="space-y-3">
-                <Label className="text-xs font-bold uppercase tracking-wider text-muted-foreground ml-1">Date & Time</Label>
+                <Label className="text-xs font-bold uppercase tracking-wider text-muted-foreground ml-1">Date</Label>
                 <div className="relative">
                   <Input 
                     type="date"
@@ -271,7 +276,7 @@ export default function AddExpenseWizard() {
               </div>
 
               <div className="space-y-3">
-                <Label className="text-xs font-bold uppercase tracking-wider text-muted-foreground ml-1">Payment Method</Label>
+                <Label className="text-xs font-bold uppercase tracking-wider text-muted-foreground ml-1">Payment Type</Label>
                 <Select 
                   value={formData.paymentType} 
                   onValueChange={val => setFormData(prev => ({ ...prev, paymentType: val }))}
