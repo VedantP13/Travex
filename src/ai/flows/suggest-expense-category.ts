@@ -2,7 +2,7 @@
 /**
  * @fileOverview An AI agent that suggests expense categories based on expense descriptions.
  *
- * - suggestExpenseCategory - A function that suggests an expense category.
+ * - suggestExpenseCategory - A function that suggests an expense category with retry logic.
  * - SuggestExpenseCategoryInput - The input type for the suggestExpenseCategory function.
  * - SuggestExpenseCategoryOutput - The return type for the suggestExpenseCategory function.
  */
@@ -20,8 +20,40 @@ const SuggestExpenseCategoryOutputSchema = z.object({
 });
 export type SuggestExpenseCategoryOutput = z.infer<typeof SuggestExpenseCategoryOutputSchema>;
 
+/**
+ * Suggests an expense category based on the description.
+ * Includes a retry mechanism for transient 503 errors.
+ */
 export async function suggestExpenseCategory(input: SuggestExpenseCategoryInput): Promise<SuggestExpenseCategoryOutput> {
-  return suggestExpenseCategoryFlow(input);
+  const maxRetries = 2;
+  let attempt = 0;
+
+  while (attempt <= maxRetries) {
+    try {
+      return await suggestExpenseCategoryFlow(input);
+    } catch (error: any) {
+      const errorMessage = error.message || '';
+      const isTransient = errorMessage.includes('503') || 
+                          errorMessage.includes('UNAVAILABLE') || 
+                          errorMessage.includes('high demand') ||
+                          error.status === 503;
+
+      if (isTransient && attempt < maxRetries) {
+        attempt++;
+        // Exponential backoff: 1s, 2s
+        await new Promise(resolve => setTimeout(resolve, 1000 * attempt));
+        continue;
+      }
+
+      // If we've exhausted retries or it's a non-transient error, 
+      // we log it and return an empty category instead of throwing
+      // to avoid triggering the Next.js error overlay on the client.
+      console.warn('AI categorization failed:', errorMessage);
+      return { category: "" };
+    }
+  }
+
+  return { category: "" };
 }
 
 const prompt = ai.definePrompt({
@@ -43,6 +75,9 @@ const suggestExpenseCategoryFlow = ai.defineFlow(
   },
   async (input) => {
     const { output } = await prompt(input);
-    return output!;
+    if (!output) {
+      throw new Error('AI returned no output');
+    }
+    return output;
   }
 );
