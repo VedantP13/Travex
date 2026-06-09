@@ -144,13 +144,12 @@ export default function CreateTrip() {
 
                     <div className="space-y-3">
                       <div className="flex flex-wrap gap-2 items-center">
-                        {/* Primary Member (Head) */}
+                        {/* Primary Member (Head) - Styled as a normal capsule without X */}
                         <Badge 
                           variant="outline" 
-                          className="px-3 py-1.5 rounded-full flex items-center gap-2 bg-muted/20 border-transparent text-foreground font-bold"
+                          className="px-3 py-1.5 rounded-full flex items-center gap-2 bg-white border-primary/30 text-primary font-bold shadow-sm"
                         >
                           <span className="text-[10px] font-bold uppercase tracking-wider">{headName}</span>
-                          <span className="text-[8px] bg-primary/10 text-primary px-1 rounded uppercase tracking-tighter">Head</span>
                         </Badge>
 
                         {/* Additional Family Members */}
