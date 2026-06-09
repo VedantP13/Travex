@@ -62,7 +62,7 @@ export function BottomNav() {
             <Link href={`/trips/${activeTripId}/add`}>
               <Button 
                 size="icon" 
-                className="h-14 w-14 rounded-full shadow-2xl shadow-primary/30 bg-accent hover:bg-accent transition-all duration-300 hover:scale-110 active:scale-95 border-[5px] border-white text-white"
+                className="h-14 w-14 rounded-full shadow-[0_12px_24px_-8px_rgba(0,0,0,0.3)] bg-accent hover:bg-accent transition-all duration-300 hover:scale-110 active:scale-95 border-[5px] border-white text-white"
                 title="Add expense"
               >
                 <Plus className="h-8 w-8" strokeWidth={3} />
