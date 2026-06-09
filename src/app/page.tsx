@@ -13,23 +13,36 @@ import { cn } from "@/lib/utils";
 import { BottomNav } from "@/components/bottom-nav";
 import { db } from "@/lib/firebase/config";
 import { collection, onSnapshot, query, orderBy } from "firebase/firestore";
+import { useToast } from "@/hooks/use-toast";
 
 export default function Home() {
   const [trips, setTrips] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const { toast } = useToast();
 
   useEffect(() => {
     const q = query(collection(db, "trips"), orderBy("createdAt", "desc"));
-    const unsubscribe = onSnapshot(q, (snapshot) => {
-      const tripData = snapshot.docs.map(doc => ({
-        id: doc.id,
-        ...doc.data()
-      }));
-      setTrips(tripData);
-      setLoading(false);
-    });
+    const unsubscribe = onSnapshot(q, 
+      (snapshot) => {
+        const tripData = snapshot.docs.map(doc => ({
+          id: doc.id,
+          ...doc.data()
+        }));
+        setTrips(tripData);
+        setLoading(false);
+      },
+      (error) => {
+        console.error("Firestore connection failed:", error);
+        toast({
+          title: "Connection error",
+          description: "Could not sync trips. Please check your Firebase config.",
+          variant: "destructive"
+        });
+        setLoading(false);
+      }
+    );
     return () => unsubscribe();
-  }, []);
+  }, [toast]);
 
   const activeTrip = trips.find(t => t.status === "Active") || trips[0];
 
@@ -95,12 +108,12 @@ export default function Home() {
           
           <Link 
             href="/trips/new" 
-            className="col-span-3 bg-white shadow-xl rounded-3xl flex flex-col items-center justify-center p-4 gap-2 group hover:bg-muted transition-all duration-300 transform hover:-translate-y-0.5 border-2 border-accent/20 hover:border-accent"
+            className="col-span-3 bg-white shadow-xl rounded-3xl flex flex-col items-center justify-center p-4 gap-2 group hover:bg-accent hover:text-white transition-all duration-300 transform hover:-translate-y-0.5 border-2 border-accent/20"
           >
-            <div className="h-12 w-12 rounded-2xl bg-primary/5 flex items-center justify-center text-primary group-hover:scale-110 group-hover:bg-primary/10 transition-all shadow-sm">
+            <div className="h-12 w-12 rounded-2xl bg-primary/5 flex items-center justify-center text-primary group-hover:scale-110 group-hover:bg-white/20 group-hover:text-white transition-all shadow-sm">
               <Plus className="h-6 w-6" />
             </div>
-            <span className="text-[10px] font-extrabold text-muted-foreground text-center px-1 uppercase tracking-tighter group-hover:text-primary transition-colors">New trip</span>
+            <span className="text-[10px] font-extrabold text-muted-foreground text-center px-1 uppercase tracking-tighter group-hover:text-white transition-colors">New trip</span>
           </Link>
         </div>
       </section>
@@ -116,8 +129,8 @@ export default function Home() {
 
         {loading ? (
           <div className="flex flex-col items-center py-20 text-muted-foreground gap-2">
-            <Zap className="h-8 w-8 animate-pulse" />
-            <p className="text-xs font-bold">Syncing your trips...</p>
+            <Zap className="h-8 w-8 animate-pulse text-primary" />
+            <p className="text-xs font-bold">Loading your adventures...</p>
           </div>
         ) : (
           <div className="grid gap-5">
@@ -161,10 +174,10 @@ export default function Home() {
                 </Card>
               </Link>
             )) : (
-              <div className="text-center py-20 bg-white rounded-3xl border border-dashed border-muted">
-                 <p className="text-sm text-muted-foreground">Start your first adventure!</p>
+              <div className="text-center py-20 bg-white rounded-3xl border border-dashed border-muted px-6">
+                 <p className="text-sm text-muted-foreground font-medium">Start your first adventure!</p>
                  <Link href="/trips/new">
-                   <Button variant="link" className="mt-2 font-bold">Create trip</Button>
+                   <Button variant="default" className="mt-4 font-bold rounded-2xl px-8 h-12 shadow-lg shadow-primary/20">Create your first trip</Button>
                  </Link>
               </div>
             )}
