@@ -17,7 +17,8 @@ import {
   User,
   Home,
   MapPin,
-  AlignLeft
+  AlignLeft,
+  Plus
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -31,12 +32,14 @@ import { useToast } from "@/hooks/use-toast";
 import { db } from "@/lib/firebase/config";
 import { collection, addDoc, doc, updateDoc, increment, serverTimestamp, onSnapshot } from "firebase/firestore";
 import { useTrips } from "@/context/trips-context";
+import Link from "next/link";
+import { AnimatedCompass } from "@/components/animated-compass";
 
 export default function AddExpenseWizard() {
   const router = useRouter();
   const params = useParams();
   const { toast } = useToast();
-  const { trips } = useTrips();
+  const { trips, loading: tripsLoading } = useTrips();
   
   const [step, setStep] = useState(1);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
@@ -162,6 +165,47 @@ export default function AddExpenseWizard() {
       return { ...prev, selectedIndividuals: newSelection };
     });
   };
+
+  if (tripsLoading) {
+    return (
+      <div className="max-w-md mx-auto min-h-screen flex flex-col items-center justify-center bg-background gap-4">
+        <AnimatedCompass className="h-12 w-12 text-primary" />
+        <p className="text-sm font-bold text-muted-foreground">Checking your trips...</p>
+      </div>
+    );
+  }
+
+  if (trips.length === 0) {
+    return (
+      <div className="max-w-md mx-auto min-h-screen bg-background flex flex-col">
+        <header className="px-safe-pad py-6 flex items-center justify-between border-b bg-white">
+          <Button variant="ghost" size="icon" onClick={() => router.back()}>
+            <ChevronLeft className="h-6 w-6" />
+          </Button>
+          <h1 className="text-lg font-bold">Add expense</h1>
+          <Button variant="ghost" size="icon" onClick={() => router.back()}>
+            <X className="h-6 w-6" />
+          </Button>
+        </header>
+        <main className="flex-1 flex flex-col items-center justify-center px-safe-pad text-center space-y-6">
+          <div className="h-20 w-20 bg-primary/10 rounded-[2rem] flex items-center justify-center text-primary shadow-inner">
+            <Plus className="h-10 w-10" />
+          </div>
+          <div className="space-y-2">
+            <h2 className="text-2xl font-bold tracking-tight">No trips found</h2>
+            <p className="text-sm text-muted-foreground max-w-[240px] mx-auto leading-relaxed">
+              You need to create a trip before you can start splitting expenses with friends.
+            </p>
+          </div>
+          <Link href="/trips/new" className="w-full">
+            <Button className="w-full h-14 rounded-2xl text-lg font-bold shadow-lg shadow-primary/20 bg-primary hover:bg-primary/90">
+              Create your first trip
+            </Button>
+          </Link>
+        </main>
+      </div>
+    );
+  }
 
   return (
     <div className="max-w-md mx-auto min-h-screen bg-background flex flex-col">
@@ -360,23 +404,25 @@ export default function AddExpenseWizard() {
 
               <div className="space-y-3">
                 <Label className="text-sm font-bold text-muted-foreground ml-1">Payment type</Label>
-                <Select 
-                  value={formData.paymentType} 
-                  onValueChange={val => setFormData(prev => ({ ...prev, paymentType: val }))}
-                >
-                  <SelectTrigger className="h-14 rounded-2xl shadow-sm focus:ring-primary">
-                    <div className="flex items-center gap-3">
-                      <CreditCard className="h-5 w-5 text-muted-foreground" />
-                      <SelectValue placeholder="Payment method" />
-                    </div>
-                  </SelectTrigger>
-                  <SelectContent className="rounded-xl border-none shadow-xl">
-                    <SelectItem value="UPI">UPI (GPay/PhonePe)</SelectItem>
-                    <SelectItem value="Cash">Cash</SelectItem>
-                    <SelectItem value="Card">Credit/Debit Card</SelectItem>
-                    <SelectItem value="Net Banking">Net Banking</SelectItem>
-                  </SelectContent>
-                </Select>
+                <div className="relative">
+                  <Select 
+                    value={formData.paymentType} 
+                    onValueChange={val => setFormData(prev => ({ ...prev, paymentType: val }))}
+                  >
+                    <SelectTrigger className="h-14 rounded-2xl shadow-sm focus:ring-primary">
+                      <div className="flex items-center gap-3">
+                        <CreditCard className="h-5 w-5 text-muted-foreground" />
+                        <SelectValue placeholder="Payment method" />
+                      </div>
+                    </SelectTrigger>
+                    <SelectContent className="rounded-xl border-none shadow-xl">
+                      <SelectItem value="UPI">UPI (GPay/PhonePe)</SelectItem>
+                      <SelectItem value="Cash">Cash</SelectItem>
+                      <SelectItem value="Card">Credit/Debit Card</SelectItem>
+                      <SelectItem value="Net Banking">Net Banking</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
               </div>
 
               <div className="space-y-3">
