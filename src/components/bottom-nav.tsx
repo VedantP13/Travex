@@ -13,70 +13,73 @@ export function BottomNav() {
   // In this prototype, we use a fallback active trip ID for the global FAB if none is selected
   const activeTripId = "bali-2024";
 
-  const navItems = [
+  const leftItems = [
     { href: "/", icon: Compass, label: "Trips" },
     { href: "/friends", icon: Users, label: "Friends" },
+  ];
+
+  const rightItems = [
     { href: "/analytics", icon: BarChart3, label: "Analytics" },
     { href: "/more", icon: Menu, label: "More" },
   ];
 
+  const NavItem = ({ item }: { item: any }) => {
+    const isActive = pathname === item.href;
+    const Icon = item.icon;
+    
+    return (
+      <Link 
+        href={item.href} 
+        className={cn(
+          "flex flex-col items-center justify-center flex-1 transition-all duration-200 py-1",
+          isActive ? "text-primary scale-105" : "text-slate-400 hover:text-slate-600"
+        )}
+      >
+        <Icon className={cn("h-6 w-6", isActive ? "stroke-[2.5px]" : "stroke-[2px]")} />
+        <span className={cn(
+          "text-[10px] mt-1.5 tracking-tight", 
+          isActive ? "font-bold" : "font-medium"
+        )}>
+          {item.label}
+        </span>
+      </Link>
+    );
+  };
+
   return (
-    <nav className="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-md bg-white border-t flex justify-around py-3 px-6 z-50 shadow-[0_-4px_20px_rgba(0,0,0,0.05)]">
-      {navItems.map((item, idx) => {
-        const isActive = pathname === item.href;
-        const colorClass = isActive ? "text-primary" : "text-slate-400";
+    <nav className="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-md bg-white border-t h-[76px] flex items-center z-50 shadow-[0_-4px_25px_rgba(0,0,0,0.06)] px-2">
+      <div className="flex w-full items-center justify-between">
+        {/* Left Side Navigation */}
+        <div className="flex flex-1 items-center justify-evenly">
+          {leftItems.map(item => (
+            <NavItem key={item.label} item={item} />
+          ))}
+        </div>
 
-        // Place the prominent FAB in the middle
-        if (idx === 2) {
-          return (
-            <div key="fab-container" className="flex items-center">
-              <div key="fab" className="relative w-12 h-12">
-                <div className="absolute -top-10 left-1/2 -translate-x-1/2">
-                  <Link href={`/trips/${activeTripId}/add`}>
-                    <Button 
-                      size="icon" 
-                      className="h-14 w-14 rounded-full shadow-xl shadow-primary/40 bg-accent hover:bg-accent hover:text-white transition-all duration-300 hover:scale-110 active:scale-95 border-4 border-white text-white"
-                      title="Add expense"
-                    >
-                      <Plus className="h-8 w-8" strokeWidth={3} />
-                    </Button>
-                  </Link>
-                </div>
-              </div>
-              <div className="flex flex-col items-center">
-                <Link 
-                  href={item.href} 
-                  className={cn(
-                    "flex flex-col items-center transition-colors ml-4",
-                    colorClass
-                  )}
-                >
-                  <item.icon className="h-6 w-6" />
-                  <span className={cn("text-[10px] mt-1", isActive ? "font-bold" : "font-medium")}>
-                    {item.label}
-                  </span>
-                </Link>
-              </div>
-            </div>
-          );
-        }
+        {/* Central Action Button (FAB) */}
+        <div className="relative w-16 flex flex-col items-center justify-center">
+          <div className="absolute -top-10">
+            <Link href={`/trips/${activeTripId}/add`}>
+              <Button 
+                size="icon" 
+                className="h-14 w-14 rounded-full shadow-2xl shadow-primary/30 bg-accent hover:bg-accent transition-all duration-300 hover:scale-110 active:scale-95 border-[5px] border-white text-white"
+                title="Add expense"
+              >
+                <Plus className="h-8 w-8" strokeWidth={3} />
+              </Button>
+            </Link>
+          </div>
+          {/* Spacer to keep vertical balance if needed, though labels are on the links */}
+          <div className="h-6" /> 
+        </div>
 
-        return (
-          <Link 
-            key={item.label} 
-            href={item.href} 
-            className={cn(
-              "flex flex-col items-center transition-colors",
-              colorClass
-            )}
-          >
-            <item.icon className="h-6 w-6" />
-            <span className={cn("text-[10px] mt-1", isActive ? "font-bold" : "font-medium")}>
-              {item.label}
-            </span>
-          </Link>
-        );
-      })}
+        {/* Right Side Navigation */}
+        <div className="flex flex-1 items-center justify-evenly">
+          {rightItems.map(item => (
+            <NavItem key={item.label} item={item} />
+          ))}
+        </div>
+      </div>
     </nav>
   );
 }
