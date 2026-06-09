@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import { Plus, Users, ChevronRight, Compass } from "lucide-react";
+import { Plus, Users, ChevronRight, Compass, Map } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -105,7 +105,7 @@ export default function Home() {
             </Card>
           ) : (
             <Card className="col-span-8 border-none shadow-2xl bg-primary text-primary-foreground rounded-[2rem] p-6 flex flex-col items-center justify-center text-center">
-               <Compass className="h-10 w-10 text-accent mb-3 opacity-50" />
+               <Map className="h-10 w-10 text-accent mb-3 opacity-50" />
                <p className="text-sm font-bold tracking-tight opacity-90 leading-tight">No active adventures yet</p>
             </Card>
           )}
