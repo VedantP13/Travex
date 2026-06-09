@@ -32,11 +32,14 @@ export default function Home() {
               <p className="text-sm opacity-70 text-background">Welcome back, Marco</p>
             </div>
           </div>
-          <Link href="/profile">
-            <Avatar className="h-12 w-12 border-2 border-accent hover:scale-110 transition-transform shadow-xl shadow-black/20">
+          <Link href="/profile" className="relative group">
+            <Avatar className="h-14 w-14 border-2 border-accent/50 hover:border-accent hover:scale-110 transition-all duration-300 shadow-xl shadow-black/40 ring-4 ring-white/5">
               <AvatarImage src="https://picsum.photos/seed/user1/100/100" />
               <AvatarFallback>MC</AvatarFallback>
             </Avatar>
+            <div className="absolute -bottom-1 -right-1 h-5 w-5 bg-accent rounded-full border-2 border-foreground flex items-center justify-center shadow-lg">
+               <Plus className="h-3 w-3 text-foreground" strokeWidth={3} />
+            </div>
           </Link>
         </div>
 
@@ -44,10 +47,12 @@ export default function Home() {
           <div className="bg-white/5 backdrop-blur-md p-6 rounded-3xl border border-white/10 shadow-inner">
             <p className="text-[10px] font-bold opacity-60 mb-2 uppercase tracking-widest">You owe</p>
             <p className="text-2xl font-bold">₹0.00</p>
+            <p className="text-[9px] opacity-40 mt-1 font-medium italic">All settled up!</p>
           </div>
           <div className="bg-accent/10 backdrop-blur-md p-6 rounded-3xl border border-accent/20 shadow-inner">
             <p className="text-[10px] font-bold text-accent mb-2 uppercase tracking-widest">Owed to you</p>
             <p className="text-2xl font-bold text-accent">₹0.00</p>
+            <p className="text-[9px] text-accent/50 mt-1 font-medium italic">No pending dues</p>
           </div>
         </div>
       </header>
@@ -163,12 +168,12 @@ export default function Home() {
                 </Card>
               </Link>
             )) : (
-              <div className="text-center py-20 bg-white rounded-[2rem] border-2 border-dashed border-muted/50 px-10">
-                 <div className="h-16 w-16 bg-muted/30 rounded-full flex items-center justify-center mx-auto mb-4">
-                   <Plus className="h-8 w-8 text-muted-foreground/50" />
+              <div className="text-center py-14 bg-white rounded-[2rem] border-2 border-dashed border-muted/50 px-10">
+                 <div className="h-14 w-14 bg-muted/30 rounded-full flex items-center justify-center mx-auto mb-4">
+                   <Plus className="h-6 w-6 text-muted-foreground/50" />
                  </div>
                  <p className="text-lg font-bold text-foreground">No trips yet</p>
-                 <p className="text-sm text-muted-foreground mt-2 mb-8">Split expenses effortlessly on your next trip.</p>
+                 <p className="text-sm text-muted-foreground mt-1 mb-6">Split expenses effortlessly on your next trip.</p>
                  <Link href="/trips/new">
                    <Button variant="default" className="font-bold rounded-2xl px-10 h-14 shadow-xl shadow-primary/20 bg-primary hover:bg-primary/90 transition-transform hover:scale-105">
                      Create your first trip
