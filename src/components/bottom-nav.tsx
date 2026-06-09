@@ -3,7 +3,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Wallet, Users, BarChart3, Menu, Plus } from "lucide-react";
+import { Compass, Users, BarChart3, Menu, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
@@ -14,7 +14,7 @@ export function BottomNav() {
   const activeTripId = "bali-2024";
 
   const navItems = [
-    { href: "/", icon: Wallet, label: "Wallet" },
+    { href: "/", icon: Compass, label: "Trips" },
     { href: "/friends", icon: Users, label: "Friends" },
     { href: "/analytics", icon: BarChart3, label: "Analytics" },
     { href: "/more", icon: Menu, label: "More" },
