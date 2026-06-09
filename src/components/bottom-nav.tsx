@@ -24,9 +24,9 @@ export function BottomNav() {
     <nav className="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-md bg-white border-t flex justify-around py-3 px-6 z-50">
       {navItems.map((item, idx) => {
         const isActive = pathname === item.href;
-        // Using a lower opacity variant of the muted foreground to achieve a light grey 
-        // that still feels solid and consistent with the theme's colors.
-        const colorClass = isActive ? "text-primary" : "text-muted-foreground/40";
+        // Using a solid color (secondary) instead of an opacity modifier to avoid icon path overlap artifacts
+        // secondary is lighter than muted-foreground and remains opaque.
+        const colorClass = isActive ? "text-primary" : "text-secondary";
 
         // Place the prominent FAB in the middle
         if (idx === 2) {
@@ -38,7 +38,7 @@ export function BottomNav() {
                     <Button 
                       size="icon" 
                       className="h-14 w-14 rounded-full shadow-xl shadow-primary/40 bg-accent hover:bg-accent/90 border-4 border-white"
-                      title="Add Expense"
+                      title="Add expense"
                     >
                       <Plus className="h-7 w-7" />
                     </Button>

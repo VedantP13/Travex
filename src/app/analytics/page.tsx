@@ -57,7 +57,7 @@ export default function AnalyticsPage() {
               Category breakdown
             </CardTitle>
           </CardHeader>
-          <CardContent className="pt-0 pb-10">
+          <CardContent className="pt-0 pb-12">
             <div className="h-[220px]">
               <ResponsiveContainer width="100%" height="100%">
                 <PieChart>
