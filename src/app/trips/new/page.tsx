@@ -116,7 +116,7 @@ export default function CreateTrip() {
           </div>
 
           <Alert className="bg-primary/10 border-primary/30 rounded-2xl py-3 shadow-sm">
-            <Lightbulb className="h-5 w-5 text-primary" />
+            <Lightbulb className="h-5 w-5 text-foreground/80" />
             <AlertDescription className="text-xs text-foreground/80 font-medium leading-relaxed">
               Traveling with others? Add their names! This helps Travex split costs perfectly by individual person or family later.
             </AlertDescription>
