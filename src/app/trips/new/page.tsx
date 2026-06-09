@@ -10,6 +10,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Label } from "@/components/ui/label";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { useToast } from "@/hooks/use-toast";
 
 type Participant = {
   id: string;
@@ -20,6 +21,7 @@ type Participant = {
 
 export default function CreateTrip() {
   const router = useRouter();
+  const { toast } = useToast();
   const [name, setName] = useState("");
   const [participants, setParticipants] = useState<Participant[]>([
     { id: "p1", name: "Marco (You)", isUser: true, familyMembers: [] }
@@ -69,12 +71,43 @@ export default function CreateTrip() {
   };
 
   const handleSaveTrip = () => {
-    // Validation: Trip name and at least one other participant required
-    if (!name.trim() || participants.length < 2) return;
+    // Validation
+    if (!name.trim()) {
+      toast({
+        title: "Missing Trip Name",
+        description: "Please give your trip a name to continue.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    // Auto-add pending participant name if present
+    let finalParticipants = [...participants];
+    if (newParticipantName.trim()) {
+      const newP: Participant = {
+        id: Math.random().toString(36).substr(2, 9),
+        name: newParticipantName.trim(),
+        isUser: false,
+        familyMembers: []
+      };
+      finalParticipants.push(newP);
+    }
+
+    if (finalParticipants.length < 2) {
+      toast({
+        title: "Missing Friends",
+        description: "Add at least one friend to split expenses with.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    toast({
+      title: "Trip Created!",
+      description: `${name} has been set up successfully.`,
+    });
     router.push("/");
   };
-
-  const isTripValid = name.trim().length > 0 && participants.length >= 2;
 
   return (
     <div className="max-w-md mx-auto min-h-screen bg-background flex flex-col pb-24">
@@ -145,7 +178,6 @@ export default function CreateTrip() {
 
                     <div className="space-y-3">
                       <div className="flex flex-wrap gap-2 items-center">
-                        {/* Primary Member (Head) - Styled as a normal capsule with a subtle light fill */}
                         <Badge 
                           variant="outline" 
                           className="px-3 py-1.5 rounded-full flex items-center gap-2 bg-primary/5 border-primary/30 text-primary font-bold shadow-sm"
@@ -153,7 +185,6 @@ export default function CreateTrip() {
                           <span className="text-[10px] font-bold uppercase tracking-wider">{headName}</span>
                         </Badge>
 
-                        {/* Additional Family Members */}
                         {p.familyMembers.map((fm) => (
                           <Badge 
                             key={fm} 
@@ -168,7 +199,6 @@ export default function CreateTrip() {
                           </Badge>
                         ))}
                         
-                        {/* Add Family Member Trigger */}
                         {activeFamilyMemberInput === p.id ? (
                           <div className="flex gap-1 items-center w-full sm:w-auto animate-in fade-in slide-in-from-top-1">
                             <Input 
@@ -208,13 +238,9 @@ export default function CreateTrip() {
         <Button 
           className="w-full h-14 rounded-2xl text-lg font-bold shadow-lg shadow-primary/20 bg-primary hover:bg-primary/90"
           onClick={handleSaveTrip}
-          disabled={!isTripValid}
         >
           Create Trip Group
         </Button>
-        {!isTripValid && name.trim() && participants.length < 2 && (
-          <p className="text-[10px] text-destructive text-center mt-2 font-medium">Add at least one friend to start</p>
-        )}
       </footer>
     </div>
   );
