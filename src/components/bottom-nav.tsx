@@ -9,6 +9,9 @@ import { cn } from "@/lib/utils";
 export function BottomNav() {
   const pathname = usePathname();
 
+  // In this prototype, we're linking the central FAB to the active trip's expense page
+  const activeTripId = "bali-2024";
+
   const navItems = [
     { href: "/", icon: Wallet, label: "Wallet" },
     { href: "/friends", icon: Users, label: "Friends" },
@@ -19,14 +22,18 @@ export function BottomNav() {
   return (
     <nav className="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-md bg-white border-t flex justify-around py-3 px-6 z-50">
       {navItems.map((item, idx) => {
-        // We split the items to place the FAB in the middle
+        // Place the prominent FAB in the middle
         if (idx === 2) {
           return (
             <div key="fab-container" className="flex items-center">
               <div key="fab" className="relative w-12 h-12">
                 <div className="absolute -top-10 left-1/2 -translate-x-1/2">
-                  <Link href="/trips/new">
-                    <Button size="icon" className="h-14 w-14 rounded-full shadow-xl shadow-primary/40 bg-accent hover:bg-accent/90 border-4 border-white">
+                  <Link href={`/trips/${activeTripId}/add`}>
+                    <Button 
+                      size="icon" 
+                      className="h-14 w-14 rounded-full shadow-xl shadow-primary/40 bg-accent hover:bg-accent/90 border-4 border-white"
+                      title="Add Expense"
+                    >
                       <Plus className="h-7 w-7" />
                     </Button>
                   </Link>
