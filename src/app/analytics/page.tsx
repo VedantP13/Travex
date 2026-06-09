@@ -17,11 +17,10 @@ const DATA = [
 export default function AnalyticsPage() {
   return (
     <div className="max-w-md mx-auto min-h-screen bg-background pb-24">
-      <header className="px-safe-pad pt-12 pb-8 bg-foreground text-background rounded-b-[2rem]">
-        <h1 className="text-3xl font-bold">
+      <header className="px-safe-pad pt-12 pb-10 bg-foreground text-background rounded-b-[2.5rem] shadow-lg shadow-black/10">
+        <h1 className="text-3xl font-bold tracking-tight">
           Analytics
         </h1>
-        <p className="opacity-70 mt-1">Your spending patterns at a glance</p>
       </header>
 
       <main className="px-safe-pad pt-8 space-y-6">
