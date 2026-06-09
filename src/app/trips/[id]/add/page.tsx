@@ -78,7 +78,6 @@ export default function AddExpenseWizard() {
       // Just you
       setFormData(prev => ({ ...prev, selectedIndividuals: ["p1"] }));
     }
-    // Custom keeps current selection or starts empty if switched from somewhere else
   }, [formData.splitType, allTargets]);
 
   const handleDescriptionBlur = async () => {
@@ -131,7 +130,7 @@ export default function AddExpenseWizard() {
         {step === 1 && (
           <div className="space-y-8 animate-in fade-in slide-in-from-right-4 duration-300">
             <div className="space-y-2">
-              <h1 className="text-2xl font-bold">Page 1: Amount</h1>
+              <h1 className="text-2xl font-bold">Amount</h1>
               <p className="text-muted-foreground">How much and who paid?</p>
             </div>
 
@@ -183,13 +182,13 @@ export default function AddExpenseWizard() {
         {step === 2 && (
           <div className="space-y-8 animate-in fade-in slide-in-from-right-4 duration-300">
             <div className="space-y-2">
-              <h1 className="text-2xl font-bold">Page 2: Split</h1>
-              <p className="text-muted-foreground">How should we divide ₹{formData.amount || '0.00'}?</p>
+              <h1 className="text-2xl font-bold">Split</h1>
+              <p className="text-muted-foreground">Divide ₹{formData.amount || '0.00'}</p>
             </div>
 
             <div className="grid grid-cols-2 gap-3">
               {[
-                { id: "equal_person", label: "Per Person", icon: Users, desc: "All family members" },
+                { id: "equal_person", label: "Per Person", icon: Users, desc: "Include all members" },
                 { id: "equal_family", label: "Per Family", icon: Home, desc: "One per family unit" },
                 { id: "custom", label: "Custom", icon: PieChart, desc: "Pick individuals" },
                 { id: "just_me", label: "Just You", icon: User, desc: "100% to you" }
@@ -210,45 +209,56 @@ export default function AddExpenseWizard() {
 
             <div className="bg-white p-5 rounded-2xl border border-dashed border-primary/20 space-y-4">
               <div className="flex justify-between items-center">
-                <p className="text-xs font-bold text-primary uppercase tracking-widest">Active Split Selection</p>
+                <p className="text-xs font-bold text-primary uppercase tracking-widest">
+                  {formData.splitType === 'equal_family' ? "Family Selection" : "Active Split Selection"}
+                </p>
                 <Badge variant="outline" className="text-[10px]">{formData.selectedIndividuals.length} Selected</Badge>
               </div>
               
               <div className="space-y-4 max-h-[300px] overflow-y-auto pr-2">
-                {PARTICIPANTS.map(p => (
-                  <div key={p.id} className="space-y-2">
-                    <div 
-                      className={`flex items-center justify-between p-2 rounded-xl border transition-all cursor-pointer ${formData.selectedIndividuals.includes(p.id) ? 'bg-primary/10 border-primary' : 'bg-muted/30 border-transparent opacity-60'}`}
-                      onClick={() => toggleSelection(p.id)}
-                    >
-                      <div className="flex items-center gap-2">
-                        <Avatar className="h-6 w-6">
-                          <AvatarImage src={p.avatar} />
-                        </Avatar>
-                        <span className="text-xs font-bold">{p.name} {p.name === "Marco" ? "(You)" : ""}</span>
+                {PARTICIPANTS.map(p => {
+                  const isSelected = formData.selectedIndividuals.includes(p.id);
+                  const showAsFamily = formData.splitType === 'equal_family';
+                  
+                  return (
+                    <div key={p.id} className="space-y-2">
+                      <div 
+                        className={`flex items-center justify-between p-2 rounded-xl border transition-all cursor-pointer ${isSelected ? 'bg-primary/10 border-primary' : 'bg-muted/30 border-transparent opacity-60'}`}
+                        onClick={() => toggleSelection(p.id)}
+                      >
+                        <div className="flex items-center gap-2">
+                          <Avatar className="h-6 w-6">
+                            <AvatarImage src={p.avatar} />
+                          </Avatar>
+                          <span className="text-xs font-bold">
+                            {showAsFamily ? `${p.name}'s Family` : p.name} {p.name === "Marco" && !showAsFamily ? "(You)" : ""}
+                          </span>
+                        </div>
+                        {isSelected && <Check className="h-4 w-4 text-primary" />}
                       </div>
-                      {formData.selectedIndividuals.includes(p.id) && <Check className="h-4 w-4 text-primary" />}
+                      
+                      {/* Hide internal family members when in 'Per Family' mode to avoid confusion */}
+                      {!showAsFamily && p.familyMembers.length > 0 && (
+                        <div className="pl-6 grid grid-cols-1 gap-2">
+                          {p.familyMembers.map(fm => {
+                            const fmId = `${p.id}-${fm}`;
+                            const isFmSelected = formData.selectedIndividuals.includes(fmId);
+                            return (
+                              <div 
+                                key={fmId}
+                                className={`flex items-center justify-between p-2 rounded-lg border text-[11px] transition-all cursor-pointer ${isFmSelected ? 'bg-accent/10 border-accent' : 'bg-muted/20 border-transparent opacity-60'}`}
+                                onClick={() => toggleSelection(fmId)}
+                              >
+                                <span className="font-medium text-muted-foreground">{fm}</span>
+                                {isFmSelected && <Check className="h-3 w-3 text-accent" />}
+                              </div>
+                            );
+                          })}
+                        </div>
+                      )}
                     </div>
-                    {p.familyMembers.length > 0 && (
-                      <div className="pl-6 grid grid-cols-1 gap-2">
-                        {p.familyMembers.map(fm => {
-                          const fmId = `${p.id}-${fm}`;
-                          const isSelected = formData.selectedIndividuals.includes(fmId);
-                          return (
-                            <div 
-                              key={fmId}
-                              className={`flex items-center justify-between p-2 rounded-lg border text-[11px] transition-all cursor-pointer ${isSelected ? 'bg-accent/10 border-accent' : 'bg-muted/20 border-transparent opacity-60'}`}
-                              onClick={() => toggleSelection(fmId)}
-                            >
-                              <span className="font-medium text-muted-foreground">{fm}</span>
-                              {isSelected && <Check className="h-3 w-3 text-accent" />}
-                            </div>
-                          );
-                        })}
-                      </div>
-                    )}
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             </div>
           </div>
@@ -257,8 +267,8 @@ export default function AddExpenseWizard() {
         {step === 3 && (
           <div className="space-y-8 animate-in fade-in slide-in-from-right-4 duration-300">
             <div className="space-y-2">
-              <h1 className="text-2xl font-bold">Page 3: Details</h1>
-              <p className="text-muted-foreground">Date, payment, and category tags.</p>
+              <h1 className="text-2xl font-bold">Details</h1>
+              <p className="text-muted-foreground">Date, payment, and tags.</p>
             </div>
 
             <div className="space-y-6">
