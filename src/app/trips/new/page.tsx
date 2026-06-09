@@ -24,7 +24,7 @@ export default function CreateTrip() {
     { id: "p1", name: "Marco (You)", isUser: true, familyMembers: [] }
   ]);
   const [newParticipantName, setNewParticipantName] = useState("");
-  const [activeFamilyMemberInput, setActiveFamilyMemberInput] = string | null>(null);
+  const [activeFamilyMemberInput, setActiveFamilyMemberInput] = useState<string | null>(null);
   const [newFamilyMemberName, setNewFamilyMemberName] = useState("");
 
   const addParticipant = () => {
@@ -118,7 +118,7 @@ export default function CreateTrip() {
           <Alert className="bg-primary/10 border-primary/30 rounded-2xl py-3">
             <Sparkles className="h-5 w-5 text-primary" />
             <AlertDescription className="text-xs text-foreground/80 font-medium leading-relaxed">
-              Going with family? Add everyone's names! This helps Travex split costs perfectly by individual person later.
+              Traveling with others? Add their names! This helps Travex split costs perfectly by individual person or family later.
             </AlertDescription>
           </Alert>
 
