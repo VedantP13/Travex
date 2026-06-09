@@ -53,34 +53,36 @@ export default function AnalyticsPage() {
 
         <Card className="border-none shadow-sm bg-white rounded-2xl overflow-hidden">
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-bold">
+            <CardTitle className="text-lg font-bold">
               Category breakdown
             </CardTitle>
           </CardHeader>
-          <CardContent className="h-[250px] pt-0">
-            <ResponsiveContainer width="100%" height="100%">
-              <PieChart>
-                <Pie
-                  data={DATA}
-                  cx="50%"
-                  cy="50%"
-                  innerRadius={60}
-                  outerRadius={80}
-                  paddingAngle={5}
-                  dataKey="value"
-                >
-                  {DATA.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={entry.fill} />
-                  ))}
-                </Pie>
-                <Tooltip />
-              </PieChart>
-            </ResponsiveContainer>
-            <div className="flex justify-center gap-4 flex-wrap mt-2">
+          <CardContent className="pt-0 pb-8">
+            <div className="h-[220px]">
+              <ResponsiveContainer width="100%" height="100%">
+                <PieChart>
+                  <Pie
+                    data={DATA}
+                    cx="50%"
+                    cy="50%"
+                    innerRadius={60}
+                    outerRadius={80}
+                    paddingAngle={5}
+                    dataKey="value"
+                  >
+                    {DATA.map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={entry.fill} />
+                    ))}
+                  </Pie>
+                  <Tooltip />
+                </PieChart>
+              </ResponsiveContainer>
+            </div>
+            <div className="flex justify-center gap-4 flex-wrap mt-6">
                {DATA.map((item) => (
                  <div key={item.name} className="flex items-center gap-1">
                    <div className="h-2 w-2 rounded-full" style={{ backgroundColor: item.fill }} />
-                   <span className="text-[10px] font-medium">{item.name}</span>
+                   <span className="text-[10px] font-bold text-muted-foreground">{item.name}</span>
                  </div>
                ))}
             </div>
