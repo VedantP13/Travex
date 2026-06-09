@@ -100,7 +100,7 @@ export default function Home() {
       <main className="px-safe-pad pt-12 space-y-6 flex-1">
         <div className="flex justify-between items-center mb-2">
           <h2 className="text-xl font-bold text-foreground tracking-tight">
-            Trip collections
+            Recent trips
           </h2>
           <Link href="/trips">
             <Button variant="link" className="text-primary text-xs font-bold p-0 hover:no-underline hover:text-primary/80">
