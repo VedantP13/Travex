@@ -2,7 +2,7 @@
 "use client";
 
 import { useState } from "react";
-import { Search, MapPin, ArrowRight } from "lucide-react";
+import { Search, MapPin, ArrowRight, Compass } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -96,8 +96,12 @@ export default function ExplorePage() {
                 );
               })
             ) : (
-              <div className="text-center py-16 bg-white rounded-3xl border-2 border-dashed border-muted/50">
-                <p className="text-muted-foreground italic text-sm">No destinations found matching your search.</p>
+              <div className="text-center py-14 bg-white rounded-[2rem] border-2 border-dashed border-muted/50 px-10">
+                <div className="h-14 w-14 bg-muted/30 rounded-full flex items-center justify-center mx-auto mb-4">
+                   <Compass className="h-6 w-6 text-muted-foreground/50" />
+                </div>
+                <p className="text-lg font-bold text-foreground">No matches found</p>
+                <p className="text-sm text-muted-foreground mt-1">Try a different destination or mood.</p>
               </div>
             )}
           </div>

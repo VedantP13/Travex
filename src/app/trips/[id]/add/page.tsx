@@ -187,21 +187,21 @@ export default function AddExpenseWizard() {
             <X className="h-6 w-6" />
           </Button>
         </header>
-        <main className="flex-1 flex flex-col items-center justify-center px-safe-pad text-center space-y-6">
-          <div className="h-20 w-20 bg-primary/10 rounded-[2rem] flex items-center justify-center text-primary shadow-inner">
-            <Plus className="h-10 w-10" />
-          </div>
-          <div className="space-y-2">
-            <h2 className="text-2xl font-bold tracking-tight">No trips found</h2>
-            <p className="text-sm text-muted-foreground max-w-[240px] mx-auto leading-relaxed">
+        <main className="flex-1 flex flex-col items-center justify-center px-safe-pad">
+          <div className="text-center py-14 bg-white rounded-[2rem] border-2 border-dashed border-muted/50 px-10 max-w-sm mx-auto shadow-sm">
+            <div className="h-14 w-14 bg-muted/30 rounded-full flex items-center justify-center mx-auto mb-4">
+              <Plus className="h-6 w-6 text-muted-foreground/50" />
+            </div>
+            <h2 className="text-lg font-bold text-foreground">No trips found</h2>
+            <p className="text-sm text-muted-foreground mt-1 mb-6 leading-relaxed">
               You need to create a trip before you can start splitting expenses with friends.
             </p>
+            <Link href="/trips/new" className="w-full">
+              <Button className="w-full h-14 rounded-2xl text-lg font-bold shadow-lg shadow-primary/20 bg-primary hover:bg-primary/90">
+                Create your first trip
+              </Button>
+            </Link>
           </div>
-          <Link href="/trips/new" className="w-full">
-            <Button className="w-full h-14 rounded-2xl text-lg font-bold shadow-lg shadow-primary/20 bg-primary hover:bg-primary/90">
-              Create your first trip
-            </Button>
-          </Link>
         </main>
       </div>
     );

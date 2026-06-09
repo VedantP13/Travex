@@ -52,7 +52,7 @@ export default function AllTripsPage() {
             <p className="text-sm font-bold">Bringing your trips to life...</p>
           </div>
         ) : error ? (
-          <div className="text-center py-20 bg-destructive/5 rounded-3xl border-2 border-dashed border-destructive/20 px-8">
+          <div className="text-center py-20 bg-destructive/5 rounded-[2rem] border-2 border-dashed border-destructive/20 px-8">
              <p className="text-sm font-bold text-destructive">Could not load trips</p>
              <Button variant="outline" className="mt-4 rounded-xl" onClick={() => window.location.reload()}>Retry</Button>
           </div>
@@ -60,7 +60,7 @@ export default function AllTripsPage() {
           <div className="grid gap-5">
             {filteredTrips.map((trip) => (
               <Link key={trip.id} href={`/trips/${trip.id}`}>
-                <Card className="overflow-hidden border-none shadow-sm hover:shadow-md transition-all bg-white rounded-3xl group">
+                <Card className="overflow-hidden border-none shadow-sm hover:shadow-md transition-all bg-white rounded-[2rem] group">
                   <div className="h-36 w-full relative">
                     <img 
                       src={trip.image || PlaceHolderImages.find(img => img.id === "trip-bali")?.imageUrl} 
@@ -100,14 +100,14 @@ export default function AllTripsPage() {
             ))}
           </div>
         ) : (
-          <div className="text-center py-20 bg-white rounded-3xl border-2 border-dashed border-muted px-8">
-             <div className="h-16 w-16 bg-muted rounded-full flex items-center justify-center mx-auto mb-4">
-               <Plus className="h-8 w-8 text-muted-foreground" />
+          <div className="text-center py-14 bg-white rounded-[2rem] border-2 border-dashed border-muted/50 px-10">
+             <div className="h-14 w-14 bg-muted/30 rounded-full flex items-center justify-center mx-auto mb-4">
+               <Plus className="h-6 w-6 text-muted-foreground/50" />
              </div>
              <p className="text-lg font-bold text-foreground">No trips found</p>
-             <p className="text-sm text-muted-foreground mt-2 mb-6">Try searching for something else or start a new adventure.</p>
+             <p className="text-sm text-muted-foreground mt-1 mb-6">Try searching for something else or start a new adventure.</p>
              <Link href="/trips/new">
-               <Button className="font-bold rounded-2xl px-10 h-14 shadow-lg shadow-primary/20 bg-primary hover:bg-primary/90 transition-transform hover:scale-110">
+               <Button className="font-bold rounded-2xl px-10 h-14 shadow-xl shadow-primary/20 bg-primary hover:bg-primary/90 transition-transform hover:scale-105">
                  Create new trip
                </Button>
              </Link>

@@ -167,7 +167,13 @@ export default function TripDetails() {
                   </div>
                 );
               }) : (
-                <div className="text-center py-10 opacity-50 italic text-sm">No expenses yet. Add one!</div>
+                <div className="text-center py-10 bg-white/50 rounded-2xl border-2 border-dashed border-muted/30">
+                  <div className="h-10 w-10 bg-muted/20 rounded-full flex items-center justify-center mx-auto mb-2">
+                    <Plus className="h-4 w-4 text-muted-foreground/40" />
+                  </div>
+                  <p className="text-xs font-bold text-muted-foreground">No expenses yet</p>
+                  <p className="text-[10px] text-muted-foreground/70">Tap the + to add one!</p>
+                </div>
               )}
             </div>
           </TabsContent>
