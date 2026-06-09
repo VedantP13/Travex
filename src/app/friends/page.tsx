@@ -32,7 +32,12 @@ export default function FriendsPage() {
       <header className="px-safe-pad pt-12 pb-8 bg-white rounded-b-[2rem] shadow-sm">
         <div className="flex justify-between items-center mb-6">
           <h1 className="text-3xl font-bold text-foreground">Friends</h1>
-          <Button size="icon" variant="outline" className="rounded-full h-12 w-12 border-primary/20 bg-primary/5 text-primary">
+          <Button 
+            size="icon" 
+            variant="outline" 
+            className="rounded-full h-12 w-12 border-primary/20 bg-primary/5 text-primary"
+            title="Add Friend"
+          >
             <UserPlus className="h-6 w-6" />
           </Button>
         </div>
@@ -114,7 +119,7 @@ export default function FriendsPage() {
                         </Button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end" className="rounded-2xl min-w-[160px] p-2">
-                        <DropdownMenuItem className="rounded-xl flex items-center gap-2 cursor-pointer py-2.5">
+                        <DropdownMenuItem className="rounded-xl flex items-center gap-2 cursor-pointer py-2.5 focus:bg-primary/10">
                           <User className="h-4 w-4" />
                           <span className="font-medium">View Profile</span>
                         </DropdownMenuItem>
