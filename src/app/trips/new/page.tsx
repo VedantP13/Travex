@@ -1,9 +1,8 @@
-
 "use client";
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { ArrowLeft, Plus, Users, X, UserPlus, Save, Lightbulb } from "lucide-react";
+import { ArrowLeft, Plus, Users, X, UserPlus, Lightbulb } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
@@ -196,7 +195,6 @@ export default function CreateTrip() {
           onClick={handleSaveTrip}
           disabled={!isTripValid}
         >
-          <Save className="mr-2 h-5 w-5" />
           Create Trip Group
         </Button>
         {!isTripValid && name.trim() && participants.length < 2 && (
