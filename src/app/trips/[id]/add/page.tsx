@@ -8,7 +8,6 @@ import {
   ChevronLeft,
   X,
   Check,
-  Sparkles,
   Loader2,
   Calendar,
   CreditCard,
@@ -139,7 +138,7 @@ export default function AddExpenseWizard() {
                 <Select value={selectedTripId} onValueChange={(val) => setSelectedTripId(val)}>
                   <SelectTrigger className="w-[160px] h-9 rounded-2xl border-primary/20 bg-primary/5 text-primary font-bold text-[10px] focus:ring-0">
                     <MapPin className="h-3 w-3 mr-1.5" />
-                    <SelectValue placeholder="Select Trip" />
+                    <SelectValue placeholder="Select trip" />
                   </SelectTrigger>
                   <SelectContent className="rounded-2xl border-none shadow-2xl">
                     {TRIPS.map(trip => (
@@ -170,12 +169,11 @@ export default function AddExpenseWizard() {
               <div className="relative">
                 <Input 
                   placeholder="What was it for?"
-                  className="h-16 text-lg rounded-2xl pl-4 pr-12 focus-visible:ring-primary shadow-sm"
+                  className="h-16 text-lg rounded-2xl pl-4 pr-4 focus-visible:ring-primary shadow-sm"
                   value={formData.description}
                   onChange={e => setFormData(prev => ({ ...prev, description: e.target.value }))}
                   onBlur={handleDescriptionBlur}
                 />
-                <Sparkles className="absolute right-4 top-1/2 -translate-y-1/2 h-5 w-5 text-primary" />
               </div>
 
               <div className="space-y-3">

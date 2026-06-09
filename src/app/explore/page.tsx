@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState } from "react";
@@ -11,10 +12,10 @@ import { BottomNav } from "@/components/bottom-nav";
 import Link from "next/link";
 
 const DESTINATIONS = [
-  { id: "trip-bali", name: "Bali, Indonesia", category: "Tropical", tag: "Most Popular" },
+  { id: "trip-bali", name: "Bali, Indonesia", category: "Tropical", tag: "Most popular" },
   { id: "trip-paris", name: "Paris, France", category: "Culture", tag: "Seasonal" },
   { id: "trip-tokyo", name: "Tokyo, Japan", category: "Urban", tag: "Trending" },
-  { id: "trip-rome", name: "Rome, Italy", category: "History", tag: "Must Visit" },
+  { id: "trip-rome", name: "Rome, Italy", category: "History", tag: "Must visit" },
 ];
 
 export default function ExplorePage() {
@@ -49,9 +50,9 @@ export default function ExplorePage() {
         <section className="space-y-4">
           <div className="flex justify-between items-center">
             <h2 className="text-lg font-bold">
-              {searchQuery ? `Results for "${searchQuery}"` : "Trending Destinations"}
+              {searchQuery ? `Results for "${searchQuery}"` : "Trending destinations"}
             </h2>
-            {!searchQuery && <span className="text-xs text-primary font-bold">See All</span>}
+            {!searchQuery && <span className="text-xs text-primary font-bold">See all</span>}
           </div>
 
           <div className="grid gap-6">
@@ -66,7 +67,7 @@ export default function ExplorePage() {
                         alt={dest.name} 
                         className="h-full w-full object-cover group-hover:scale-105 transition-transform duration-500"
                       />
-                      <Badge className="absolute top-4 left-4 bg-white/90 text-foreground border-none backdrop-blur-md font-bold text-[10px] uppercase">
+                      <Badge className="absolute top-4 left-4 bg-white/90 text-foreground border-none backdrop-blur-md font-bold text-[10px]">
                         {dest.tag}
                       </Badge>
                     </div>
@@ -74,7 +75,7 @@ export default function ExplorePage() {
                       <div>
                         <div className="flex items-center gap-1 text-muted-foreground mb-1">
                           <MapPin className="h-3 w-3" />
-                          <span className="text-[10px] font-bold uppercase tracking-wider">{dest.category}</span>
+                          <span className="text-[10px] font-bold tracking-wider">{dest.category}</span>
                         </div>
                         <h3 className="text-lg font-bold">{dest.name}</h3>
                       </div>
@@ -98,7 +99,7 @@ export default function ExplorePage() {
         {/* Categories Section */}
         {!searchQuery && (
           <section className="space-y-4 pb-4">
-            <h2 className="text-lg font-bold">Browse by Mood</h2>
+            <h2 className="text-lg font-bold">Browse by mood</h2>
             <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide">
               {["🌴 Island", "⛰️ Mountain", "🗼 City", "🏛️ History", "🍝 Food"].map((mood) => (
                 <Badge 

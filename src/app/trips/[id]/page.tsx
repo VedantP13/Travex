@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useParams, useRouter } from "next/navigation";
@@ -99,7 +100,7 @@ export default function TripDetails() {
           </Avatar>
           <div>
             <div className="flex items-center gap-2 mb-1">
-              <Badge variant="outline" className="text-[10px] font-bold uppercase tracking-tight">Active Trip</Badge>
+              <Badge variant="outline" className="text-[10px] font-bold tracking-tight">Active trip</Badge>
               <span className="text-xs text-muted-foreground italic">Aug 12 - 25</span>
             </div>
             <h2 className="text-xl font-bold">Summer in Bali</h2>
@@ -117,7 +118,7 @@ export default function TripDetails() {
 
         <Tabs defaultValue="feed" className="w-full">
           <TabsList className="grid w-full grid-cols-2 h-12 bg-white/50 p-1 rounded-xl">
-            <TabsTrigger value="feed" className="rounded-lg data-[state=active]:bg-primary data-[state=active]:text-white">Trip Feed</TabsTrigger>
+            <TabsTrigger value="feed" className="rounded-lg data-[state=active]:bg-primary data-[state=active]:text-white">Trip feed</TabsTrigger>
             <TabsTrigger value="balances" className="rounded-lg data-[state=active]:bg-primary data-[state=active]:text-white">Balances</TabsTrigger>
           </TabsList>
           
@@ -149,7 +150,7 @@ export default function TripDetails() {
                   <div className="text-right">
                     <p className="font-bold text-sm">₹{item.amount.toFixed(2)}</p>
                     <Badge variant="secondary" className="text-[9px] h-4 font-normal mt-1">
-                      {item.participants.length} Split
+                      {item.participants.length} split
                     </Badge>
                   </div>
                   <MoreVertical className="h-4 w-4 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
@@ -160,15 +161,15 @@ export default function TripDetails() {
 
           <TabsContent value="balances" className="mt-6 space-y-4">
             <div className="bg-foreground text-background p-6 rounded-2xl mb-6">
-              <p className="text-xs opacity-70 mb-1">Current Standing</p>
+              <p className="text-xs opacity-70 mb-1">Current standing</p>
               <p className="text-2xl font-bold">You owe ₹45.50</p>
               <div className="mt-4 flex gap-2">
-                <Button className="bg-accent hover:bg-accent/90 text-foreground font-bold flex-1">Settle Up</Button>
-                <Button variant="outline" className="border-white/20 hover:bg-white/10 flex-1">Remind All</Button>
+                <Button className="bg-accent hover:bg-accent/90 text-foreground font-bold flex-1">Settle up</Button>
+                <Button variant="outline" className="border-white/20 hover:bg-white/10 flex-1">Remind all</Button>
               </div>
             </div>
 
-            <h4 className="text-xs font-bold uppercase text-muted-foreground tracking-widest mb-2">Member Breakdown</h4>
+            <h4 className="text-xs font-bold text-muted-foreground tracking-tight mb-2">Member breakdown</h4>
             {[
               { name: "Sonia", status: "You owe", amount: 65.00, color: "text-destructive" },
               { name: "Leo", status: "Owes you", amount: 19.50, color: "text-primary" },

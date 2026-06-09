@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState } from "react";
@@ -44,7 +45,7 @@ export default function FriendsPage() {
       <main className="px-safe-pad pt-8 space-y-8">
         {PENDING_REQUESTS.length > 0 && (
           <section className="space-y-4">
-            <h2 className="text-xl font-bold text-foreground tracking-tight">Friend Requests</h2>
+            <h2 className="text-xl font-bold text-foreground tracking-tight">Friend requests</h2>
             <div className="grid gap-3">
               {PENDING_REQUESTS.map((request) => (
                 <Card key={request.name} className="border-none shadow-sm bg-white rounded-2xl overflow-hidden">
@@ -56,7 +57,7 @@ export default function FriendsPage() {
                       </Avatar>
                       <div>
                         <h3 className="font-bold text-sm">{request.name}</h3>
-                        <p className="text-[10px] text-muted-foreground uppercase font-bold">Wants to be friends</p>
+                        <p className="text-[10px] text-muted-foreground font-bold">Wants to be friends</p>
                       </div>
                     </div>
                     <div className="flex gap-2">
@@ -71,7 +72,7 @@ export default function FriendsPage() {
         )}
 
         <section className="space-y-4">
-          <h2 className="text-xl font-bold text-foreground tracking-tight">Your Friends</h2>
+          <h2 className="text-xl font-bold text-foreground tracking-tight">Your friends</h2>
           <div className="grid gap-3">
             {FRIENDS.map((friend) => {
               const isDimmed = activeMenuName !== null && activeMenuName !== friend.name;
@@ -92,7 +93,7 @@ export default function FriendsPage() {
                       </Avatar>
                       <div>
                         <h3 className="font-bold text-base">{friend.name}</h3>
-                        <p className="text-[10px] uppercase font-bold text-muted-foreground flex items-center gap-1.5 mt-0.5">
+                        <p className="text-[10px] font-bold text-muted-foreground flex items-center gap-1.5 mt-0.5">
                           <span className={cn(
                             "h-2 w-2 rounded-full",
                             friend.status === 'Active' ? 'bg-green-500' : 'bg-muted-foreground'
@@ -111,11 +112,11 @@ export default function FriendsPage() {
                       <DropdownMenuContent align="end" className="rounded-2xl min-w-[160px] p-2">
                         <DropdownMenuItem className="rounded-xl flex items-center gap-2 cursor-pointer py-2.5 focus:bg-primary/10">
                           <User className="h-4 w-4" />
-                          <span className="font-medium">View Profile</span>
+                          <span className="font-medium">View profile</span>
                         </DropdownMenuItem>
                         <DropdownMenuItem className="rounded-xl flex items-center gap-2 cursor-pointer py-2.5 text-destructive focus:bg-destructive focus:text-destructive-foreground">
                           <UserX className="h-4 w-4" />
-                          <span className="font-medium">Remove Friend</span>
+                          <span className="font-medium">Remove friend</span>
                         </DropdownMenuItem>
                       </DropdownMenuContent>
                     </DropdownMenu>

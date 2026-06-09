@@ -1,3 +1,4 @@
+
 "use client";
 
 import { BarChart3, TrendingDown, TrendingUp, PieChart as PieChartIcon } from "lucide-react";
