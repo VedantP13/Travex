@@ -13,13 +13,11 @@ import {
   CreditCard,
   Tag,
   Users,
-  PieChart,
   User,
   Home,
   MapPin,
   AlignLeft,
   Plus,
-  Trash2,
   Calculator
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -30,6 +28,7 @@ import { Label } from "@/components/ui/label";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { suggestExpenseCategory } from "@/ai/flows/suggest-expense-category";
 import { useToast } from "@/hooks/use-toast";
 import { useFirestore } from "@/firebase";
@@ -40,6 +39,14 @@ import { AnimatedCompass } from "@/components/animated-compass";
 import { errorEmitter } from "@/firebase/error-emitter";
 import { FirestorePermissionError } from "@/firebase/errors";
 import { cn } from "@/lib/utils";
+
+const FAMILY_COLORS = [
+  "border-primary",
+  "border-accent",
+  "border-secondary",
+  "border-blue-500",
+  "border-green-500",
+];
 
 export default function AddExpenseWizard() {
   const router = useRouter();
@@ -53,6 +60,7 @@ export default function AddExpenseWizard() {
   const [isPosting, setIsPosting] = useState(false);
   const [selectedTripId, setSelectedTripId] = useState<string>((params?.id as string) || "");
   const [currentTrip, setCurrentTrip] = useState<any>(null);
+  const [viewMode, setViewMode] = useState<'person' | 'family'>('person');
   
   const [formData, setFormData] = useState({
     description: "",
@@ -94,40 +102,62 @@ export default function AddExpenseWizard() {
     return () => unsubscribe();
   }, [selectedTripId, formData.payerId, firestore]);
 
-  const allTargets = useMemo(() => {
+  const familyList = useMemo(() => {
     if (!currentTrip?.participants) return [];
-    const targets: { id: string; name: string; parentId: string; type: 'participant' | 'family'; avatar?: string }[] = [];
-    currentTrip.participants.forEach((p: any) => {
-      targets.push({ id: p.id, name: p.name, parentId: p.id, type: 'participant', avatar: p.avatar });
-      p.familyMembers?.forEach((fm: string) => {
-        targets.push({ id: `${p.id}-${fm}`, name: fm, parentId: p.id, type: 'family' });
+    return currentTrip.participants.map((p: any, index: number) => ({
+      ...p,
+      color: FAMILY_COLORS[index % FAMILY_COLORS.length],
+      familyName: `${p.name.replace(" (You)", "")}'s family`,
+      type: 'family-group'
+    }));
+  }, [currentTrip]);
+
+  const personList = useMemo(() => {
+    const list: any[] = [];
+    familyList.forEach((f: any) => {
+      list.push({
+        id: f.id,
+        name: f.name,
+        avatar: f.avatar,
+        familyId: f.id,
+        familyName: f.familyName,
+        color: f.color,
+        type: 'participant'
+      });
+      f.familyMembers?.forEach((fm: string) => {
+        list.push({
+          id: `${f.id}-${fm}`,
+          name: fm,
+          familyId: f.id,
+          familyName: f.familyName,
+          color: f.color,
+          type: 'family'
+        });
       });
     });
-    return targets;
-  }, [currentTrip]);
+    return list;
+  }, [familyList]);
+
+  const activeList = viewMode === 'person' ? personList : familyList;
 
   useEffect(() => {
     if (formData.isItemized) {
-      // Force splitType to custom if itemized
       setFormData(prev => ({ ...prev, splitType: 'custom' }));
     } else {
-      // Default reset behavior when toggling itemized OFF
       if (formData.splitType === 'equal_person') {
-        setFormData(prev => ({ ...prev, selectedIndividuals: allTargets.map(t => t.id) }));
+        setFormData(prev => ({ ...prev, selectedIndividuals: personList.map(t => t.id) }));
       } else if (formData.splitType === 'equal_family') {
-        setFormData(prev => ({ ...prev, selectedIndividuals: currentTrip?.participants?.map((p: any) => p.id) || [] }));
+        setFormData(prev => ({ ...prev, selectedIndividuals: familyList.map(p => p.id) }));
       } else if (formData.splitType === 'just_me') {
         setFormData(prev => ({ ...prev, selectedIndividuals: [formData.payerId || "p1"] }));
       }
     }
-  }, [formData.isItemized, formData.splitType, allTargets, currentTrip, formData.payerId]);
+  }, [formData.isItemized, formData.splitType, personList, familyList, formData.payerId]);
 
-  // Calculate sum of custom amounts
   const customSum = useMemo(() => {
     return Object.values(formData.customAmounts).reduce((acc, val) => acc + (parseFloat(val) || 0), 0);
   }, [formData.customAmounts]);
 
-  // Sync amount if itemized split is active
   useEffect(() => {
     if (formData.isItemized) {
       setFormData(prev => ({ ...prev, amount: customSum.toString() }));
@@ -158,8 +188,6 @@ export default function AddExpenseWizard() {
         toast({ title: "Enter a description", variant: "destructive" });
         return;
       }
-      
-      // If itemized, skip step 2 (split selection) and go to step 3
       if (formData.isItemized) {
         setStep(3);
       } else {
@@ -172,7 +200,7 @@ export default function AddExpenseWizard() {
 
   const prevStep = () => {
     if (step === 3 && formData.isItemized) {
-      setStep(1); // Jump back to 1 if we skipped 2
+      setStep(1);
     } else {
       setStep(prev => Math.max(prev - 1, 1));
     }
@@ -181,7 +209,6 @@ export default function AddExpenseWizard() {
   const handlePostExpense = () => {
     if (!selectedTripId || !formData.amount || !formData.description || !firestore) return;
     
-    // Check if custom split matches total if total is known (non-itemized custom split)
     if (formData.splitType === 'custom' && !formData.isItemized) {
       const diff = Math.abs(parseFloat(formData.amount) - customSum);
       if (diff > 0.01) {
@@ -204,7 +231,6 @@ export default function AddExpenseWizard() {
       createdAt: serverTimestamp(),
     };
 
-    // Non-blocking write
     addDoc(expenseRef, expenseData)
       .then(() => {
         toast({
@@ -223,7 +249,6 @@ export default function AddExpenseWizard() {
         setIsPosting(false);
       });
 
-    // Optimistically update trip total
     updateDoc(doc(firestore, "trips", selectedTripId), {
       totalSpent: increment(amount)
     }).catch(() => {});
@@ -310,7 +335,7 @@ export default function AddExpenseWizard() {
         </Button>
       </header>
 
-      <main className="flex-1 px-safe-pad py-8 overflow-y-auto">
+      <main className="flex-1 px-safe-pad py-8 overflow-y-auto pb-32">
         {step === 1 && (
           <div className="space-y-8 animate-in fade-in slide-in-from-right-4 duration-300">
             <div className="space-y-3">
@@ -367,30 +392,42 @@ export default function AddExpenseWizard() {
               {formData.isItemized && (
                 <div className="bg-white p-5 rounded-2xl border border-dashed border-primary/20 space-y-4 animate-in fade-in zoom-in-95 duration-300">
                   <div className="flex justify-between items-center">
-                    <p className="text-xs font-bold text-primary">Enter amount per person</p>
-                    <Badge variant="outline" className="text-[10px]">{formData.selectedIndividuals.length} contributors</Badge>
+                    <p className="text-xs font-bold text-primary">Enter amount {viewMode === 'person' ? 'per person' : 'per family'}</p>
+                    <Tabs value={viewMode} onValueChange={(v: any) => setViewMode(v)} className="w-auto">
+                      <TabsList className="h-7 bg-muted/50 rounded-lg p-0.5">
+                        <TabsTrigger value="person" className="text-[9px] px-2 h-6 font-bold">Individual</TabsTrigger>
+                        <TabsTrigger value="family" className="text-[9px] px-2 h-6 font-bold">Family</TabsTrigger>
+                      </TabsList>
+                    </Tabs>
                   </div>
                   
-                  <div className="space-y-4 max-h-[300px] overflow-y-auto pr-2 scrollbar-hide">
-                    {allTargets.map((target) => {
+                  <div className="space-y-4 max-h-[350px] overflow-y-auto pr-2 scrollbar-hide">
+                    {activeList.map((target) => {
                       const isSelected = formData.selectedIndividuals.includes(target.id);
                       return (
                         <div 
                           key={target.id} 
                           className={cn(
-                            "flex items-center justify-between p-3 rounded-xl border transition-all cursor-pointer",
-                            isSelected ? 'bg-primary/5 border-primary shadow-sm' : 'bg-muted/10 border-transparent opacity-50 grayscale-[0.5]'
+                            "flex items-center justify-between p-3 rounded-xl border-2 transition-all cursor-pointer",
+                            isSelected ? `${target.color} bg-white shadow-md scale-[1.02]` : 'bg-muted/10 border-transparent opacity-50 grayscale-[0.5]'
                           )}
                           onClick={() => toggleSelection(target.id)}
                         >
                           <div className="flex items-center gap-3">
-                            <Avatar className="h-8 w-8">
+                            <Avatar className="h-9 w-9">
                               <AvatarImage src={target.avatar} />
                               <AvatarFallback>{target.name?.[0]}</AvatarFallback>
                             </Avatar>
-                            <span className="text-sm font-bold truncate max-w-[80px]">
-                              {target.name} {target.name === "Marco" ? "(You)" : ""}
-                            </span>
+                            <div className="flex flex-col">
+                              {viewMode === 'person' && (
+                                <span className="text-[9px] font-bold text-muted-foreground uppercase tracking-tight leading-none mb-1">
+                                  {target.familyName}
+                                </span>
+                              )}
+                              <span className="text-sm font-bold truncate max-w-[120px] leading-tight">
+                                {target.name} {target.name === "Marco" ? "(You)" : ""}
+                              </span>
+                            </div>
                           </div>
                           {isSelected ? (
                             <div className="flex items-center gap-2" onClick={e => e.stopPropagation()}>
@@ -398,7 +435,7 @@ export default function AddExpenseWizard() {
                               <Input 
                                 type="number" 
                                 placeholder="0"
-                                className="h-9 w-24 rounded-lg text-right font-bold text-sm bg-white"
+                                className="h-9 w-24 rounded-lg text-right font-bold text-sm bg-muted/20 border-none focus-visible:ring-primary"
                                 value={formData.customAmounts[target.id] || ""}
                                 onChange={e => updateCustomAmount(target.id, e.target.value)}
                               />
@@ -495,54 +532,57 @@ export default function AddExpenseWizard() {
                 <p className="text-xs font-bold text-primary">
                   {formData.splitType === 'equal_family' ? "Family selection" : "Member split"}
                 </p>
-                <Badge variant="outline" className="text-[10px]">{formData.selectedIndividuals.length} active</Badge>
+                <Tabs value={viewMode} onValueChange={(v: any) => setViewMode(v)} className="w-auto">
+                  <TabsList className="h-7 bg-muted/50 rounded-lg p-0.5">
+                    <TabsTrigger value="person" className="text-[9px] px-2 h-6 font-bold">Individual</TabsTrigger>
+                    <TabsTrigger value="family" className="text-[9px] px-2 h-6 font-bold">Family</TabsTrigger>
+                  </TabsList>
+                </Tabs>
               </div>
               
               <div className="space-y-4 max-h-[400px] overflow-y-auto pr-2 scrollbar-hide">
-                {allTargets.map((target) => {
+                {activeList.map((target) => {
                   const isSelected = formData.selectedIndividuals.includes(target.id);
                   const isCustom = formData.splitType === 'custom';
                   
                   return (
-                    <div key={target.id} className="space-y-3">
-                      <div 
-                        className={cn(
-                          "flex items-center justify-between p-3 rounded-xl border transition-all cursor-pointer",
-                          isSelected ? 'bg-primary/5 border-primary shadow-sm' : 'bg-muted/10 border-transparent opacity-50 grayscale-[0.5]'
-                        )}
-                        onClick={() => toggleSelection(target.id)}
-                      >
-                        <div className="flex items-center gap-3">
-                          {target.type === 'participant' ? (
-                            <Avatar className="h-8 w-8">
-                              <AvatarImage src={target.avatar} />
-                              <AvatarFallback>{target.name?.[0]}</AvatarFallback>
-                            </Avatar>
-                          ) : (
-                            <div className="h-8 w-8 rounded-full bg-accent/20 flex items-center justify-center">
-                              <User className="h-4 w-4 text-accent" />
-                            </div>
-                          )}
-                          <div>
-                            <span className="text-sm font-bold">
-                              {target.name} {target.name === "Marco" ? "(You)" : ""}
+                    <div 
+                      key={target.id} 
+                      className={cn(
+                        "flex items-center justify-between p-3 rounded-xl border-2 transition-all cursor-pointer",
+                        isSelected ? `${target.color} bg-white shadow-md scale-[1.02]` : 'bg-muted/10 border-transparent opacity-50 grayscale-[0.5]'
+                      )}
+                      onClick={() => toggleSelection(target.id)}
+                    >
+                      <div className="flex items-center gap-3">
+                        <Avatar className="h-9 w-9">
+                          <AvatarImage src={target.avatar} />
+                          <AvatarFallback>{target.name?.[0]}</AvatarFallback>
+                        </Avatar>
+                        <div className="flex flex-col">
+                          {viewMode === 'person' && (
+                            <span className="text-[9px] font-bold text-muted-foreground uppercase tracking-tight leading-none mb-1">
+                              {target.familyName}
                             </span>
-                          </div>
+                          )}
+                          <span className="text-sm font-bold truncate max-w-[120px] leading-tight">
+                            {target.name} {target.name === "Marco" ? "(You)" : ""}
+                          </span>
                         </div>
-                        {isSelected && !isCustom && <Check className="h-5 w-5 text-primary" />}
-                        {isSelected && isCustom && (
-                          <div className="flex items-center gap-2" onClick={e => e.stopPropagation()}>
-                            <span className="text-sm font-bold text-muted-foreground">₹</span>
-                            <Input 
-                              type="number" 
-                              placeholder="0"
-                              className="h-9 w-24 rounded-lg text-right font-bold text-sm bg-white"
-                              value={formData.customAmounts[target.id] || ""}
-                              onChange={e => updateCustomAmount(target.id, e.target.value)}
-                            />
-                          </div>
-                        )}
                       </div>
+                      {isSelected && !isCustom && <Check className="h-5 w-5 text-primary" />}
+                      {isSelected && isCustom && (
+                        <div className="flex items-center gap-2" onClick={e => e.stopPropagation()}>
+                          <span className="text-sm font-bold text-muted-foreground">₹</span>
+                          <Input 
+                            type="number" 
+                            placeholder="0"
+                            className="h-9 w-24 rounded-lg text-right font-bold text-sm bg-muted/20 border-none focus-visible:ring-primary"
+                            value={formData.customAmounts[target.id] || ""}
+                            onChange={e => updateCustomAmount(target.id, e.target.value)}
+                          />
+                        </div>
+                      )}
                     </div>
                   );
                 })}
@@ -612,7 +652,7 @@ export default function AddExpenseWizard() {
         )}
       </main>
 
-      <footer className="p-safe-pad border-t bg-white sticky bottom-0 z-10">
+      <footer className="p-safe-pad border-t bg-white fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-md z-20">
         <Button 
           className="w-full h-14 rounded-2xl text-lg font-bold shadow-lg shadow-primary/20 flex items-center justify-center gap-2"
           onClick={step === 3 ? handlePostExpense : nextStep}
@@ -634,3 +674,4 @@ export default function AddExpenseWizard() {
     </div>
   );
 }
+
