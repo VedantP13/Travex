@@ -18,7 +18,9 @@ import {
   Home,
   MapPin,
   AlignLeft,
-  Plus
+  Plus,
+  Trash2,
+  Calculator
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -27,6 +29,7 @@ import { Card } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Switch } from "@/components/ui/switch";
 import { suggestExpenseCategory } from "@/ai/flows/suggest-expense-category";
 import { useToast } from "@/hooks/use-toast";
 import { useFirestore } from "@/firebase";
@@ -36,6 +39,7 @@ import Link from "next/link";
 import { AnimatedCompass } from "@/components/animated-compass";
 import { errorEmitter } from "@/firebase/error-emitter";
 import { FirestorePermissionError } from "@/firebase/errors";
+import { cn } from "@/lib/utils";
 
 export default function AddExpenseWizard() {
   const router = useRouter();
@@ -57,6 +61,8 @@ export default function AddExpenseWizard() {
     payerName: "",
     splitType: "equal_person",
     selectedIndividuals: [] as string[],
+    customAmounts: {} as Record<string, string>,
+    isTotalUnknown: false,
     date: new Date().toISOString().split('T')[0],
     paymentType: "UPI",
     category: ""
@@ -90,9 +96,9 @@ export default function AddExpenseWizard() {
 
   const allTargets = useMemo(() => {
     if (!currentTrip?.participants) return [];
-    const targets: { id: string; name: string; parentId: string; type: 'participant' | 'family' }[] = [];
+    const targets: { id: string; name: string; parentId: string; type: 'participant' | 'family'; avatar?: string }[] = [];
     currentTrip.participants.forEach((p: any) => {
-      targets.push({ id: p.id, name: p.name, parentId: p.id, type: 'participant' });
+      targets.push({ id: p.id, name: p.name, parentId: p.id, type: 'participant', avatar: p.avatar });
       p.familyMembers?.forEach((fm: string) => {
         targets.push({ id: `${p.id}-${fm}`, name: fm, parentId: p.id, type: 'family' });
       });
@@ -110,6 +116,18 @@ export default function AddExpenseWizard() {
     }
   }, [formData.splitType, allTargets, currentTrip, formData.payerId]);
 
+  // Calculate sum of custom amounts
+  const customSum = useMemo(() => {
+    return Object.values(formData.customAmounts).reduce((acc, val) => acc + (parseFloat(val) || 0), 0);
+  }, [formData.customAmounts]);
+
+  // Sync amount if total is unknown and using custom split
+  useEffect(() => {
+    if (formData.isTotalUnknown && formData.splitType === 'custom') {
+      setFormData(prev => ({ ...prev, amount: customSum.toString() }));
+    }
+  }, [customSum, formData.isTotalUnknown, formData.splitType]);
+
   const handleDescriptionBlur = async () => {
     if (formData.description.length > 3 && !formData.category) {
       setIsAnalyzing(true);
@@ -124,11 +142,31 @@ export default function AddExpenseWizard() {
     }
   };
 
-  const nextStep = () => setStep(prev => Math.min(prev + 1, 3));
+  const nextStep = () => {
+    if (step === 1 && !formData.isTotalUnknown && !formData.amount) {
+      toast({ title: "Enter an amount", variant: "destructive" });
+      return;
+    }
+    setStep(prev => Math.min(prev + 1, 3));
+  };
   const prevStep = () => setStep(prev => Math.max(prev - 1, 1));
 
   const handlePostExpense = () => {
     if (!selectedTripId || !formData.amount || !formData.description || !firestore) return;
+    
+    // Check if custom split matches total if total is known
+    if (formData.splitType === 'custom' && !formData.isTotalUnknown) {
+      const diff = Math.abs(parseFloat(formData.amount) - customSum);
+      if (diff > 0.01) {
+        toast({ 
+          title: "Amounts don't match", 
+          description: `The sum of custom amounts (₹${customSum.toFixed(2)}) must equal the total amount (₹${parseFloat(formData.amount).toFixed(2)}).`,
+          variant: "destructive" 
+        });
+        return;
+      }
+    }
+
     setIsPosting(true);
     
     const amount = parseFloat(formData.amount);
@@ -162,7 +200,7 @@ export default function AddExpenseWizard() {
     updateDoc(doc(firestore, "trips", selectedTripId), {
       totalSpent: increment(amount)
     }).catch(async (error) => {
-       // Silently handle or emit if critical
+       // Silently handle
     });
   };
 
@@ -172,8 +210,20 @@ export default function AddExpenseWizard() {
       const newSelection = isSelected 
         ? prev.selectedIndividuals.filter(id => id !== targetId)
         : [...prev.selectedIndividuals, targetId];
-      return { ...prev, selectedIndividuals: newSelection };
+      
+      // Also clean up custom amounts if deselected
+      const newCustomAmounts = { ...prev.customAmounts };
+      if (isSelected) delete newCustomAmounts[targetId];
+
+      return { ...prev, selectedIndividuals: newSelection, customAmounts: newCustomAmounts };
     });
+  };
+
+  const updateCustomAmount = (targetId: string, value: string) => {
+    setFormData(prev => ({
+      ...prev,
+      customAmounts: { ...prev.customAmounts, [targetId]: value }
+    }));
   };
 
   if (tripsLoading) {
@@ -266,11 +316,23 @@ export default function AddExpenseWizard() {
                 <span className="absolute left-4 top-1/2 -translate-y-1/2 text-3xl font-bold text-muted-foreground">₹</span>
                 <Input 
                   type="number"
-                  placeholder="0.00"
-                  className="h-20 text-4xl font-bold rounded-2xl pl-12 focus-visible:ring-primary shadow-sm"
+                  placeholder={formData.isTotalUnknown ? "Calculating..." : "0.00"}
+                  className={cn(
+                    "h-20 text-4xl font-bold rounded-2xl pl-12 focus-visible:ring-primary shadow-sm",
+                    formData.isTotalUnknown && "bg-muted text-muted-foreground/60 cursor-not-allowed"
+                  )}
                   value={formData.amount}
                   onChange={e => setFormData(prev => ({ ...prev, amount: e.target.value }))}
+                  disabled={formData.isTotalUnknown}
                 />
+                <div className="absolute right-4 bottom-2 flex items-center gap-2">
+                   <Label htmlFor="unknown-total" className="text-[10px] font-bold text-muted-foreground uppercase">Sum of parts</Label>
+                   <Switch 
+                     id="unknown-total" 
+                     checked={formData.isTotalUnknown} 
+                     onCheckedChange={(val) => setFormData(prev => ({ ...prev, isTotalUnknown: val, amount: val ? "" : prev.amount }))} 
+                   />
+                </div>
               </div>
 
               <div className="relative">
@@ -310,15 +372,32 @@ export default function AddExpenseWizard() {
         {step === 2 && (
           <div className="space-y-8 animate-in fade-in slide-in-from-right-4 duration-300">
             <div className="space-y-2">
-              <h1 className="text-2xl font-bold">Split</h1>
-              <p className="text-muted-foreground">Divide ₹{formData.amount || '0.00'}</p>
+              <div className="flex justify-between items-end">
+                <div>
+                  <h1 className="text-2xl font-bold">Split</h1>
+                  <p className="text-muted-foreground">
+                    {formData.isTotalUnknown ? "Summing individual parts" : `Divide ₹${formData.amount || '0.00'}`}
+                  </p>
+                </div>
+                {formData.splitType === 'custom' && (
+                  <div className="text-right">
+                    <p className="text-[10px] font-bold text-muted-foreground uppercase">Sum</p>
+                    <p className={cn(
+                      "text-sm font-bold",
+                      !formData.isTotalUnknown && Math.abs(parseFloat(formData.amount || "0") - customSum) > 0.01 ? "text-destructive" : "text-primary"
+                    )}>
+                      ₹{customSum.toFixed(2)}
+                    </p>
+                  </div>
+                )}
+              </div>
             </div>
 
             <div className="grid grid-cols-2 gap-3">
               {[
                 { id: "equal_person", label: "Per person", icon: Users, desc: "Include all members" },
                 { id: "equal_family", label: "Per family", icon: Home, desc: "One per family unit" },
-                { id: "custom", label: "Custom", icon: PieChart, desc: "Pick individuals" },
+                { id: "custom", label: "Custom amount", icon: Calculator, desc: "Specific ₹ per person" },
                 { id: "just_me", label: "Just you", icon: User, desc: "100% to you" }
               ].map(mode => (
                 <Card 
@@ -338,54 +417,86 @@ export default function AddExpenseWizard() {
             <div className="bg-white p-5 rounded-2xl border border-dashed border-primary/20 space-y-4">
               <div className="flex justify-between items-center">
                 <p className="text-xs font-bold text-primary">
-                  {formData.splitType === 'equal_family' ? "Family selection" : "Active split selection"}
+                  {formData.splitType === 'equal_family' ? "Family selection" : "Member split"}
                 </p>
-                <Badge variant="outline" className="text-[10px]">{formData.selectedIndividuals.length} selected</Badge>
+                <Badge variant="outline" className="text-[10px]">{formData.selectedIndividuals.length} active</Badge>
               </div>
               
-              <div className="space-y-4 max-h-[300px] overflow-y-auto pr-2">
-                {currentTrip?.participants?.map((p: any) => {
-                  const isSelected = formData.selectedIndividuals.includes(p.id);
-                  const showAsFamily = formData.splitType === 'equal_family';
+              <div className="space-y-4 max-h-[400px] overflow-y-auto pr-2 scrollbar-hide">
+                {allTargets.map((target) => {
+                  const isSelected = formData.selectedIndividuals.includes(target.id);
+                  const isCustom = formData.splitType === 'custom';
+                  const showSelectionOnly = isCustom; // For custom, we might want to only show who is selected or allow picking from list
                   
+                  if (showSelectionOnly && !isSelected && formData.splitType === 'custom') {
+                    // Show a picklist or let them add from existing list
+                  }
+
                   return (
-                    <div key={p.id} className="space-y-2">
+                    <div key={target.id} className="space-y-3">
                       <div 
-                        className={`flex items-center justify-between p-2 rounded-xl border transition-all cursor-pointer ${isSelected ? 'bg-primary/10 border-primary' : 'bg-muted/30 border-transparent opacity-60'}`}
-                        onClick={() => toggleSelection(p.id)}
+                        className={cn(
+                          "flex items-center justify-between p-3 rounded-xl border transition-all cursor-pointer",
+                          isSelected ? 'bg-primary/5 border-primary shadow-sm' : 'bg-muted/10 border-transparent opacity-50 grayscale-[0.5]'
+                        )}
+                        onClick={() => toggleSelection(target.id)}
                       >
-                        <div className="flex items-center gap-2">
-                          <Avatar className="h-6 w-6">
-                            <AvatarImage src={p.avatar} />
-                          </Avatar>
-                          <span className="text-xs font-bold">
-                            {showAsFamily ? `${p.name}'s family` : p.name} {p.name === "Marco" ? "(You)" : ""}
-                          </span>
+                        <div className="flex items-center gap-3">
+                          {target.type === 'participant' ? (
+                            <Avatar className="h-8 w-8">
+                              <AvatarImage src={target.avatar} />
+                              <AvatarFallback>{target.name?.[0]}</AvatarFallback>
+                            </Avatar>
+                          ) : (
+                            <div className="h-8 w-8 rounded-full bg-accent/20 flex items-center justify-center">
+                              <User className="h-4 w-4 text-accent" />
+                            </div>
+                          )}
+                          <div>
+                            <span className="text-sm font-bold">
+                              {target.name} {target.name === "Marco" ? "(You)" : ""}
+                            </span>
+                            {target.type === 'family' && <p className="text-[9px] font-bold text-muted-foreground uppercase opacity-70">Family Member</p>}
+                          </div>
                         </div>
-                        {isSelected && <Check className="h-4 w-4 text-primary" />}
+                        {isSelected && !isCustom && <Check className="h-5 w-5 text-primary" />}
+                        {isSelected && isCustom && (
+                          <div className="flex items-center gap-2" onClick={e => e.stopPropagation()}>
+                            <span className="text-sm font-bold text-muted-foreground">₹</span>
+                            <Input 
+                              type="number" 
+                              placeholder="0"
+                              className="h-9 w-24 rounded-lg text-right font-bold text-sm bg-white"
+                              value={formData.customAmounts[target.id] || ""}
+                              onChange={e => updateCustomAmount(target.id, e.target.value)}
+                            />
+                            <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive/40 hover:text-destructive" onClick={() => toggleSelection(target.id)}>
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        )}
                       </div>
-                      
-                      {!showAsFamily && p.familyMembers?.length > 0 && (
-                        <div className="pl-6 grid grid-cols-1 gap-2">
-                          {p.familyMembers.map((fm: string) => {
-                            const fmId = `${p.id}-${fm}`;
-                            const isFmSelected = formData.selectedIndividuals.includes(fmId);
-                            return (
-                              <div 
-                                key={fmId}
-                                className={`flex items-center justify-between p-2 rounded-lg border text-[11px] transition-all cursor-pointer ${isFmSelected ? 'bg-accent/10 border-accent' : 'bg-muted/20 border-transparent opacity-60'}`}
-                                onClick={() => toggleSelection(fmId)}
-                              >
-                                <span className="font-medium text-muted-foreground">{fm}</span>
-                                {isFmSelected && <Check className="h-3 w-3 text-accent" />}
-                              </div>
-                            );
-                          })}
-                        </div>
-                      )}
                     </div>
                   );
                 })}
+
+                {formData.splitType === 'custom' && formData.selectedIndividuals.length < allTargets.length && (
+                  <div className="pt-2">
+                    <p className="text-[10px] font-bold text-muted-foreground uppercase mb-2 ml-1">Add others to split</p>
+                    <div className="flex flex-wrap gap-2">
+                      {allTargets.filter(t => !formData.selectedIndividuals.includes(t.id)).map(t => (
+                        <Badge 
+                          key={t.id} 
+                          variant="outline" 
+                          className="cursor-pointer hover:bg-primary/5 hover:border-primary transition-colors py-1.5"
+                          onClick={() => toggleSelection(t.id)}
+                        >
+                          + {t.name}
+                        </Badge>
+                      ))}
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
           </div>
@@ -468,7 +579,7 @@ export default function AddExpenseWizard() {
         <Button 
           className="w-full h-14 rounded-2xl text-lg font-bold shadow-lg shadow-primary/20 flex items-center justify-center gap-2"
           onClick={step === 3 ? handlePostExpense : nextStep}
-          disabled={isPosting || (step === 1 && (!formData.description || !formData.amount))}
+          disabled={isPosting || (step === 1 && !formData.isTotalUnknown && !formData.amount)}
         >
           {isPosting ? (
             <>
