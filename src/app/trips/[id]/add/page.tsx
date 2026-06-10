@@ -6,6 +6,7 @@ import { useParams, useRouter } from "next/navigation";
 import { 
   ChevronRight, 
   ChevronLeft,
+  ChevronDown,
   X,
   Check,
   Loader2,
@@ -61,6 +62,7 @@ export default function AddExpenseWizard() {
   const [selectedTripId, setSelectedTripId] = useState<string>((params?.id as string) || "");
   const [currentTrip, setCurrentTrip] = useState<any>(null);
   const [viewMode, setViewMode] = useState<'person' | 'family'>('person');
+  const [expandedFamilies, setExpandedFamilies] = useState<Record<string, boolean>>({});
   
   const [formData, setFormData] = useState({
     description: "",
@@ -107,7 +109,7 @@ export default function AddExpenseWizard() {
     return currentTrip.participants.map((p: any, index: number) => ({
       ...p,
       color: FAMILY_COLORS[index % FAMILY_COLORS.length],
-      familyName: `${p.name.replace(" (You)", "")}'s family`,
+      familyName: `${p.name.replace(" (You)", "")}'s Family`,
       type: 'family-group'
     }));
   }, [currentTrip]);
@@ -160,7 +162,7 @@ export default function AddExpenseWizard() {
 
   useEffect(() => {
     if (formData.isItemized) {
-      setFormData(prev => ({ ...prev, amount: customSum.toString() }));
+      setFormData(prev => ({ ...prev, amount: customSum.toFixed(2) }));
     }
   }, [customSum, formData.isItemized]);
 
@@ -268,6 +270,30 @@ export default function AddExpenseWizard() {
     });
   };
 
+  const toggleFamilySelection = (familyId: string) => {
+    const family = familyList.find(f => f.id === familyId);
+    if (!family) return;
+
+    const memberIds = [family.id, ...(family.familyMembers?.map((fm: string) => `${family.id}-${fm}`) || [])];
+    const allSelected = memberIds.every(id => formData.selectedIndividuals.includes(id));
+
+    setFormData(prev => {
+      let newSelection = [...prev.selectedIndividuals];
+      let newCustomAmounts = { ...prev.customAmounts };
+
+      if (allSelected) {
+        newSelection = newSelection.filter(id => !memberIds.includes(id));
+        memberIds.forEach(id => delete newCustomAmounts[id]);
+      } else {
+        memberIds.forEach(id => {
+          if (!newSelection.includes(id)) newSelection.push(id);
+        });
+      }
+
+      return { ...prev, selectedIndividuals: newSelection, customAmounts: newCustomAmounts };
+    });
+  };
+
   const updateCustomAmount = (targetId: string, value: string) => {
     setFormData(prev => ({
       ...prev,
@@ -275,43 +301,16 @@ export default function AddExpenseWizard() {
     }));
   };
 
+  const toggleExpand = (e: React.MouseEvent, familyId: string) => {
+    e.stopPropagation();
+    setExpandedFamilies(prev => ({ ...prev, [familyId]: !prev[familyId] }));
+  };
+
   if (tripsLoading) {
     return (
       <div className="max-w-md mx-auto min-h-screen flex flex-col items-center justify-center bg-background gap-4">
         <AnimatedCompass className="h-12 w-12 text-primary" />
         <p className="text-sm font-bold text-muted-foreground">Checking your trips...</p>
-      </div>
-    );
-  }
-
-  if (trips.length === 0) {
-    return (
-      <div className="max-w-md mx-auto min-h-screen bg-background flex flex-col">
-        <header className="px-safe-pad py-6 flex items-center justify-between border-b bg-white">
-          <Button variant="ghost" size="icon" onClick={() => router.back()}>
-            <ChevronLeft className="h-6 w-6" />
-          </Button>
-          <h1 className="text-lg font-bold">Add expense</h1>
-          <Button variant="ghost" size="icon" onClick={() => router.back()}>
-            <X className="h-6 w-6" />
-          </Button>
-        </header>
-        <main className="flex-1 flex flex-col items-center justify-center px-safe-pad">
-          <div className="text-center py-14 bg-white rounded-[2rem] border-2 border-dashed border-muted/50 px-10 max-w-sm mx-auto shadow-sm">
-            <div className="h-16 w-16 bg-muted/20 rounded-full flex items-center justify-center mx-auto mb-6 shadow-sm">
-              <Plus className="h-7 w-7 text-muted-foreground/40" />
-            </div>
-            <h2 className="text-lg font-bold text-foreground">No trips found</h2>
-            <p className="text-sm text-muted-foreground mt-1 mb-6 leading-relaxed">
-              You need to create a trip before you can start splitting expenses with friends.
-            </p>
-            <Link href="/trips/new" className="w-full">
-              <Button className="w-full h-14 rounded-2xl text-lg font-bold shadow-lg shadow-primary/20 bg-primary hover:bg-primary/90">
-                Create your first trip
-              </Button>
-            </Link>
-          </div>
-        </main>
       </div>
     );
   }
@@ -365,7 +364,7 @@ export default function AddExpenseWizard() {
                 <span className="absolute left-4 top-1/2 -translate-y-1/2 text-3xl font-bold text-muted-foreground">₹</span>
                 <Input 
                   type="number"
-                  placeholder={formData.isItemized ? "Calculating total..." : "0.00"}
+                  placeholder={formData.isItemized ? "Total calculated" : "0.00"}
                   className={cn(
                     "h-20 text-4xl font-bold rounded-2xl pl-12 focus-visible:ring-primary shadow-sm",
                     formData.isItemized && "bg-muted text-muted-foreground/60 cursor-not-allowed"
@@ -383,7 +382,8 @@ export default function AddExpenseWizard() {
                         ...prev, 
                         isItemized: val, 
                         amount: val ? "" : prev.amount,
-                        splitType: val ? 'custom' : 'equal_person'
+                        splitType: val ? 'custom' : 'equal_person',
+                        customAmounts: val ? {} : prev.customAmounts
                      }))} 
                    />
                 </div>
@@ -392,7 +392,7 @@ export default function AddExpenseWizard() {
               {formData.isItemized && (
                 <div className="bg-white p-5 rounded-2xl border border-dashed border-primary/20 space-y-4 animate-in fade-in zoom-in-95 duration-300">
                   <div className="flex justify-between items-center">
-                    <p className="text-xs font-bold text-primary">Enter amount {viewMode === 'person' ? 'per person' : 'per family'}</p>
+                    <p className="text-xs font-bold text-primary">Member split</p>
                     <Tabs value={viewMode} onValueChange={(v: any) => setViewMode(v)} className="w-auto">
                       <TabsList className="h-7 bg-muted/50 rounded-lg p-0.5">
                         <TabsTrigger value="person" className="text-[9px] px-2 h-6 font-bold">Individual</TabsTrigger>
@@ -401,15 +401,79 @@ export default function AddExpenseWizard() {
                     </Tabs>
                   </div>
                   
-                  <div className="space-y-4 max-h-[350px] overflow-y-auto pr-2 scrollbar-hide">
+                  <div className="space-y-4 max-h-[450px] overflow-y-auto pr-2 px-1 scrollbar-hide">
                     {activeList.map((target) => {
                       const isSelected = formData.selectedIndividuals.includes(target.id);
+                      const isFamily = target.type === 'family-group';
+                      const isExpanded = expandedFamilies[target.id];
+
+                      if (isFamily) {
+                        const membersCount = 1 + (target.familyMembers?.length || 0);
+                        return (
+                          <div key={target.id} className="space-y-2">
+                            <div 
+                              className={cn(
+                                "flex items-center justify-between p-3 rounded-xl border-2 transition-all cursor-pointer",
+                                isSelected ? `${target.color} bg-white shadow-md` : 'bg-muted/10 border-transparent opacity-60 grayscale-[0.5]'
+                              )}
+                              onClick={() => toggleFamilySelection(target.id)}
+                            >
+                              <div className="flex items-center gap-3">
+                                <Avatar className="h-10 w-10">
+                                  <AvatarImage src={target.avatar} />
+                                  <AvatarFallback>{target.name?.[0]}</AvatarFallback>
+                                </Avatar>
+                                <div>
+                                  <p className="text-sm font-bold truncate leading-tight">{target.familyName}</p>
+                                  <div 
+                                    className="flex items-center gap-1 mt-0.5 group"
+                                    onClick={(e) => toggleExpand(e, target.id)}
+                                  >
+                                    <span className="text-[10px] text-muted-foreground font-bold">{membersCount} members</span>
+                                    <ChevronDown className={cn("h-3 w-3 text-muted-foreground transition-transform", isExpanded && "rotate-180")} />
+                                  </div>
+                                </div>
+                              </div>
+                              {isSelected ? (
+                                <div className="flex items-center gap-2" onClick={e => e.stopPropagation()}>
+                                  <span className="text-xs font-bold text-muted-foreground">₹</span>
+                                  <Input 
+                                    type="number" 
+                                    placeholder="0"
+                                    className="h-9 w-24 rounded-lg text-right font-bold text-sm bg-muted/20 border-none focus-visible:ring-primary"
+                                    value={formData.customAmounts[target.id] || ""}
+                                    onChange={e => updateCustomAmount(target.id, e.target.value)}
+                                  />
+                                </div>
+                              ) : <Plus className="h-4 w-4 text-muted-foreground" />}
+                            </div>
+                            
+                            {isExpanded && (
+                              <div className="ml-8 space-y-2 animate-in slide-in-from-top-2 fade-in duration-200">
+                                {personList.filter(p => p.familyId === target.id).map(member => (
+                                  <div key={member.id} className="flex items-center justify-between p-2.5 rounded-lg bg-muted/5 border border-dashed border-muted/30">
+                                    <div className="flex items-center gap-2">
+                                      <Avatar className="h-7 w-7">
+                                        <AvatarImage src={member.avatar} />
+                                        <AvatarFallback>{member.name?.[0]}</AvatarFallback>
+                                      </Avatar>
+                                      <span className="text-xs font-medium">{member.name} {member.name === "Marco" ? "(You)" : ""}</span>
+                                    </div>
+                                    <Badge variant="outline" className="text-[9px] font-bold border-muted/50">Member</Badge>
+                                  </div>
+                                ))}
+                              </div>
+                            )}
+                          </div>
+                        );
+                      }
+
                       return (
                         <div 
                           key={target.id} 
                           className={cn(
                             "flex items-center justify-between p-3 rounded-xl border-2 transition-all cursor-pointer",
-                            isSelected ? `${target.color} bg-white shadow-md scale-[1.02]` : 'bg-muted/10 border-transparent opacity-50 grayscale-[0.5]'
+                            isSelected ? `${target.color} bg-white shadow-md scale-[1.01]` : 'bg-muted/10 border-transparent opacity-60 grayscale-[0.5]'
                           )}
                           onClick={() => toggleSelection(target.id)}
                         >
@@ -419,11 +483,9 @@ export default function AddExpenseWizard() {
                               <AvatarFallback>{target.name?.[0]}</AvatarFallback>
                             </Avatar>
                             <div className="flex flex-col">
-                              {viewMode === 'person' && (
-                                <span className="text-[9px] font-bold text-muted-foreground uppercase tracking-tight leading-none mb-1">
-                                  {target.familyName}
-                                </span>
-                              )}
+                              <span className="text-[9px] font-bold text-muted-foreground uppercase tracking-tight leading-none mb-1">
+                                {target.familyName}
+                              </span>
                               <span className="text-sm font-bold truncate max-w-[120px] leading-tight">
                                 {target.name} {target.name === "Marco" ? "(You)" : ""}
                               </span>
@@ -440,9 +502,7 @@ export default function AddExpenseWizard() {
                                 onChange={e => updateCustomAmount(target.id, e.target.value)}
                               />
                             </div>
-                          ) : (
-                            <Plus className="h-4 w-4 text-muted-foreground" />
-                          )}
+                          ) : <Plus className="h-4 w-4 text-muted-foreground" />}
                         </div>
                       );
                     })}
@@ -529,19 +589,11 @@ export default function AddExpenseWizard() {
 
             <div className="bg-white p-5 rounded-2xl border border-dashed border-primary/20 space-y-4">
               <div className="flex justify-between items-center">
-                <p className="text-xs font-bold text-primary">
-                  {formData.splitType === 'equal_family' ? "Family selection" : "Member split"}
-                </p>
-                <Tabs value={viewMode} onValueChange={(v: any) => setViewMode(v)} className="w-auto">
-                  <TabsList className="h-7 bg-muted/50 rounded-lg p-0.5">
-                    <TabsTrigger value="person" className="text-[9px] px-2 h-6 font-bold">Individual</TabsTrigger>
-                    <TabsTrigger value="family" className="text-[9px] px-2 h-6 font-bold">Family</TabsTrigger>
-                  </TabsList>
-                </Tabs>
+                <p className="text-xs font-bold text-primary">Member selection</p>
               </div>
               
-              <div className="space-y-4 max-h-[400px] overflow-y-auto pr-2 scrollbar-hide">
-                {activeList.map((target) => {
+              <div className="space-y-4 max-h-[400px] overflow-y-auto pr-2 px-1 scrollbar-hide">
+                {personList.map((target) => {
                   const isSelected = formData.selectedIndividuals.includes(target.id);
                   const isCustom = formData.splitType === 'custom';
                   
@@ -550,7 +602,7 @@ export default function AddExpenseWizard() {
                       key={target.id} 
                       className={cn(
                         "flex items-center justify-between p-3 rounded-xl border-2 transition-all cursor-pointer",
-                        isSelected ? `${target.color} bg-white shadow-md scale-[1.02]` : 'bg-muted/10 border-transparent opacity-50 grayscale-[0.5]'
+                        isSelected ? `${target.color} bg-white shadow-md scale-[1.01]` : 'bg-muted/10 border-transparent opacity-60 grayscale-[0.5]'
                       )}
                       onClick={() => toggleSelection(target.id)}
                     >
@@ -560,11 +612,9 @@ export default function AddExpenseWizard() {
                           <AvatarFallback>{target.name?.[0]}</AvatarFallback>
                         </Avatar>
                         <div className="flex flex-col">
-                          {viewMode === 'person' && (
-                            <span className="text-[9px] font-bold text-muted-foreground uppercase tracking-tight leading-none mb-1">
-                              {target.familyName}
-                            </span>
-                          )}
+                          <span className="text-[9px] font-bold text-muted-foreground uppercase tracking-tight leading-none mb-1">
+                            {target.familyName}
+                          </span>
                           <span className="text-sm font-bold truncate max-w-[120px] leading-tight">
                             {target.name} {target.name === "Marco" ? "(You)" : ""}
                           </span>
@@ -674,4 +724,3 @@ export default function AddExpenseWizard() {
     </div>
   );
 }
-
