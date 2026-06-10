@@ -42,11 +42,11 @@ import { FirestorePermissionError } from "@/firebase/errors";
 import { cn } from "@/lib/utils";
 
 const FAMILY_SCHEMES = [
-  { border: "border-primary", bg: "bg-primary/5", text: "text-primary", badge: "bg-primary/10 text-primary", darkBg: "bg-primary/10" },
-  { border: "border-accent", bg: "bg-accent/5", text: "text-accent", badge: "bg-accent/10 text-accent", darkBg: "bg-accent/10" },
-  { border: "border-secondary", bg: "bg-secondary/5", text: "text-secondary", badge: "bg-secondary/10 text-secondary", darkBg: "bg-secondary/10" },
-  { border: "border-blue-500", bg: "bg-blue-500/5", text: "text-blue-500", badge: "bg-blue-500/10 text-blue-500", darkBg: "bg-blue-500/10" },
-  { border: "border-green-500", bg: "bg-green-500/5", text: "text-green-500", badge: "bg-green-500/10 text-green-500", darkBg: "bg-green-500/10" },
+  { border: "border-primary", bg: "bg-primary/5", text: "text-primary", badge: "bg-primary/10 text-primary", darkBg: "bg-primary/10", focus: "focus-visible:ring-primary" },
+  { border: "border-accent", bg: "bg-accent/5", text: "text-accent", badge: "bg-accent/10 text-accent", darkBg: "bg-accent/10", focus: "focus-visible:ring-accent" },
+  { border: "border-secondary", bg: "bg-secondary/5", text: "text-secondary", badge: "bg-secondary/10 text-secondary", darkBg: "bg-secondary/10", focus: "focus-visible:ring-secondary" },
+  { border: "border-blue-500", bg: "bg-blue-500/5", text: "text-blue-500", badge: "bg-blue-500/10 text-blue-500", darkBg: "bg-blue-500/10", focus: "focus-visible:ring-blue-500" },
+  { border: "border-green-500", bg: "bg-green-500/5", text: "text-green-500", badge: "bg-green-500/10 text-green-500", darkBg: "bg-green-500/10", focus: "focus-visible:ring-green-500" },
 ];
 
 export default function AddExpenseWizard() {
@@ -78,14 +78,12 @@ export default function AddExpenseWizard() {
     category: ""
   });
 
-  // Set default selectedTripId if not provided
   useEffect(() => {
     if (!selectedTripId && trips.length > 0) {
       setSelectedTripId(trips[0].id);
     }
   }, [selectedTripId, trips]);
 
-  // Sync current trip details and set default payer
   useEffect(() => {
     if (!selectedTripId || !firestore) return;
     const unsubscribe = onSnapshot(doc(firestore, "trips", selectedTripId), (snapshot) => {
@@ -299,8 +297,10 @@ export default function AddExpenseWizard() {
     }));
   };
 
-  const toggleExpand = (e: React.MouseEvent, familyId: string) => {
-    e.stopPropagation();
+  const toggleExpand = (e: any, familyId: string) => {
+    if (e && typeof e.stopPropagation === 'function') {
+      e.stopPropagation();
+    }
     setExpandedFamilies(prev => ({ ...prev, [familyId]: !prev[familyId] }));
   };
 
@@ -310,33 +310,33 @@ export default function AddExpenseWizard() {
       members: personList.filter(p => p.familyId === f.id)
     }));
 
+    const isFamilyView = currentView === 'family';
+
     return (
-      <div className="relative group">
-        {/* Scroll cues */}
-        <div className="absolute top-0 left-0 right-0 h-10 bg-gradient-to-b from-white to-transparent z-10 pointer-events-none opacity-40" />
+      <div className="relative">
+        <div className="absolute top-0 left-0 right-0 h-8 bg-gradient-to-b from-white to-transparent z-10 pointer-events-none opacity-40" />
         
-        <div className="space-y-6 max-h-[480px] overflow-y-auto pr-1 px-1 py-4 scrollbar-thin">
+        <div className="space-y-4 max-h-[440px] overflow-y-auto pr-1 px-1 py-4 scrollbar-thin">
           {groups.map((family) => {
             const memberIds = [family.id, ...(family.members.map(m => m.id).filter(id => id !== family.id))];
             const allSelected = memberIds.every(id => formData.selectedIndividuals.includes(id));
             const isExpanded = expandedFamilies[family.id];
-            const isFamilyView = currentView === 'family';
 
             return (
               <div 
                 key={family.id} 
                 className={cn(
                   "rounded-2xl border-2 transition-all overflow-hidden shadow-sm",
-                  allSelected ? family.scheme.border : "border-muted/10"
+                  allSelected ? family.scheme.border : "border-muted/10",
+                  family.scheme.bg
                 )}
               >
-                {/* Family Header */}
                 <div 
                   className={cn(
                     "p-3 flex items-center justify-between cursor-pointer transition-colors",
-                    allSelected ? family.scheme.bg : "bg-muted/5 hover:bg-muted/10"
+                    allSelected ? "opacity-100" : "opacity-70 grayscale-[0.2]"
                   )}
-                  onClick={() => isFamilyView ? toggleFamilySelection(family.id) : toggleExpand({} as any, family.id)}
+                  onClick={(e) => isFamilyView ? toggleFamilySelection(family.id) : toggleExpand(e, family.id)}
                 >
                   <div className="flex items-center gap-3">
                     <Avatar className="h-10 w-10 border-2 border-white shadow-sm">
@@ -347,12 +347,10 @@ export default function AddExpenseWizard() {
                       <p className="text-sm font-bold truncate leading-tight">{family.familyName}</p>
                       <div 
                         className="flex items-center gap-1 mt-0.5"
-                        onClick={(e) => { e.stopPropagation(); isFamilyView && toggleExpand(e, family.id); }}
+                        onClick={(e) => { e.stopPropagation(); toggleExpand(e, family.id); }}
                       >
                         <span className="text-[10px] text-muted-foreground font-bold">{family.members.length} members</span>
-                        {isFamilyView && (
-                          <ChevronDown className={cn("h-3 w-3 text-muted-foreground transition-transform", isExpanded && "rotate-180")} />
-                        )}
+                        <ChevronDown className={cn("h-3 w-3 text-muted-foreground transition-transform", isExpanded && "rotate-180")} />
                       </div>
                     </div>
                   </div>
@@ -365,8 +363,8 @@ export default function AddExpenseWizard() {
                           type="number" 
                           placeholder="0"
                           className={cn(
-                            "h-9 w-24 rounded-lg text-right font-bold text-sm border-none shadow-inner focus-visible:ring-primary transition-colors",
-                            family.scheme.darkBg
+                            "h-9 w-24 rounded-lg text-right font-bold text-sm border-none shadow-inner bg-black/5 focus-visible:ring-1",
+                            family.scheme.focus
                           )}
                           value={formData.customAmounts[family.id] || ""}
                           onChange={e => updateCustomAmount(family.id, e.target.value)}
@@ -374,17 +372,21 @@ export default function AddExpenseWizard() {
                       </div>
                     )}
                     {isFamilyView && (
-                      allSelected ? <Minus className={cn("h-5 w-5", family.scheme.text)} /> : <Plus className="h-4 w-4 text-muted-foreground" />
+                      allSelected ? (
+                        <div className={cn("h-7 w-7 rounded-full flex items-center justify-center bg-white shadow-sm", family.scheme.text)}>
+                          <Minus className="h-4 w-4" />
+                        </div>
+                      ) : (
+                        <div className="h-7 w-7 rounded-full flex items-center justify-center bg-white/50 shadow-sm text-muted-foreground">
+                          <Plus className="h-4 w-4" />
+                        </div>
+                      )
                     )}
                   </div>
                 </div>
 
-                {/* Family Members */}
-                {(isExpanded || !isFamilyView) && (
-                  <div className={cn(
-                    "bg-white/50 divide-y divide-muted/10 transition-all",
-                    !isFamilyView ? "block" : "animate-in slide-in-from-top-2 duration-200"
-                  )}>
+                {isExpanded && (
+                  <div className="bg-white/40 divide-y divide-muted/5 animate-in slide-in-from-top-1 duration-200">
                     {family.members.map((member) => {
                       const isMemberSelected = formData.selectedIndividuals.includes(member.id);
                       return (
@@ -392,7 +394,7 @@ export default function AddExpenseWizard() {
                           key={member.id} 
                           className={cn(
                             "flex items-center justify-between p-3 pl-8 transition-colors cursor-pointer",
-                            isMemberSelected ? "bg-white" : "opacity-60 grayscale-[0.2]"
+                            isMemberSelected ? "bg-white/50" : "opacity-60"
                           )}
                           onClick={() => !isFamilyView && toggleSelection(member.id)}
                         >
@@ -401,7 +403,10 @@ export default function AddExpenseWizard() {
                               <AvatarImage src={member.avatar} />
                               <AvatarFallback>{member.name?.[0]}</AvatarFallback>
                             </Avatar>
-                            <span className="text-xs font-bold">{member.name} {member.name === "Marco" ? "(You)" : ""}</span>
+                            <div>
+                              <span className="text-xs font-bold block leading-none">{member.name} {member.name === "Marco" ? "(You)" : ""}</span>
+                              <span className="text-[9px] text-muted-foreground font-medium">{family.familyName}</span>
+                            </div>
                           </div>
                           {!isFamilyView && (
                             <div className="flex items-center gap-3">
@@ -412,15 +417,23 @@ export default function AddExpenseWizard() {
                                     type="number" 
                                     placeholder="0"
                                     className={cn(
-                                      "h-8 w-20 rounded-lg text-right font-bold text-xs border-none shadow-inner focus-visible:ring-primary transition-colors",
-                                      family.scheme.darkBg
+                                      "h-8 w-20 rounded-lg text-right font-bold text-xs border-none shadow-inner bg-black/5 focus-visible:ring-1",
+                                      family.scheme.focus
                                     )}
                                     value={formData.customAmounts[member.id] || ""}
                                     onChange={e => updateCustomAmount(member.id, e.target.value)}
                                   />
                                 </div>
                               )}
-                              {isMemberSelected ? <Minus className={cn("h-4 w-4", family.scheme.text)} /> : <Plus className="h-4 w-4 text-muted-foreground" />}
+                              {isMemberSelected ? (
+                                <div className={cn("h-6 w-6 rounded-full flex items-center justify-center bg-white shadow-sm", family.scheme.text)}>
+                                  <Minus className="h-3 w-3" />
+                                </div>
+                              ) : (
+                                <div className="h-6 w-6 rounded-full flex items-center justify-center bg-white/50 shadow-sm text-muted-foreground">
+                                  <Plus className="h-3 w-3" />
+                                </div>
+                              )}
                             </div>
                           )}
                         </div>
@@ -433,7 +446,7 @@ export default function AddExpenseWizard() {
           })}
         </div>
 
-        <div className="absolute bottom-0 left-0 right-0 h-10 bg-gradient-to-t from-white to-transparent z-10 pointer-events-none opacity-40" />
+        <div className="absolute bottom-0 left-0 right-0 h-8 bg-gradient-to-t from-white to-transparent z-10 pointer-events-none opacity-40" />
       </div>
     );
   };
