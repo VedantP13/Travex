@@ -18,6 +18,7 @@ import {
   MapPin,
   AlignLeft,
   Plus,
+  Minus,
   Calculator
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -41,11 +42,11 @@ import { FirestorePermissionError } from "@/firebase/errors";
 import { cn } from "@/lib/utils";
 
 const FAMILY_SCHEMES = [
-  { border: "border-primary", bg: "bg-primary/5", text: "text-primary", badge: "bg-primary/10 text-primary" },
-  { border: "border-accent", bg: "bg-accent/5", text: "text-accent", badge: "bg-accent/10 text-accent" },
-  { border: "border-secondary", bg: "bg-secondary/5", text: "text-secondary", badge: "bg-secondary/10 text-secondary" },
-  { border: "border-blue-500", bg: "bg-blue-500/5", text: "text-blue-500", badge: "bg-blue-500/10 text-blue-500" },
-  { border: "border-green-500", bg: "bg-green-500/5", text: "text-green-500", badge: "bg-green-500/10 text-green-500" },
+  { border: "border-primary", bg: "bg-primary/5", text: "text-primary", badge: "bg-primary/10 text-primary", darkBg: "bg-primary/10" },
+  { border: "border-accent", bg: "bg-accent/5", text: "text-accent", badge: "bg-accent/10 text-accent", darkBg: "bg-accent/10" },
+  { border: "border-secondary", bg: "bg-secondary/5", text: "text-secondary", badge: "bg-secondary/10 text-secondary", darkBg: "bg-secondary/10" },
+  { border: "border-blue-500", bg: "bg-blue-500/5", text: "text-blue-500", badge: "bg-blue-500/10 text-blue-500", darkBg: "bg-blue-500/10" },
+  { border: "border-green-500", bg: "bg-green-500/5", text: "text-green-500", badge: "bg-green-500/10 text-green-500", darkBg: "bg-green-500/10" },
 ];
 
 export default function AddExpenseWizard() {
@@ -363,14 +364,17 @@ export default function AddExpenseWizard() {
                         <Input 
                           type="number" 
                           placeholder="0"
-                          className="h-9 w-24 rounded-lg text-right font-bold text-sm bg-muted/40 border-none shadow-inner focus-visible:ring-primary"
+                          className={cn(
+                            "h-9 w-24 rounded-lg text-right font-bold text-sm border-none shadow-inner focus-visible:ring-primary transition-colors",
+                            family.scheme.darkBg
+                          )}
                           value={formData.customAmounts[family.id] || ""}
                           onChange={e => updateCustomAmount(family.id, e.target.value)}
                         />
                       </div>
                     )}
                     {isFamilyView && (
-                      allSelected ? <Check className={cn("h-5 w-5", family.scheme.text)} /> : <Plus className="h-4 w-4 text-muted-foreground" />
+                      allSelected ? <Minus className={cn("h-5 w-5", family.scheme.text)} /> : <Plus className="h-4 w-4 text-muted-foreground" />
                     )}
                   </div>
                 </div>
@@ -407,13 +411,16 @@ export default function AddExpenseWizard() {
                                   <Input 
                                     type="number" 
                                     placeholder="0"
-                                    className="h-8 w-20 rounded-lg text-right font-bold text-xs bg-muted/40 border-none shadow-inner focus-visible:ring-primary"
+                                    className={cn(
+                                      "h-8 w-20 rounded-lg text-right font-bold text-xs border-none shadow-inner focus-visible:ring-primary transition-colors",
+                                      family.scheme.darkBg
+                                    )}
                                     value={formData.customAmounts[member.id] || ""}
                                     onChange={e => updateCustomAmount(member.id, e.target.value)}
                                   />
                                 </div>
                               )}
-                              {isMemberSelected ? <Check className={cn("h-4 w-4", family.scheme.text)} /> : <Plus className="h-4 w-4 text-muted-foreground" />}
+                              {isMemberSelected ? <Minus className={cn("h-4 w-4", family.scheme.text)} /> : <Plus className="h-4 w-4 text-muted-foreground" />}
                             </div>
                           )}
                         </div>
