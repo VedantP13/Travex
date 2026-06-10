@@ -112,6 +112,17 @@ export default function AddExpenseWizard() {
     }));
   }, [currentTrip]);
 
+  // Set default expansion for all families when the trip or family list loads
+  useEffect(() => {
+    if (familyList.length > 0) {
+      const initialExpanded: Record<string, boolean> = {};
+      familyList.forEach((f: any) => {
+        initialExpanded[f.id] = true;
+      });
+      setExpandedFamilies(initialExpanded);
+    }
+  }, [familyList]);
+
   const personList = useMemo(() => {
     const list: any[] = [];
     familyList.forEach((f: any) => {
@@ -297,7 +308,7 @@ export default function AddExpenseWizard() {
     }));
   };
 
-  const toggleExpand = (e: any, familyId: string) => {
+  const toggleExpand = (e: React.MouseEvent, familyId: string) => {
     if (e && typeof e.stopPropagation === 'function') {
       e.stopPropagation();
     }
@@ -314,6 +325,7 @@ export default function AddExpenseWizard() {
 
     return (
       <div className="relative">
+        {/* Scroll cues */}
         <div className="absolute top-0 left-0 right-0 h-8 bg-gradient-to-b from-white to-transparent z-10 pointer-events-none opacity-40" />
         
         <div className="space-y-4 max-h-[440px] overflow-y-auto pr-1 px-1 py-4 scrollbar-thin">
@@ -331,6 +343,7 @@ export default function AddExpenseWizard() {
                   family.scheme.bg
                 )}
               >
+                {/* Header Section */}
                 <div 
                   className={cn(
                     "p-3 flex items-center justify-between cursor-pointer transition-colors",
@@ -350,12 +363,14 @@ export default function AddExpenseWizard() {
                         onClick={(e) => { e.stopPropagation(); toggleExpand(e, family.id); }}
                       >
                         <span className="text-[10px] text-muted-foreground font-bold">{family.members.length} members</span>
+                        {/* Only show chevron if we are in family view or if we want to toggle in person view */}
                         <ChevronDown className={cn("h-3 w-3 text-muted-foreground transition-transform", isExpanded && "rotate-180")} />
                       </div>
                     </div>
                   </div>
                   
                   <div className="flex items-center gap-3">
+                    {/* If we are in family view and custom split is on, show the input here */}
                     {isFamilyView && allSelected && isCustom && (
                       <div className="flex items-center gap-2" onClick={e => e.stopPropagation()}>
                         <span className="text-xs font-bold text-muted-foreground">₹</span>
@@ -371,6 +386,8 @@ export default function AddExpenseWizard() {
                         />
                       </div>
                     )}
+                    
+                    {/* Show toggle icon (Plus/Minus) if in family view */}
                     {isFamilyView && (
                       allSelected ? (
                         <div className={cn("h-7 w-7 rounded-full flex items-center justify-center bg-white shadow-sm", family.scheme.text)}>
@@ -385,6 +402,7 @@ export default function AddExpenseWizard() {
                   </div>
                 </div>
 
+                {/* Expanded Member List */}
                 {isExpanded && (
                   <div className="bg-white/40 divide-y divide-muted/5 animate-in slide-in-from-top-1 duration-200">
                     {family.members.map((member) => {
@@ -408,8 +426,11 @@ export default function AddExpenseWizard() {
                               <span className="text-[9px] text-muted-foreground font-medium">{family.familyName}</span>
                             </div>
                           </div>
+                          
+                          {/* If we are NOT in family view, show toggle icons per member */}
                           {!isFamilyView && (
                             <div className="flex items-center gap-3">
+                              {/* If custom split is on, show individual amount input */}
                               {isMemberSelected && isCustom && (
                                 <div className="flex items-center gap-2" onClick={e => e.stopPropagation()}>
                                   <span className="text-xs font-bold text-muted-foreground">₹</span>
@@ -425,6 +446,8 @@ export default function AddExpenseWizard() {
                                   />
                                 </div>
                               )}
+                              
+                              {/* Toggle icons */}
                               {isMemberSelected ? (
                                 <div className={cn("h-6 w-6 rounded-full flex items-center justify-center bg-white shadow-sm", family.scheme.text)}>
                                   <Minus className="h-3 w-3" />
@@ -446,6 +469,7 @@ export default function AddExpenseWizard() {
           })}
         </div>
 
+        {/* Bottom scroll cue */}
         <div className="absolute bottom-0 left-0 right-0 h-8 bg-gradient-to-t from-white to-transparent z-10 pointer-events-none opacity-40" />
       </div>
     );
@@ -462,6 +486,7 @@ export default function AddExpenseWizard() {
 
   return (
     <div className="max-w-md mx-auto min-h-screen bg-background flex flex-col">
+      {/* Dynamic Header */}
       <header className="px-safe-pad py-6 flex items-center justify-between border-b bg-white sticky top-0 z-10">
         <Button variant="ghost" size="icon" onClick={step === 1 ? () => router.back() : prevStep}>
           <ChevronLeft className="h-6 w-6" />
@@ -534,6 +559,7 @@ export default function AddExpenseWizard() {
                 </div>
               </div>
 
+              {/* Enhanced Itemized Split UI */}
               {formData.isItemized && (
                 <div className="bg-white p-5 rounded-2xl border border-dashed border-primary/20 space-y-4 animate-in fade-in zoom-in-95 duration-300">
                   <div className="flex justify-between items-center">
@@ -627,12 +653,14 @@ export default function AddExpenseWizard() {
               ))}
             </div>
 
+            {/* Visual breakdown for standard splits */}
             {(formData.splitType === 'equal_family' || formData.splitType === 'equal_person' || formData.splitType === 'custom') && (
               <div className="bg-white p-5 rounded-2xl border border-dashed border-primary/20 space-y-4">
                 <div className="flex justify-between items-center">
                   <p className="text-xs font-bold text-primary">Member selection</p>
                 </div>
                 
+                {/* Always use hierarchical list for consistency */}
                 {renderHierarchicalList(
                   formData.splitType === 'custom',
                   formData.splitType === 'equal_family' ? 'family' : 'person'
@@ -703,6 +731,7 @@ export default function AddExpenseWizard() {
         )}
       </main>
 
+      {/* Persistent Footer */}
       <footer className="p-safe-pad border-t bg-white fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-md z-20">
         <Button 
           className="w-full h-14 rounded-2xl text-lg font-bold shadow-lg shadow-primary/20 flex items-center justify-center gap-2"
