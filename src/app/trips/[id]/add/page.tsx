@@ -422,7 +422,7 @@ export default function AddExpenseWizard() {
                               <AvatarFallback>{member.name?.[0]}</AvatarFallback>
                             </Avatar>
                             <div>
-                              <span className="text-xs font-bold block leading-none">{member.name} {member.name === "Marco" ? "(You)" : ""}</span>
+                              <span className="text-xs font-bold block leading-none">{member.name} {member.name === "Devang" ? "(You)" : ""}</span>
                               <span className="text-[9px] text-muted-foreground font-medium">{family.familyName}</span>
                             </div>
                           </div>
@@ -601,7 +601,7 @@ export default function AddExpenseWizard() {
                         <AvatarImage src={p.avatar} />
                         <AvatarFallback>{p.name?.[0]}</AvatarFallback>
                       </Avatar>
-                      <span className="font-bold text-sm truncate">{p.name === "Marco" ? "You" : p.name}</span>
+                      <span className="font-bold text-sm truncate">{p.name === "Devang" ? "You" : p.name}</span>
                     </Card>
                   ))}
                 </div>

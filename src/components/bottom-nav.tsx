@@ -1,4 +1,3 @@
-
 "use client";
 
 import Link from "next/link";
@@ -6,12 +5,15 @@ import { usePathname } from "next/navigation";
 import { Compass, Users, BarChart3, Menu, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { useTrips } from "@/context/trips-context";
 
 export function BottomNav() {
   const pathname = usePathname();
+  const { trips } = useTrips();
 
-  // In this prototype, we use a fallback active trip ID for the global FAB if none is selected
-  const activeTripId = "bali-2024";
+  // Dynamically find an active trip or fallback to the most recent one
+  const activeTrip = trips.find(t => t.status === "Active") || trips[0];
+  const fabLink = activeTrip ? `/trips/${activeTrip.id}/add` : "/trips/new";
 
   const leftItems = [
     { href: "/", icon: Compass, label: "Trips" },
@@ -59,11 +61,11 @@ export function BottomNav() {
         {/* Central Action Button (FAB) */}
         <div className="relative w-16 flex flex-col items-center justify-center">
           <div className="absolute -top-10">
-            <Link href={`/trips/${activeTripId}/add`}>
+            <Link href={fabLink}>
               <Button 
                 size="icon" 
                 className="h-14 w-14 rounded-full shadow-[0_12px_24px_-8px_rgba(0,0,0,0.3)] bg-accent hover:bg-accent transition-all duration-300 hover:scale-110 active:scale-95 border-[5px] border-white text-white"
-                title="Add expense"
+                title={activeTrip ? "Add expense" : "Create trip"}
               >
                 <Plus className="h-8 w-8" strokeWidth={3} />
               </Button>

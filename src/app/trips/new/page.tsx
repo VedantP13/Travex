@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState } from "react";
@@ -34,7 +33,7 @@ export default function CreateTrip() {
   const [date, setDate] = useState("");
   const [isCreating, setIsCreating] = useState(false);
   const [participants, setParticipants] = useState<Participant[]>([
-    { id: "p1", name: "Marco (You)", isUser: true, avatar: "https://picsum.photos/seed/user1/50/50", familyMembers: [] }
+    { id: "p1", name: "Devang (You)", isUser: true, avatar: "https://picsum.photos/seed/user1/50/50", familyMembers: [] }
   ]);
   const [newParticipantName, setNewParticipantName] = useState("");
   const [activeFamilyMemberInput, setActiveFamilyMemberInput] = useState<string | null>(null);

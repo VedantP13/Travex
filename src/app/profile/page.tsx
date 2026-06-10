@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useRouter } from "next/navigation";
@@ -14,8 +13,8 @@ export default function ProfilePage() {
   const { toast } = useToast();
 
   const settings = [
-    { icon: User, label: "Personal Information", value: "Marco Rossi" },
-    { icon: Mail, label: "Email Address", value: "marco@travex.app" },
+    { icon: User, label: "Personal Information", value: "Devang Shah" },
+    { icon: Mail, label: "Email Address", value: "devang@travex.app" },
     { icon: Shield, label: "Security", value: "Two-factor enabled" },
     { icon: Bell, label: "Notifications", value: "Push & Email" },
     { icon: CreditCard, label: "Default Currency", value: "Indian Rupee (₹)" },
@@ -41,10 +40,10 @@ export default function ProfilePage() {
         <div className="flex flex-col items-center gap-4">
           <Avatar className="h-24 w-24 border-4 border-white shadow-xl">
             <AvatarImage src="https://picsum.photos/seed/user1/200/200" />
-            <AvatarFallback>MC</AvatarFallback>
+            <AvatarFallback>DV</AvatarFallback>
           </Avatar>
           <div className="text-center">
-            <h2 className="text-2xl font-bold">Marco Rossi</h2>
+            <h2 className="text-2xl font-bold">Devang Shah</h2>
             <p className="text-muted-foreground text-sm">Member since July 2024</p>
           </div>
           <Button variant="outline" className="rounded-full px-8" onClick={handleEditProfile}>Edit profile</Button>

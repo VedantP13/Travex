@@ -1,21 +1,17 @@
-
 "use client";
 
-import { BarChart3, TrendingDown, TrendingUp, PieChart as PieChartIcon } from "lucide-react";
+import { BarChart3, TrendingDown, TrendingUp, PieChart as PieChartIcon, Search } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { BottomNav } from "@/components/bottom-nav";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
-import { Bar, BarChart, ResponsiveContainer, XAxis, YAxis, Tooltip, Cell, Pie, PieChart } from "recharts";
-
-const DATA = [
-  { name: "Dining", value: 450, fill: "hsl(var(--primary))" },
-  { name: "Stay", value: 850, fill: "hsl(var(--accent))" },
-  { name: "Travel", value: 300, fill: "hsl(var(--secondary))" },
-  { name: "Other", value: 150, fill: "hsl(var(--muted-foreground))" },
-];
+import { useTrips } from "@/context/trips-context";
 
 export default function AnalyticsPage() {
+  const { trips, loading } = useTrips();
+
+  // If we had real expense data mapping, we'd use it here. 
+  // For now, we show a state that reflects if there are trips or not.
+  const hasTrips = trips.length > 0;
+
   return (
     <div className="max-w-md mx-auto min-h-screen bg-background pb-24">
       <header className="px-safe-pad pt-12 pb-10 bg-foreground text-background rounded-b-[2.5rem] shadow-lg shadow-black/10">
@@ -28,75 +24,55 @@ export default function AnalyticsPage() {
       </header>
 
       <main className="px-safe-pad pt-8 space-y-6">
-        <div className="grid grid-cols-2 gap-4">
-          <Card className="border-none shadow-sm bg-white rounded-2xl">
-            <CardContent className="p-4">
-              <div className="flex items-center gap-2 text-destructive mb-1">
-                <TrendingUp className="h-4 w-4" />
-                <span className="text-[10px] font-bold">Spending</span>
-              </div>
-              <p className="text-xl font-bold">₹2,450</p>
-              <p className="text-[10px] text-muted-foreground mt-1">+12% from last month</p>
-            </CardContent>
-          </Card>
-          <Card className="border-none shadow-sm bg-white rounded-2xl">
-            <CardContent className="p-4">
-              <div className="flex items-center gap-2 text-primary mb-1">
-                <TrendingDown className="h-4 w-4" />
-                <span className="text-[10px] font-bold">Saving</span>
-              </div>
-              <p className="text-xl font-bold">₹1,120</p>
-              <p className="text-[10px] text-muted-foreground mt-1">Across 3 active trips</p>
-            </CardContent>
-          </Card>
-        </div>
-
-        <Card className="border-none shadow-sm bg-white rounded-2xl overflow-hidden">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-lg font-bold">
-              Category breakdown
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="pt-0 pb-12">
-            <div className="h-[220px]">
-              <ResponsiveContainer width="100%" height="100%">
-                <PieChart>
-                  <Pie
-                    data={DATA}
-                    cx="50%"
-                    cy="50%"
-                    innerRadius={60}
-                    outerRadius={80}
-                    paddingAngle={5}
-                    dataKey="value"
-                  >
-                    {DATA.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={entry.fill} />
-                    ))}
-                  </Pie>
-                  <Tooltip />
-                </PieChart>
-              </ResponsiveContainer>
+        {!hasTrips ? (
+          <div className="text-center py-20 space-y-4">
+            <div className="h-20 w-20 bg-muted rounded-full flex items-center justify-center mx-auto opacity-20">
+              <BarChart3 className="h-10 w-10" />
             </div>
-            <div className="flex justify-center gap-4 flex-wrap mt-6">
-               {DATA.map((item) => (
-                 <div key={item.name} className="flex items-center gap-1">
-                   <div className="h-2 w-2 rounded-full" style={{ backgroundColor: item.fill }} />
-                   <span className="text-[10px] font-bold text-muted-foreground">{item.name}</span>
-                 </div>
-               ))}
-            </div>
-          </CardContent>
-        </Card>
-
-        <section className="space-y-4">
-          <h2 className="text-xl font-bold text-foreground tracking-tight ml-1">Recent insights</h2>
-          <div className="bg-primary/10 border border-primary/20 p-4 rounded-2xl">
-            <p className="text-sm font-medium text-foreground">
-              You've spent <span className="text-primary font-bold">₹450</span> on Dining this week. That's 15% lower than your average! Good job!
+            <h2 className="text-xl font-bold">No data yet</h2>
+            <p className="text-sm text-muted-foreground px-10">
+              Create your first trip and add expenses to see your spending analytics.
             </p>
           </div>
-        </section>
+        ) : (
+          <>
+            <div className="grid grid-cols-2 gap-4">
+              <Card className="border-none shadow-sm bg-white rounded-2xl">
+                <CardContent className="p-4">
+                  <div className="flex items-center gap-2 text-destructive mb-1">
+                    <TrendingUp className="h-4 w-4" />
+                    <span className="text-[10px] font-bold uppercase tracking-wider">Total spent</span>
+                  </div>
+                  <p className="text-xl font-bold">₹{trips.reduce((acc, t) => acc + (t.totalSpent || 0), 0).toFixed(2)}</p>
+                  <p className="text-[10px] text-muted-foreground mt-1">Across {trips.length} journeys</p>
+                </CardContent>
+              </Card>
+              <Card className="border-none shadow-sm bg-white rounded-2xl">
+                <CardContent className="p-4">
+                  <div className="flex items-center gap-2 text-primary mb-1">
+                    <TrendingDown className="h-4 w-4" />
+                    <span className="text-[10px] font-bold uppercase tracking-wider">Net Balance</span>
+                  </div>
+                  <p className="text-xl font-bold">₹{trips.reduce((acc, t) => acc + (t.yourBalance || 0), 0).toFixed(2)}</p>
+                  <p className="text-[10px] text-muted-foreground mt-1">Pending settlements</p>
+                </CardContent>
+              </Card>
+            </div>
+
+            <Card className="border-none shadow-sm bg-white rounded-2xl overflow-hidden">
+              <CardHeader className="pb-2">
+                <CardTitle className="text-lg font-bold">
+                  Spending Insights
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="p-6 text-center space-y-4">
+                <div className="h-32 flex items-center justify-center bg-muted/20 rounded-2xl border-2 border-dashed border-muted/50">
+                  <p className="text-xs text-muted-foreground font-medium italic">Detailed category charts will appear as you tag more expenses.</p>
+                </div>
+              </CardContent>
+            </Card>
+          </>
+        )}
       </main>
 
       <BottomNav />
