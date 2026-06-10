@@ -40,12 +40,12 @@ import { errorEmitter } from "@/firebase/error-emitter";
 import { FirestorePermissionError } from "@/firebase/errors";
 import { cn } from "@/lib/utils";
 
-const FAMILY_COLORS = [
-  "border-primary",
-  "border-accent",
-  "border-secondary",
-  "border-blue-500",
-  "border-green-500",
+const FAMILY_SCHEMES = [
+  { border: "border-primary", bg: "bg-primary/5", text: "text-primary", badge: "bg-primary/10 text-primary" },
+  { border: "border-accent", bg: "bg-accent/5", text: "text-accent", badge: "bg-accent/10 text-accent" },
+  { border: "border-secondary", bg: "bg-secondary/5", text: "text-secondary", badge: "bg-secondary/10 text-secondary" },
+  { border: "border-blue-500", bg: "bg-blue-500/5", text: "text-blue-500", badge: "bg-blue-500/10 text-blue-500" },
+  { border: "border-green-500", bg: "bg-green-500/5", text: "text-green-500", badge: "bg-green-500/10 text-green-500" },
 ];
 
 export default function AddExpenseWizard() {
@@ -107,7 +107,7 @@ export default function AddExpenseWizard() {
     if (!currentTrip?.participants) return [];
     return currentTrip.participants.map((p: any, index: number) => ({
       ...p,
-      color: FAMILY_COLORS[index % FAMILY_COLORS.length],
+      scheme: FAMILY_SCHEMES[index % FAMILY_SCHEMES.length],
       familyName: `${p.name.replace(" (You)", "")}'s Family`,
       type: 'family-group'
     }));
@@ -122,7 +122,7 @@ export default function AddExpenseWizard() {
         avatar: f.avatar,
         familyId: f.id,
         familyName: f.familyName,
-        color: f.color,
+        scheme: f.scheme,
         type: 'participant'
       });
       f.familyMembers?.forEach((fm: string) => {
@@ -131,7 +131,7 @@ export default function AddExpenseWizard() {
           name: fm,
           familyId: f.id,
           familyName: f.familyName,
-          color: f.color,
+          scheme: f.scheme,
           type: 'family'
         });
       });
@@ -303,126 +303,133 @@ export default function AddExpenseWizard() {
     setExpandedFamilies(prev => ({ ...prev, [familyId]: !prev[familyId] }));
   };
 
-  const renderHierarchicalList = (list: any[], isCustom: boolean) => (
-    <div className="relative group">
-      {/* Top Gradient */}
-      <div className="absolute top-0 left-0 right-0 h-8 bg-gradient-to-b from-white to-transparent z-10 pointer-events-none opacity-60" />
-      
-      <div className="space-y-4 max-h-[450px] overflow-y-auto pr-2 px-1 scrollbar-thin scrollbar-hide- hover:scrollbar-thin transition-all">
-        {list.map((target) => {
-          const isSelected = formData.selectedIndividuals.includes(target.id);
-          const isFamily = target.type === 'family-group';
-          const isExpanded = expandedFamilies[target.id];
+  const renderHierarchicalList = (isCustom: boolean, currentView: 'person' | 'family') => {
+    const groups = familyList.map(f => ({
+      ...f,
+      members: personList.filter(p => p.familyId === f.id)
+    }));
 
-          if (isFamily) {
-            const membersCount = 1 + (target.familyMembers?.length || 0);
+    return (
+      <div className="relative group">
+        {/* Scroll cues */}
+        <div className="absolute top-0 left-0 right-0 h-10 bg-gradient-to-b from-white to-transparent z-10 pointer-events-none opacity-40" />
+        
+        <div className="space-y-6 max-h-[480px] overflow-y-auto pr-1 px-1 py-4 scrollbar-thin">
+          {groups.map((family) => {
+            const memberIds = [family.id, ...(family.members.map(m => m.id).filter(id => id !== family.id))];
+            const allSelected = memberIds.every(id => formData.selectedIndividuals.includes(id));
+            const isExpanded = expandedFamilies[family.id];
+            const isFamilyView = currentView === 'family';
+
             return (
-              <div key={target.id} className="space-y-2">
+              <div 
+                key={family.id} 
+                className={cn(
+                  "rounded-2xl border-2 transition-all overflow-hidden shadow-sm",
+                  allSelected ? family.scheme.border : "border-muted/10"
+                )}
+              >
+                {/* Family Header */}
                 <div 
                   className={cn(
-                    "flex items-center justify-between p-3 rounded-xl border-2 transition-all cursor-pointer",
-                    isSelected ? `${target.color} bg-white shadow-md` : 'bg-muted/10 border-transparent opacity-60 grayscale-[0.5]'
+                    "p-3 flex items-center justify-between cursor-pointer transition-colors",
+                    allSelected ? family.scheme.bg : "bg-muted/5 hover:bg-muted/10"
                   )}
-                  onClick={() => toggleFamilySelection(target.id)}
+                  onClick={() => isFamilyView ? toggleFamilySelection(family.id) : toggleExpand({} as any, family.id)}
                 >
                   <div className="flex items-center gap-3">
-                    <Avatar className="h-10 w-10">
-                      <AvatarImage src={target.avatar} />
-                      <AvatarFallback>{target.name?.[0]}</AvatarFallback>
+                    <Avatar className="h-10 w-10 border-2 border-white shadow-sm">
+                      <AvatarImage src={family.avatar} />
+                      <AvatarFallback>{family.name?.[0]}</AvatarFallback>
                     </Avatar>
                     <div>
-                      <p className="text-sm font-bold truncate leading-tight">{target.familyName}</p>
+                      <p className="text-sm font-bold truncate leading-tight">{family.familyName}</p>
                       <div 
-                        className="flex items-center gap-1 mt-0.5 group"
-                        onClick={(e) => toggleExpand(e, target.id)}
+                        className="flex items-center gap-1 mt-0.5"
+                        onClick={(e) => { e.stopPropagation(); toggleExpand(e, family.id); }}
                       >
-                        <span className="text-[10px] text-muted-foreground font-bold">{membersCount} members</span>
+                        <span className="text-[10px] text-muted-foreground font-bold">{family.members.length} members</span>
                         <ChevronDown className={cn("h-3 w-3 text-muted-foreground transition-transform", isExpanded && "rotate-180")} />
                       </div>
                     </div>
                   </div>
-                  {isSelected ? (
-                    isCustom ? (
+                  
+                  <div className="flex items-center gap-3">
+                    {isFamilyView && allSelected && isCustom && (
                       <div className="flex items-center gap-2" onClick={e => e.stopPropagation()}>
                         <span className="text-xs font-bold text-muted-foreground">₹</span>
                         <Input 
                           type="number" 
                           placeholder="0"
-                          className="h-9 w-24 rounded-lg text-right font-bold text-sm bg-muted/20 border-none focus-visible:ring-primary"
-                          value={formData.customAmounts[target.id] || ""}
-                          onChange={e => updateCustomAmount(target.id, e.target.value)}
+                          className="h-9 w-24 rounded-lg text-right font-bold text-sm bg-white/60 border-none focus-visible:ring-primary"
+                          value={formData.customAmounts[family.id] || ""}
+                          onChange={e => updateCustomAmount(family.id, e.target.value)}
                         />
                       </div>
-                    ) : <Check className="h-5 w-5 text-primary" />
-                  ) : <Plus className="h-4 w-4 text-muted-foreground" />}
+                    )}
+                    {isFamilyView ? (
+                      allSelected ? <Check className="h-5 w-5 text-primary" /> : <Plus className="h-4 w-4 text-muted-foreground" />
+                    ) : (
+                       <Badge variant="outline" className={cn("text-[8px] uppercase tracking-tighter border-none", family.scheme.badge)}>Group</Badge>
+                    )}
+                  </div>
                 </div>
-                
-                {isExpanded && (
-                  <div className="ml-8 space-y-2 animate-in slide-in-from-top-2 fade-in duration-200">
-                    {personList.filter(p => p.familyId === target.id).map(member => (
-                      <div key={member.id} className="flex items-center justify-between p-2.5 rounded-lg bg-muted/5 border border-dashed border-muted/30">
-                        <div className="flex items-center gap-2">
-                          <Avatar className="h-7 w-7">
-                            <AvatarImage src={member.avatar} />
-                            <AvatarFallback>{member.name?.[0]}</AvatarFallback>
-                          </Avatar>
-                          <span className="text-xs font-medium">{member.name} {member.name === "Marco" ? "(You)" : ""}</span>
+
+                {/* Family Members */}
+                {(isExpanded || !isFamilyView) && (
+                  <div className={cn(
+                    "bg-white/50 divide-y divide-muted/10 transition-all",
+                    !isFamilyView ? "block" : "animate-in slide-in-from-top-2 duration-200"
+                  )}>
+                    {family.members.map((member) => {
+                      const isMemberSelected = formData.selectedIndividuals.includes(member.id);
+                      return (
+                        <div 
+                          key={member.id} 
+                          className={cn(
+                            "flex items-center justify-between p-3 pl-8 transition-colors cursor-pointer",
+                            isMemberSelected ? "bg-white" : "opacity-60 grayscale-[0.2]"
+                          )}
+                          onClick={() => !isFamilyView && toggleSelection(member.id)}
+                        >
+                          <div className="flex items-center gap-3">
+                            <Avatar className="h-8 w-8">
+                              <AvatarImage src={member.avatar} />
+                              <AvatarFallback>{member.name?.[0]}</AvatarFallback>
+                            </Avatar>
+                            <span className="text-xs font-bold">{member.name} {member.name === "Marco" ? "(You)" : ""}</span>
+                          </div>
+                          {!isFamilyView && (
+                            <div className="flex items-center gap-3">
+                              {isMemberSelected && isCustom && (
+                                <div className="flex items-center gap-2" onClick={e => e.stopPropagation()}>
+                                  <span className="text-xs font-bold text-muted-foreground">₹</span>
+                                  <Input 
+                                    type="number" 
+                                    placeholder="0"
+                                    className="h-8 w-20 rounded-lg text-right font-bold text-xs bg-muted/20 border-none focus-visible:ring-primary"
+                                    value={formData.customAmounts[member.id] || ""}
+                                    onChange={e => updateCustomAmount(member.id, e.target.value)}
+                                  />
+                                </div>
+                              )}
+                              {isMemberSelected ? <Check className="h-4 w-4 text-primary" /> : <Plus className="h-4 w-4 text-muted-foreground" />}
+                            </div>
+                          )}
                         </div>
-                        <Badge variant="outline" className="text-[9px] font-bold border-muted/50">Member</Badge>
-                      </div>
-                    ))}
+                      );
+                    })}
                   </div>
                 )}
               </div>
             );
-          }
+          })}
+        </div>
 
-          return (
-            <div 
-              key={target.id} 
-              className={cn(
-                "flex items-center justify-between p-3 rounded-xl border-2 transition-all cursor-pointer",
-                isSelected ? `${target.color} bg-white shadow-md scale-[1.01]` : 'bg-muted/10 border-transparent opacity-60 grayscale-[0.5]'
-              )}
-              onClick={() => toggleSelection(target.id)}
-            >
-              <div className="flex items-center gap-3">
-                <Avatar className="h-9 w-9">
-                  <AvatarImage src={target.avatar} />
-                  <AvatarFallback>{target.name?.[0]}</AvatarFallback>
-                </Avatar>
-                <div className="flex flex-col">
-                  <span className="text-[9px] font-bold text-muted-foreground uppercase tracking-tight leading-none mb-1">
-                    {target.familyName}
-                  </span>
-                  <span className="text-sm font-bold truncate max-w-[120px] leading-tight">
-                    {target.name} {target.name === "Marco" ? "(You)" : ""}
-                  </span>
-                </div>
-              </div>
-              {isSelected ? (
-                isCustom ? (
-                  <div className="flex items-center gap-2" onClick={e => e.stopPropagation()}>
-                    <span className="text-xs font-bold text-muted-foreground">₹</span>
-                    <Input 
-                      type="number" 
-                      placeholder="0"
-                      className="h-9 w-24 rounded-lg text-right font-bold text-sm bg-muted/20 border-none focus-visible:ring-primary"
-                      value={formData.customAmounts[target.id] || ""}
-                      onChange={e => updateCustomAmount(target.id, e.target.value)}
-                    />
-                  </div>
-                ) : <Check className="h-5 w-5 text-primary" />
-              ) : <Plus className="h-4 w-4 text-muted-foreground" />}
-            </div>
-          );
-        })}
+        <div className="absolute bottom-0 left-0 right-0 h-10 bg-gradient-to-t from-white to-transparent z-10 pointer-events-none opacity-40" />
       </div>
-
-      {/* Bottom Gradient */}
-      <div className="absolute bottom-0 left-0 right-0 h-8 bg-gradient-to-t from-white to-transparent z-10 pointer-events-none opacity-60" />
-    </div>
-  );
+    );
+  };
 
   if (tripsLoading) {
     return (
@@ -519,7 +526,7 @@ export default function AddExpenseWizard() {
                     </Tabs>
                   </div>
                   
-                  {renderHierarchicalList(viewMode === 'person' ? personList : familyList, true)}
+                  {renderHierarchicalList(true, viewMode)}
                 </div>
               )}
 
@@ -600,16 +607,18 @@ export default function AddExpenseWizard() {
               ))}
             </div>
 
-            <div className="bg-white p-5 rounded-2xl border border-dashed border-primary/20 space-y-4">
-              <div className="flex justify-between items-center">
-                <p className="text-xs font-bold text-primary">Member selection</p>
+            {(formData.splitType === 'equal_family' || formData.splitType === 'equal_person' || formData.splitType === 'custom') && (
+              <div className="bg-white p-5 rounded-2xl border border-dashed border-primary/20 space-y-4">
+                <div className="flex justify-between items-center">
+                  <p className="text-xs font-bold text-primary">Member selection</p>
+                </div>
+                
+                {renderHierarchicalList(
+                  formData.splitType === 'custom',
+                  formData.splitType === 'equal_family' ? 'family' : 'person'
+                )}
               </div>
-              
-              {renderHierarchicalList(
-                formData.splitType === 'equal_family' ? familyList : personList, 
-                formData.splitType === 'custom'
-              )}
-            </div>
+            )}
           </div>
         )}
 
