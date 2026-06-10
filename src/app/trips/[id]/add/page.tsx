@@ -346,10 +346,12 @@ export default function AddExpenseWizard() {
                       <p className="text-sm font-bold truncate leading-tight">{family.familyName}</p>
                       <div 
                         className="flex items-center gap-1 mt-0.5"
-                        onClick={(e) => { e.stopPropagation(); toggleExpand(e, family.id); }}
+                        onClick={(e) => { e.stopPropagation(); isFamilyView && toggleExpand(e, family.id); }}
                       >
                         <span className="text-[10px] text-muted-foreground font-bold">{family.members.length} members</span>
-                        <ChevronDown className={cn("h-3 w-3 text-muted-foreground transition-transform", isExpanded && "rotate-180")} />
+                        {isFamilyView && (
+                          <ChevronDown className={cn("h-3 w-3 text-muted-foreground transition-transform", isExpanded && "rotate-180")} />
+                        )}
                       </div>
                     </div>
                   </div>
@@ -361,16 +363,14 @@ export default function AddExpenseWizard() {
                         <Input 
                           type="number" 
                           placeholder="0"
-                          className="h-9 w-24 rounded-lg text-right font-bold text-sm bg-white/60 border-none focus-visible:ring-primary"
+                          className="h-9 w-24 rounded-lg text-right font-bold text-sm bg-muted/40 border-none shadow-inner focus-visible:ring-primary"
                           value={formData.customAmounts[family.id] || ""}
                           onChange={e => updateCustomAmount(family.id, e.target.value)}
                         />
                       </div>
                     )}
-                    {isFamilyView ? (
-                      allSelected ? <Check className="h-5 w-5 text-primary" /> : <Plus className="h-4 w-4 text-muted-foreground" />
-                    ) : (
-                       <Badge variant="outline" className={cn("text-[8px] uppercase tracking-tighter border-none", family.scheme.badge)}>Group</Badge>
+                    {isFamilyView && (
+                      allSelected ? <Check className={cn("h-5 w-5", family.scheme.text)} /> : <Plus className="h-4 w-4 text-muted-foreground" />
                     )}
                   </div>
                 </div>
@@ -407,13 +407,13 @@ export default function AddExpenseWizard() {
                                   <Input 
                                     type="number" 
                                     placeholder="0"
-                                    className="h-8 w-20 rounded-lg text-right font-bold text-xs bg-muted/20 border-none focus-visible:ring-primary"
+                                    className="h-8 w-20 rounded-lg text-right font-bold text-xs bg-muted/40 border-none shadow-inner focus-visible:ring-primary"
                                     value={formData.customAmounts[member.id] || ""}
                                     onChange={e => updateCustomAmount(member.id, e.target.value)}
                                   />
                                 </div>
                               )}
-                              {isMemberSelected ? <Check className="h-4 w-4 text-primary" /> : <Plus className="h-4 w-4 text-muted-foreground" />}
+                              {isMemberSelected ? <Check className={cn("h-4 w-4", family.scheme.text)} /> : <Plus className="h-4 w-4 text-muted-foreground" />}
                             </div>
                           )}
                         </div>
