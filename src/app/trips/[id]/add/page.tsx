@@ -62,7 +62,7 @@ export default function AddExpenseWizard() {
     splitType: "equal_person",
     selectedIndividuals: [] as string[],
     customAmounts: {} as Record<string, string>,
-    isTotalUnknown: false,
+    isItemized: false,
     date: new Date().toISOString().split('T')[0],
     paymentType: "UPI",
     category: ""
@@ -107,26 +107,32 @@ export default function AddExpenseWizard() {
   }, [currentTrip]);
 
   useEffect(() => {
-    if (formData.splitType === 'equal_person') {
-      setFormData(prev => ({ ...prev, selectedIndividuals: allTargets.map(t => t.id) }));
-    } else if (formData.splitType === 'equal_family') {
-      setFormData(prev => ({ ...prev, selectedIndividuals: currentTrip?.participants?.map((p: any) => p.id) || [] }));
-    } else if (formData.splitType === 'just_me') {
-      setFormData(prev => ({ ...prev, selectedIndividuals: [formData.payerId || "p1"] }));
+    if (formData.isItemized) {
+      // Force splitType to custom if itemized
+      setFormData(prev => ({ ...prev, splitType: 'custom' }));
+    } else {
+      // Default reset behavior when toggling itemized OFF
+      if (formData.splitType === 'equal_person') {
+        setFormData(prev => ({ ...prev, selectedIndividuals: allTargets.map(t => t.id) }));
+      } else if (formData.splitType === 'equal_family') {
+        setFormData(prev => ({ ...prev, selectedIndividuals: currentTrip?.participants?.map((p: any) => p.id) || [] }));
+      } else if (formData.splitType === 'just_me') {
+        setFormData(prev => ({ ...prev, selectedIndividuals: [formData.payerId || "p1"] }));
+      }
     }
-  }, [formData.splitType, allTargets, currentTrip, formData.payerId]);
+  }, [formData.isItemized, formData.splitType, allTargets, currentTrip, formData.payerId]);
 
   // Calculate sum of custom amounts
   const customSum = useMemo(() => {
     return Object.values(formData.customAmounts).reduce((acc, val) => acc + (parseFloat(val) || 0), 0);
   }, [formData.customAmounts]);
 
-  // Sync amount if total is unknown and using custom split
+  // Sync amount if itemized split is active
   useEffect(() => {
-    if (formData.isTotalUnknown && formData.splitType === 'custom') {
+    if (formData.isItemized) {
       setFormData(prev => ({ ...prev, amount: customSum.toString() }));
     }
-  }, [customSum, formData.isTotalUnknown, formData.splitType]);
+  }, [customSum, formData.isItemized]);
 
   const handleDescriptionBlur = async () => {
     if (formData.description.length > 3 && !formData.category) {
@@ -135,7 +141,7 @@ export default function AddExpenseWizard() {
         const result = await suggestExpenseCategory({ description: formData.description });
         setFormData(prev => ({ ...prev, category: result.category }));
       } catch (e) {
-        console.error("AI categorization failed", e);
+        console.warn("AI categorization failed", e);
       } finally {
         setIsAnalyzing(false);
       }
@@ -143,19 +149,40 @@ export default function AddExpenseWizard() {
   };
 
   const nextStep = () => {
-    if (step === 1 && !formData.isTotalUnknown && !formData.amount) {
-      toast({ title: "Enter an amount", variant: "destructive" });
-      return;
+    if (step === 1) {
+      if (!formData.isItemized && !formData.amount) {
+        toast({ title: "Enter an amount", variant: "destructive" });
+        return;
+      }
+      if (!formData.description) {
+        toast({ title: "Enter a description", variant: "destructive" });
+        return;
+      }
+      
+      // If itemized, skip step 2 (split selection) and go to step 3
+      if (formData.isItemized) {
+        setStep(3);
+      } else {
+        setStep(2);
+      }
+    } else {
+      setStep(prev => Math.min(prev + 1, 3));
     }
-    setStep(prev => Math.min(prev + 1, 3));
   };
-  const prevStep = () => setStep(prev => Math.max(prev - 1, 1));
+
+  const prevStep = () => {
+    if (step === 3 && formData.isItemized) {
+      setStep(1); // Jump back to 1 if we skipped 2
+    } else {
+      setStep(prev => Math.max(prev - 1, 1));
+    }
+  };
 
   const handlePostExpense = () => {
     if (!selectedTripId || !formData.amount || !formData.description || !firestore) return;
     
-    // Check if custom split matches total if total is known
-    if (formData.splitType === 'custom' && !formData.isTotalUnknown) {
+    // Check if custom split matches total if total is known (non-itemized custom split)
+    if (formData.splitType === 'custom' && !formData.isItemized) {
       const diff = Math.abs(parseFloat(formData.amount) - customSum);
       if (diff > 0.01) {
         toast({ 
@@ -199,9 +226,7 @@ export default function AddExpenseWizard() {
     // Optimistically update trip total
     updateDoc(doc(firestore, "trips", selectedTripId), {
       totalSpent: increment(amount)
-    }).catch(async (error) => {
-       // Silently handle
-    });
+    }).catch(() => {});
   };
 
   const toggleSelection = (targetId: string) => {
@@ -211,7 +236,6 @@ export default function AddExpenseWizard() {
         ? prev.selectedIndividuals.filter(id => id !== targetId)
         : [...prev.selectedIndividuals, targetId];
       
-      // Also clean up custom amounts if deselected
       const newCustomAmounts = { ...prev.customAmounts };
       if (isSelected) delete newCustomAmounts[targetId];
 
@@ -277,7 +301,7 @@ export default function AddExpenseWizard() {
           {[1, 2, 3].map(s => (
             <div 
               key={s} 
-              className={`h-1.5 w-12 rounded-full transition-all duration-300 ${s <= step ? 'bg-primary' : 'bg-muted'}`}
+              className={`h-1.5 w-12 rounded-full transition-all duration-300 ${s <= step || (step === 3 && s === 2 && formData.isItemized) ? 'bg-primary' : 'bg-muted'}`}
             />
           ))}
         </div>
@@ -316,24 +340,78 @@ export default function AddExpenseWizard() {
                 <span className="absolute left-4 top-1/2 -translate-y-1/2 text-3xl font-bold text-muted-foreground">₹</span>
                 <Input 
                   type="number"
-                  placeholder={formData.isTotalUnknown ? "Calculating..." : "0.00"}
+                  placeholder={formData.isItemized ? "Calculating total..." : "0.00"}
                   className={cn(
                     "h-20 text-4xl font-bold rounded-2xl pl-12 focus-visible:ring-primary shadow-sm",
-                    formData.isTotalUnknown && "bg-muted text-muted-foreground/60 cursor-not-allowed"
+                    formData.isItemized && "bg-muted text-muted-foreground/60 cursor-not-allowed"
                   )}
                   value={formData.amount}
                   onChange={e => setFormData(prev => ({ ...prev, amount: e.target.value }))}
-                  disabled={formData.isTotalUnknown}
+                  disabled={formData.isItemized}
                 />
                 <div className="absolute right-4 bottom-2 flex items-center gap-2">
-                   <Label htmlFor="unknown-total" className="text-[10px] font-bold text-muted-foreground uppercase">Sum of parts</Label>
+                   <Label htmlFor="itemized-split" className="text-[10px] font-bold text-muted-foreground uppercase">Itemized Split</Label>
                    <Switch 
-                     id="unknown-total" 
-                     checked={formData.isTotalUnknown} 
-                     onCheckedChange={(val) => setFormData(prev => ({ ...prev, isTotalUnknown: val, amount: val ? "" : prev.amount }))} 
+                     id="itemized-split" 
+                     checked={formData.isItemized} 
+                     onCheckedChange={(val) => setFormData(prev => ({ 
+                        ...prev, 
+                        isItemized: val, 
+                        amount: val ? "" : prev.amount,
+                        splitType: val ? 'custom' : 'equal_person'
+                     }))} 
                    />
                 </div>
               </div>
+
+              {formData.isItemized && (
+                <div className="bg-white p-5 rounded-2xl border border-dashed border-primary/20 space-y-4 animate-in fade-in zoom-in-95 duration-300">
+                  <div className="flex justify-between items-center">
+                    <p className="text-xs font-bold text-primary">Enter amount per person</p>
+                    <Badge variant="outline" className="text-[10px]">{formData.selectedIndividuals.length} contributors</Badge>
+                  </div>
+                  
+                  <div className="space-y-4 max-h-[300px] overflow-y-auto pr-2 scrollbar-hide">
+                    {allTargets.map((target) => {
+                      const isSelected = formData.selectedIndividuals.includes(target.id);
+                      return (
+                        <div 
+                          key={target.id} 
+                          className={cn(
+                            "flex items-center justify-between p-3 rounded-xl border transition-all cursor-pointer",
+                            isSelected ? 'bg-primary/5 border-primary shadow-sm' : 'bg-muted/10 border-transparent opacity-50 grayscale-[0.5]'
+                          )}
+                          onClick={() => toggleSelection(target.id)}
+                        >
+                          <div className="flex items-center gap-3">
+                            <Avatar className="h-8 w-8">
+                              <AvatarImage src={target.avatar} />
+                              <AvatarFallback>{target.name?.[0]}</AvatarFallback>
+                            </Avatar>
+                            <span className="text-sm font-bold truncate max-w-[80px]">
+                              {target.name} {target.name === "Marco" ? "(You)" : ""}
+                            </span>
+                          </div>
+                          {isSelected ? (
+                            <div className="flex items-center gap-2" onClick={e => e.stopPropagation()}>
+                              <span className="text-xs font-bold text-muted-foreground">₹</span>
+                              <Input 
+                                type="number" 
+                                placeholder="0"
+                                className="h-9 w-24 rounded-lg text-right font-bold text-sm bg-white"
+                                value={formData.customAmounts[target.id] || ""}
+                                onChange={e => updateCustomAmount(target.id, e.target.value)}
+                              />
+                            </div>
+                          ) : (
+                            <Plus className="h-4 w-4 text-muted-foreground" />
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
 
               <div className="relative">
                 <AlignLeft className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground/50" />
@@ -369,22 +447,20 @@ export default function AddExpenseWizard() {
           </div>
         )}
 
-        {step === 2 && (
+        {step === 2 && !formData.isItemized && (
           <div className="space-y-8 animate-in fade-in slide-in-from-right-4 duration-300">
             <div className="space-y-2">
               <div className="flex justify-between items-end">
                 <div>
                   <h1 className="text-2xl font-bold">Split</h1>
-                  <p className="text-muted-foreground">
-                    {formData.isTotalUnknown ? "Summing individual parts" : `Divide ₹${formData.amount || '0.00'}`}
-                  </p>
+                  <p className="text-muted-foreground">Divide ₹{formData.amount || '0.00'}</p>
                 </div>
                 {formData.splitType === 'custom' && (
                   <div className="text-right">
                     <p className="text-[10px] font-bold text-muted-foreground uppercase">Sum</p>
                     <p className={cn(
                       "text-sm font-bold",
-                      !formData.isTotalUnknown && Math.abs(parseFloat(formData.amount || "0") - customSum) > 0.01 ? "text-destructive" : "text-primary"
+                      Math.abs(parseFloat(formData.amount || "0") - customSum) > 0.01 ? "text-destructive" : "text-primary"
                     )}>
                       ₹{customSum.toFixed(2)}
                     </p>
@@ -426,12 +502,7 @@ export default function AddExpenseWizard() {
                 {allTargets.map((target) => {
                   const isSelected = formData.selectedIndividuals.includes(target.id);
                   const isCustom = formData.splitType === 'custom';
-                  const showSelectionOnly = isCustom; // For custom, we might want to only show who is selected or allow picking from list
                   
-                  if (showSelectionOnly && !isSelected && formData.splitType === 'custom') {
-                    // Show a picklist or let them add from existing list
-                  }
-
                   return (
                     <div key={target.id} className="space-y-3">
                       <div 
@@ -456,7 +527,6 @@ export default function AddExpenseWizard() {
                             <span className="text-sm font-bold">
                               {target.name} {target.name === "Marco" ? "(You)" : ""}
                             </span>
-                            {target.type === 'family' && <p className="text-[9px] font-bold text-muted-foreground uppercase opacity-70">Family Member</p>}
                           </div>
                         </div>
                         {isSelected && !isCustom && <Check className="h-5 w-5 text-primary" />}
@@ -470,33 +540,12 @@ export default function AddExpenseWizard() {
                               value={formData.customAmounts[target.id] || ""}
                               onChange={e => updateCustomAmount(target.id, e.target.value)}
                             />
-                            <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive/40 hover:text-destructive" onClick={() => toggleSelection(target.id)}>
-                              <Trash2 className="h-4 w-4" />
-                            </Button>
                           </div>
                         )}
                       </div>
                     </div>
                   );
                 })}
-
-                {formData.splitType === 'custom' && formData.selectedIndividuals.length < allTargets.length && (
-                  <div className="pt-2">
-                    <p className="text-[10px] font-bold text-muted-foreground uppercase mb-2 ml-1">Add others to split</p>
-                    <div className="flex flex-wrap gap-2">
-                      {allTargets.filter(t => !formData.selectedIndividuals.includes(t.id)).map(t => (
-                        <Badge 
-                          key={t.id} 
-                          variant="outline" 
-                          className="cursor-pointer hover:bg-primary/5 hover:border-primary transition-colors py-1.5"
-                          onClick={() => toggleSelection(t.id)}
-                        >
-                          + {t.name}
-                        </Badge>
-                      ))}
-                    </div>
-                  </div>
-                )}
               </div>
             </div>
           </div>
@@ -506,7 +555,7 @@ export default function AddExpenseWizard() {
           <div className="space-y-8 animate-in fade-in slide-in-from-right-4 duration-300">
             <div className="space-y-2">
               <h1 className="text-2xl font-bold">Details</h1>
-              <p className="text-muted-foreground">Date, payment, and tags.</p>
+              <p className="text-muted-foreground">Finalize date and category.</p>
             </div>
 
             <div className="space-y-6">
@@ -550,24 +599,12 @@ export default function AddExpenseWizard() {
                 <Label className="text-sm font-bold text-muted-foreground ml-1">Category tags</Label>
                 <div className="relative">
                   <Input 
-                    placeholder="e.g. Dining, Travel, Fun"
+                    placeholder="e.g. Dining, Travel"
                     className="h-14 rounded-2xl pl-12 focus-visible:ring-primary shadow-sm"
                     value={formData.category}
                     onChange={e => setFormData(prev => ({ ...prev, category: e.target.value }))}
                   />
                   <Tag className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
-                </div>
-                <div className="flex flex-wrap gap-2 pt-2">
-                  {["Dining", "Transport", "Stay", "Shopping"].map(cat => (
-                    <Badge 
-                      key={cat} 
-                      variant={formData.category.includes(cat) ? "default" : "outline"}
-                      className="cursor-pointer px-3 py-1 rounded-full text-[10px] font-bold border-primary/20"
-                      onClick={() => setFormData(prev => ({ ...prev, category: cat }))}
-                    >
-                      {cat}
-                    </Badge>
-                  ))}
                 </div>
               </div>
             </div>
@@ -579,7 +616,7 @@ export default function AddExpenseWizard() {
         <Button 
           className="w-full h-14 rounded-2xl text-lg font-bold shadow-lg shadow-primary/20 flex items-center justify-center gap-2"
           onClick={step === 3 ? handlePostExpense : nextStep}
-          disabled={isPosting || (step === 1 && !formData.isTotalUnknown && !formData.amount)}
+          disabled={isPosting || (step === 1 && !formData.isItemized && !formData.amount)}
         >
           {isPosting ? (
             <>
