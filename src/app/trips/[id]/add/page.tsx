@@ -333,6 +333,9 @@ export default function AddExpenseWizard() {
             const memberIds = [family.id, ...(family.members.map(m => m.id).filter(id => id !== family.id))];
             const allSelected = memberIds.every(id => formData.selectedIndividuals.includes(id));
             const isExpanded = expandedFamilies[family.id];
+            
+            const selectedCount = memberIds.filter(id => formData.selectedIndividuals.includes(id)).length;
+            const totalCount = memberIds.length;
 
             return (
               <div 
@@ -363,13 +366,19 @@ export default function AddExpenseWizard() {
                         onClick={(e) => { e.stopPropagation(); toggleExpand(e, family.id); }}
                       >
                         <span className="text-[10px] text-muted-foreground font-bold">{family.members.length} members</span>
-                        {/* Only show chevron if we are in family view or if we want to toggle in person view */}
                         <ChevronDown className={cn("h-3 w-3 text-muted-foreground transition-transform", isExpanded && "rotate-180")} />
                       </div>
                     </div>
                   </div>
                   
                   <div className="flex items-center gap-3">
+                    {/* Selection Counter */}
+                    {selectedCount > 0 && (
+                      <span className={cn("text-[10px] font-bold whitespace-nowrap mr-1", family.scheme.text)}>
+                        {selectedCount}/{totalCount} selected
+                      </span>
+                    )}
+
                     {/* If we are in family view and custom split is on, show the input here */}
                     {isFamilyView && allSelected && isCustom && (
                       <div className="flex items-center gap-2" onClick={e => e.stopPropagation()}>
