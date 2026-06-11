@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { Plus, ChevronRight, Compass, Map, Users } from "lucide-react";
+import { Plus, ChevronRight, Compass, Map, Users, Wifi } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -27,7 +27,15 @@ export default function Home() {
               <Compass className="h-7 w-7 text-foreground" />
             </div>
             <div>
-              <h1 className="text-2xl font-bold tracking-tight text-background">Travex</h1>
+              <div className="flex items-center gap-2">
+                <h1 className="text-2xl font-bold tracking-tight text-background">Travex</h1>
+                {!loading && !error && (
+                  <div className="flex items-center gap-1 px-1.5 py-0.5 bg-green-500/20 text-green-400 rounded-md border border-green-500/30">
+                    <Wifi className="h-2 w-2 animate-pulse" />
+                    <span className="text-[7px] font-bold uppercase tracking-tighter">Live</span>
+                  </div>
+                )}
+              </div>
               <p className="text-sm opacity-70 text-background">Welcome back, Devang</p>
             </div>
           </div>
