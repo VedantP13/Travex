@@ -2,8 +2,8 @@
 "use client";
 
 import React, { createContext, useContext, useState, useEffect, ReactNode } from "react";
-import { collection, onSnapshot, query, orderBy } from "firebase/firestore";
-import { useFirestore } from "@/firebase";
+import { collection, onSnapshot, query, orderBy, where } from "firebase/firestore";
+import { useFirestore, useUser } from "@/firebase";
 
 interface TripsContextType {
   trips: any[];
@@ -18,11 +18,20 @@ export function TripsProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
   const firestore = useFirestore();
+  const { user } = useUser();
 
   useEffect(() => {
-    if (!firestore) return;
+    if (!firestore || !user?.uid) {
+      if (!user && !loading) setLoading(false);
+      return;
+    }
     
-    const q = query(collection(firestore, "trips"), orderBy("createdAt", "desc"));
+    // Query ONLY trips where the current user is a participant
+    const q = query(
+      collection(firestore, "trips"), 
+      where("participantIds", "array-contains", user.uid),
+      orderBy("createdAt", "desc")
+    );
     
     const unsubscribe = onSnapshot(
       q,
@@ -39,6 +48,10 @@ export function TripsProvider({ children }: { children: ReactNode }) {
         setError(false);
       },
       (err) => {
+        // Specifically ignore index-required errors which might happen on first run
+        if (err.message.includes('index')) {
+          console.warn("Firestore index required for optimized queries. Please check the console link.");
+        }
         console.error("Firestore trips sync failed:", err);
         setError(true);
         setLoading(false);
@@ -46,7 +59,7 @@ export function TripsProvider({ children }: { children: ReactNode }) {
     );
 
     return () => unsubscribe();
-  }, [firestore]);
+  }, [firestore, user?.uid, loading]);
 
   return (
     <TripsContext.Provider value={{ trips, loading, error }}>

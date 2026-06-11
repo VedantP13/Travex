@@ -1,3 +1,4 @@
+
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
@@ -9,15 +10,14 @@ service cloud.firestore {
     // Helper to check if a user is a participant in a trip
     function isTripParticipant(tripData) {
       return isAuthenticated() && 
-        tripData.participants.any(p, p.userId == request.auth.uid);
+        (request.auth.uid in tripData.participantIds || tripData.participants.any(p, p.userId == request.auth.uid));
     }
 
-    // Users can read/write their own profile
+    // Users can read any profile (to find friends) but only write their own
     match /users/{userId} {
       allow read: if isAuthenticated();
       allow write: if request.auth.uid == userId;
       
-      // Friends and requests subcollections
       match /friends/{friendId} {
         allow read, write: if request.auth.uid == userId;
       }
@@ -29,7 +29,7 @@ service cloud.firestore {
     // Trips rules
     match /trips/{tripId} {
       allow create: if isAuthenticated();
-      allow read, update, delete: if isTripParticipant(resource.data) || isTripParticipant(request.resource.data);
+      allow read, update, delete: if isTripParticipant(resource.data) || (request.resource != null && isTripParticipant(request.resource.data));
       
       // Expenses subcollection
       match /expenses/{expenseId} {

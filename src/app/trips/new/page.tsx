@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useEffect } from "react";
@@ -132,10 +133,17 @@ export default function CreateTrip() {
     setIsCreating(true);
     
     const tripRef = collection(firestore, "trips");
+    
+    // Create an array of all registered user IDs for efficient filtering
+    const participantIds = participants
+      .filter(p => p.isUser && p.userId)
+      .map(p => p.userId as string);
+
     const tripData = {
       name: name.trim(),
       date: date.trim() || null,
       participants: participants,
+      participantIds: participantIds,
       createdAt: serverTimestamp(),
       status: "Active",
       totalSpent: 0,

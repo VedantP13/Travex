@@ -33,7 +33,10 @@ export default function Home() {
       isAnonymous: user.isAnonymous,
       updatedAt: serverTimestamp(),
     };
-    setDoc(doc(firestore, "users", user.uid), profileData, { merge: true });
+    
+    // Using setDoc with merge to ensure profile exists
+    setDoc(doc(firestore, "users", user.uid), profileData, { merge: true })
+      .catch(err => console.error("Profile sync failed:", err));
 
     const unsub = onSnapshot(doc(firestore, "users", user.uid), (snap) => {
       if (snap.exists()) setFirestoreProfile(snap.data());
