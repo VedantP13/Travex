@@ -139,7 +139,11 @@ export default function ProfilePage() {
               "absolute -bottom-1 -right-1 h-8 w-8 rounded-full border-4 border-white flex items-center justify-center shadow-lg",
               isGuest ? "bg-orange-400" : "bg-green-500"
             )}>
-              {isGuest ? <Shield className="h-4 w-4 text-white" /> : <ShieldCheck className="h-4 w-4 text-white" />}
+              {isGuest ? (
+                <div className="h-2 w-2 rounded-full bg-white animate-pulse" />
+              ) : (
+                <ShieldCheck className="h-4 w-4 text-white" />
+              )}
             </div>
           </div>
 
@@ -166,14 +170,10 @@ export default function ProfilePage() {
                 <h2 className="text-2xl font-bold tracking-tight text-foreground">
                   {user?.displayName || (isGuest ? "Guest Explorer" : "Explorer")}
                 </h2>
-                <p className="text-[10px] font-extrabold text-muted-foreground uppercase tracking-widest flex items-center justify-center gap-1.5">
-                  <span className={cn("h-1.5 w-1.5 rounded-full", isGuest ? "bg-orange-400" : "bg-green-500")} />
-                  {isGuest ? "Temporary Session" : "Verified Account"}
-                </p>
                 <Button 
-                  variant="secondary" 
+                  variant="default" 
                   size="sm" 
-                  className="mt-4 rounded-full px-6 font-bold h-10 bg-primary/5 text-primary hover:bg-primary/10 border border-primary/10 transition-all"
+                  className="mt-4 rounded-full px-8 font-bold h-11 bg-primary text-white hover:bg-primary/90 shadow-lg shadow-primary/20 transition-all active:scale-95"
                   onClick={() => setIsEditing(true)}
                 >
                   Edit profile details
@@ -207,9 +207,13 @@ export default function ProfilePage() {
                   <Button 
                     onClick={handleLinkGoogle} 
                     disabled={isLinking}
-                    className="h-10 rounded-2xl bg-accent text-foreground hover:bg-accent/90 font-bold px-4 flex items-center gap-2 shadow-lg shadow-accent/20"
+                    className="h-10 rounded-2xl bg-white text-foreground hover:bg-slate-50 border border-slate-200 font-bold px-4 flex items-center gap-3 shadow-md active:scale-95 transition-all"
                   >
-                    {isLinking ? <Loader2 className="h-4 w-4 animate-spin" /> : <LogIn className="h-4 w-4" />}
+                    {isLinking ? (
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                    ) : (
+                      <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" className="h-4 w-4" alt="Google" />
+                    )}
                     <span className="text-xs">Link Google</span>
                   </Button>
                 )}
@@ -225,15 +229,15 @@ export default function ProfilePage() {
                   <div>
                     <p className="text-[10px] text-muted-foreground font-bold uppercase tracking-tighter mb-0.5">Security</p>
                     <p className="text-sm font-bold tracking-tight">
-                      {isGuest ? "Local access only" : "Cloud verified"}
+                      {isGuest ? "Link for safety" : "Cloud verified"}
                     </p>
                   </div>
                 </div>
                 <div className={cn(
                   "px-3 py-1 rounded-full text-[9px] font-bold uppercase",
-                  isGuest ? "bg-orange-100 text-orange-600" : "bg-green-100 text-green-600"
+                  isGuest ? "bg-orange-50 text-orange-600" : "bg-green-50 text-green-600"
                 )}>
-                  {isGuest ? "Low protection" : "Secure"}
+                  {isGuest ? "Needs Backup" : "Secure"}
                 </div>
               </CardContent>
             </Card>
@@ -282,8 +286,8 @@ export default function ProfilePage() {
 
           <p className="text-center text-[10px] text-muted-foreground font-medium px-8 leading-relaxed">
             {isGuest 
-              ? "Your data is currently stored locally and may be lost if you clear your browser data. Link your account to stay synced."
-              : "Your travel data and splits are safely synced across all your devices using your Google identity."}
+              ? "Your data is currently stored locally. Sign in with Google to protect your trips and access them from any device."
+              : "Your travel data and splits are safely synced using your Google account identity."}
           </p>
         </div>
       </main>
