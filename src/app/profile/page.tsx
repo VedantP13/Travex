@@ -16,7 +16,8 @@ import {
   Loader2,
   LogIn,
   ChevronRight,
-  ShieldCheck
+  ShieldCheck,
+  Pencil
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -128,36 +129,29 @@ export default function ProfilePage() {
 
       <main className="px-safe-pad pt-8 space-y-10">
         <section className="flex flex-col items-center gap-6">
-          <div className="relative group">
+          <div className="relative group cursor-pointer" onClick={() => setIsEditing(true)}>
             <Avatar className="h-28 w-28 border-[6px] border-white shadow-2xl ring-1 ring-black/5 transition-transform group-hover:scale-105 duration-300">
               <AvatarImage src={user?.photoURL || ""} />
               <AvatarFallback className="text-3xl font-bold bg-primary/10 text-primary">
                 {user?.displayName?.[0] || (isGuest ? "G" : "U")}
               </AvatarFallback>
             </Avatar>
-            <div className={cn(
-              "absolute -bottom-1 -right-1 h-8 w-8 rounded-full border-4 border-white flex items-center justify-center shadow-lg",
-              isGuest ? "bg-orange-400" : "bg-green-500"
-            )}>
-              {isGuest ? (
-                <div className="h-2 w-2 rounded-full bg-white animate-pulse" />
-              ) : (
-                <ShieldCheck className="h-4 w-4 text-white" />
-              )}
+            <div className="absolute -bottom-1 -right-1 h-8 w-8 rounded-full border-4 border-white flex items-center justify-center shadow-lg bg-primary text-white">
+              <Pencil className="h-3.5 w-3.5" />
             </div>
           </div>
 
-          <div className="text-center space-y-1.5">
+          <div className="text-center space-y-1.5 w-full max-w-[280px]">
             {isEditing ? (
               <div className="flex flex-col items-center gap-3">
                 <Input 
                   value={editedName}
                   onChange={(e) => setEditedName(e.target.value)}
-                  className="h-12 w-64 text-center text-xl font-bold rounded-xl border-2 border-primary focus-visible:ring-0 bg-white"
+                  className="h-12 w-full text-center text-xl font-bold rounded-xl border-2 border-primary focus-visible:ring-0 bg-white"
                   autoFocus
                 />
                 <div className="flex gap-2">
-                  <Button size="sm" className="rounded-full px-6 font-bold h-9 bg-primary" onClick={handleSaveProfile} disabled={isSaving}>
+                  <Button size="sm" className="rounded-full px-6 font-bold h-9 bg-primary text-white" onClick={handleSaveProfile} disabled={isSaving}>
                     {isSaving ? <Loader2 className="h-4 w-4 animate-spin" /> : "Save Changes"}
                   </Button>
                   <Button size="sm" variant="ghost" className="rounded-full px-4 font-bold h-9" onClick={() => setIsEditing(false)}>
@@ -167,7 +161,7 @@ export default function ProfilePage() {
               </div>
             ) : (
               <>
-                <h2 className="text-2xl font-bold tracking-tight text-foreground">
+                <h2 className="text-2xl font-bold tracking-tight text-foreground truncate">
                   {user?.displayName || (isGuest ? "Guest Explorer" : "Explorer")}
                 </h2>
                 <Button 
@@ -187,17 +181,17 @@ export default function ProfilePage() {
           <h3 className="text-[11px] font-extrabold text-muted-foreground uppercase tracking-widest ml-1">Account Information</h3>
           
           <div className="grid gap-3">
-            <Card className="border-none shadow-sm bg-white rounded-3xl overflow-hidden group">
+            <Card className="border-none shadow-sm bg-white rounded-3xl overflow-hidden">
               <CardContent className="p-5 flex items-center justify-between">
                 <div className="flex items-center gap-4">
-                  <div className="h-11 w-11 rounded-2xl bg-muted flex items-center justify-center text-muted-foreground group-hover:bg-primary/5 group-hover:text-primary transition-colors">
+                  <div className="h-11 w-11 rounded-2xl bg-muted flex items-center justify-center text-muted-foreground">
                     <Mail className="h-5 w-5" />
                   </div>
                   <div>
                     <p className="text-[10px] text-muted-foreground font-bold uppercase tracking-tighter mb-0.5">Email Address</p>
                     <p className={cn(
                       "text-sm font-bold tracking-tight",
-                      isGuest ? "text-primary/60 italic" : "text-foreground"
+                      isGuest ? "text-primary/60" : "text-foreground"
                     )}>
                       {isGuest ? "Not linked yet" : (user?.email || "N/A")}
                     </p>
@@ -207,7 +201,7 @@ export default function ProfilePage() {
                   <Button 
                     onClick={handleLinkGoogle} 
                     disabled={isLinking}
-                    className="h-10 rounded-2xl bg-white text-foreground hover:bg-slate-50 border border-slate-200 font-bold px-4 flex items-center gap-3 shadow-md active:scale-95 transition-all"
+                    className="h-10 rounded-2xl bg-white text-foreground hover:bg-slate-50 border border-slate-200 font-bold px-4 flex items-center gap-3 shadow-sm active:scale-95 transition-all"
                   >
                     {isLinking ? (
                       <Loader2 className="h-4 w-4 animate-spin" />
@@ -233,12 +227,24 @@ export default function ProfilePage() {
                     </p>
                   </div>
                 </div>
-                <div className={cn(
-                  "px-3 py-1 rounded-full text-[9px] font-bold uppercase",
-                  isGuest ? "bg-orange-50 text-orange-600" : "bg-green-50 text-green-600"
-                )}>
-                  {isGuest ? "Needs Backup" : "Secure"}
-                </div>
+                {isGuest ? (
+                  <Button 
+                    onClick={handleLinkGoogle} 
+                    disabled={isLinking}
+                    className="h-10 rounded-2xl bg-white text-foreground hover:bg-slate-50 border border-slate-200 font-bold px-4 flex items-center gap-3 shadow-sm active:scale-95 transition-all"
+                  >
+                    {isLinking ? (
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                    ) : (
+                      <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" className="h-4 w-4" alt="Google" />
+                    )}
+                    <span className="text-xs">Link Google</span>
+                  </Button>
+                ) : (
+                  <div className="px-3 py-1 rounded-full text-[9px] font-bold uppercase bg-green-50 text-green-600">
+                    Secure
+                  </div>
+                )}
               </CardContent>
             </Card>
 
@@ -286,7 +292,7 @@ export default function ProfilePage() {
 
           <p className="text-center text-[10px] text-muted-foreground font-medium px-8 leading-relaxed">
             {isGuest 
-              ? "Your data is currently stored locally. Sign in with Google to protect your trips and access them from any device."
+              ? "Your data is currently stored locally. Link your account to Google to protect your trips and access them from any device."
               : "Your travel data and splits are safely synced using your Google account identity."}
           </p>
         </div>
@@ -296,3 +302,4 @@ export default function ProfilePage() {
     </div>
   );
 }
+
