@@ -1,8 +1,12 @@
+
 "use client";
 
 import { Compass, Settings, HelpCircle, ShieldCheck, LogOut, ChevronRight } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { BottomNav } from "@/components/bottom-nav";
+import { useAuth } from "@/firebase";
+import { signOut } from "firebase/auth";
+import { useRouter } from "next/navigation";
 import Link from "next/link";
 
 const MORE_OPTIONS = [
@@ -40,6 +44,14 @@ const MORE_OPTIONS = [
 ];
 
 export default function MorePage() {
+  const auth = useAuth();
+  const router = useRouter();
+
+  const handleSignOut = async () => {
+    await signOut(auth);
+    router.push("/login");
+  };
+
   return (
     <div className="max-w-md mx-auto min-h-screen bg-background pb-24">
       <header className="px-safe-pad pt-12 pb-8">
@@ -71,17 +83,19 @@ export default function MorePage() {
           </Link>
         ))}
 
-        <Card className="border-none shadow-sm bg-destructive/5 rounded-2xl overflow-hidden mt-8">
-          <CardContent className="p-4 flex items-center gap-4 text-destructive">
-            <div className="h-12 w-12 rounded-xl bg-destructive/10 flex items-center justify-center">
-              <LogOut className="h-6 w-6" />
-            </div>
-            <div>
-              <h3 className="font-bold text-sm">Sign Out</h3>
-              <p className="text-xs opacity-70">Logout from your account</p>
-            </div>
-          </CardContent>
-        </Card>
+        <button onClick={handleSignOut} className="w-full text-left">
+          <Card className="border-none shadow-sm hover:bg-destructive/10 transition-colors bg-destructive/5 rounded-2xl overflow-hidden mt-8">
+            <CardContent className="p-4 flex items-center gap-4 text-destructive">
+              <div className="h-12 w-12 rounded-xl bg-destructive/10 flex items-center justify-center">
+                <LogOut className="h-6 w-6" />
+              </div>
+              <div>
+                <h3 className="font-bold text-sm">Sign Out</h3>
+                <p className="text-xs opacity-70">Logout from your account</p>
+              </div>
+            </CardContent>
+          </Card>
+        </button>
       </main>
 
       <BottomNav />

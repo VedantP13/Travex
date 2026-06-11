@@ -4,6 +4,7 @@ import './globals.css';
 import { Toaster } from "@/components/ui/toaster";
 import { TripsProvider } from "@/context/trips-context";
 import { FirebaseClientProvider } from "@/firebase";
+import { AuthGuard } from "@/components/auth-guard";
 
 export const metadata: Metadata = {
   title: 'Travex | Smart Travel Expenses',
@@ -24,9 +25,11 @@ export default function RootLayout({
       </head>
       <body className="font-body antialiased bg-background min-h-screen text-foreground">
         <FirebaseClientProvider>
-          <TripsProvider>
-            {children}
-          </TripsProvider>
+          <AuthGuard>
+            <TripsProvider>
+              {children}
+            </TripsProvider>
+          </AuthGuard>
         </FirebaseClientProvider>
         <Toaster />
       </body>

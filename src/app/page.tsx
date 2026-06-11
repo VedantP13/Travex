@@ -1,3 +1,4 @@
+
 "use client";
 
 import Link from "next/link";
@@ -11,9 +12,11 @@ import { cn } from "@/lib/utils";
 import { BottomNav } from "@/components/bottom-nav";
 import { AnimatedCompass } from "@/components/animated-compass";
 import { useTrips } from "@/context/trips-context";
+import { useUser } from "@/firebase";
 
 export default function Home() {
   const { trips, loading, error } = useTrips();
+  const { user } = useUser();
 
   const activeTrip = trips.find(t => t.status === "Active") || trips[0];
 
@@ -36,13 +39,13 @@ export default function Home() {
                   </div>
                 )}
               </div>
-              <p className="text-sm opacity-70 text-background">Welcome back, Devang</p>
+              <p className="text-sm opacity-70 text-background">Welcome back, {user?.displayName?.split(' ')[0] || 'Explorer'}</p>
             </div>
           </div>
           <Link href="/profile" className="relative group">
             <Avatar className="h-14 w-14 border-2 border-accent/50 hover:border-accent hover:scale-110 transition-all duration-300 shadow-xl shadow-black/40 ring-4 ring-white/5">
-              <AvatarImage src="https://picsum.photos/seed/user1/100/100" />
-              <AvatarFallback>DV</AvatarFallback>
+              <AvatarImage src={user?.photoURL || ""} />
+              <AvatarFallback>{user?.displayName?.[0] || "U"}</AvatarFallback>
             </Avatar>
             <div className="absolute -bottom-1 -right-1 h-5 w-5 bg-accent rounded-full border-2 border-foreground flex items-center justify-center shadow-lg">
                <Plus className="h-3 w-3 text-foreground" strokeWidth={3} />
