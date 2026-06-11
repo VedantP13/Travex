@@ -15,15 +15,15 @@
     --secondary: 190 31% 52%; /* Muted Teal #5B9EAD */
     --secondary-foreground: 0 0% 100%;
     --muted: 190 20% 88%;
-    --muted-foreground: 218 10% 65%; /* Lightened for clear unselected states */
+    --muted-foreground: 218 10% 65%;
     --accent: 37 93% 55%; /* Amber Orange #F5A623 */
     --accent-foreground: 0 0% 100%;
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 0 0% 98%;
     --border: 190 20% 80%;
-    --input: 190 20% 75%; /* Darkened for better visibility */
+    --input: 190 20% 75%;
     --ring: 190 84% 28%;
-    --radius: 1rem; /* 16px as requested */
+    --radius: 1rem;
   }
 }
 
@@ -54,7 +54,6 @@
     100% { transform: rotate(360deg); }
   }
 
-  /* Thin, subtle scrollbars */
   .scrollbar-thin::-webkit-scrollbar {
     width: 3px;
     height: 3px;
@@ -70,7 +69,6 @@
     background: hsl(var(--muted-foreground) / 0.4);
   }
 
-  /* Hide scrollbar utility but still allow scrolling */
   .scrollbar-hide {
     -ms-overflow-style: none;
     scrollbar-width: none;
