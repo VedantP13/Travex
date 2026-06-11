@@ -66,7 +66,7 @@ export default function LoginPage() {
         <Card className="w-full bg-white/5 border-white/10 backdrop-blur-md rounded-[2.5rem] p-4">
           <CardContent className="p-6 space-y-4">
             <div className="space-y-2">
-              <h2 className="text-xl font-bold text-background">Welcome</h2>
+              <h2 className="text-xl font-bold text-white">Welcome</h2>
               <p className="text-sm text-muted-foreground leading-relaxed">
                 Join your friends and start splitting expenses effortlessly on your next adventure.
               </p>
