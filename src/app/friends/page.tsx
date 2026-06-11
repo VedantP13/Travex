@@ -2,7 +2,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Search, MoreVertical, User, UserX, UserPlus, Check, X, Loader2 } from "lucide-react";
+import { Search, MoreVertical, User, UserX, UserPlus, Check, X, Loader2, Mail } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -69,28 +69,43 @@ export default function FriendsPage() {
     return () => unsub();
   }, [user?.uid, firestore]);
 
-  // Search users
+  // Search users with name and email support
   useEffect(() => {
     const searchUsers = async () => {
-      if (searchQuery.length < 3) {
+      const qry = searchQuery.trim();
+      if (qry.length < 3) {
         setSearchResults([]);
         return;
       }
       setIsSearching(true);
       try {
-        const q = query(
-          collection(firestore, "users"),
-          where("displayName", ">=", searchQuery),
-          where("displayName", "<=", searchQuery + "\uf8ff"),
-          limit(5)
-        );
-        const snap = await getDocs(q);
+        let snap;
+        // If it looks like an email, do an exact match query on email
+        if (qry.includes('@')) {
+          const emailQ = query(
+            collection(firestore, "users"),
+            where("email", "==", qry.toLowerCase()),
+            limit(5)
+          );
+          snap = await getDocs(emailQ);
+        } else {
+          // Otherwise do a prefix search on displayName
+          const nameQ = query(
+            collection(firestore, "users"),
+            where("displayName", ">=", qry),
+            where("displayName", "<=", qry + "\uf8ff"),
+            limit(10)
+          );
+          snap = await getDocs(nameQ);
+        }
+
         const results = snap.docs
           .map(d => ({ id: d.id, ...d.data() }))
           .filter(u => u.id !== user?.uid); // Don't show self
+        
         setSearchResults(results);
       } catch (err) {
-        console.error(err);
+        console.error("Search failed:", err);
       } finally {
         setIsSearching(false);
       }
@@ -119,9 +134,7 @@ export default function FriendsPage() {
     };
 
     try {
-      // 1. Add to recipient's requests
       await setDoc(doc(firestore, "users", targetUser.id, "requests", user.uid), requestData);
-      // 2. Add to sender's friends list as pending
       await setDoc(doc(firestore, "users", user.uid, "friends", targetUser.id), friendEntry);
       
       toast({ title: "Request sent", description: `Friend request sent to ${targetUser.displayName}` });
@@ -148,9 +161,7 @@ export default function FriendsPage() {
         updatedAt: serverTimestamp()
       };
 
-      // 1. Add to my friends
       await setDoc(doc(firestore, "users", user.uid, "friends", request.senderId), myFriendDoc);
-      // 2. Update their pending entry for me to accepted
       await setDoc(doc(firestore, "users", request.senderId, "friends", user.uid), {
         friendId: user.uid,
         friendName: user.displayName || "Explorer",
@@ -158,7 +169,6 @@ export default function FriendsPage() {
         status: "accepted",
         updatedAt: serverTimestamp()
       });
-      // 3. Remove the request
       await deleteDoc(doc(firestore, "users", user.uid, "requests", request.senderId));
 
       toast({ title: "Friends connected!", description: `You are now friends with ${request.senderName}` });
@@ -186,7 +196,7 @@ export default function FriendsPage() {
         <div className="relative">
           <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
           <Input 
-            placeholder="Search travel buddies..." 
+            placeholder="Search by name or email..." 
             className="h-14 pl-12 rounded-2xl bg-muted border-none shadow-sm focus-visible:ring-primary placeholder:text-muted-foreground/60"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
@@ -199,29 +209,38 @@ export default function FriendsPage() {
         </div>
 
         {searchResults.length > 0 && (
-          <Card className="mt-4 border-none shadow-xl bg-white rounded-2xl overflow-hidden divide-y">
-            {searchResults.map(result => (
-              <div key={result.id} className="p-4 flex items-center justify-between hover:bg-muted/50 transition-colors">
-                <div className="flex items-center gap-3">
-                  <Avatar className="h-10 w-10">
-                    <AvatarImage src={result.photoURL} />
-                    <AvatarFallback>{result.displayName?.[0]}</AvatarFallback>
-                  </Avatar>
-                  <div>
-                    <p className="font-bold text-sm">{result.displayName}</p>
-                    <p className="text-[10px] text-muted-foreground">{result.email}</p>
+          <Card className="mt-4 border-none shadow-xl bg-white rounded-2xl overflow-hidden divide-y animate-in fade-in slide-in-from-top-2 duration-300">
+            {searchResults.map(result => {
+              const isAlreadyFriend = friends.some(f => f.friendId === result.id);
+              return (
+                <div key={result.id} className="p-4 flex items-center justify-between hover:bg-muted/50 transition-colors">
+                  <div className="flex items-center gap-3">
+                    <Avatar className="h-10 w-10 border shadow-sm">
+                      <AvatarImage src={result.photoURL} />
+                      <AvatarFallback>{result.displayName?.[0]}</AvatarFallback>
+                    </Avatar>
+                    <div className="min-w-0">
+                      <p className="font-bold text-sm truncate">{result.displayName}</p>
+                      <p className="text-[9px] text-muted-foreground font-medium flex items-center gap-1">
+                        <Mail className="h-2 w-2" />
+                        {result.email}
+                      </p>
+                    </div>
                   </div>
+                  <Button 
+                    size="sm" 
+                    className={cn(
+                      "rounded-full h-8 px-4 font-bold text-xs",
+                      isAlreadyFriend ? "bg-muted text-muted-foreground hover:bg-muted" : "bg-primary text-white"
+                    )} 
+                    onClick={() => handleSendRequest(result)}
+                    disabled={isAlreadyFriend}
+                  >
+                    {isAlreadyFriend ? "Friends" : "Add Friend"}
+                  </Button>
                 </div>
-                <Button 
-                  size="sm" 
-                  className="rounded-full h-8 px-4" 
-                  onClick={() => handleSendRequest(result)}
-                  disabled={friends.some(f => f.friendId === result.id)}
-                >
-                  {friends.some(f => f.friendId === result.id) ? <Check className="h-4 w-4" /> : <UserPlus className="h-4 w-4" />}
-                </Button>
-              </div>
-            ))}
+              );
+            })}
           </Card>
         )}
       </header>
@@ -279,7 +298,7 @@ export default function FriendsPage() {
                   >
                     <CardContent className="p-4 flex items-center justify-between">
                       <div className="flex items-center gap-4">
-                        <Avatar className="h-12 w-12">
+                        <Avatar className="h-12 w-12 border shadow-sm">
                           <AvatarImage src={friend.friendPhoto} />
                           <AvatarFallback>{friend.friendName[0]}</AvatarFallback>
                         </Avatar>
@@ -301,14 +320,14 @@ export default function FriendsPage() {
                         <DropdownMenuContent align="end" className="rounded-2xl min-w-[160px] p-2">
                           <DropdownMenuItem className="rounded-xl flex items-center gap-2 cursor-pointer py-2.5 focus:bg-primary/10">
                             <User className="h-4 w-4" />
-                            <span className="font-medium">View profile</span>
+                            <span className="font-medium text-xs">View profile</span>
                           </DropdownMenuItem>
                           <DropdownMenuItem 
                             className="rounded-xl flex items-center gap-2 cursor-pointer py-2.5 text-destructive focus:bg-destructive focus:text-destructive-foreground"
                             onClick={() => handleRemoveFriend(friend.friendId)}
                           >
                             <UserX className="h-4 w-4" />
-                            <span className="font-medium">Remove friend</span>
+                            <span className="font-medium text-xs">Remove friend</span>
                           </DropdownMenuItem>
                         </DropdownMenuContent>
                       </DropdownMenu>
