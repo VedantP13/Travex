@@ -21,6 +21,7 @@ We have successfully migrated the application context to the new Firebase projec
 2.  **Authorized Domains**:
     *   Go to **Authentication > Settings > Authorized domains**.
     *   Ensure `travexapp.web.app` and `travexapp.firebaseapp.com` are in the list.
+    *   **CRITICAL for Development**: Also add your Firebase Studio domain: `cluster-52r6vzs3ujeoctkkxpjif3x34a.cloudworkstations.dev`.
 3.  **App Hosting Environment Variables**:
     *   Go to **App Hosting > Settings**.
     *   Ensure `NEXT_PUBLIC_FIREBASE_API_KEY`, `NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN`, `NEXT_PUBLIC_FIREBASE_PROJECT_ID`, and `NEXT_PUBLIC_FIREBASE_APP_ID` match your **new** project's settings.
