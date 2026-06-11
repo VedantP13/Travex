@@ -1,13 +1,18 @@
-
 'use client';
 
 import { initializeApp, getApps, FirebaseApp } from "firebase/app";
 import { getFirestore, Firestore } from "firebase/firestore";
 import { getAuth, Auth } from "firebase/auth";
 
+/**
+ * To use a custom domain for authentication:
+ * 1. Deploy your app to Firebase Hosting.
+ * 2. Connect your custom domain (e.g., travex.com).
+ * 3. Update 'authDomain' below to your custom domain.
+ */
 const firebaseConfig = {
   apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
-  authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,
+  authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN || "travex-app.firebaseapp.com",
   projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
   storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET,
   messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
