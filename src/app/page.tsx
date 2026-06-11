@@ -34,7 +34,12 @@ export default function Home() {
   const isAnonymous = user?.isAnonymous;
 
   const displayPhoto = firestoreProfile?.photoURL || user?.photoURL || "";
-  const displayName = firestoreProfile?.displayName || user?.displayName || (isAnonymous ? "Guest" : "User");
+  const welcomeName = firestoreProfile?.displayName || user?.displayName;
+  const greeting = welcomeName 
+    ? `Welcome back, ${welcomeName.split(' ')[0]}` 
+    : (isAnonymous ? 'Guest Explorer' : 'Welcome back, Explorer');
+  
+  const displayNameForFallback = welcomeName || (isAnonymous ? "Guest" : "User");
 
   return (
     <div className="max-w-md mx-auto min-h-screen flex flex-col bg-background pb-32">
@@ -56,14 +61,14 @@ export default function Home() {
                 )}
               </div>
               <p className="text-sm opacity-70 text-background">
-                {isAnonymous ? 'Guest Explorer' : `Welcome back, ${displayName.split(' ')[0]}`}
+                {greeting}
               </p>
             </div>
           </div>
           <Link href="/profile" className="relative group">
             <Avatar className="h-14 w-14 border-2 border-accent/50 hover:border-accent hover:scale-110 transition-all duration-300 shadow-xl shadow-black/40 ring-4 ring-white/5">
               <AvatarImage src={displayPhoto} className="object-cover" />
-              <AvatarFallback>{displayName[0]}</AvatarFallback>
+              <AvatarFallback>{displayNameForFallback[0]}</AvatarFallback>
             </Avatar>
             {!isAnonymous && (
               <div className="absolute -bottom-1 -right-1 h-5 w-5 bg-accent rounded-full border-2 border-foreground flex items-center justify-center shadow-lg">
