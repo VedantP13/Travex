@@ -23,6 +23,7 @@ import { collection, addDoc, serverTimestamp } from "firebase/firestore";
 import { errorEmitter } from "@/firebase/error-emitter";
 import { FirestorePermissionError } from "@/firebase/errors";
 import Link from "next/link";
+import { cn } from "@/lib/utils";
 
 type Participant = {
   id: string;
@@ -317,39 +318,48 @@ export default function CreateTrip() {
       </footer>
 
       <Dialog open={showGuestPrompt} onOpenChange={setShowGuestPrompt}>
-        <DialogContent className="max-w-[calc(100vw-40px)] w-full rounded-[2.5rem] p-8 border-none shadow-2xl bg-white overflow-hidden animate-in fade-in zoom-in-95 duration-300">
-          <div className="absolute top-0 right-0 h-40 w-40 bg-accent/5 rounded-full -mr-20 -mt-20 blur-3xl pointer-events-none" />
-          
-          <DialogHeader className="space-y-6">
-            <div className="flex justify-center">
-              <div className="h-16 w-16 bg-accent/10 rounded-[1.5rem] flex items-center justify-center text-accent shadow-inner">
-                <ShieldAlert className="h-8 w-8" strokeWidth={2.5} />
-              </div>
-            </div>
-            <div className="space-y-2 text-center">
-              <DialogTitle className="text-2xl font-bold tracking-tight text-foreground">
+        <DialogContent className="max-w-[calc(100vw-40px)] w-full rounded-[2.5rem] p-0 border-none shadow-2xl bg-white overflow-hidden animate-in fade-in zoom-in-95 duration-300">
+          {/* Brand Header Section */}
+          <div className="h-44 bg-foreground relative flex items-center justify-center overflow-hidden">
+             {/* Glowing Pulse Background */}
+             <div className="absolute h-40 w-40 bg-accent/20 rounded-full blur-[60px] animate-pulse" />
+             
+             {/* Shield Icon with Rings */}
+             <div className="relative z-10 flex items-center justify-center">
+               <div className="absolute h-24 w-24 rounded-full border border-accent/20 animate-ping duration-[3s]" />
+               <div className="absolute h-20 w-20 rounded-full border border-accent/30 animate-ping duration-[4s]" />
+               <div className="h-20 w-20 bg-accent/10 backdrop-blur-md rounded-3xl flex items-center justify-center text-accent shadow-[0_0_40px_rgba(245,166,35,0.2)] border border-accent/20">
+                 <ShieldAlert className="h-10 w-10" strokeWidth={2} />
+               </div>
+             </div>
+          </div>
+
+          <div className="p-8 pt-10 space-y-6 text-center">
+            <div className="space-y-3">
+              <DialogTitle className="text-3xl font-bold tracking-tight text-foreground">
                 Secure your adventure
               </DialogTitle>
               <DialogDescription className="text-sm font-medium leading-relaxed text-muted-foreground px-4">
-                You're currently in <span className="text-accent font-bold">Guest Mode</span>. Link your account to sync your trips across all your devices.
+                You're in <span className="text-accent font-extrabold uppercase tracking-tight">Guest Mode</span>. Link your account to sync your trips across all devices and prevent data loss.
               </DialogDescription>
             </div>
-          </DialogHeader>
 
-          <div className="mt-8 space-y-3">
-            <Link href="/login" className="block">
-              <Button className="w-full h-14 rounded-2xl bg-accent text-accent-foreground hover:bg-accent/90 font-bold text-base gap-3 shadow-lg shadow-accent/20 transition-all active:scale-95">
-                <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" className="h-5 w-5 brightness-0 invert" alt="Google" />
-                Link my account now
+            <div className="space-y-4 pt-4 flex flex-col items-center">
+              <Link href="/login" className="w-full max-w-[280px]">
+                <Button className="w-full h-14 rounded-2xl bg-accent text-accent-foreground hover:bg-accent/90 font-bold text-base gap-3 shadow-[0_12px_24px_-8px_rgba(245,166,35,0.4)] transition-all active:scale-95 group">
+                  <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" className="h-5 w-5 brightness-0 invert" alt="Google" />
+                  Link my account now
+                </Button>
+              </Link>
+              
+              <Button 
+                variant="ghost" 
+                className="w-full h-12 rounded-2xl font-bold text-foreground hover:bg-muted transition-all text-sm"
+                onClick={() => setShowGuestPrompt(false)}
+              >
+                Continue as guest explorer
               </Button>
-            </Link>
-            <Button 
-              variant="ghost" 
-              className="w-full h-12 rounded-2xl font-bold text-muted-foreground hover:bg-accent/10 hover:text-accent transition-all"
-              onClick={() => setShowGuestPrompt(false)}
-            >
-              Continue as guest
-            </Button>
+            </div>
           </div>
         </DialogContent>
       </Dialog>
