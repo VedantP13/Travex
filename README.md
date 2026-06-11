@@ -8,13 +8,6 @@ Travex is a modern web application designed for intelligent expense capture and 
 - **Real-time Sync:** Powered by Firestore.
 - **Secure Auth:** Google and Guest login options.
 
-## Tech Stack
-- **Framework:** Next.js 15 (App Router)
-- **Styling:** Tailwind CSS & ShadCN UI
-- **Database:** Firebase Firestore
-- **Authentication:** Firebase Auth
-- **AI:** Genkit (Google Gemini)
-
 ## Deployment Guide (Firebase App Hosting - Recommended)
 
 To complete the setup for Next.js SSR support:
@@ -33,6 +26,21 @@ To complete the setup for Next.js SSR support:
 5. **Final Step:** Select **"Finish and deploy"** to initiate the build.
 6. **Authorized Domains:** Once the deployment is successful, copy your unique App Hosting URL and add it to **Firebase Console > Authentication > Settings > Authorized domains**.
 
+## Customizing your Domain
+
+### To get a better .web.app domain:
+The `.web.app` URL is derived directly from your **Project ID**. If you want a cleaner URL like `travex.web.app`:
+1. Create a **new Firebase Project** in the console.
+2. Manually set the **Project ID** to `travex` (or `travex-app` if taken).
+3. Update the `NEXT_PUBLIC_FIREBASE_PROJECT_ID` in your environment variables.
+
+### To use a custom name like travex.app (Recommended):
+1. Go to **Firebase Console > App Hosting**.
+2. Select your **travex-prod** backend.
+3. Click the **Settings** tab.
+4. Click **Add custom domain** and follow the DNS verification steps.
+5. Add your new domain to the **Authorized domains** list in **Authentication** settings.
+
 ## Manual Deployment (Standard Firebase Hosting)
 
 If you prefer using the Firebase CLI for static or manual deployments:
@@ -46,11 +54,9 @@ If you prefer using the Firebase CLI for static or manual deployments:
    firebase deploy --only hosting
    ```
 
-## Custom Domains
-
-To use a custom name like `travex.app`:
-1. Go to **Firebase Console > App Hosting**.
-2. Select your **travex-prod** backend.
-3. Click the **Settings** tab.
-4. Click **Add custom domain** and follow the DNS verification steps.
-5. Add your new domain to the **Authorized domains** list in **Authentication** settings.
+## Tech Stack
+- **Framework:** Next.js 15 (App Router)
+- **Styling:** Tailwind CSS & ShadCN UI
+- **Database:** Firebase Firestore
+- **Authentication:** Firebase Auth
+- **AI:** Genkit (Google Gemini)
