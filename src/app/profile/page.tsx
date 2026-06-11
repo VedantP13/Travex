@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useRouter } from "next/navigation";
@@ -61,7 +62,7 @@ export default function ProfilePage() {
               {user?.isAnonymous ? "Anonymous Session" : "Google Verified Account"}
             </p>
           </div>
-          <Button variant="outline" className="rounded-full px-8" onClick={handleEditProfile}>Account Settings</Button>
+          <Button variant="outline" className="rounded-full px-8" onClick={handleEditProfile}>Manage Account</Button>
         </div>
 
         <div className="space-y-4">
