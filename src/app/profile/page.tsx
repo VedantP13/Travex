@@ -13,7 +13,7 @@ import {
   Loader2,
   ChevronRight,
   Pencil,
-  Image as ImageIcon,
+  ImageIcon,
   Trash2,
   AlertTriangle
 } from "lucide-react";
@@ -424,6 +424,14 @@ export default function ProfilePage() {
         </section>
 
         <div className="pt-6 space-y-4">
+          <Button 
+            className="w-full h-14 rounded-2xl gap-3 font-bold bg-accent text-accent-foreground hover:bg-accent/90 transition-all shadow-lg shadow-accent/20 text-base"
+            onClick={handleSignOut}
+          >
+            <LogOut className="h-5 w-5" />
+            Sign Out
+          </Button>
+
           <AlertDialog>
             <AlertDialogTrigger asChild>
               <Button 
@@ -458,15 +466,6 @@ export default function ProfilePage() {
               </AlertDialogFooter>
             </AlertDialogContent>
           </AlertDialog>
-
-          <Button 
-            variant="outline" 
-            className="w-full h-14 rounded-2xl gap-3 font-bold border-accent/20 text-accent bg-accent/5 hover:bg-accent/10 transition-all shadow-sm"
-            onClick={handleSignOut}
-          >
-            <LogOut className="h-5 w-5" />
-            Sign Out
-          </Button>
 
           <p className="text-center text-[10px] text-muted-foreground font-medium px-8 leading-relaxed">
             {isGuest 
