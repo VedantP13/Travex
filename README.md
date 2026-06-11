@@ -37,6 +37,13 @@ We have successfully migrated the application context to the new Firebase projec
 5.  **Old Project Cleanup**:
     *   Once the new URL is live and tested, delete the old project in the [Google Cloud Console](https://console.cloud.google.com/iam-admin/settings).
 
+### Troubleshooting Deployment Errors
+
+**Error: "Could not update billing info"**
+*   **Permissions**: Ensure you are a "Billing Account User" on the selected billing account in the Google Cloud Console.
+*   **Incognito Mode**: Try the process in an incognito window to avoid session conflicts between multiple Google accounts.
+*   **Propagation**: If you just added the billing account, wait 10 minutes for Google to sync the status.
+
 ## Tech Stack
 - **Framework:** Next.js 15 (App Router)
 - **Styling:** Tailwind CSS & ShadCN UI
