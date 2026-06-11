@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState, useEffect, useMemo } from "react";
@@ -34,7 +33,7 @@ import { Switch } from "@/components/ui/switch";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { suggestExpenseCategory } from "@/ai/flows/suggest-expense-category";
 import { useToast } from "@/hooks/use-toast";
-import { useFirestore } from "@/firebase";
+import { useFirestore, useUser } from "@/firebase";
 import { collection, addDoc, doc, updateDoc, increment, serverTimestamp, onSnapshot } from "firebase/firestore";
 import { useTrips } from "@/context/trips-context";
 import Link from "next/link";
@@ -56,6 +55,7 @@ export default function AddExpenseWizard() {
   const params = useParams();
   const { toast } = useToast();
   const firestore = useFirestore();
+  const { user } = useUser();
   const { trips, loading: tripsLoading } = useTrips();
   
   const [step, setStep] = useState(1);
@@ -92,17 +92,20 @@ export default function AddExpenseWizard() {
       if (snapshot.exists()) {
         const data = snapshot.data();
         setCurrentTrip({ id: snapshot.id, ...data });
-        if (data.participants?.length > 0 && !formData.payerId) {
+        
+        // Find current user in participants to set as default payer
+        const me = data.participants.find((p: any) => p.isUser && p.userId === user?.uid) || data.participants[0];
+        if (me && !formData.payerId) {
           setFormData(prev => ({ 
             ...prev, 
-            payerId: data.participants[0].id,
-            payerName: data.participants[0].name
+            payerId: me.id,
+            payerName: me.name
           }));
         }
       }
     });
     return () => unsubscribe();
-  }, [selectedTripId, formData.payerId, firestore]);
+  }, [selectedTripId, user, firestore, formData.payerId]);
 
   const familyList = useMemo(() => {
     if (!currentTrip?.participants) return [];
@@ -150,7 +153,6 @@ export default function AddExpenseWizard() {
     }
   }, [familyList]);
 
-  // Sync expanded state when changing view mode
   useEffect(() => {
     if (viewMode === 'person' && familyList.length > 0) {
       const allExpanded: Record<string, boolean> = {};
@@ -190,7 +192,7 @@ export default function AddExpenseWizard() {
       } else if (formData.splitType === 'equal_family') {
         setFormData(prev => ({ ...prev, selectedIndividuals: familyList.map(p => p.id) }));
       } else if (formData.splitType === 'just_me') {
-        setFormData(prev => ({ ...prev, selectedIndividuals: [formData.payerId || "p1"] }));
+        setFormData(prev => ({ ...prev, selectedIndividuals: [formData.payerId] }));
       }
     }
   }, [formData.isItemized, formData.splitType, personList, familyList, formData.payerId]);
@@ -271,6 +273,7 @@ export default function AddExpenseWizard() {
       amount: amount,
       splitType: overrideSplitType || formData.splitType,
       createdAt: serverTimestamp(),
+      addedBy: user?.uid
     };
 
     addDoc(expenseRef, expenseData)
@@ -348,9 +351,7 @@ export default function AddExpenseWizard() {
   };
 
   const toggleExpand = (e: React.MouseEvent, familyId: string) => {
-    if (e && typeof e.stopPropagation === 'function') {
-      e.stopPropagation();
-    }
+    e.stopPropagation();
     setExpandedFamilies(prev => ({ ...prev, [familyId]: !prev[familyId] }));
   };
 
@@ -466,7 +467,7 @@ export default function AddExpenseWizard() {
                               <AvatarFallback>{member.name?.[0]}</AvatarFallback>
                             </Avatar>
                             <div>
-                              <span className="text-xs font-bold block leading-none">{member.name} {member.name === "Devang" ? "(You)" : ""}</span>
+                              <span className="text-xs font-bold block leading-none">{member.name}</span>
                               <span className="text-[9px] text-muted-foreground font-medium">{family.familyName}</span>
                             </div>
                           </div>
@@ -640,19 +641,22 @@ export default function AddExpenseWizard() {
               <div className="space-y-3">
                 <Label className="text-sm font-bold text-muted-foreground ml-1">Who paid?</Label>
                 <div className="grid grid-cols-2 gap-3">
-                  {currentTrip?.participants?.map((p: any) => (
-                    <Card 
-                      key={p.id}
-                      className={`p-3 rounded-2xl border-2 transition-all cursor-pointer flex items-center gap-3 ${formData.payerId === p.id ? 'border-primary bg-primary/5' : 'border-transparent shadow-sm'}`}
-                      onClick={() => setFormData(prev => ({ ...prev, payerId: p.id, payerName: p.name }))}
-                    >
-                      <Avatar className="h-8 w-8">
-                        <AvatarImage src={p.avatar} />
-                        <AvatarFallback>{p.name?.[0]}</AvatarFallback>
-                      </Avatar>
-                      <span className="font-bold text-sm truncate">{p.name === "Devang" ? "You" : p.name}</span>
-                    </Card>
-                  ))}
+                  {currentTrip?.participants?.map((p: any) => {
+                    const isMe = p.isUser && p.userId === user?.uid;
+                    return (
+                      <Card 
+                        key={p.id}
+                        className={`p-3 rounded-2xl border-2 transition-all cursor-pointer flex items-center gap-3 ${formData.payerId === p.id ? 'border-primary bg-primary/5' : 'border-transparent shadow-sm'}`}
+                        onClick={() => setFormData(prev => ({ ...prev, payerId: p.id, payerName: p.name }))}
+                      >
+                        <Avatar className="h-8 w-8">
+                          <AvatarImage src={p.avatar} />
+                          <AvatarFallback>{p.name?.[0]}</AvatarFallback>
+                        </Avatar>
+                        <span className="font-bold text-sm truncate">{isMe ? "You" : p.name}</span>
+                      </Card>
+                    );
+                  })}
                 </div>
               </div>
             </div>

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { ArrowLeft, Plus, X, UserPlus, Lightbulb, Loader2, Calendar } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -11,7 +11,7 @@ import { Label } from "@/components/ui/label";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useToast } from "@/hooks/use-toast";
-import { useFirestore } from "@/firebase";
+import { useFirestore, useUser } from "@/firebase";
 import { collection, addDoc, serverTimestamp } from "firebase/firestore";
 import { errorEmitter } from "@/firebase/error-emitter";
 import { FirestorePermissionError } from "@/firebase/errors";
@@ -20,6 +20,7 @@ type Participant = {
   id: string;
   name: string;
   isUser: boolean;
+  userId?: string;
   avatar: string;
   familyMembers: string[];
 };
@@ -28,16 +29,31 @@ export default function CreateTrip() {
   const router = useRouter();
   const { toast } = useToast();
   const firestore = useFirestore();
+  const { user } = useUser();
   
   const [name, setName] = useState("");
   const [date, setDate] = useState("");
   const [isCreating, setIsCreating] = useState(false);
-  const [participants, setParticipants] = useState<Participant[]>([
-    { id: "p1", name: "Devang (You)", isUser: true, avatar: "https://picsum.photos/seed/user1/50/50", familyMembers: [] }
-  ]);
+  const [participants, setParticipants] = useState<Participant[]>([]);
   const [newParticipantName, setNewParticipantName] = useState("");
   const [activeFamilyMemberInput, setActiveFamilyMemberInput] = useState<string | null>(null);
   const [newFamilyMemberName, setNewFamilyMemberName] = useState("");
+
+  // Initialize participants with current user
+  useEffect(() => {
+    if (user && participants.length === 0) {
+      setParticipants([
+        { 
+          id: "me", 
+          name: `${user.displayName?.split(' ')[0] || "You"} (You)`, 
+          isUser: true, 
+          userId: user.uid,
+          avatar: user.photoURL || `https://picsum.photos/seed/${user.uid}/50/50`, 
+          familyMembers: [] 
+        }
+      ]);
+    }
+  }, [user]);
 
   const addParticipant = () => {
     if (!newParticipantName.trim()) return;
@@ -53,7 +69,7 @@ export default function CreateTrip() {
   };
 
   const removeParticipant = (id: string) => {
-    if (id === "p1") return; // Keep self
+    if (id === "me") return; // Keep self
     setParticipants(participants.filter(p => p.id !== id));
   };
 
@@ -109,29 +125,27 @@ export default function CreateTrip() {
       status: "Active",
       totalSpent: 0,
       yourBalance: 0,
+      createdBy: user?.uid,
       image: `https://picsum.photos/seed/${Math.random()}/600/400`
     };
 
-    // Non-blocking write: Initiate addDoc and navigate immediately
-    const docPromise = addDoc(tripRef, tripData);
-    
-    // Get the client-generated ID from the promise or just navigate after calling addDoc
-    // addDoc returns a Promise<DocumentReference>
-    docPromise.then((docRef) => {
-      toast({
-        title: "Trip created!",
-        description: `${name} has been set up successfully.`,
+    addDoc(tripRef, tripData)
+      .then((docRef) => {
+        toast({
+          title: "Trip created!",
+          description: `${name} has been set up successfully.`,
+        });
+        router.push(`/trips/${docRef.id}`);
+      })
+      .catch(async (error) => {
+        const permissionError = new FirestorePermissionError({
+          path: tripRef.path,
+          operation: 'create',
+          requestResourceData: tripData,
+        });
+        errorEmitter.emit('permission-error', permissionError);
+        setIsCreating(false);
       });
-      router.push(`/trips/${docRef.id}`);
-    }).catch(async (error) => {
-      const permissionError = new FirestorePermissionError({
-        path: tripRef.path,
-        operation: 'create',
-        requestResourceData: tripData,
-      });
-      errorEmitter.emit('permission-error', permissionError);
-      setIsCreating(false);
-    });
   };
 
   return (
@@ -209,7 +223,7 @@ export default function CreateTrip() {
                         </Avatar>
                         <span className="font-bold text-sm tracking-tight">{headName}&apos;s family</span>
                       </div>
-                      {p.id !== "p1" && (
+                      {p.id !== "me" && (
                         <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive" onClick={() => removeParticipant(p.id)}>
                           <X className="h-4 w-4" />
                         </Button>
