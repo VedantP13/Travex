@@ -7,10 +7,11 @@ Travex is officially **LIVE** on the new project: `travexapp`.
 The first rollout has been completed. The application is now served from your new production environment.
 
 ### 🚀 Important: App Hosting vs. Hosting
-This project uses **Firebase App Hosting**, which is designed for Next.js.
+This project uses **Firebase App Hosting**, which is designed for Next.js. 
+- **The Site Not Found Error**: If you visit `travexapp.web.app`, you will see an error. This is because that URL belongs to "Standard Hosting."
+- **Correct URL**: To see your app, go to the **App Hosting** tab in the Firebase Console and click the link ending in **`.hosted.app`**.
 - **Do NOT** use the "Hosting" tab in the Firebase Console.
 - **Do NOT** run `firebase init` or install `firebase-tools` CLI.
-- **Manage everything** via the **App Hosting** tab. It syncs automatically with your GitHub repository.
 
 ### Final Migration Checklist (Completed):
 - [x] **Billing Enabled**: Project is on the Blaze plan.
