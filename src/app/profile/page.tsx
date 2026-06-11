@@ -203,7 +203,7 @@ export default function ProfilePage() {
                   <Button 
                     onClick={handleLinkGoogle} 
                     disabled={isLinking}
-                    className="h-10 rounded-2xl bg-white text-foreground hover:bg-slate-50 border border-slate-200 font-bold px-4 flex items-center gap-3 shadow-sm active:scale-95 transition-all"
+                    className="h-10 rounded-2xl bg-white text-foreground hover:bg-slate-50 border border-slate-200 font-bold px-4 flex items-center gap-3 shadow-md active:scale-95 transition-all"
                   >
                     {isLinking ? (
                       <Loader2 className="h-4 w-4 animate-spin" />
@@ -236,7 +236,7 @@ export default function ProfilePage() {
                   <Button 
                     onClick={handleLinkGoogle} 
                     disabled={isLinking}
-                    className="h-10 rounded-2xl bg-white text-foreground hover:bg-slate-50 border border-slate-200 font-bold px-4 flex items-center gap-3 shadow-sm active:scale-95 transition-all"
+                    className="h-10 rounded-2xl bg-white text-foreground hover:bg-slate-50 border border-slate-200 font-bold px-4 flex items-center gap-3 shadow-md active:scale-95 transition-all"
                   >
                     {isLinking ? (
                       <Loader2 className="h-4 w-4 animate-spin" />
