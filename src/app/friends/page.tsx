@@ -1,7 +1,8 @@
+
 "use client";
 
-import { useState } from "react";
-import { Search, MoreVertical, User, UserX, UserPlus } from "lucide-react";
+import { useState, useEffect } from "react";
+import { Search, MoreVertical, User, UserX, UserPlus, Check, X, Loader2 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -14,13 +15,168 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { cn } from "@/lib/utils";
-
-// Cleared mock data as requested
-const FRIENDS: any[] = [];
-const PENDING_REQUESTS: any[] = [];
+import { useUser, useFirestore } from "@/firebase";
+import { 
+  collection, 
+  onSnapshot, 
+  query, 
+  where, 
+  getDocs, 
+  doc, 
+  setDoc, 
+  deleteDoc, 
+  serverTimestamp,
+  orderBy,
+  limit
+} from "firebase/firestore";
+import { useToast } from "@/hooks/use-toast";
+import { errorEmitter } from "@/firebase/error-emitter";
+import { FirestorePermissionError } from "@/firebase/errors";
 
 export default function FriendsPage() {
+  const { user } = useUser();
+  const firestore = useFirestore();
+  const { toast } = useToast();
   const [activeMenuName, setActiveMenuName] = useState<string | null>(null);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [searchResults, setSearchResults] = useState<any[]>([]);
+  const [isSearching, setIsSearching] = useState(false);
+  
+  const [friends, setFriends] = useState<any[]>([]);
+  const [requests, setRequests] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  // Listen for friends
+  useEffect(() => {
+    if (!user?.uid || !firestore) return;
+    const q = query(collection(firestore, "users", user.uid, "friends"), where("status", "==", "accepted"));
+    const unsub = onSnapshot(q, (snap) => {
+      setFriends(snap.docs.map(d => ({ id: d.id, ...d.data() })));
+      setLoading(false);
+    }, (err) => {
+      console.error(err);
+    });
+    return () => unsub();
+  }, [user?.uid, firestore]);
+
+  // Listen for incoming requests
+  useEffect(() => {
+    if (!user?.uid || !firestore) return;
+    const q = query(collection(firestore, "users", user.uid, "requests"), orderBy("createdAt", "desc"));
+    const unsub = onSnapshot(q, (snap) => {
+      setRequests(snap.docs.map(d => ({ id: d.id, ...d.data() })));
+    });
+    return () => unsub();
+  }, [user?.uid, firestore]);
+
+  // Search users
+  useEffect(() => {
+    const searchUsers = async () => {
+      if (searchQuery.length < 3) {
+        setSearchResults([]);
+        return;
+      }
+      setIsSearching(true);
+      try {
+        const q = query(
+          collection(firestore, "users"),
+          where("displayName", ">=", searchQuery),
+          where("displayName", "<=", searchQuery + "\uf8ff"),
+          limit(5)
+        );
+        const snap = await getDocs(q);
+        const results = snap.docs
+          .map(d => ({ id: d.id, ...d.data() }))
+          .filter(u => u.id !== user?.uid); // Don't show self
+        setSearchResults(results);
+      } catch (err) {
+        console.error(err);
+      } finally {
+        setIsSearching(false);
+      }
+    };
+
+    const timeoutId = setTimeout(searchUsers, 500);
+    return () => clearTimeout(timeoutId);
+  }, [searchQuery, firestore, user?.uid]);
+
+  const handleSendRequest = async (targetUser: any) => {
+    if (!user?.uid || !firestore) return;
+    
+    const requestData = {
+      senderId: user.uid,
+      senderName: user.displayName || "Explorer",
+      senderPhoto: user.photoURL || "",
+      createdAt: serverTimestamp()
+    };
+
+    const friendEntry = {
+      friendId: targetUser.id,
+      friendName: targetUser.displayName,
+      friendPhoto: targetUser.photoURL || "",
+      status: "pending",
+      updatedAt: serverTimestamp()
+    };
+
+    try {
+      // 1. Add to recipient's requests
+      await setDoc(doc(firestore, "users", targetUser.id, "requests", user.uid), requestData);
+      // 2. Add to sender's friends list as pending
+      await setDoc(doc(firestore, "users", user.uid, "friends", targetUser.id), friendEntry);
+      
+      toast({ title: "Request sent", description: `Friend request sent to ${targetUser.displayName}` });
+      setSearchQuery("");
+      setSearchResults([]);
+    } catch (error: any) {
+      errorEmitter.emit('permission-error', new FirestorePermissionError({
+        path: `/users/${targetUser.id}/requests/${user.uid}`,
+        operation: 'create',
+        requestResourceData: requestData
+      }));
+    }
+  };
+
+  const handleAcceptRequest = async (request: any) => {
+    if (!user?.uid || !firestore) return;
+
+    try {
+      const myFriendDoc = {
+        friendId: request.senderId,
+        friendName: request.senderName,
+        friendPhoto: request.senderPhoto || "",
+        status: "accepted",
+        updatedAt: serverTimestamp()
+      };
+
+      // 1. Add to my friends
+      await setDoc(doc(firestore, "users", user.uid, "friends", request.senderId), myFriendDoc);
+      // 2. Update their pending entry for me to accepted
+      await setDoc(doc(firestore, "users", request.senderId, "friends", user.uid), {
+        friendId: user.uid,
+        friendName: user.displayName || "Explorer",
+        friendPhoto: user.photoURL || "",
+        status: "accepted",
+        updatedAt: serverTimestamp()
+      });
+      // 3. Remove the request
+      await deleteDoc(doc(firestore, "users", user.uid, "requests", request.senderId));
+
+      toast({ title: "Friends connected!", description: `You are now friends with ${request.senderName}` });
+    } catch (error: any) {
+       console.error(error);
+    }
+  };
+
+  const handleRemoveFriend = async (friendId: string) => {
+    if (!user?.uid || !firestore) return;
+    try {
+      await deleteDoc(doc(firestore, "users", user.uid, "friends", friendId));
+      await deleteDoc(doc(firestore, "users", friendId, "friends", user.uid));
+      toast({ title: "Friend removed" });
+    } catch (err) {
+      console.error(err);
+    }
+  };
 
   return (
     <div className="max-w-md mx-auto min-h-screen bg-background pb-24">
@@ -30,51 +186,92 @@ export default function FriendsPage() {
         <div className="relative">
           <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
           <Input 
-            placeholder="Find friends by name or ID..." 
+            placeholder="Search travel buddies..." 
             className="h-14 pl-12 rounded-2xl bg-muted border-none shadow-sm focus-visible:ring-primary placeholder:text-muted-foreground/60"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
           />
+          {isSearching && (
+            <div className="absolute right-4 top-1/2 -translate-y-1/2">
+              <Loader2 className="h-4 w-4 animate-spin text-primary" />
+            </div>
+          )}
         </div>
+
+        {searchResults.length > 0 && (
+          <Card className="mt-4 border-none shadow-xl bg-white rounded-2xl overflow-hidden divide-y">
+            {searchResults.map(result => (
+              <div key={result.id} className="p-4 flex items-center justify-between hover:bg-muted/50 transition-colors">
+                <div className="flex items-center gap-3">
+                  <Avatar className="h-10 w-10">
+                    <AvatarImage src={result.photoURL} />
+                    <AvatarFallback>{result.displayName?.[0]}</AvatarFallback>
+                  </Avatar>
+                  <div>
+                    <p className="font-bold text-sm">{result.displayName}</p>
+                    <p className="text-[10px] text-muted-foreground">{result.email}</p>
+                  </div>
+                </div>
+                <Button 
+                  size="sm" 
+                  className="rounded-full h-8 px-4" 
+                  onClick={() => handleSendRequest(result)}
+                  disabled={friends.some(f => f.friendId === result.id)}
+                >
+                  {friends.some(f => f.friendId === result.id) ? <Check className="h-4 w-4" /> : <UserPlus className="h-4 w-4" />}
+                </Button>
+              </div>
+            ))}
+          </Card>
+        )}
       </header>
 
       <main className="px-safe-pad pt-8 space-y-8">
-        {PENDING_REQUESTS.length > 0 ? (
+        {requests.length > 0 && (
           <section className="space-y-4">
             <h2 className="text-xl font-bold text-foreground tracking-tight">Friend requests</h2>
             <div className="grid gap-3">
-              {PENDING_REQUESTS.map((request) => (
-                <Card key={request.name} className="border-none shadow-sm bg-white rounded-2xl overflow-hidden">
+              {requests.map((request) => (
+                <Card key={request.id} className="border-none shadow-sm bg-white rounded-2xl overflow-hidden">
                   <CardContent className="p-4 flex items-center justify-between">
                     <div className="flex items-center gap-4">
                       <Avatar className="h-10 w-10">
-                        <AvatarImage src={request.avatar} />
-                        <AvatarFallback>{request.name[0]}</AvatarFallback>
+                        <AvatarImage src={request.senderPhoto} />
+                        <AvatarFallback>{request.senderName[0]}</AvatarFallback>
                       </Avatar>
                       <div>
-                        <h3 className="font-bold text-sm">{request.name}</h3>
+                        <h3 className="font-bold text-sm">{request.senderName}</h3>
                         <p className="text-[10px] text-muted-foreground font-bold">Wants to be friends</p>
                       </div>
                     </div>
                     <div className="flex gap-2">
-                      <Button size="sm" className="h-8 rounded-lg px-3">Accept</Button>
-                      <Button size="sm" variant="ghost" className="h-8 rounded-lg px-3 text-muted-foreground">Decline</Button>
+                      <Button size="sm" className="h-8 rounded-lg px-3 bg-primary" onClick={() => handleAcceptRequest(request)}>Accept</Button>
+                      <Button 
+                        size="sm" 
+                        variant="ghost" 
+                        className="h-8 rounded-lg px-3 text-muted-foreground"
+                        onClick={() => deleteDoc(doc(firestore, "users", user!.uid, "requests", request.senderId))}
+                      >
+                        Decline
+                      </Button>
                     </div>
                   </CardContent>
                 </Card>
               ))}
             </div>
           </section>
-        ) : null}
+        )}
 
         <section className="space-y-4">
           <h2 className="text-xl font-bold text-foreground tracking-tight">Your friends</h2>
-          {FRIENDS.length > 0 ? (
+          {friends.length > 0 ? (
             <div className="grid gap-3">
-              {FRIENDS.map((friend) => {
-                const isDimmed = activeMenuName !== null && activeMenuName !== friend.name;
+              {friends.map((friend) => {
+                const isDimmed = activeMenuName !== null && activeMenuName !== friend.friendName;
                 
                 return (
                   <Card 
-                    key={friend.name} 
+                    key={friend.id} 
                     className={cn(
                       "border-none shadow-sm bg-white rounded-2xl overflow-hidden transition-all duration-300",
                       isDimmed && "opacity-30 grayscale-[0.5] scale-[0.98] blur-[0.5px]"
@@ -83,22 +280,19 @@ export default function FriendsPage() {
                     <CardContent className="p-4 flex items-center justify-between">
                       <div className="flex items-center gap-4">
                         <Avatar className="h-12 w-12">
-                          <AvatarImage src={friend.avatar} />
-                          <AvatarFallback>{friend.name[0]}</AvatarFallback>
+                          <AvatarImage src={friend.friendPhoto} />
+                          <AvatarFallback>{friend.friendName[0]}</AvatarFallback>
                         </Avatar>
                         <div>
-                          <h3 className="font-bold text-base">{friend.name}</h3>
+                          <h3 className="font-bold text-base">{friend.friendName}</h3>
                           <p className="text-[10px] font-bold text-muted-foreground flex items-center gap-1.5 mt-0.5">
-                            <span className={cn(
-                              "h-2 w-2 rounded-full",
-                              friend.status === 'Active' ? 'bg-green-500' : 'bg-muted-foreground'
-                            )} />
-                            {friend.status}
+                            <span className="h-2 w-2 rounded-full bg-green-500" />
+                            Connected
                           </p>
                         </div>
                       </div>
                       
-                      <DropdownMenu onOpenChange={(open) => setActiveMenuName(open ? friend.name : null)}>
+                      <DropdownMenu onOpenChange={(open) => setActiveMenuName(open ? friend.friendName : null)}>
                         <DropdownMenuTrigger asChild>
                           <Button size="icon" variant="ghost" className="text-muted-foreground hover:bg-primary/10 rounded-xl">
                             <MoreVertical className="h-5 w-5" />
@@ -109,7 +303,10 @@ export default function FriendsPage() {
                             <User className="h-4 w-4" />
                             <span className="font-medium">View profile</span>
                           </DropdownMenuItem>
-                          <DropdownMenuItem className="rounded-xl flex items-center gap-2 cursor-pointer py-2.5 text-destructive focus:bg-destructive focus:text-destructive-foreground">
+                          <DropdownMenuItem 
+                            className="rounded-xl flex items-center gap-2 cursor-pointer py-2.5 text-destructive focus:bg-destructive focus:text-destructive-foreground"
+                            onClick={() => handleRemoveFriend(friend.friendId)}
+                          >
                             <UserX className="h-4 w-4" />
                             <span className="font-medium">Remove friend</span>
                           </DropdownMenuItem>
@@ -127,8 +324,12 @@ export default function FriendsPage() {
                </div>
                <p className="text-lg font-bold text-foreground">No friends yet</p>
                <p className="text-sm text-muted-foreground mt-1 mb-6 px-10 leading-relaxed">Connect with your travel buddies to start splitting expenses.</p>
-               <Button variant="outline" className="rounded-2xl px-8 h-12 font-bold border-primary text-primary hover:bg-primary/5">
-                 Invite a friend
+               <Button 
+                variant="outline" 
+                className="rounded-2xl px-8 h-12 font-bold border-primary text-primary hover:bg-primary/5"
+                onClick={() => document.querySelector('input')?.focus()}
+              >
+                 Find a friend
                </Button>
             </div>
           )}

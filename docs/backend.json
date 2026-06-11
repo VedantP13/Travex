@@ -70,7 +70,31 @@
       "properties": {
         "displayName": { "type": "string" },
         "photoURL": { "type": "string", "description": "High-quality profile image data (Base64) or URL." },
+        "email": { "type": "string" },
         "updatedAt": { "type": "string", "format": "date-time" }
+      }
+    },
+    "Friendship": {
+      "title": "Friendship",
+      "description": "A relationship between two users.",
+      "type": "object",
+      "properties": {
+        "friendId": { "type": "string" },
+        "friendName": { "type": "string" },
+        "friendPhoto": { "type": "string" },
+        "status": { "type": "string", "enum": ["pending", "accepted"] },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      }
+    },
+    "FriendRequest": {
+      "title": "FriendRequest",
+      "description": "An incoming request to be friends.",
+      "type": "object",
+      "properties": {
+        "senderId": { "type": "string" },
+        "senderName": { "type": "string" },
+        "senderPhoto": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" }
       }
     }
   },
@@ -88,7 +112,15 @@
     },
     "/users/{userId}": {
       "schema": "UserProfile",
-      "description": "Collection for storing custom user profile data like high-res avatars."
+      "description": "Collection for storing custom user profile data."
+    },
+    "/users/{userId}/friends/{friendId}": {
+      "schema": "Friendship",
+      "description": "Subcollection for confirmed friends."
+    },
+    "/users/{userId}/requests/{requestId}": {
+      "schema": "FriendRequest",
+      "description": "Subcollection for incoming requests."
     }
   }
 }

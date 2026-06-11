@@ -14,7 +14,7 @@ import { AnimatedCompass } from "@/components/animated-compass";
 import { useTrips } from "@/context/trips-context";
 import { useUser, useFirestore } from "@/firebase";
 import { useEffect, useState } from "react";
-import { doc, onSnapshot } from "firebase/firestore";
+import { doc, onSnapshot, setDoc, serverTimestamp } from "firebase/firestore";
 
 export default function Home() {
   const { trips, loading, error } = useTrips();
@@ -24,11 +24,21 @@ export default function Home() {
 
   useEffect(() => {
     if (!user?.uid || !firestore) return;
+
+    // Sync profile to Firestore so others can find this user
+    const profileData = {
+      displayName: user.displayName || "Explorer",
+      photoURL: user.photoURL || "",
+      email: user.email || "",
+      updatedAt: serverTimestamp(),
+    };
+    setDoc(doc(firestore, "users", user.uid), profileData, { merge: true });
+
     const unsub = onSnapshot(doc(firestore, "users", user.uid), (snap) => {
       if (snap.exists()) setFirestoreProfile(snap.data());
     });
     return () => unsub();
-  }, [user?.uid, firestore]);
+  }, [user?.uid, firestore, user?.displayName, user?.photoURL, user?.email]);
 
   const activeTrip = trips.find(t => t.status === "Active") || trips[0];
   const isAnonymous = user?.isAnonymous;
