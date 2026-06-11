@@ -13,7 +13,9 @@ import {
   Loader2,
   ChevronRight,
   Pencil,
-  Image as ImageIcon
+  Image as ImageIcon,
+  Trash2,
+  AlertTriangle
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -21,12 +23,23 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
 import { useUser, useAuth, useFirestore } from "@/firebase";
-import { signOut, updateProfile, GoogleAuthProvider, linkWithPopup } from "firebase/auth";
-import { doc, setDoc, onSnapshot, serverTimestamp } from "firebase/firestore";
+import { signOut, updateProfile, GoogleAuthProvider, linkWithPopup, deleteUser } from "firebase/auth";
+import { doc, setDoc, onSnapshot, serverTimestamp, deleteDoc } from "firebase/firestore";
 import { cn } from "@/lib/utils";
 import { errorEmitter } from "@/firebase/error-emitter";
 import { FirestorePermissionError } from "@/firebase/errors";
 import { BottomNav } from "@/components/bottom-nav";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 
 const GUEST_AVATARS = [
   "https://picsum.photos/seed/avatar1/150/150",
@@ -49,6 +62,7 @@ export default function ProfilePage() {
   const [editedPhotoURL, setEditedPhotoURL] = useState("");
   const [isSaving, setIsSaving] = useState(false);
   const [isLinking, setIsLinking] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
   const [firestoreProfile, setFirestoreProfile] = useState<any>(null);
 
   useEffect(() => {
@@ -168,12 +182,11 @@ export default function ProfilePage() {
         description: "Your data is now safely synced with your Google account.",
       });
     } catch (error: any) {
-      // Don't show toast if user closed the popup manually
       if (error.code !== 'auth/popup-closed-by-user') {
         console.error("Linking failed", error);
         let errorMessage = "Could not link Google account.";
         if (error.code === 'auth/unauthorized-domain') {
-          errorMessage = "Domain not authorized. Please add 'cluster-52r6vzs3ujeoctkkxpjif3x34a.cloudworkstations.dev' to Authorised Domains in Firebase Console.";
+          errorMessage = "Domain not authorized. Please add authorized domains in Firebase Console.";
         }
         toast({
           variant: "destructive",
@@ -189,6 +202,45 @@ export default function ProfilePage() {
   const handleSignOut = async () => {
     await signOut(auth);
     router.push("/login");
+  };
+
+  const handleDeleteAccount = async () => {
+    if (!auth.currentUser || !firestore) return;
+    setIsDeleting(true);
+
+    try {
+      const userId = auth.currentUser.uid;
+      // 1. Delete Firestore profile
+      await deleteDoc(doc(firestore, "users", userId)).catch(() => {
+        // Silently fail if rules don't allow or doc doesn't exist
+      });
+
+      // 2. Delete Auth user
+      await deleteUser(auth.currentUser);
+
+      toast({
+        title: "Account deleted",
+        description: "Your account and profile data have been removed.",
+      });
+      router.push("/login");
+    } catch (error: any) {
+      console.error("Deletion error:", error);
+      if (error.code === 'auth/requires-recent-login') {
+        toast({
+          variant: "destructive",
+          title: "Action required",
+          description: "For security, please sign out and sign back in before deleting your account.",
+        });
+      } else {
+        toast({
+          variant: "destructive",
+          title: "Deletion failed",
+          description: error.message || "Could not delete account. Please try again.",
+        });
+      }
+    } finally {
+      setIsDeleting(false);
+    }
   };
 
   if (userLoading) {
@@ -368,21 +420,47 @@ export default function ProfilePage() {
                 )}
               </CardContent>
             </Card>
+          </div>
+        </section>
 
-            <Card className="border-none shadow-sm bg-white rounded-3xl overflow-hidden opacity-60">
-              <CardContent className="p-5 flex items-center justify-between">
-                <div className="flex items-center gap-4">
-                  <div className="h-11 w-11 rounded-2xl bg-muted flex items-center justify-center text-muted-foreground">
-                    <Bell className="h-5 w-5" />
+        <section className="space-y-4">
+          <h3 className="text-[11px] font-extrabold text-destructive uppercase tracking-widest ml-1">Danger Zone</h3>
+          
+          <div className="grid gap-3">
+            <AlertDialog>
+              <AlertDialogTrigger asChild>
+                <Button 
+                  variant="outline" 
+                  className="w-full h-14 rounded-2xl gap-3 font-bold border-destructive/20 text-destructive hover:bg-destructive hover:text-destructive-foreground transition-all shadow-sm"
+                >
+                  <Trash2 className="h-5 w-5" />
+                  Delete Account
+                </Button>
+              </AlertDialogTrigger>
+              <AlertDialogContent className="max-w-[calc(100vw-40px)] rounded-[2rem] p-6">
+                <AlertDialogHeader>
+                  <div className="h-12 w-12 rounded-2xl bg-destructive/10 text-destructive flex items-center justify-center mb-4">
+                    <AlertTriangle className="h-6 w-6" />
                   </div>
-                  <div>
-                    <p className="text-[10px] text-muted-foreground font-bold uppercase tracking-tighter mb-0.5">Notifications</p>
-                    <p className="text-sm font-bold tracking-tight">Push & Email</p>
-                  </div>
-                </div>
-                <ChevronRight className="h-4 w-4 text-muted-foreground" />
-              </CardContent>
-            </Card>
+                  <AlertDialogTitle className="text-xl font-bold">Are you absolutely sure?</AlertDialogTitle>
+                  <AlertDialogDescription className="text-sm leading-relaxed">
+                    This action cannot be undone. This will permanently delete your travel profile and remove your data from our servers.
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter className="flex-col sm:flex-row gap-2 mt-6">
+                  <AlertDialogCancel className="h-12 rounded-xl font-bold border-none bg-muted text-muted-foreground flex-1">
+                    Cancel
+                  </AlertDialogCancel>
+                  <AlertDialogAction 
+                    onClick={handleDeleteAccount}
+                    className="h-12 rounded-xl font-bold bg-destructive text-destructive-foreground hover:bg-destructive/90 flex-1"
+                    disabled={isDeleting}
+                  >
+                    {isDeleting ? <Loader2 className="h-4 w-4 animate-spin" /> : "Delete Permanently"}
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
           </div>
         </section>
 
