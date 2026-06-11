@@ -15,7 +15,8 @@ import {
   Home, 
   MoreVertical,
   Plus,
-  Loader2
+  Loader2,
+  Clock
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -25,6 +26,7 @@ import { useFirestore } from "@/firebase";
 import { doc, onSnapshot, collection, query, orderBy } from "firebase/firestore";
 import { errorEmitter } from "@/firebase/error-emitter";
 import { FirestorePermissionError } from "@/firebase/errors";
+import { cn } from "@/lib/utils";
 
 export default function TripDetails() {
   const router = useRouter();
@@ -164,20 +166,35 @@ export default function TripDetails() {
             <div className="space-y-4">
               {expenses.length > 0 ? expenses.map(item => {
                 const Icon = getCategoryIcon(item.category);
+                const isUnsplit = item.splitType === 'unsplit';
+                
                 return (
-                  <div key={item.id} className="bg-white p-4 rounded-2xl shadow-sm border border-transparent hover:border-primary/10 transition-colors flex items-center gap-4 group">
+                  <div key={item.id} className={cn(
+                    "bg-white p-4 rounded-2xl shadow-sm border transition-colors flex items-center gap-4 group",
+                    isUnsplit ? "border-accent/30 bg-accent/5" : "border-transparent hover:border-primary/10"
+                  )}>
                     <div className={`h-12 w-12 rounded-2xl flex items-center justify-center shrink-0 ${getCategoryColor(item.category)}`}>
                       <Icon className="h-6 w-6" />
                     </div>
                     <div className="flex-1 min-w-0">
-                      <h3 className="font-bold text-sm truncate">{item.description}</h3>
+                      <div className="flex items-center gap-2">
+                        <h3 className="font-bold text-sm truncate">{item.description}</h3>
+                        {isUnsplit && <span className="h-1.5 w-1.5 rounded-full bg-accent animate-pulse" />}
+                      </div>
                       <p className="text-xs text-muted-foreground">Paid by <span className="font-medium text-foreground">{item.payerName || "Someone"}</span> • {item.date}</p>
                     </div>
                     <div className="text-right">
                       <p className="font-bold text-sm">₹{parseFloat(item.amount || 0).toFixed(2)}</p>
-                      <Badge variant="secondary" className="text-[9px] h-4 font-normal mt-1">
-                        {item.splitType === 'equal_person' ? 'All split' : 'Custom'}
-                      </Badge>
+                      {isUnsplit ? (
+                        <div className="flex items-center gap-1 justify-end mt-1">
+                          <Clock className="h-3 w-3 text-accent" />
+                          <span className="text-[8px] font-bold text-accent uppercase tracking-tighter">Pending split</span>
+                        </div>
+                      ) : (
+                        <Badge variant="secondary" className="text-[9px] h-4 font-normal mt-1">
+                          {item.splitType === 'equal_person' ? 'All split' : 'Custom'}
+                        </Badge>
+                      )}
                     </div>
                   </div>
                 );

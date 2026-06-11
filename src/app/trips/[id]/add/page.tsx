@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useEffect, useMemo } from "react";
@@ -19,7 +20,8 @@ import {
   AlignLeft,
   Plus,
   Minus,
-  Calculator
+  Calculator,
+  Zap
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -112,7 +114,6 @@ export default function AddExpenseWizard() {
     }));
   }, [currentTrip]);
 
-  // Set default expansion for all families when the trip or family list loads
   useEffect(() => {
     if (familyList.length > 0) {
       const initialExpanded: Record<string, boolean> = {};
@@ -215,10 +216,10 @@ export default function AddExpenseWizard() {
     }
   };
 
-  const handlePostExpense = () => {
+  const handlePostExpense = (overrideSplitType?: string) => {
     if (!selectedTripId || !formData.amount || !formData.description || !firestore) return;
     
-    if (formData.splitType === 'custom' && !formData.isItemized) {
+    if (formData.splitType === 'custom' && !formData.isItemized && !overrideSplitType) {
       const diff = Math.abs(parseFloat(formData.amount) - customSum);
       if (diff > 0.01) {
         toast({ 
@@ -237,14 +238,17 @@ export default function AddExpenseWizard() {
     const expenseData = {
       ...formData,
       amount: amount,
+      splitType: overrideSplitType || formData.splitType,
       createdAt: serverTimestamp(),
     };
 
     addDoc(expenseRef, expenseData)
       .then(() => {
         toast({
-          title: "Expense posted!",
-          description: `Successfully added ₹${amount.toFixed(2)} to ${currentTrip?.name}.`
+          title: overrideSplitType === 'unsplit' ? "Saved as draft" : "Expense posted!",
+          description: overrideSplitType === 'unsplit' 
+            ? "Expense saved. You can split it later from the trip dashboard."
+            : `Successfully added ₹${amount.toFixed(2)} to ${currentTrip?.name}.`
         });
         router.push(`/trips/${selectedTripId}`);
       })
@@ -261,6 +265,10 @@ export default function AddExpenseWizard() {
     updateDoc(doc(firestore, "trips", selectedTripId), {
       totalSpent: increment(amount)
     }).catch(() => {});
+  };
+
+  const handleSplitLater = () => {
+    handlePostExpense('unsplit');
   };
 
   const toggleSelection = (targetId: string) => {
@@ -325,7 +333,6 @@ export default function AddExpenseWizard() {
 
     return (
       <div className="relative">
-        {/* Scroll cues */}
         <div className="absolute top-0 left-0 right-0 h-8 bg-gradient-to-b from-white to-transparent z-10 pointer-events-none opacity-40" />
         
         <div className="space-y-4 max-h-[440px] overflow-y-auto pr-1 px-1 py-4 scrollbar-thin">
@@ -346,7 +353,6 @@ export default function AddExpenseWizard() {
                   family.scheme.bg
                 )}
               >
-                {/* Header Section */}
                 <div 
                   className={cn(
                     "p-3 flex items-center justify-between cursor-pointer transition-colors",
@@ -372,14 +378,12 @@ export default function AddExpenseWizard() {
                   </div>
                   
                   <div className="flex items-center gap-3">
-                    {/* Selection Counter */}
                     {selectedCount > 0 && (
                       <span className={cn("text-[10px] font-bold whitespace-nowrap mr-1", family.scheme.text)}>
                         {selectedCount}/{totalCount} selected
                       </span>
                     )}
 
-                    {/* If we are in family view and custom split is on, show the input here */}
                     {isFamilyView && allSelected && isCustom && (
                       <div className="flex items-center gap-2" onClick={e => e.stopPropagation()}>
                         <span className="text-xs font-bold text-muted-foreground">₹</span>
@@ -396,7 +400,6 @@ export default function AddExpenseWizard() {
                       </div>
                     )}
                     
-                    {/* Show toggle icon (Plus/Minus) if in family view */}
                     {isFamilyView && (
                       allSelected ? (
                         <div className={cn("h-7 w-7 rounded-full flex items-center justify-center bg-white shadow-sm", family.scheme.text)}>
@@ -411,7 +414,6 @@ export default function AddExpenseWizard() {
                   </div>
                 </div>
 
-                {/* Expanded Member List */}
                 {isExpanded && (
                   <div className="bg-white/40 divide-y divide-muted/5 animate-in slide-in-from-top-1 duration-200">
                     {family.members.map((member) => {
@@ -436,10 +438,8 @@ export default function AddExpenseWizard() {
                             </div>
                           </div>
                           
-                          {/* If we are NOT in family view, show toggle icons per member */}
                           {!isFamilyView && (
                             <div className="flex items-center gap-3">
-                              {/* If custom split is on, show individual amount input */}
                               {isMemberSelected && isCustom && (
                                 <div className="flex items-center gap-2" onClick={e => e.stopPropagation()}>
                                   <span className="text-xs font-bold text-muted-foreground">₹</span>
@@ -456,7 +456,6 @@ export default function AddExpenseWizard() {
                                 </div>
                               )}
                               
-                              {/* Toggle icons */}
                               {isMemberSelected ? (
                                 <div className={cn("h-6 w-6 rounded-full flex items-center justify-center bg-white shadow-sm", family.scheme.text)}>
                                   <Minus className="h-3 w-3" />
@@ -478,7 +477,6 @@ export default function AddExpenseWizard() {
           })}
         </div>
 
-        {/* Bottom scroll cue */}
         <div className="absolute bottom-0 left-0 right-0 h-8 bg-gradient-to-t from-white to-transparent z-10 pointer-events-none opacity-40" />
       </div>
     );
@@ -495,7 +493,6 @@ export default function AddExpenseWizard() {
 
   return (
     <div className="max-w-md mx-auto min-h-screen bg-background flex flex-col">
-      {/* Dynamic Header */}
       <header className="px-safe-pad py-6 flex items-center justify-between border-b bg-white sticky top-0 z-10">
         <Button variant="ghost" size="icon" onClick={step === 1 ? () => router.back() : prevStep}>
           <ChevronLeft className="h-6 w-6" />
@@ -568,7 +565,6 @@ export default function AddExpenseWizard() {
                 </div>
               </div>
 
-              {/* Enhanced Itemized Split UI */}
               {formData.isItemized && (
                 <div className="bg-white p-5 rounded-2xl border border-dashed border-primary/20 space-y-4 animate-in fade-in zoom-in-95 duration-300">
                   <div className="flex justify-between items-center">
@@ -662,14 +658,12 @@ export default function AddExpenseWizard() {
               ))}
             </div>
 
-            {/* Visual breakdown for standard splits */}
             {(formData.splitType === 'equal_family' || formData.splitType === 'equal_person' || formData.splitType === 'custom') && (
               <div className="bg-white p-5 rounded-2xl border border-dashed border-primary/20 space-y-4">
                 <div className="flex justify-between items-center">
                   <p className="text-xs font-bold text-primary">Member selection</p>
                 </div>
                 
-                {/* Always use hierarchical list for consistency */}
                 {renderHierarchicalList(
                   formData.splitType === 'custom',
                   formData.splitType === 'equal_family' ? 'family' : 'person'
@@ -740,25 +734,39 @@ export default function AddExpenseWizard() {
         )}
       </main>
 
-      {/* Persistent Footer */}
       <footer className="p-safe-pad border-t bg-white fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-md z-20">
-        <Button 
-          className="w-full h-14 rounded-2xl text-lg font-bold shadow-lg shadow-primary/20 flex items-center justify-center gap-2"
-          onClick={step === 3 ? handlePostExpense : nextStep}
-          disabled={isPosting || (step === 1 && !formData.isItemized && !formData.amount)}
-        >
-          {isPosting ? (
-            <>
-              <Loader2 className="h-5 w-5 animate-spin" />
-              Posting...
-            </>
-          ) : (
-            <>
-              {step === 3 ? "Post expense" : "Next step"}
-              {step !== 3 && <ChevronRight className="h-5 w-5" />}
-            </>
+        <div className="flex gap-3">
+          {step === 1 && (
+            <Button 
+              variant="outline"
+              className="flex-1 h-14 rounded-2xl text-lg font-bold border-primary text-primary"
+              onClick={handleSplitLater}
+              disabled={isPosting || !formData.amount || !formData.description}
+            >
+              {isPosting ? <Loader2 className="h-5 w-5 animate-spin" /> : "Split later"}
+            </Button>
           )}
-        </Button>
+          <Button 
+            className={cn(
+              "h-14 rounded-2xl text-lg font-bold shadow-lg shadow-primary/20 flex items-center justify-center gap-2",
+              step === 1 ? "flex-1" : "w-full"
+            )}
+            onClick={step === 3 ? handlePostExpense : nextStep}
+            disabled={isPosting || (step === 1 && !formData.isItemized && !formData.amount)}
+          >
+            {isPosting ? (
+              <>
+                <Loader2 className="h-5 w-5 animate-spin" />
+                Posting...
+              </>
+            ) : (
+              <>
+                {step === 1 ? "Split now" : step === 3 ? "Post expense" : "Next step"}
+                {step !== 3 && <ChevronRight className="h-5 w-5" />}
+              </>
+            )}
+          </Button>
+        </div>
       </footer>
     </div>
   );

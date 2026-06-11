@@ -47,7 +47,7 @@
         "date": { "type": "string", "format": "date-time" },
         "paymentType": { "type": "string", "enum": ["UPI", "Cash", "Card", "Net Banking"] },
         "category": { "type": "string" },
-        "splitType": { "type": "string", "enum": ["equal_person", "equal_family", "custom", "just_me"] },
+        "splitType": { "type": "string", "enum": ["equal_person", "equal_family", "custom", "just_me", "unsplit"] },
         "splits": {
           "type": "object",
           "description": "A map of participant IDs/family member names to their share of the expense."
