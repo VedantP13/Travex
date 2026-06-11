@@ -17,7 +17,6 @@ import {
   DialogDescription,
   DialogHeader,
   DialogTitle,
-  DialogFooter,
 } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
 import { useFirestore, useUser } from "@/firebase";
@@ -319,32 +318,39 @@ export default function CreateTrip() {
       </footer>
 
       <Dialog open={showGuestPrompt} onOpenChange={setShowGuestPrompt}>
-        <DialogContent className="max-w-[90vw] rounded-[2rem] p-8 border-none shadow-2xl overflow-hidden bg-white">
-          <div className="absolute top-0 right-0 p-4 opacity-10">
-            <ShieldAlert className="h-32 w-32 -mr-10 -mt-10" />
-          </div>
-          <DialogHeader className="text-left space-y-4">
-            <div className="h-14 w-14 bg-accent/10 rounded-2xl flex items-center justify-center text-accent">
-              <ShieldAlert className="h-8 w-8" />
+        <DialogContent className="max-w-[calc(100vw-40px)] w-full rounded-[2.5rem] p-8 border-none shadow-2xl bg-white overflow-hidden animate-in fade-in zoom-in-95 duration-300">
+          <div className="absolute top-0 right-0 h-40 w-40 bg-accent/5 rounded-full -mr-20 -mt-20 blur-3xl pointer-events-none" />
+          
+          <DialogHeader className="space-y-6">
+            <div className="flex justify-center">
+              <div className="h-16 w-16 bg-accent/10 rounded-[1.5rem] flex items-center justify-center text-accent shadow-inner">
+                <ShieldAlert className="h-8 w-8" strokeWidth={2.5} />
+              </div>
             </div>
-            <DialogTitle className="text-2xl font-bold leading-tight">Secure your adventure</DialogTitle>
-            <DialogDescription className="text-base font-medium leading-relaxed text-muted-foreground">
-              You're currently using a <span className="text-foreground font-bold italic">Guest Account</span>. If you lose access to this browser, you'll lose all your trip data.
-            </DialogDescription>
+            <div className="space-y-2 text-center">
+              <DialogTitle className="text-2xl font-bold tracking-tight text-foreground">
+                Secure your adventure
+              </DialogTitle>
+              <DialogDescription className="text-sm font-medium leading-relaxed text-muted-foreground px-4">
+                You're currently in <span className="text-accent font-bold">Guest Mode</span>. Link your account to sync your trips across all your devices.
+              </DialogDescription>
+            </div>
           </DialogHeader>
-          <div className="py-2 space-y-4">
-             <Link href="/login" className="block">
-                <Button className="w-full h-14 rounded-2xl bg-primary text-white font-bold text-lg gap-2 shadow-xl shadow-primary/20">
-                  <LogIn className="h-5 w-5" /> Link my account now
-                </Button>
-             </Link>
-             <Button 
-               variant="ghost" 
-               className="w-full h-10 rounded-xl font-bold text-muted-foreground hover:bg-muted/50"
-               onClick={() => setShowGuestPrompt(false)}
-             >
-               Continue as guest
-             </Button>
+
+          <div className="mt-8 space-y-3">
+            <Link href="/login" className="block">
+              <Button className="w-full h-14 rounded-2xl bg-primary text-white font-bold text-base gap-2 shadow-lg shadow-primary/20 hover:bg-primary/90 transition-all active:scale-95">
+                <LogIn className="h-5 w-5" /> 
+                Link my account now
+              </Button>
+            </Link>
+            <Button 
+              variant="ghost" 
+              className="w-full h-12 rounded-2xl font-bold text-muted-foreground hover:bg-muted/50 transition-colors"
+              onClick={() => setShowGuestPrompt(false)}
+            >
+              Continue as guest
+            </Button>
           </div>
         </DialogContent>
       </Dialog>
