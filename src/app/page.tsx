@@ -12,14 +12,29 @@ import { cn } from "@/lib/utils";
 import { BottomNav } from "@/components/bottom-nav";
 import { AnimatedCompass } from "@/components/animated-compass";
 import { useTrips } from "@/context/trips-context";
-import { useUser } from "@/firebase";
+import { useUser, useFirestore } from "@/firebase";
+import { useEffect, useState } from "react";
+import { doc, onSnapshot } from "firebase/firestore";
 
 export default function Home() {
   const { trips, loading, error } = useTrips();
   const { user } = useUser();
+  const firestore = useFirestore();
+  const [firestoreProfile, setFirestoreProfile] = useState<any>(null);
+
+  useEffect(() => {
+    if (!user?.uid || !firestore) return;
+    const unsub = onSnapshot(doc(firestore, "users", user.uid), (snap) => {
+      if (snap.exists()) setFirestoreProfile(snap.data());
+    });
+    return () => unsub();
+  }, [user?.uid, firestore]);
 
   const activeTrip = trips.find(t => t.status === "Active") || trips[0];
   const isAnonymous = user?.isAnonymous;
+
+  const displayPhoto = firestoreProfile?.photoURL || user?.photoURL || "";
+  const displayName = firestoreProfile?.displayName || user?.displayName || (isAnonymous ? "Guest" : "User");
 
   return (
     <div className="max-w-md mx-auto min-h-screen flex flex-col bg-background pb-32">
@@ -41,14 +56,14 @@ export default function Home() {
                 )}
               </div>
               <p className="text-sm opacity-70 text-background">
-                {isAnonymous ? 'Guest Explorer' : `Welcome back, ${user?.displayName?.split(' ')[0] || 'Explorer'}`}
+                {isAnonymous ? 'Guest Explorer' : `Welcome back, ${displayName.split(' ')[0]}`}
               </p>
             </div>
           </div>
           <Link href="/profile" className="relative group">
             <Avatar className="h-14 w-14 border-2 border-accent/50 hover:border-accent hover:scale-110 transition-all duration-300 shadow-xl shadow-black/40 ring-4 ring-white/5">
-              <AvatarImage src={user?.photoURL || ""} />
-              <AvatarFallback>{user?.displayName?.[0] || (isAnonymous ? "G" : "U")}</AvatarFallback>
+              <AvatarImage src={displayPhoto} className="object-cover" />
+              <AvatarFallback>{displayName[0]}</AvatarFallback>
             </Avatar>
             {!isAnonymous && (
               <div className="absolute -bottom-1 -right-1 h-5 w-5 bg-accent rounded-full border-2 border-foreground flex items-center justify-center shadow-lg">

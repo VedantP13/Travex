@@ -5,18 +5,13 @@ import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { 
   ArrowLeft, 
-  User, 
   Mail, 
   Shield, 
   Bell, 
   CreditCard, 
   LogOut, 
-  Check, 
-  X, 
   Loader2,
-  LogIn,
   ChevronRight,
-  ShieldCheck,
   Pencil,
   Image as ImageIcon
 } from "lucide-react";
@@ -24,12 +19,13 @@ import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { BottomNav } from "@/components/bottom-nav";
 import { useToast } from "@/hooks/use-toast";
-import { useUser, useAuth } from "@/firebase";
+import { useUser, useAuth, useFirestore } from "@/firebase";
 import { signOut, updateProfile, GoogleAuthProvider, linkWithPopup } from "firebase/auth";
+import { doc, setDoc, onSnapshot, serverTimestamp } from "firebase/firestore";
 import { cn } from "@/lib/utils";
-import Link from "next/link";
+import { errorEmitter } from "@/firebase/error-emitter";
+import { FirestorePermissionError } from "@/firebase/errors";
 
 const GUEST_AVATARS = [
   "https://picsum.photos/seed/avatar1/150/150",
@@ -44,6 +40,7 @@ export default function ProfilePage() {
   const { toast } = useToast();
   const { user, loading: userLoading } = useUser();
   const auth = useAuth();
+  const firestore = useFirestore();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [isEditing, setIsEditing] = useState(false);
@@ -51,23 +48,32 @@ export default function ProfilePage() {
   const [editedPhotoURL, setEditedPhotoURL] = useState("");
   const [isSaving, setIsSaving] = useState(false);
   const [isLinking, setIsLinking] = useState(false);
+  const [firestoreProfile, setFirestoreProfile] = useState<any>(null);
+
+  // Listen for the high-quality Firestore profile
+  useEffect(() => {
+    if (!user?.uid || !firestore) return;
+
+    const unsub = onSnapshot(doc(firestore, "users", user.uid), (snap) => {
+      if (snap.exists()) {
+        setFirestoreProfile(snap.data());
+      }
+    });
+    return () => unsub();
+  }, [user?.uid, firestore]);
 
   useEffect(() => {
-    if (user?.displayName) {
-      setEditedName(user.displayName);
-    } else if (user?.isAnonymous) {
-      setEditedName("Guest Explorer");
-    }
-    if (user?.photoURL) {
-      setEditedPhotoURL(user.photoURL);
-    }
-  }, [user]);
+    const currentName = firestoreProfile?.displayName || user?.displayName || "";
+    const currentPhoto = firestoreProfile?.photoURL || user?.photoURL || "";
+    
+    setEditedName(currentName || (user?.isAnonymous ? "Guest Explorer" : "Explorer"));
+    setEditedPhotoURL(currentPhoto);
+  }, [user, firestoreProfile]);
 
   /**
-   * Resizes an image and aggressively compresses it to ensure the Base64 
-   * string is under the 2048 character limit for Firebase Auth photoURL.
+   * Resizes an image to a reasonable size for high-quality Firestore storage.
    */
-  const resizeAndCompressImage = (dataUrl: string, size: number): Promise<string> => {
+  const resizeImage = (dataUrl: string, size: number, quality: number = 0.8): Promise<string> => {
     return new Promise((resolve, reject) => {
       const img = new Image();
       img.src = dataUrl;
@@ -78,55 +84,58 @@ export default function ProfilePage() {
         const ctx = canvas.getContext('2d');
         if (!ctx) return reject("Canvas error");
 
-        // Draw and crop to square
         const minDim = Math.min(img.width, img.height);
         const startX = (img.width - minDim) / 2;
         const startY = (img.height - minDim) / 2;
         ctx.drawImage(img, startX, startY, minDim, minDim, 0, 0, size, size);
 
-        // Iterative compression to stay under 2048 chars
-        let quality = 0.7;
-        let result = canvas.toDataURL('image/jpeg', quality);
-        
-        while (result.length > 2000 && quality > 0.1) {
-          quality -= 0.1;
-          result = canvas.toDataURL('image/jpeg', quality);
-        }
-
-        if (result.length > 2048) {
-          // If still too big at low quality, try reducing size
-          if (size > 40) {
-            resolve(resizeAndCompressImage(dataUrl, size - 10));
-          } else {
-            reject("Image too complex for profile limit");
-          }
-        } else {
-          resolve(result);
-        }
+        resolve(canvas.toDataURL('image/jpeg', quality));
       };
       img.onerror = () => reject("Image load error");
     });
   };
 
   const handleSaveProfile = async () => {
-    if (!auth.currentUser) return;
-    
-    // Safety check for character limit
-    if (editedPhotoURL.length > 2048) {
-      toast({
-        variant: "destructive",
-        title: "Image too large",
-        description: "Please try a different photo or select one of our avatars.",
-      });
-      return;
-    }
+    if (!auth.currentUser || !firestore) return;
 
     setIsSaving(true);
+    const userId = auth.currentUser.uid;
+    const userDocRef = doc(firestore, "users", userId);
+
     try {
+      // 1. Prepare high-quality version for Firestore
+      const highResPhoto = editedPhotoURL.startsWith('data:') 
+        ? await resizeImage(editedPhotoURL, 300, 0.8) // 300x300 is plenty for Firestore
+        : editedPhotoURL;
+
+      // 2. Prepare tiny version for Firebase Auth (limit 2KB)
+      const lowResPhoto = editedPhotoURL.startsWith('data:')
+        ? await resizeImage(editedPhotoURL, 50, 0.5) // 50x50 very low quality to be safe
+        : editedPhotoURL;
+
+      // 3. Update Firestore (High Quality)
+      const profileData = {
+        displayName: editedName.trim(),
+        photoURL: highResPhoto,
+        updatedAt: serverTimestamp(),
+      };
+
+      setDoc(userDocRef, profileData, { merge: true })
+        .catch(async (error) => {
+          const permissionError = new FirestorePermissionError({
+            path: userDocRef.path,
+            operation: 'update',
+            requestResourceData: profileData,
+          });
+          errorEmitter.emit('permission-error', permissionError);
+        });
+
+      // 4. Update Firebase Auth (Low Quality / Standard)
       await updateProfile(auth.currentUser, {
-        displayName: editedName.trim() || (user?.isAnonymous ? "Guest Explorer" : "Explorer"),
-        photoURL: editedPhotoURL
+        displayName: editedName.trim(),
+        photoURL: lowResPhoto.length < 2000 ? lowResPhoto : "" // Fallback if still too big
       });
+
       toast({
         title: "Profile updated",
         description: "Your changes have been saved successfully.",
@@ -134,16 +143,10 @@ export default function ProfilePage() {
       setIsEditing(false);
     } catch (error: any) {
       console.error("Update error:", error);
-      let errorMessage = error.message || "Could not update profile.";
-      
-      if (error.code === 'auth/invalid-profile-attribute' || errorMessage.includes('too long')) {
-        errorMessage = "The selected image is still too large. Please try a simpler photo.";
-      }
-
       toast({
         variant: "destructive",
         title: "Update failed",
-        description: errorMessage,
+        description: error.message || "Could not update profile.",
       });
     } finally {
       setIsSaving(false);
@@ -154,26 +157,11 @@ export default function ProfilePage() {
     const file = event.target.files?.[0];
     if (file) {
       const reader = new FileReader();
-      reader.onloadend = async () => {
-        const base64 = reader.result as string;
-        try {
-          // Resize to 60x60 to stay well within char limits
-          const resized = await resizeAndCompressImage(base64, 60);
-          setEditedPhotoURL(resized);
-        } catch (e) {
-          toast({
-            variant: "destructive",
-            title: "Processing failed",
-            description: "The image is too large. Please try a smaller photo.",
-          });
-        }
+      reader.onloadend = () => {
+        setEditedPhotoURL(reader.result as string);
       };
       reader.readAsDataURL(file);
     }
-  };
-
-  const triggerFileUpload = () => {
-    fileInputRef.current?.click();
   };
 
   const handleLinkGoogle = async () => {
@@ -184,22 +172,14 @@ export default function ProfilePage() {
       await linkWithPopup(auth.currentUser, provider);
       toast({
         title: "Account linked!",
-        description: "Your guest data is now safely synced with your Google account.",
+        description: "Your data is now safely synced with your Google account.",
       });
     } catch (error: any) {
       console.error("Linking failed", error);
-      
-      let errorMessage = "Could not link Google account.";
-      if (error.code === 'auth/unauthorized-domain') {
-        errorMessage = "This domain is not authorized. Please add it to Authorized Domains in Firebase Console.";
-      } else if (error.code === 'auth/credential-already-in-use') {
-        errorMessage = "This Google account is already linked to another user.";
-      }
-
       toast({
         variant: "destructive",
         title: "Linking failed",
-        description: errorMessage,
+        description: error.message || "Could not link Google account.",
       });
     } finally {
       setIsLinking(false);
@@ -220,6 +200,8 @@ export default function ProfilePage() {
   }
 
   const isGuest = user?.isAnonymous;
+  const displayPhoto = isEditing ? editedPhotoURL : (firestoreProfile?.photoURL || user?.photoURL || "");
+  const displayName = isEditing ? editedName : (firestoreProfile?.displayName || user?.displayName || (isGuest ? "Guest Explorer" : "Explorer"));
 
   return (
     <div className="max-w-md mx-auto min-h-screen bg-background pb-32">
@@ -235,11 +217,11 @@ export default function ProfilePage() {
           <div className="relative group cursor-pointer" onClick={() => setIsEditing(true)}>
             <Avatar className="h-28 w-28 border-[6px] border-white shadow-2xl ring-1 ring-black/5 transition-transform group-hover:scale-105 duration-300">
               <AvatarImage 
-                src={isEditing ? editedPhotoURL : (user?.photoURL || "")} 
+                src={displayPhoto} 
                 className="object-cover"
               />
               <AvatarFallback className="text-3xl font-bold bg-primary/10 text-primary">
-                {user?.displayName?.[0] || (isGuest ? "G" : "U")}
+                {displayName[0]}
               </AvatarFallback>
             </Avatar>
             <div className="absolute -bottom-1 -right-1 h-8 w-8 rounded-full border-4 border-white flex items-center justify-center shadow-lg bg-primary text-white">
@@ -261,7 +243,7 @@ export default function ProfilePage() {
                       className="hidden" 
                     />
                     <div 
-                      onClick={triggerFileUpload}
+                      onClick={() => fileInputRef.current?.click()}
                       className="h-12 w-12 rounded-xl border-2 border-dashed border-muted-foreground/30 flex items-center justify-center text-muted-foreground hover:border-primary hover:text-primary transition-all cursor-pointer flex-shrink-0"
                     >
                       <ImageIcon className="h-5 w-5" />
@@ -287,7 +269,6 @@ export default function ProfilePage() {
                     value={editedName}
                     onChange={(e) => setEditedName(e.target.value)}
                     className="h-12 w-full text-center text-xl font-bold rounded-xl border-2 border-primary focus-visible:ring-0 bg-white"
-                    autoFocus
                   />
                 </div>
 
@@ -303,7 +284,7 @@ export default function ProfilePage() {
             ) : (
               <>
                 <h2 className="text-2xl font-bold tracking-tight text-foreground truncate">
-                  {user?.displayName || (isGuest ? "Guest Explorer" : "Explorer")}
+                  {displayName}
                 </h2>
                 <Button 
                   variant="default" 
@@ -397,21 +378,6 @@ export default function ProfilePage() {
                   <div>
                     <p className="text-[10px] text-muted-foreground font-bold uppercase tracking-tighter mb-0.5">Notifications</p>
                     <p className="text-sm font-bold tracking-tight">Push & Email</p>
-                  </div>
-                </div>
-                <ChevronRight className="h-4 w-4 text-muted-foreground" />
-              </CardContent>
-            </Card>
-
-            <Card className="border-none shadow-sm bg-white rounded-3xl overflow-hidden opacity-60">
-              <CardContent className="p-5 flex items-center justify-between">
-                <div className="flex items-center gap-4">
-                  <div className="h-11 w-11 rounded-2xl bg-muted flex items-center justify-center text-muted-foreground">
-                    <CreditCard className="h-5 w-5" />
-                  </div>
-                  <div>
-                    <p className="text-[10px] text-muted-foreground font-bold uppercase tracking-tighter mb-0.5">Currency</p>
-                    <p className="text-sm font-bold tracking-tight">Indian Rupee (₹)</p>
                   </div>
                 </div>
                 <ChevronRight className="h-4 w-4 text-muted-foreground" />
