@@ -423,51 +423,45 @@ export default function ProfilePage() {
           </div>
         </section>
 
-        <section className="space-y-4">
-          <h3 className="text-[11px] font-extrabold text-destructive uppercase tracking-widest ml-1">Danger Zone</h3>
-          
-          <div className="grid gap-3">
-            <AlertDialog>
-              <AlertDialogTrigger asChild>
-                <Button 
-                  variant="outline" 
-                  className="w-full h-14 rounded-2xl gap-3 font-bold border-destructive/20 text-destructive hover:bg-destructive hover:text-destructive-foreground transition-all shadow-sm"
-                >
-                  <Trash2 className="h-5 w-5" />
-                  Delete Account
-                </Button>
-              </AlertDialogTrigger>
-              <AlertDialogContent className="max-w-[calc(100vw-40px)] rounded-[2rem] p-6">
-                <AlertDialogHeader>
-                  <div className="h-12 w-12 rounded-2xl bg-destructive/10 text-destructive flex items-center justify-center mb-4">
-                    <AlertTriangle className="h-6 w-6" />
-                  </div>
-                  <AlertDialogTitle className="text-xl font-bold">Are you absolutely sure?</AlertDialogTitle>
-                  <AlertDialogDescription className="text-sm leading-relaxed">
-                    This action cannot be undone. This will permanently delete your travel profile and remove your data from our servers.
-                  </AlertDialogDescription>
-                </AlertDialogHeader>
-                <AlertDialogFooter className="flex-col sm:flex-row gap-2 mt-6">
-                  <AlertDialogCancel className="h-12 rounded-xl font-bold border-none bg-muted text-muted-foreground flex-1">
-                    Cancel
-                  </AlertDialogCancel>
-                  <AlertDialogAction 
-                    onClick={handleDeleteAccount}
-                    className="h-12 rounded-xl font-bold bg-destructive text-destructive-foreground hover:bg-destructive/90 flex-1"
-                    disabled={isDeleting}
-                  >
-                    {isDeleting ? <Loader2 className="h-4 w-4 animate-spin" /> : "Delete Permanently"}
-                  </AlertDialogAction>
-                </AlertDialogFooter>
-              </AlertDialogContent>
-            </AlertDialog>
-          </div>
-        </section>
-
         <div className="pt-6 space-y-4">
+          <AlertDialog>
+            <AlertDialogTrigger asChild>
+              <Button 
+                variant="destructive" 
+                className="w-full h-14 rounded-2xl gap-3 font-bold shadow-xl shadow-destructive/20 text-base"
+              >
+                <Trash2 className="h-5 w-5" />
+                Delete Account
+              </Button>
+            </AlertDialogTrigger>
+            <AlertDialogContent className="max-w-[calc(100vw-40px)] rounded-[2rem] p-6">
+              <AlertDialogHeader>
+                <div className="h-12 w-12 rounded-2xl bg-destructive/10 text-destructive flex items-center justify-center mb-4">
+                  <AlertTriangle className="h-6 w-6" />
+                </div>
+                <AlertDialogTitle className="text-xl font-bold">Are you absolutely sure?</AlertDialogTitle>
+                <AlertDialogDescription className="text-sm leading-relaxed">
+                  This action cannot be undone. This will permanently delete your travel profile and remove your data from our servers.
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter className="flex-col sm:flex-row gap-2 mt-6">
+                <AlertDialogCancel className="h-12 rounded-xl font-bold border-none bg-muted text-muted-foreground flex-1">
+                  Cancel
+                </AlertDialogCancel>
+                <AlertDialogAction 
+                  onClick={handleDeleteAccount}
+                  className="h-12 rounded-xl font-bold bg-destructive text-destructive-foreground hover:bg-destructive/90 flex-1"
+                  disabled={isDeleting}
+                >
+                  {isDeleting ? <Loader2 className="h-4 w-4 animate-spin" /> : "Delete Permanently"}
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
+
           <Button 
-            variant="destructive" 
-            className="w-full h-14 rounded-2xl gap-3 font-bold shadow-xl shadow-destructive/10 text-base"
+            variant="outline" 
+            className="w-full h-14 rounded-2xl gap-3 font-bold border-accent/20 text-accent bg-accent/5 hover:bg-accent/10 transition-all shadow-sm"
             onClick={handleSignOut}
           >
             <LogOut className="h-5 w-5" />
