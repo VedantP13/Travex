@@ -128,6 +128,7 @@ export default function ProfilePage() {
       </header>
 
       <main className="px-safe-pad pt-8 space-y-10">
+        {/* Profile Header section */}
         <section className="flex flex-col items-center gap-6">
           <div className="relative group cursor-pointer" onClick={() => setIsEditing(true)}>
             <Avatar className="h-28 w-28 border-[6px] border-white shadow-2xl ring-1 ring-black/5 transition-transform group-hover:scale-105 duration-300">
@@ -177,6 +178,7 @@ export default function ProfilePage() {
           </div>
         </section>
 
+        {/* Account Settings section */}
         <section className="space-y-4">
           <h3 className="text-[11px] font-extrabold text-muted-foreground uppercase tracking-widest ml-1">Account Information</h3>
           
@@ -222,7 +224,10 @@ export default function ProfilePage() {
                   </div>
                   <div>
                     <p className="text-[10px] text-muted-foreground font-bold uppercase tracking-tighter mb-0.5">Security</p>
-                    <p className="text-sm font-bold tracking-tight">
+                    <p className={cn(
+                      "text-sm font-bold tracking-tight",
+                      isGuest ? "text-primary/60" : "text-foreground"
+                    )}>
                       {isGuest ? "Link for safety" : "Cloud verified"}
                     </p>
                   </div>
@@ -280,6 +285,7 @@ export default function ProfilePage() {
           </div>
         </section>
 
+        {/* Action section */}
         <div className="pt-6 space-y-4">
           <Button 
             variant="destructive" 
@@ -302,4 +308,3 @@ export default function ProfilePage() {
     </div>
   );
 }
-
