@@ -9,11 +9,13 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Compass, Loader2 } from 'lucide-react';
 import { AnimatedCompass } from '@/components/animated-compass';
+import { useToast } from '@/hooks/use-toast';
 
 export default function LoginPage() {
   const { user, loading } = useUser();
   const auth = useAuth();
   const router = useRouter();
+  const { toast } = useToast();
   const [isLoggingIn, setIsLoggingIn] = useState(false);
 
   useEffect(() => {
@@ -27,8 +29,19 @@ export default function LoginPage() {
     const provider = new GoogleAuthProvider();
     try {
       await signInWithPopup(auth, provider);
-    } catch (error) {
+    } catch (error: any) {
       console.error('Login failed:', error);
+      
+      let errorMessage = "Could not sign in with Google.";
+      if (error.code === 'auth/unauthorized-domain') {
+        errorMessage = "This domain is not authorized in Firebase. Please add it to your Authorized Domains in the Firebase Console.";
+      }
+
+      toast({
+        variant: "destructive",
+        title: "Login failed",
+        description: errorMessage,
+      });
       setIsLoggingIn(false);
     }
   };
@@ -37,8 +50,13 @@ export default function LoginPage() {
     setIsLoggingIn(true);
     try {
       await signInAnonymously(auth);
-    } catch (error) {
+    } catch (error: any) {
       console.error('Guest login failed:', error);
+      toast({
+        variant: "destructive",
+        title: "Guest login failed",
+        description: "Please check your internet connection and try again.",
+      });
       setIsLoggingIn(false);
     }
   };

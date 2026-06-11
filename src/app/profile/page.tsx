@@ -84,10 +84,18 @@ export default function ProfilePage() {
       });
     } catch (error: any) {
       console.error("Linking failed", error);
+      
+      let errorMessage = "Could not link Google account.";
+      if (error.code === 'auth/unauthorized-domain') {
+        errorMessage = "This domain is not authorized. Please add it to Authorized Domains in Firebase Console.";
+      } else if (error.code === 'auth/credential-already-in-use') {
+        errorMessage = "This Google account is already linked to another user.";
+      }
+
       toast({
         variant: "destructive",
         title: "Linking failed",
-        description: "Could not link Google account. It might already be in use.",
+        description: errorMessage,
       });
     } finally {
       setIsLinking(false);
@@ -119,7 +127,6 @@ export default function ProfilePage() {
       </header>
 
       <main className="px-safe-pad pt-8 space-y-10">
-        {/* Profile Identity Section */}
         <section className="flex flex-col items-center gap-6">
           <div className="relative group">
             <Avatar className="h-28 w-28 border-[6px] border-white shadow-2xl ring-1 ring-black/5 transition-transform group-hover:scale-105 duration-300">
@@ -176,12 +183,10 @@ export default function ProfilePage() {
           </div>
         </section>
 
-        {/* Details Cards */}
         <section className="space-y-4">
           <h3 className="text-[11px] font-extrabold text-muted-foreground uppercase tracking-widest ml-1">Account Information</h3>
           
           <div className="grid gap-3">
-            {/* Email / Linking Card */}
             <Card className="border-none shadow-sm bg-white rounded-3xl overflow-hidden group">
               <CardContent className="p-5 flex items-center justify-between">
                 <div className="flex items-center gap-4">
@@ -211,7 +216,6 @@ export default function ProfilePage() {
               </CardContent>
             </Card>
 
-            {/* Security Status Card */}
             <Card className="border-none shadow-sm bg-white rounded-3xl overflow-hidden">
               <CardContent className="p-5 flex items-center justify-between">
                 <div className="flex items-center gap-4">
@@ -234,7 +238,6 @@ export default function ProfilePage() {
               </CardContent>
             </Card>
 
-            {/* Notifications / Preferences */}
             <Card className="border-none shadow-sm bg-white rounded-3xl overflow-hidden opacity-60">
               <CardContent className="p-5 flex items-center justify-between">
                 <div className="flex items-center gap-4">
@@ -267,7 +270,6 @@ export default function ProfilePage() {
           </div>
         </section>
 
-        {/* Footer Actions */}
         <div className="pt-6 space-y-4">
           <Button 
             variant="destructive" 
