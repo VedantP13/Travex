@@ -10,6 +10,9 @@
         "createdAt": { "type": "string", "format": "date-time" },
         "date": { "type": "string", "description": "The planned date or date range of the trip." },
         "status": { "type": "string", "enum": ["Active", "Completed", "Upcoming"] },
+        "totalSpent": { "type": "number", "default": 0 },
+        "yourBalance": { "type": "number", "default": 0 },
+        "image": { "type": "string" },
         "participants": {
           "type": "array",
           "items": {
@@ -28,6 +31,7 @@
         "name": { "type": "string" },
         "isUser": { "type": "boolean" },
         "userId": { "type": "string" },
+        "avatar": { "type": "string" },
         "familyMembers": {
           "type": "array",
           "items": { "type": "string" },
@@ -44,14 +48,18 @@
         "description": { "type": "string" },
         "amount": { "type": "number" },
         "payerId": { "type": "string" },
-        "date": { "type": "string", "format": "date-time" },
+        "payerName": { "type": "string" },
+        "date": { "type": "string", "format": "date" },
         "paymentType": { "type": "string", "enum": ["UPI", "Cash", "Card", "Net Banking"] },
         "category": { "type": "string" },
         "splitType": { "type": "string", "enum": ["equal_person", "equal_family", "custom", "just_me", "unsplit"] },
-        "splits": {
+        "selectedIndividuals": { "type": "array", "items": { "type": "string" } },
+        "customAmounts": {
           "type": "object",
-          "description": "A map of participant IDs/family member names to their share of the expense."
-        }
+          "description": "A map of participant IDs to their specific share."
+        },
+        "isItemized": { "type": "boolean" },
+        "createdAt": { "type": "string", "format": "date-time" }
       },
       "required": ["description", "amount", "payerId", "date", "splitType"]
     }
