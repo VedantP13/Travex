@@ -26,6 +26,7 @@ import { doc, setDoc, onSnapshot, serverTimestamp } from "firebase/firestore";
 import { cn } from "@/lib/utils";
 import { errorEmitter } from "@/firebase/error-emitter";
 import { FirestorePermissionError } from "@/firebase/errors";
+import { BottomNav } from "@/components/bottom-nav";
 
 const GUEST_AVATARS = [
   "https://picsum.photos/seed/avatar1/150/150",
@@ -50,7 +51,6 @@ export default function ProfilePage() {
   const [isLinking, setIsLinking] = useState(false);
   const [firestoreProfile, setFirestoreProfile] = useState<any>(null);
 
-  // Listen for the high-quality Firestore profile
   useEffect(() => {
     if (!user?.uid || !firestore) return;
 
@@ -70,9 +70,6 @@ export default function ProfilePage() {
     setEditedPhotoURL(currentPhoto);
   }, [user, firestoreProfile]);
 
-  /**
-   * Resizes an image to a reasonable size for high-quality Firestore storage.
-   */
   const resizeImage = (dataUrl: string, size: number, quality: number = 0.8): Promise<string> => {
     return new Promise((resolve, reject) => {
       const img = new Image();
@@ -103,24 +100,21 @@ export default function ProfilePage() {
     const userDocRef = doc(firestore, "users", userId);
 
     try {
-      // 1. Prepare high-quality version for Firestore
       const highResPhoto = editedPhotoURL.startsWith('data:') 
-        ? await resizeImage(editedPhotoURL, 300, 0.8) // 300x300 is plenty for Firestore
+        ? await resizeImage(editedPhotoURL, 400, 0.8)
         : editedPhotoURL;
 
-      // 2. Prepare tiny version for Firebase Auth (limit 2KB)
       const lowResPhoto = editedPhotoURL.startsWith('data:')
-        ? await resizeImage(editedPhotoURL, 50, 0.5) // 50x50 very low quality to be safe
+        ? await resizeImage(editedPhotoURL, 60, 0.5)
         : editedPhotoURL;
 
-      // 3. Update Firestore (High Quality)
       const profileData = {
         displayName: editedName.trim(),
         photoURL: highResPhoto,
         updatedAt: serverTimestamp(),
       };
 
-      setDoc(userDocRef, profileData, { merge: true })
+      await setDoc(userDocRef, profileData, { merge: true })
         .catch(async (error) => {
           const permissionError = new FirestorePermissionError({
             path: userDocRef.path,
@@ -130,10 +124,9 @@ export default function ProfilePage() {
           errorEmitter.emit('permission-error', permissionError);
         });
 
-      // 4. Update Firebase Auth (Low Quality / Standard)
       await updateProfile(auth.currentUser, {
         displayName: editedName.trim(),
-        photoURL: lowResPhoto.length < 2000 ? lowResPhoto : "" // Fallback if still too big
+        photoURL: lowResPhoto.length < 2000 ? lowResPhoto : ""
       });
 
       toast({
