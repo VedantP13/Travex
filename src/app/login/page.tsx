@@ -1,19 +1,20 @@
 
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { GoogleAuthProvider, signInWithPopup } from 'firebase/auth';
+import { GoogleAuthProvider, signInWithPopup, signInAnonymously } from 'firebase/auth';
 import { useAuth, useUser } from '@/firebase';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
-import { Compass, Loader2 } from 'lucide-react';
+import { Compass, Loader2, UserSecret } from 'lucide-react';
 import { AnimatedCompass } from '@/components/animated-compass';
 
 export default function LoginPage() {
   const { user, loading } = useUser();
   const auth = useAuth();
   const router = useRouter();
+  const [isLoggingIn, setIsLoggingIn] = useState(false);
 
   useEffect(() => {
     if (user && !loading) {
@@ -21,16 +22,28 @@ export default function LoginPage() {
     }
   }, [user, loading, router]);
 
-  const handleLogin = async () => {
+  const handleGoogleLogin = async () => {
+    setIsLoggingIn(true);
     const provider = new GoogleAuthProvider();
     try {
       await signInWithPopup(auth, provider);
     } catch (error) {
       console.error('Login failed:', error);
+      setIsLoggingIn(false);
     }
   };
 
-  if (loading) {
+  const handleGuestLogin = async () => {
+    setIsLoggingIn(true);
+    try {
+      await signInAnonymously(auth);
+    } catch (error) {
+      console.error('Guest login failed:', error);
+      setIsLoggingIn(false);
+    }
+  };
+
+  if (loading || (user && !loading)) {
     return (
       <div className="max-w-md mx-auto min-h-screen flex flex-col items-center justify-center bg-background gap-4">
         <AnimatedCompass className="h-12 w-12 text-primary" />
@@ -51,21 +64,39 @@ export default function LoginPage() {
         </div>
 
         <Card className="w-full bg-white/5 border-white/10 backdrop-blur-md rounded-[2.5rem] p-4">
-          <CardContent className="p-6 space-y-6">
+          <CardContent className="p-6 space-y-4">
             <div className="space-y-2">
-              <h2 className="text-xl font-bold text-background">Welcome back</h2>
+              <h2 className="text-xl font-bold text-background">Welcome</h2>
               <p className="text-sm text-muted-foreground leading-relaxed">
                 Join your friends and start splitting expenses effortlessly on your next adventure.
               </p>
             </div>
             
-            <Button 
-              onClick={handleLogin}
-              className="w-full h-16 rounded-2xl bg-white text-foreground hover:bg-white/90 text-lg font-bold shadow-xl flex items-center justify-center gap-3 transition-transform active:scale-95"
-            >
-              <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" className="h-6 w-6" alt="Google" />
-              Sign in with Google
-            </Button>
+            <div className="space-y-3 pt-2">
+              <Button 
+                onClick={handleGoogleLogin}
+                disabled={isLoggingIn}
+                className="w-full h-16 rounded-2xl bg-white text-foreground hover:bg-white/90 text-lg font-bold shadow-xl flex items-center justify-center gap-3 transition-transform active:scale-95"
+              >
+                {isLoggingIn ? (
+                  <Loader2 className="h-6 w-6 animate-spin" />
+                ) : (
+                  <>
+                    <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" className="h-6 w-6" alt="Google" />
+                    Sign in with Google
+                  </>
+                )}
+              </Button>
+
+              <Button 
+                variant="ghost"
+                onClick={handleGuestLogin}
+                disabled={isLoggingIn}
+                className="w-full h-12 rounded-xl text-muted-foreground hover:text-white hover:bg-white/5 text-sm font-bold"
+              >
+                Continue as Guest
+              </Button>
+            </div>
           </CardContent>
         </Card>
 

@@ -2,9 +2,9 @@
 "use client";
 
 import Link from "next/link";
-import { Plus, ChevronRight, Compass, Map, Users, Wifi } from "lucide-react";
+import { Plus, ChevronRight, Compass, Map, Users, Wifi, LogIn, AlertCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Card, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { PlaceHolderImages } from "@/lib/placeholder-images";
@@ -19,6 +19,7 @@ export default function Home() {
   const { user } = useUser();
 
   const activeTrip = trips.find(t => t.status === "Active") || trips[0];
+  const isAnonymous = user?.isAnonymous;
 
   return (
     <div className="max-w-md mx-auto min-h-screen flex flex-col bg-background pb-32">
@@ -39,17 +40,21 @@ export default function Home() {
                   </div>
                 )}
               </div>
-              <p className="text-sm opacity-70 text-background">Welcome back, {user?.displayName?.split(' ')[0] || 'Explorer'}</p>
+              <p className="text-sm opacity-70 text-background">
+                {isAnonymous ? 'Guest Explorer' : `Welcome back, ${user?.displayName?.split(' ')[0] || 'Explorer'}`}
+              </p>
             </div>
           </div>
           <Link href="/profile" className="relative group">
             <Avatar className="h-14 w-14 border-2 border-accent/50 hover:border-accent hover:scale-110 transition-all duration-300 shadow-xl shadow-black/40 ring-4 ring-white/5">
               <AvatarImage src={user?.photoURL || ""} />
-              <AvatarFallback>{user?.displayName?.[0] || "U"}</AvatarFallback>
+              <AvatarFallback>{user?.displayName?.[0] || (isAnonymous ? "G" : "U")}</AvatarFallback>
             </Avatar>
-            <div className="absolute -bottom-1 -right-1 h-5 w-5 bg-accent rounded-full border-2 border-foreground flex items-center justify-center shadow-lg">
-               <Plus className="h-3 w-3 text-foreground" strokeWidth={3} />
-            </div>
+            {!isAnonymous && (
+              <div className="absolute -bottom-1 -right-1 h-5 w-5 bg-accent rounded-full border-2 border-foreground flex items-center justify-center shadow-lg">
+                <Plus className="h-3 w-3 text-foreground" strokeWidth={3} />
+              </div>
+            )}
           </Link>
         </div>
 
@@ -67,8 +72,32 @@ export default function Home() {
         </div>
       </header>
 
+      {/* Guest Nudge */}
+      {isAnonymous && (
+        <section className="px-safe-pad mt-6">
+          <Card className="border-none shadow-md bg-accent/10 border border-accent/20 rounded-2xl overflow-hidden">
+            <CardContent className="p-4 flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="h-10 w-10 bg-accent rounded-xl flex items-center justify-center text-foreground">
+                  <AlertCircle className="h-5 w-5" />
+                </div>
+                <div>
+                  <p className="text-xs font-bold">Using a Guest account</p>
+                  <p className="text-[10px] text-muted-foreground font-medium">Sign in to save data permanently.</p>
+                </div>
+              </div>
+              <Link href="/login">
+                <Button size="sm" className="h-8 rounded-lg text-[10px] font-bold bg-accent text-foreground hover:bg-accent/90">
+                  <LogIn className="h-3 w-3 mr-1" /> Link Account
+                </Button>
+              </Link>
+            </CardContent>
+          </Card>
+        </section>
+      )}
+
       {/* Dynamic Trip Spotlight */}
-      <section className="px-safe-pad -mt-10">
+      <section className={cn("px-safe-pad", isAnonymous ? "mt-6" : "-mt-10")}>
         <div className="grid grid-cols-12 gap-4 items-stretch">
           {activeTrip ? (
             <Card className="col-span-8 border-none shadow-2xl bg-primary text-primary-foreground rounded-[2rem] p-6 flex flex-col justify-between group transition-all hover:translate-y-[-2px]">
