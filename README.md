@@ -28,10 +28,18 @@ The application has been successfully migrated to the project: `travexapp`.
     *   The dashboard uses a composite index for `trips` (`participantIds` [Array] + `createdAt` [Descending]).
     *   Click the link in your browser console error to auto-create this index.
 
+### 🚀 Deployment & First Release
+
+If you see **"Waiting for your first release"** in the App Hosting dashboard:
+
+*   **Initial Build**: The first build can take 5-10 minutes. Check the **Builds** tab in the Firebase Console for real-time logs.
+*   **Environment Variables**: Ensure all `NEXT_PUBLIC_FIREBASE_*` variables are added in **App Hosting > Settings > Environment Variables**.
+*   **Trigger**: If no build is running, push a commit to your `main` branch to start the deployment process.
+
 ### ⚠️ Deleting the Old Project
 Before you shut down the old `studio-160...` project:
-*   Ensure all active trips have been recreated or finished.
-*   Verify that `travexapp.web.app` is fully functional.
+*   Ensure all active trips have been recreated or finished on the new domain.
+*   Verify that `travexapp.web.app` is fully functional and shows your data.
 *   **Note**: Deletion is permanent and removes all legacy Firestore data and Auth users.
 
 ## Tech Stack
