@@ -3,7 +3,21 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { ArrowLeft, User, Mail, Shield, Bell, CreditCard, LogOut, Check, X, Loader2 } from "lucide-react";
+import { 
+  ArrowLeft, 
+  User, 
+  Mail, 
+  Shield, 
+  Bell, 
+  CreditCard, 
+  LogOut, 
+  Check, 
+  X, 
+  Loader2,
+  LogIn,
+  ChevronRight,
+  ShieldCheck
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Card, CardContent } from "@/components/ui/card";
@@ -11,8 +25,9 @@ import { Input } from "@/components/ui/input";
 import { BottomNav } from "@/components/bottom-nav";
 import { useToast } from "@/hooks/use-toast";
 import { useUser, useAuth } from "@/firebase";
-import { signOut, updateProfile } from "firebase/auth";
+import { signOut, updateProfile, GoogleAuthProvider, linkWithPopup } from "firebase/auth";
 import { cn } from "@/lib/utils";
+import Link from "next/link";
 
 export default function ProfilePage() {
   const router = useRouter();
@@ -23,6 +38,7 @@ export default function ProfilePage() {
   const [isEditing, setIsEditing] = useState(false);
   const [editedName, setEditedName] = useState("");
   const [isSaving, setIsSaving] = useState(false);
+  const [isLinking, setIsLinking] = useState(false);
 
   useEffect(() => {
     if (user?.displayName) {
@@ -31,14 +47,6 @@ export default function ProfilePage() {
       setEditedName("Guest Explorer");
     }
   }, [user]);
-
-  if (userLoading) {
-    return (
-      <div className="max-w-md mx-auto min-h-screen bg-background flex items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
-      </div>
-    );
-  }
 
   const handleSaveProfile = async () => {
     if (!auth.currentUser) return;
@@ -64,150 +72,218 @@ export default function ProfilePage() {
     }
   };
 
+  const handleLinkGoogle = async () => {
+    if (!auth.currentUser) return;
+    setIsLinking(true);
+    const provider = new GoogleAuthProvider();
+    try {
+      await linkWithPopup(auth.currentUser, provider);
+      toast({
+        title: "Account linked!",
+        description: "Your guest data is now safely synced with your Google account.",
+      });
+    } catch (error: any) {
+      console.error("Linking failed", error);
+      toast({
+        variant: "destructive",
+        title: "Linking failed",
+        description: "Could not link Google account. It might already be in use.",
+      });
+    } finally {
+      setIsLinking(false);
+    }
+  };
+
   const handleSignOut = async () => {
     await signOut(auth);
     router.push("/login");
   };
 
-  const accountDetails = [
-    { 
-      icon: User, 
-      label: "Display Name", 
-      value: user?.displayName || (user?.isAnonymous ? "Guest Explorer" : "Explorer"),
-      editable: true 
-    },
-    { 
-      icon: Mail, 
-      label: "Email Address", 
-      value: user?.isAnonymous ? "Sign in to protect your data" : (user?.email || "N/A"),
-      editable: false 
-    },
-    { 
-      icon: Shield, 
-      label: "Security", 
-      value: user?.isAnonymous ? "Guest - Session is temporary" : "Verified - Protected by Google",
-      editable: false 
-    },
-    { icon: Bell, label: "Notifications", value: "Push & Email", editable: false },
-    { icon: CreditCard, label: "Default Currency", value: "Indian Rupee (₹)", editable: false },
-  ];
+  if (userLoading) {
+    return (
+      <div className="max-w-md mx-auto min-h-screen bg-background flex items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    );
+  }
+
+  const isGuest = user?.isAnonymous;
 
   return (
-    <div className="max-w-md mx-auto min-h-screen bg-background pb-24">
-      <header className="px-safe-pad py-6 flex items-center bg-white border-b sticky top-0 z-10">
-        <Button variant="ghost" size="icon" onClick={() => router.back()} className="mr-2">
+    <div className="max-w-md mx-auto min-h-screen bg-background pb-32">
+      <header className="px-safe-pad pt-10 pb-6 bg-white border-b sticky top-0 z-20 flex items-center gap-4">
+        <Button variant="ghost" size="icon" onClick={() => router.back()} className="rounded-xl">
           <ArrowLeft className="h-6 w-6" />
         </Button>
-        <h1 className="text-lg font-bold">Profile</h1>
+        <h1 className="text-xl font-bold tracking-tight">Profile</h1>
       </header>
 
-      <main className="px-safe-pad pt-8 space-y-8">
-        <div className="flex flex-col items-center gap-4">
-          <div className="relative">
-            <Avatar className="h-24 w-24 border-4 border-white shadow-xl">
+      <main className="px-safe-pad pt-8 space-y-10">
+        {/* Profile Identity Section */}
+        <section className="flex flex-col items-center gap-6">
+          <div className="relative group">
+            <Avatar className="h-28 w-28 border-[6px] border-white shadow-2xl ring-1 ring-black/5 transition-transform group-hover:scale-105 duration-300">
               <AvatarImage src={user?.photoURL || ""} />
-              <AvatarFallback className="text-2xl font-bold bg-primary/10 text-primary">
-                {user?.displayName?.[0] || (user?.isAnonymous ? "G" : "U")}
+              <AvatarFallback className="text-3xl font-bold bg-primary/10 text-primary">
+                {user?.displayName?.[0] || (isGuest ? "G" : "U")}
               </AvatarFallback>
             </Avatar>
+            <div className={cn(
+              "absolute -bottom-1 -right-1 h-8 w-8 rounded-full border-4 border-white flex items-center justify-center shadow-lg",
+              isGuest ? "bg-orange-400" : "bg-green-500"
+            )}>
+              {isGuest ? <Shield className="h-4 w-4 text-white" /> : <ShieldCheck className="h-4 w-4 text-white" />}
+            </div>
           </div>
-          <div className="text-center space-y-1">
-            <h2 className="text-2xl font-bold">
-              {user?.displayName || (user?.isAnonymous ? "Guest Explorer" : "Explorer")}
-            </h2>
-            <p className="text-muted-foreground text-xs font-medium uppercase tracking-wider">
-              {user?.isAnonymous ? "Anonymous Session" : "Google Verified Account"}
-            </p>
-          </div>
-          
-          <div className="flex gap-2">
-            {!isEditing ? (
-              <Button 
-                variant="outline" 
-                className="rounded-full px-8 font-bold border-primary text-primary hover:bg-primary/5" 
-                onClick={() => setIsEditing(true)}
-              >
-                Manage Profile
-              </Button>
+
+          <div className="text-center space-y-1.5">
+            {isEditing ? (
+              <div className="flex flex-col items-center gap-3">
+                <Input 
+                  value={editedName}
+                  onChange={(e) => setEditedName(e.target.value)}
+                  className="h-12 w-64 text-center text-xl font-bold rounded-xl border-2 border-primary focus-visible:ring-0 bg-white"
+                  autoFocus
+                />
+                <div className="flex gap-2">
+                  <Button size="sm" className="rounded-full px-6 font-bold h-9 bg-primary" onClick={handleSaveProfile} disabled={isSaving}>
+                    {isSaving ? <Loader2 className="h-4 w-4 animate-spin" /> : "Save Changes"}
+                  </Button>
+                  <Button size="sm" variant="ghost" className="rounded-full px-4 font-bold h-9" onClick={() => setIsEditing(false)}>
+                    Cancel
+                  </Button>
+                </div>
+              </div>
             ) : (
               <>
+                <h2 className="text-2xl font-bold tracking-tight text-foreground">
+                  {user?.displayName || (isGuest ? "Guest Explorer" : "Explorer")}
+                </h2>
+                <p className="text-[10px] font-extrabold text-muted-foreground uppercase tracking-widest flex items-center justify-center gap-1.5">
+                  <span className={cn("h-1.5 w-1.5 rounded-full", isGuest ? "bg-orange-400" : "bg-green-500")} />
+                  {isGuest ? "Temporary Session" : "Verified Account"}
+                </p>
                 <Button 
-                  className="rounded-full px-6 font-bold flex items-center gap-2" 
-                  onClick={handleSaveProfile}
-                  disabled={isSaving}
+                  variant="secondary" 
+                  size="sm" 
+                  className="mt-4 rounded-full px-6 font-bold h-10 bg-primary/5 text-primary hover:bg-primary/10 border border-primary/10 transition-all"
+                  onClick={() => setIsEditing(true)}
                 >
-                  {isSaving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Check className="h-4 w-4" />}
-                  Save
-                </Button>
-                <Button 
-                  variant="ghost" 
-                  className="rounded-full px-6 font-bold flex items-center gap-2" 
-                  onClick={() => {
-                    setIsEditing(false);
-                    setEditedName(user?.displayName || (user?.isAnonymous ? "Guest Explorer" : ""));
-                  }}
-                  disabled={isSaving}
-                >
-                  <X className="h-4 w-4" />
-                  Cancel
+                  Edit profile details
                 </Button>
               </>
             )}
           </div>
-        </div>
+        </section>
 
-        <div className="space-y-4">
-          <h3 className="text-sm font-bold text-muted-foreground uppercase tracking-widest ml-1">Account details</h3>
+        {/* Details Cards */}
+        <section className="space-y-4">
+          <h3 className="text-[11px] font-extrabold text-muted-foreground uppercase tracking-widest ml-1">Account Information</h3>
+          
           <div className="grid gap-3">
-            {accountDetails.map((item) => (
-              <Card key={item.label} className={cn(
-                "border-none shadow-sm bg-white rounded-2xl transition-all duration-300",
-                isEditing && item.editable ? "ring-2 ring-primary ring-offset-2" : ""
-              )}>
-                <CardContent className="p-4 flex items-center justify-between">
-                  <div className="flex items-center gap-4 w-full">
-                    <div className="h-10 w-10 rounded-xl bg-muted flex items-center justify-center text-muted-foreground">
-                      <item.icon className="h-5 w-5" />
-                    </div>
-                    <div className="flex-1">
-                      <p className="text-[10px] text-muted-foreground font-bold uppercase tracking-tighter">{item.label}</p>
-                      {isEditing && item.editable ? (
-                        <Input 
-                          value={editedName}
-                          onChange={(e) => setEditedName(e.target.value)}
-                          className="h-8 mt-1 border-none bg-muted/50 focus-visible:ring-primary text-sm font-bold p-0 px-2"
-                          autoFocus
-                        />
-                      ) : (
-                        <p className={cn(
-                          "text-sm font-bold",
-                          item.label === "Email Address" && user?.isAnonymous ? "text-primary animate-pulse" : "text-foreground"
-                        )}>
-                          {item.value}
-                        </p>
-                      )}
-                    </div>
+            {/* Email / Linking Card */}
+            <Card className="border-none shadow-sm bg-white rounded-3xl overflow-hidden group">
+              <CardContent className="p-5 flex items-center justify-between">
+                <div className="flex items-center gap-4">
+                  <div className="h-11 w-11 rounded-2xl bg-muted flex items-center justify-center text-muted-foreground group-hover:bg-primary/5 group-hover:text-primary transition-colors">
+                    <Mail className="h-5 w-5" />
                   </div>
-                </CardContent>
-              </Card>
-            ))}
+                  <div>
+                    <p className="text-[10px] text-muted-foreground font-bold uppercase tracking-tighter mb-0.5">Email Address</p>
+                    <p className={cn(
+                      "text-sm font-bold tracking-tight",
+                      isGuest ? "text-primary/60 italic" : "text-foreground"
+                    )}>
+                      {isGuest ? "Not linked yet" : (user?.email || "N/A")}
+                    </p>
+                  </div>
+                </div>
+                {isGuest && (
+                  <Button 
+                    onClick={handleLinkGoogle} 
+                    disabled={isLinking}
+                    className="h-10 rounded-2xl bg-accent text-foreground hover:bg-accent/90 font-bold px-4 flex items-center gap-2 shadow-lg shadow-accent/20"
+                  >
+                    {isLinking ? <Loader2 className="h-4 w-4 animate-spin" /> : <LogIn className="h-4 w-4" />}
+                    <span className="text-xs">Link Google</span>
+                  </Button>
+                )}
+              </CardContent>
+            </Card>
+
+            {/* Security Status Card */}
+            <Card className="border-none shadow-sm bg-white rounded-3xl overflow-hidden">
+              <CardContent className="p-5 flex items-center justify-between">
+                <div className="flex items-center gap-4">
+                  <div className="h-11 w-11 rounded-2xl bg-muted flex items-center justify-center text-muted-foreground">
+                    <Shield className="h-5 w-5" />
+                  </div>
+                  <div>
+                    <p className="text-[10px] text-muted-foreground font-bold uppercase tracking-tighter mb-0.5">Security</p>
+                    <p className="text-sm font-bold tracking-tight">
+                      {isGuest ? "Local access only" : "Cloud verified"}
+                    </p>
+                  </div>
+                </div>
+                <div className={cn(
+                  "px-3 py-1 rounded-full text-[9px] font-bold uppercase",
+                  isGuest ? "bg-orange-100 text-orange-600" : "bg-green-100 text-green-600"
+                )}>
+                  {isGuest ? "Low protection" : "Secure"}
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Notifications / Preferences */}
+            <Card className="border-none shadow-sm bg-white rounded-3xl overflow-hidden opacity-60">
+              <CardContent className="p-5 flex items-center justify-between">
+                <div className="flex items-center gap-4">
+                  <div className="h-11 w-11 rounded-2xl bg-muted flex items-center justify-center text-muted-foreground">
+                    <Bell className="h-5 w-5" />
+                  </div>
+                  <div>
+                    <p className="text-[10px] text-muted-foreground font-bold uppercase tracking-tighter mb-0.5">Notifications</p>
+                    <p className="text-sm font-bold tracking-tight">Push & Email</p>
+                  </div>
+                </div>
+                <ChevronRight className="h-4 w-4 text-muted-foreground" />
+              </CardContent>
+            </Card>
+
+            <Card className="border-none shadow-sm bg-white rounded-3xl overflow-hidden opacity-60">
+              <CardContent className="p-5 flex items-center justify-between">
+                <div className="flex items-center gap-4">
+                  <div className="h-11 w-11 rounded-2xl bg-muted flex items-center justify-center text-muted-foreground">
+                    <CreditCard className="h-5 w-5" />
+                  </div>
+                  <div>
+                    <p className="text-[10px] text-muted-foreground font-bold uppercase tracking-tighter mb-0.5">Currency</p>
+                    <p className="text-sm font-bold tracking-tight">Indian Rupee (₹)</p>
+                  </div>
+                </div>
+                <ChevronRight className="h-4 w-4 text-muted-foreground" />
+              </CardContent>
+            </Card>
           </div>
+        </section>
+
+        {/* Footer Actions */}
+        <div className="pt-6 space-y-4">
+          <Button 
+            variant="destructive" 
+            className="w-full h-14 rounded-2xl gap-3 font-bold shadow-xl shadow-destructive/10 text-base"
+            onClick={handleSignOut}
+          >
+            <LogOut className="h-5 w-5" />
+            Sign Out
+          </Button>
+
+          <p className="text-center text-[10px] text-muted-foreground font-medium px-8 leading-relaxed">
+            {isGuest 
+              ? "Your data is currently stored locally and may be lost if you clear your browser data. Link your account to stay synced."
+              : "Your travel data and splits are safely synced across all your devices using your Google identity."}
+          </p>
         </div>
-
-        <Button 
-          variant="destructive" 
-          className="w-full h-14 rounded-2xl gap-2 font-bold shadow-lg shadow-destructive/10"
-          onClick={handleSignOut}
-        >
-          <LogOut className="h-5 w-5" />
-          Sign Out
-        </Button>
-
-        <p className="text-center text-[10px] text-muted-foreground font-medium px-8 leading-relaxed">
-          {user?.isAnonymous 
-            ? "Your data is currently stored locally. Sign in with Google to sync your journeys across all your devices."
-            : "Your profile details and travel data are safely synced with your Google account."}
-        </p>
       </main>
 
       <BottomNav />
