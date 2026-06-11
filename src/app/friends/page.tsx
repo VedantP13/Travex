@@ -2,7 +2,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Search, MoreVertical, User, UserX, UserPlus, Check, X, Loader2, Mail } from "lucide-react";
+import { Search, MoreVertical, User, UserX, UserPlus, Check, X, Loader2, Mail, Users as UsersIcon } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -23,6 +23,7 @@ import {
   where, 
   getDocs, 
   doc, 
+  getDoc,
   setDoc, 
   deleteDoc, 
   serverTimestamp,
@@ -69,7 +70,7 @@ export default function FriendsPage() {
     return () => unsub();
   }, [user?.uid, firestore]);
 
-  // Search users with name and email support
+  // Search users with mutual friend prioritization
   useEffect(() => {
     const searchUsers = async () => {
       const qry = searchQuery.trim();
@@ -80,7 +81,6 @@ export default function FriendsPage() {
       setIsSearching(true);
       try {
         let snap;
-        // If it looks like an email, do an exact match query on email
         if (qry.includes('@')) {
           const emailQ = query(
             collection(firestore, "users"),
@@ -89,7 +89,6 @@ export default function FriendsPage() {
           );
           snap = await getDocs(emailQ);
         } else {
-          // Otherwise do a prefix search on displayName
           const nameQ = query(
             collection(firestore, "users"),
             where("displayName", ">=", qry),
@@ -99,11 +98,38 @@ export default function FriendsPage() {
           snap = await getDocs(nameQ);
         }
 
-        const results = snap.docs
-          .map(d => ({ id: d.id, ...d.data() }))
-          .filter(u => u.id !== user?.uid); // Don't show self
+        const initialResults = snap.docs
+          .map(d => ({ id: d.id, ...d.data(), mutualCount: 0 }))
+          .filter(u => u.id !== user?.uid);
         
-        setSearchResults(results);
+        // Smart Check: Find Mutual Friends
+        // We check if any of the search results are friends with our friends
+        if (friends.length > 0) {
+          const resultsWithMutuals = await Promise.all(initialResults.map(async (resUser) => {
+            let mutualCount = 0;
+            
+            // For efficiency, we only check for a few mutuals
+            const checks = friends.slice(0, 5).map(async (friend) => {
+              const mutualDoc = await getDoc(doc(firestore, "users", friend.friendId, "friends", resUser.id));
+              if (mutualDoc.exists() && mutualDoc.data()?.status === 'accepted') {
+                return true;
+              }
+              return false;
+            });
+
+            const checkResults = await Promise.all(checks);
+            mutualCount = checkResults.filter(Boolean).length;
+            
+            return { ...resUser, mutualCount };
+          }));
+
+          // Sort by mutual friends count descending
+          resultsWithMutuals.sort((a, b) => b.mutualCount - a.mutualCount);
+          setSearchResults(resultsWithMutuals);
+        } else {
+          setSearchResults(initialResults);
+        }
+
       } catch (err) {
         console.error("Search failed:", err);
       } finally {
@@ -113,7 +139,7 @@ export default function FriendsPage() {
 
     const timeoutId = setTimeout(searchUsers, 500);
     return () => clearTimeout(timeoutId);
-  }, [searchQuery, firestore, user?.uid]);
+  }, [searchQuery, firestore, user?.uid, friends]);
 
   const handleSendRequest = async (targetUser: any) => {
     if (!user?.uid || !firestore) return;
@@ -220,7 +246,15 @@ export default function FriendsPage() {
                       <AvatarFallback>{result.displayName?.[0]}</AvatarFallback>
                     </Avatar>
                     <div className="min-w-0">
-                      <p className="font-bold text-sm truncate">{result.displayName}</p>
+                      <div className="flex items-center gap-2">
+                        <p className="font-bold text-sm truncate">{result.displayName}</p>
+                        {result.mutualCount > 0 && (
+                          <div className="flex items-center gap-1 bg-primary/10 text-primary px-2 py-0.5 rounded-full">
+                            <UsersIcon className="h-2 w-2" />
+                            <span className="text-[8px] font-bold uppercase tracking-tighter">{result.mutualCount} mutual</span>
+                          </div>
+                        )}
+                      </div>
                       <p className="text-[9px] text-muted-foreground font-medium flex items-center gap-1">
                         <Mail className="h-2 w-2" />
                         {result.email}
