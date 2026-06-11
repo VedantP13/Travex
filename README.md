@@ -14,19 +14,24 @@ We have successfully migrated the application context to the new Firebase projec
 
 ### Final Checklist for your New Project:
 
-1.  **Authentication Setup**:
+1.  **Enable Billing (Blaze Plan)**:
+    *   Go to the [Google Cloud Billing Projects page](https://console.cloud.google.com/billing/projects).
+    *   Find **travexapp** in the list.
+    *   Click the three dots (Actions) and select **Change billing**.
+    *   Select **My Billing Account** and confirm.
+2.  **Authentication Setup**:
     *   Go to **Firebase Console > Authentication**.
     *   Click **Get started**.
     *   In the **Sign-in method** tab, enable **Google** and **Anonymous** providers.
-2.  **Firestore Setup**:
+3.  **Firestore Setup**:
     *   Go to **Firestore Database** > **Create database**.
     *   Select **Location**: `asia-southeast1` (Singapore).
     *   Select **Production Mode**. Security rules are managed by the AI agent.
-3.  **Authorized Domains**:
+4.  **Authorized Domains**:
     *   Go to **Authentication > Settings > Authorized domains**.
     *   Ensure `travexapp.web.app` and `travexapp.firebaseapp.com` are listed.
     *   **CRITICAL for Development**: Add your Firebase Studio domain: `cluster-52r6vzs3ujeoctkkxpjif3x34a.cloudworkstations.dev`.
-4.  **App Hosting (New Deployment)**:
+5.  **App Hosting (New Deployment)**:
     *   Go to **App Hosting** in the `travexapp` console.
     *   Create a **new backend** linked to your GitHub repo.
     *   In the backend settings, add these **Environment Variables**:
@@ -34,10 +39,10 @@ We have successfully migrated the application context to the new Firebase projec
         * `NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN`
         * `NEXT_PUBLIC_FIREBASE_PROJECT_ID` (travexapp)
         * `NEXT_PUBLIC_FIREBASE_APP_ID`
-5.  **Old Project Cleanup**:
+6.  **Old Project Cleanup**:
     *   Once the new URL is live and tested, delete the old project in the [Google Cloud Console](https://console.cloud.google.com/iam-admin/settings).
 
-### Troubleshooting Deployment Errors
+### Troubleshooting Billing Errors
 
 **Error: "Could not update billing info"**
 *   **Permissions**: Ensure you are a "Billing Account User" on the selected billing account in the Google Cloud Console.
