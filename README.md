@@ -8,7 +8,17 @@ Travex is a modern web application designed for intelligent expense capture and 
 - **Real-time Sync:** Powered by Firestore.
 - **Secure Auth:** Google and Guest login options.
 
-## Deployment Guide (Firebase App Hosting - Recommended)
+## Project Migration (New Project ID)
+
+If you have created a new Firebase project to get a better domain (e.g., `travex.web.app`):
+
+1.  **Update Config:** Provide the new Project ID to the AI assistant.
+2.  **Update App Hosting:**
+    *   Go to **App Hosting > Settings**.
+    *   Update all `NEXT_PUBLIC_FIREBASE_*` environment variables with values from your new project.
+3.  **Re-Authorized Domains:** Add the new `.web.app` URL to **Authentication > Settings > Authorized domains** in the new project.
+
+## Deployment Guide (Firebase App Hosting)
 
 To complete the setup for Next.js SSR support:
 
@@ -24,35 +34,15 @@ To complete the setup for Next.js SSR support:
    - `NEXT_PUBLIC_FIREBASE_PROJECT_ID`
    - `NEXT_PUBLIC_FIREBASE_APP_ID`
 5. **Final Step:** Select **"Finish and deploy"** to initiate the build.
-6. **Authorized Domains:** Once the deployment is successful, copy your unique App Hosting URL and add it to **Firebase Console > Authentication > Settings > Authorized domains**.
 
-## Customizing your Domain
+## Custom Domains (Recommended)
 
-### To get a better .web.app domain:
-The `.web.app` URL is derived directly from your **Project ID**. If you want a cleaner URL like `travex.web.app`:
-1. Create a **new Firebase Project** in the console.
-2. Manually set the **Project ID** to `travex` (or `travex-app` if taken).
-3. Update the `NEXT_PUBLIC_FIREBASE_PROJECT_ID` in your environment variables.
-
-### To use a custom name like travex.app (Recommended):
+To use a custom name like `travex.app`:
 1. Go to **Firebase Console > App Hosting**.
 2. Select your **travex-prod** backend.
 3. Click the **Settings** tab.
 4. Click **Add custom domain** and follow the DNS verification steps.
 5. Add your new domain to the **Authorized domains** list in **Authentication** settings.
-
-## Manual Deployment (Standard Firebase Hosting)
-
-If you prefer using the Firebase CLI for static or manual deployments:
-
-1. **Install CLI:** `npm install -g firebase-tools`
-2. **Login:** `firebase login`
-3. **Initialize:** `firebase init hosting`
-4. **Build & Deploy:**
-   ```bash
-   npm run build
-   firebase deploy --only hosting
-   ```
 
 ## Tech Stack
 - **Framework:** Next.js 15 (App Router)
