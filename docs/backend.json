@@ -62,6 +62,16 @@
         "createdAt": { "type": "string", "format": "date-time" }
       },
       "required": ["description", "amount", "payerId", "date", "splitType"]
+    },
+    "UserProfile": {
+      "title": "UserProfile",
+      "description": "Extended user information stored in Firestore.",
+      "type": "object",
+      "properties": {
+        "displayName": { "type": "string" },
+        "photoURL": { "type": "string", "description": "High-quality profile image data (Base64) or URL." },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      }
     }
   },
   "auth": {
@@ -75,6 +85,10 @@
     "/trips/{tripId}/expenses/{expenseId}": {
       "schema": "Expense",
       "description": "Subcollection for expenses within a trip."
+    },
+    "/users/{userId}": {
+      "schema": "UserProfile",
+      "description": "Collection for storing custom user profile data like high-res avatars."
     }
   }
 }
