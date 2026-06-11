@@ -168,12 +168,15 @@ export default function ProfilePage() {
         description: "Your data is now safely synced with your Google account.",
       });
     } catch (error: any) {
-      console.error("Linking failed", error);
-      toast({
-        variant: "destructive",
-        title: "Linking failed",
-        description: error.message || "Could not link Google account.",
-      });
+      // Don't show toast if user closed the popup manually
+      if (error.code !== 'auth/popup-closed-by-user') {
+        console.error("Linking failed", error);
+        toast({
+          variant: "destructive",
+          title: "Linking failed",
+          description: error.message || "Could not link Google account.",
+        });
+      }
     } finally {
       setIsLinking(false);
     }

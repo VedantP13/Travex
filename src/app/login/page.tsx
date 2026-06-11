@@ -30,18 +30,21 @@ export default function LoginPage() {
     try {
       await signInWithPopup(auth, provider);
     } catch (error: any) {
-      console.error('Login failed:', error);
-      
-      let errorMessage = "Could not sign in with Google.";
-      if (error.code === 'auth/unauthorized-domain') {
-        errorMessage = "This domain is not authorized in Firebase. Please add it to your Authorized Domains in the Firebase Console.";
-      }
+      // Don't show toast if user closed the popup manually
+      if (error.code !== 'auth/popup-closed-by-user') {
+        console.error('Login failed:', error);
+        
+        let errorMessage = "Could not sign in with Google.";
+        if (error.code === 'auth/unauthorized-domain') {
+          errorMessage = "This domain is not authorized in Firebase. Please add it to your Authorized Domains in the Firebase Console.";
+        }
 
-      toast({
-        variant: "destructive",
-        title: "Login failed",
-        description: errorMessage,
-      });
+        toast({
+          variant: "destructive",
+          title: "Login failed",
+          description: errorMessage,
+        });
+      }
       setIsLoggingIn(false);
     }
   };
