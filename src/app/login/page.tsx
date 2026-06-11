@@ -7,7 +7,7 @@ import { GoogleAuthProvider, signInWithPopup, signInAnonymously } from 'firebase
 import { useAuth, useUser } from '@/firebase';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
-import { Compass, Loader2, UserSecret } from 'lucide-react';
+import { Compass, Loader2 } from 'lucide-react';
 import { AnimatedCompass } from '@/components/animated-compass';
 
 export default function LoginPage() {
@@ -59,7 +59,7 @@ export default function LoginPage() {
         </div>
         
         <div className="space-y-2">
-          <h1 className="text-4xl font-bold tracking-tight">Travex</h1>
+          <h1 className="text-4xl font-bold tracking-tight text-white">Travex</h1>
           <p className="text-muted-foreground font-medium">Smart splitting for modern explorers.</p>
         </div>
 
@@ -101,7 +101,7 @@ export default function LoginPage() {
         </Card>
 
         <p className="text-[10px] text-muted-foreground opacity-50 uppercase tracking-widest font-bold">
-          Free • Fast • Secure
+          Smart • Seamless • Simple
         </p>
       </div>
     </div>
