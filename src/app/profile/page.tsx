@@ -63,9 +63,50 @@ export default function ProfilePage() {
     }
   }, [user]);
 
+  const resizeImage = (dataUrl: string, maxWidth: number, maxHeight: number): Promise<string> => {
+    return new Promise((resolve) => {
+      const img = new Image();
+      img.src = dataUrl;
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        let width = img.width;
+        let height = img.height;
+
+        if (width > height) {
+          if (width > maxWidth) {
+            height *= maxWidth / width;
+            width = maxWidth;
+          }
+        } else {
+          if (height > maxHeight) {
+            width *= maxHeight / height;
+            height = maxHeight;
+          }
+        }
+
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext('2d');
+        ctx?.drawImage(img, 0, 0, width, height);
+        // Use JPEG with lower quality to stay under 2048 characters
+        resolve(canvas.toDataURL('image/jpeg', 0.6));
+      };
+    });
+  };
+
   const handleSaveProfile = async () => {
     if (!auth.currentUser) return;
     
+    // Final check for character limit
+    if (editedPhotoURL.length > 2048) {
+      toast({
+        variant: "destructive",
+        title: "Image too large",
+        description: "Even after resizing, this image is too large for Firebase. Please try a simpler photo.",
+      });
+      return;
+    }
+
     setIsSaving(true);
     try {
       await updateProfile(auth.currentUser, {
@@ -78,10 +119,17 @@ export default function ProfilePage() {
       });
       setIsEditing(false);
     } catch (error: any) {
+      console.error("Update error:", error);
+      let errorMessage = error.message || "Could not update profile.";
+      
+      if (error.code === 'auth/invalid-profile-attribute' || errorMessage.includes('too long')) {
+        errorMessage = "The selected image is too high resolution. Please try a different photo or one of our avatars.";
+      }
+
       toast({
         variant: "destructive",
         title: "Update failed",
-        description: error.message || "Could not update profile.",
+        description: errorMessage,
       });
     } finally {
       setIsSaving(false);
@@ -92,8 +140,19 @@ export default function ProfilePage() {
     const file = event.target.files?.[0];
     if (file) {
       const reader = new FileReader();
-      reader.onloadend = () => {
-        setEditedPhotoURL(reader.result as string);
+      reader.onloadend = async () => {
+        const base64 = reader.result as string;
+        try {
+          // Resize to 80x80 to ensure it fits in the 2048 char limit
+          const resized = await resizeImage(base64, 80, 80);
+          setEditedPhotoURL(resized);
+        } catch (e) {
+          toast({
+            variant: "destructive",
+            title: "Processing failed",
+            description: "Could not process the selected image.",
+          });
+        }
       };
       reader.readAsDataURL(file);
     }
@@ -158,7 +217,6 @@ export default function ProfilePage() {
       </header>
 
       <main className="px-safe-pad pt-8 space-y-10">
-        {/* Profile Header section */}
         <section className="flex flex-col items-center gap-6">
           <div className="relative group cursor-pointer" onClick={() => setIsEditing(true)}>
             <Avatar className="h-28 w-28 border-[6px] border-white shadow-2xl ring-1 ring-black/5 transition-transform group-hover:scale-105 duration-300">
@@ -178,38 +236,36 @@ export default function ProfilePage() {
           <div className="text-center space-y-1.5 w-full max-w-[280px]">
             {isEditing ? (
               <div className="flex flex-col items-center gap-4 w-full">
-                {isGuest && (
-                  <div className="space-y-2 w-full">
-                    <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest text-left">Choose avatar</p>
-                    <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
-                      <input 
-                        type="file" 
-                        ref={fileInputRef} 
-                        onChange={handleFileChange} 
-                        accept="image/*" 
-                        className="hidden" 
-                      />
-                      <div 
-                        onClick={triggerFileUpload}
-                        className="h-12 w-12 rounded-xl border-2 border-dashed border-muted-foreground/30 flex items-center justify-center text-muted-foreground hover:border-primary hover:text-primary transition-all cursor-pointer flex-shrink-0"
-                      >
-                        <ImageIcon className="h-5 w-5" />
-                      </div>
-                      {GUEST_AVATARS.map((url, idx) => (
-                        <div 
-                          key={idx} 
-                          onClick={() => setEditedPhotoURL(url)}
-                          className={cn(
-                            "h-12 w-12 rounded-xl border-2 transition-all cursor-pointer flex-shrink-0 overflow-hidden",
-                            editedPhotoURL === url ? "border-primary scale-110 shadow-md" : "border-transparent opacity-60"
-                          )}
-                        >
-                          <img src={url} alt={`Avatar ${idx}`} className="h-full w-full object-cover" />
-                        </div>
-                      ))}
+                <div className="space-y-2 w-full">
+                  <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest text-left">Choose avatar</p>
+                  <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
+                    <input 
+                      type="file" 
+                      ref={fileInputRef} 
+                      onChange={handleFileChange} 
+                      accept="image/*" 
+                      className="hidden" 
+                    />
+                    <div 
+                      onClick={triggerFileUpload}
+                      className="h-12 w-12 rounded-xl border-2 border-dashed border-muted-foreground/30 flex items-center justify-center text-muted-foreground hover:border-primary hover:text-primary transition-all cursor-pointer flex-shrink-0"
+                    >
+                      <ImageIcon className="h-5 w-5" />
                     </div>
+                    {GUEST_AVATARS.map((url, idx) => (
+                      <div 
+                        key={idx} 
+                        onClick={() => setEditedPhotoURL(url)}
+                        className={cn(
+                          "h-12 w-12 rounded-xl border-2 transition-all cursor-pointer flex-shrink-0 overflow-hidden",
+                          editedPhotoURL === url ? "border-primary scale-110 shadow-md" : "border-transparent opacity-60"
+                        )}
+                      >
+                        <img src={url} alt={`Avatar ${idx}`} className="h-full w-full object-cover" />
+                      </div>
+                    ))}
                   </div>
-                )}
+                </div>
                 
                 <div className="space-y-1.5 w-full">
                   <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest text-left">Display name</p>
@@ -248,7 +304,6 @@ export default function ProfilePage() {
           </div>
         </section>
 
-        {/* Account Information section */}
         <section className="space-y-4">
           <h3 className="text-[11px] font-extrabold text-muted-foreground uppercase tracking-widest ml-1">Account Information</h3>
           
@@ -302,7 +357,7 @@ export default function ProfilePage() {
                     </p>
                   </div>
                 </div>
-                {isGuest ? (
+                {isGuest && (
                   <Button 
                     onClick={handleLinkGoogle} 
                     disabled={isLinking}
@@ -315,10 +370,6 @@ export default function ProfilePage() {
                     )}
                     <span className="text-xs">Link Google</span>
                   </Button>
-                ) : (
-                  <div className="px-3 py-1 rounded-full text-[9px] font-bold uppercase bg-green-50 text-green-600">
-                    Secure
-                  </div>
                 )}
               </CardContent>
             </Card>
@@ -355,7 +406,6 @@ export default function ProfilePage() {
           </div>
         </section>
 
-        {/* Action section */}
         <div className="pt-6 space-y-4">
           <Button 
             variant="destructive" 
