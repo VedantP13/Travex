@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Label } from "@/components/ui/label";
-import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Alert, AlertDescription } from "@/alert";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
   Dialog,
@@ -326,8 +326,16 @@ export default function CreateTrip() {
              <div className="relative z-10 flex items-center justify-center">
                <div className="absolute h-28 w-28 rounded-full border border-accent/20 animate-ping duration-[3.5s]" />
                <div className="absolute h-24 w-24 rounded-full border border-accent/30 animate-ping duration-[4.5s]" />
-               <div className="h-16 w-16 sm:h-20 sm:w-20 bg-accent/10 backdrop-blur-md rounded-[1.5rem] sm:rounded-[2rem] flex items-center justify-center text-accent shadow-[0_0_50px_rgba(245,166,35,0.25)] border border-accent/20">
-                 <MapPin className="h-8 w-8 sm:h-10 sm:w-10" />
+               <div className="h-20 w-20 bg-accent/10 backdrop-blur-md rounded-[2rem] flex items-center justify-center text-accent shadow-[0_0_50px_rgba(245,166,35,0.25)] border border-accent/20">
+                 <svg width="48" height="48" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <circle cx="12" cy="9" r="7" stroke="currentColor" strokeWidth="1" strokeDasharray="2 2" />
+                    <path d="M4 18L9 11L14 18" stroke="#94A3B8" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                    <path d="M9 18L14 9L19 18" stroke="#CBD5E1" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                    <rect x="9" y="8" width="6" height="5" rx="1" fill="#112240" stroke="currentColor" strokeWidth="1.5" />
+                    <path d="M10 8V6C10 4.89543 10.8954 4 12 4C13.1046 4 14 4.89543 14 6V8" stroke="currentColor" strokeWidth="1.5" />
+                    <circle cx="20" cy="6" r="0.5" fill="#CBD5E1" />
+                    <circle cx="5" cy="11" r="0.5" fill="#94A3B8" />
+                 </svg>
                </div>
              </div>
 
