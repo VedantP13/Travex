@@ -2,9 +2,9 @@
 "use client";
 
 import Link from "next/link";
-import { Plus, ChevronRight, Compass, Map, Users, Wifi, LogIn, AlertCircle } from "lucide-react";
+import { Plus, ChevronRight, Compass, Map, Users, Wifi, ShieldAlert } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
+import { Card, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { PlaceHolderImages } from "@/lib/placeholder-images";
@@ -61,14 +61,16 @@ export default function Home() {
                 )}
               </div>
               <div className="flex items-center gap-2 mt-0.5">
-                <p className="text-sm opacity-70 text-background">
+                <p className="text-sm opacity-70 text-background font-medium">
                   {greeting}
                 </p>
                 {isAnonymous && (
-                  <Link href="/login">
-                    <Badge className="bg-accent/20 hover:bg-accent/30 text-accent border-none font-bold text-[8px] px-2 py-0.5 animate-in fade-in zoom-in duration-500">
-                      Guest • Link Account
-                    </Badge>
+                  <Link 
+                    href="/login" 
+                    className="flex items-center gap-1.5 px-2.5 py-1 bg-accent/15 hover:bg-accent/25 border border-accent/20 rounded-full transition-all group animate-in fade-in slide-in-from-left-2 duration-700"
+                  >
+                    <ShieldAlert className="h-2.5 w-2.5 text-accent" />
+                    <span className="text-[8px] font-extrabold text-accent uppercase tracking-widest">Link Account</span>
                   </Link>
                 )}
               </div>
