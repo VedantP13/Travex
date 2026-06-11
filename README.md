@@ -1,46 +1,27 @@
 
 # Travex: Smart Travel Expenses
 
-Travex is a modern web application designed for intelligent expense capture and splitting for travelers. Built with Next.js, React, and Firebase.
+Travex is officially **LIVE** on the new project: `travexapp`.
 
-## Project Migration (Target: travexapp)
+## 🎊 Launch Status: SUCCESS
+The first rollout has been completed. The application is now served from your new production environment.
 
-The application has been successfully migrated to the project: `travexapp`.
+### Final Migration Checklist (Completed):
+- [x] **Billing Enabled**: Project is on the Blaze plan.
+- [x] **Authentication**: Google and Anonymous providers are active.
+- [x] **Firestore**: Database initialized in `asia-southeast1`.
+- [x] **Indexes**: Composite index for `trips` is enabled.
+- [x] **App Hosting**: First rollout is live and synced with GitHub.
 
-### Final Checklist for your New Project:
+### ⚠️ Cleaning Up the Old Project
+Now that `travexapp` is live and verified:
+1. Go to [Google Cloud Resource Manager](https://console.cloud.google.com/iam-admin/settings).
+2. Select the old `studio-160...` project.
+3. Click **"Shut Down"** to officially retire the legacy environment.
 
-1.  **Enable Billing (Blaze Plan)**:
-    *   Go to the [Google Cloud Billing Projects page](https://console.cloud.google.com/billing/projects).
-    *   Disable billing on the old project if you hit a quota limit.
-    *   Enable billing for **travexapp**.
-
-2.  **Authentication Setup**:
-    *   Go to **Firebase Console > Authentication**.
-    *   Enable **Google** and **Anonymous** providers.
-    *   **Authorized Domains**: Add `travexapp.web.app` and the Firebase Studio domain.
-
-3.  **Firestore Setup**:
-    *   Go to **Firestore Database** > **Create database**.
-    *   Select **Location**: `asia-southeast1` (Singapore).
-    *   Select **Production Mode**. Security rules are managed by the `firestore.rules` file.
-
-4.  **Firestore Indexes (Required)**:
-    *   The dashboard uses a composite index for `trips` (`participantIds` [Array] + `createdAt` [Descending]).
-    *   Click the link in your browser console error to auto-create this index.
-
-### 🚀 Deployment & First Release
-
-If you see **"Waiting for your first release"** in the App Hosting dashboard:
-
-*   **Initial Build**: The first build can take 5-10 minutes. Check the **Builds** tab in the Firebase Console for real-time logs.
-*   **Environment Variables**: Ensure all `NEXT_PUBLIC_FIREBASE_*` variables are added in **App Hosting > Settings > Environment Variables**.
-*   **Trigger**: If no build is running, push a commit to your `main` branch to start the deployment process.
-
-### ⚠️ Deleting the Old Project
-Before you shut down the old `studio-160...` project:
-*   Ensure all active trips have been recreated or finished on the new domain.
-*   Verify that `travexapp.web.app` is fully functional and shows your data.
-*   **Note**: Deletion is permanent and removes all legacy Firestore data and Auth users.
+### 🚀 Custom Design Lock
+- The "New Trip" and "Add Expense" dialog boxes contain **custom SVG assets**.
+- **Agent Note**: Do not modify the Dialog components in `src/app/trips/new/page.tsx` or `src/app/trips/[id]/add/page.tsx` unless explicitly requested by the user.
 
 ## Tech Stack
 - **Framework:** Next.js 15 (App Router)
