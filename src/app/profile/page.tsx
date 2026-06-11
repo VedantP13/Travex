@@ -15,7 +15,8 @@ import {
   Pencil,
   ImageIcon,
   Trash2,
-  AlertTriangle
+  AlertTriangle,
+  X
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -39,6 +40,8 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
   AlertDialogTrigger,
+  AlertDialogPortal,
+  AlertDialogOverlay,
 } from "@/components/ui/alert-dialog";
 
 const GUEST_AVATARS = [
@@ -442,28 +445,42 @@ export default function ProfilePage() {
                 Delete Account
               </Button>
             </AlertDialogTrigger>
-            <AlertDialogContent className="max-w-[calc(100vw-40px)] rounded-[2rem] p-6">
-              <AlertDialogHeader>
-                <div className="h-12 w-12 rounded-2xl bg-destructive/10 text-destructive flex items-center justify-center mb-4">
-                  <AlertTriangle className="h-6 w-6" />
+            <AlertDialogContent className="max-w-[calc(100vw-40px)] w-full rounded-[2.5rem] p-0 border-none shadow-2xl bg-white overflow-hidden animate-in fade-in zoom-in-95 duration-300">
+              <div className="h-52 sm:h-60 bg-foreground relative flex flex-col items-center justify-center overflow-hidden">
+                 <div className="relative z-10 flex items-center justify-center w-full h-full p-4">
+                    <AlertTriangle className="h-28 w-28 text-accent animate-pulse" strokeWidth={1.5} />
+                 </div>
+
+                 <AlertDialogCancel className="absolute right-4 top-4 sm:right-6 sm:top-6 h-8 w-8 rounded-full flex items-center justify-center bg-white/10 text-white/70 hover:bg-white/20 hover:text-white transition-all z-20 border-none p-0">
+                    <X className="h-5 w-5" />
+                 </AlertDialogCancel>
+              </div>
+
+              <div className="p-6 sm:p-8 pt-8 sm:pt-10 space-y-6 sm:space-y-7 text-center">
+                <div className="space-y-3 sm:space-y-4">
+                  <AlertDialogTitle className="text-2xl sm:text-3xl font-bold tracking-tight text-foreground">
+                    Are you absolutely sure?
+                  </AlertDialogTitle>
+                  <AlertDialogDescription className="text-sm font-medium leading-relaxed text-muted-foreground px-2 sm:px-4">
+                    This action <span className="text-destructive font-extrabold">cannot be undone</span>. This will permanently delete your travel profile and remove all your data from our servers.
+                  </AlertDialogDescription>
                 </div>
-                <AlertDialogTitle className="text-xl font-bold">Are you absolutely sure?</AlertDialogTitle>
-                <AlertDialogDescription className="text-sm leading-relaxed">
-                  This action cannot be undone. This will permanently delete your travel profile and remove your data from our servers.
-                </AlertDialogDescription>
-              </AlertDialogHeader>
-              <AlertDialogFooter className="flex-col sm:flex-row gap-2 mt-6">
-                <AlertDialogCancel className="h-12 rounded-xl font-bold border-none bg-muted text-muted-foreground flex-1">
-                  Cancel
-                </AlertDialogCancel>
-                <AlertDialogAction 
-                  onClick={handleDeleteAccount}
-                  className="h-12 rounded-xl font-bold bg-destructive text-destructive-foreground hover:bg-destructive/90 flex-1"
-                  disabled={isDeleting}
-                >
-                  {isDeleting ? <Loader2 className="h-4 w-4 animate-spin" /> : "Delete Permanently"}
-                </AlertDialogAction>
-              </AlertDialogFooter>
+
+                <div className="space-y-4 sm:space-y-5 pt-2 sm:pt-4 flex flex-col items-center">
+                  <AlertDialogAction 
+                    onClick={handleDeleteAccount}
+                    disabled={isDeleting}
+                    className="w-full h-14 rounded-2xl bg-destructive text-destructive-foreground hover:bg-destructive/90 font-bold text-base gap-3 shadow-lg shadow-destructive/20 transition-all active:scale-95"
+                  >
+                    {isDeleting ? <Loader2 className="h-5 w-5 animate-spin" /> : <Trash2 className="h-5 w-5" />}
+                    Delete Permanently
+                  </AlertDialogAction>
+                  
+                  <AlertDialogCancel className="w-full h-12 rounded-2xl font-bold text-foreground hover:bg-muted hover:text-foreground transition-all text-sm px-8 border-none bg-transparent">
+                    Cancel
+                  </AlertDialogCancel>
+                </div>
+              </div>
             </AlertDialogContent>
           </AlertDialog>
 
