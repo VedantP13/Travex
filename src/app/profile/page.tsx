@@ -451,12 +451,12 @@ export default function ProfilePage() {
 
               <div className="p-6 sm:p-8 pt-8 sm:pt-10 space-y-6 sm:space-y-7 text-center">
                 <div className="space-y-3 sm:space-y-4">
-                  <DialogTitle className="text-2xl sm:text-3xl font-bold tracking-tight text-foreground">
+                  <AlertDialogTitle className="text-2xl sm:text-3xl font-bold tracking-tight text-foreground">
                     Are you absolutely sure?
-                  </DialogTitle>
-                  <DialogDescription className="text-sm font-medium leading-relaxed text-muted-foreground px-2 sm:px-4">
+                  </AlertDialogTitle>
+                  <AlertDialogDescription className="text-sm font-medium leading-relaxed text-muted-foreground px-2 sm:px-4">
                     This action <span className="text-destructive font-extrabold">cannot be undone</span>. This will permanently delete your travel profile and remove all your data from our servers.
-                  </DialogDescription>
+                  </AlertDialogDescription>
                 </div>
 
                 <div className="space-y-4 sm:space-y-5 pt-2 sm:pt-4 flex flex-col items-center">
