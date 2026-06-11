@@ -70,7 +70,7 @@ export default function FriendsPage() {
     return () => unsub();
   }, [user?.uid, firestore]);
 
-  // Search users with mutual friend prioritization
+  // Search users with mutual friend prioritization and guest exclusion
   useEffect(() => {
     const searchUsers = async () => {
       const qry = searchQuery.trim();
@@ -98,17 +98,15 @@ export default function FriendsPage() {
           snap = await getDocs(nameQ);
         }
 
+        // Filter out guests and self, and those without emails (additional guest safety)
         const initialResults = snap.docs
           .map(d => ({ id: d.id, ...d.data(), mutualCount: 0 }))
-          .filter(u => u.id !== user?.uid);
+          .filter(u => u.id !== user?.uid && u.isAnonymous !== true && !!u.email);
         
         // Smart Check: Find Mutual Friends
-        // We check if any of the search results are friends with our friends
         if (friends.length > 0) {
           const resultsWithMutuals = await Promise.all(initialResults.map(async (resUser) => {
             let mutualCount = 0;
-            
-            // For efficiency, we only check for a few mutuals
             const checks = friends.slice(0, 5).map(async (friend) => {
               const mutualDoc = await getDoc(doc(firestore, "users", friend.friendId, "friends", resUser.id));
               if (mutualDoc.exists() && mutualDoc.data()?.status === 'accepted') {
@@ -123,7 +121,6 @@ export default function FriendsPage() {
             return { ...resUser, mutualCount };
           }));
 
-          // Sort by mutual friends count descending
           resultsWithMutuals.sort((a, b) => b.mutualCount - a.mutualCount);
           setSearchResults(resultsWithMutuals);
         } else {

@@ -25,11 +25,12 @@ export default function Home() {
   useEffect(() => {
     if (!user?.uid || !firestore) return;
 
-    // Sync profile to Firestore so others can find this user
+    // Sync profile to Firestore so others can find this user (if not anonymous)
     const profileData = {
       displayName: user.displayName || "Explorer",
       photoURL: user.photoURL || "",
       email: user.email || "",
+      isAnonymous: user.isAnonymous,
       updatedAt: serverTimestamp(),
     };
     setDoc(doc(firestore, "users", user.uid), profileData, { merge: true });
@@ -38,7 +39,7 @@ export default function Home() {
       if (snap.exists()) setFirestoreProfile(snap.data());
     });
     return () => unsub();
-  }, [user?.uid, firestore, user?.displayName, user?.photoURL, user?.email]);
+  }, [user?.uid, firestore, user?.displayName, user?.photoURL, user?.email, user?.isAnonymous]);
 
   const activeTrip = trips.find(t => t.status === "Active") || trips[0];
   const isAnonymous = user?.isAnonymous;

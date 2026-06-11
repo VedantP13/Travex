@@ -71,6 +71,7 @@
         "displayName": { "type": "string" },
         "photoURL": { "type": "string", "description": "High-quality profile image data (Base64) or URL." },
         "email": { "type": "string" },
+        "isAnonymous": { "type": "boolean" },
         "updatedAt": { "type": "string", "format": "date-time" }
       }
     },

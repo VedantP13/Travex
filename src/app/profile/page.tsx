@@ -40,8 +40,6 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
   AlertDialogTrigger,
-  AlertDialogPortal,
-  AlertDialogOverlay,
 } from "@/components/ui/alert-dialog";
 
 const GUEST_AVATARS = [
@@ -128,6 +126,7 @@ export default function ProfilePage() {
       const profileData = {
         displayName: editedName.trim(),
         photoURL: highResPhoto,
+        isAnonymous: auth.currentUser.isAnonymous,
         updatedAt: serverTimestamp(),
       };
 
@@ -213,12 +212,7 @@ export default function ProfilePage() {
 
     try {
       const userId = auth.currentUser.uid;
-      // 1. Delete Firestore profile
-      await deleteDoc(doc(firestore, "users", userId)).catch(() => {
-        // Silently fail if rules don't allow or doc doesn't exist
-      });
-
-      // 2. Delete Auth user
+      await deleteDoc(doc(firestore, "users", userId)).catch(() => {});
       await deleteUser(auth.currentUser);
 
       toast({
@@ -450,7 +444,6 @@ export default function ProfilePage() {
                  <div className="relative z-10 flex items-center justify-center w-full h-full p-4">
                     <AlertTriangle className="h-28 w-28 text-accent animate-pulse" strokeWidth={1.5} />
                  </div>
-
                  <AlertDialogCancel className="absolute right-4 top-4 sm:right-6 sm:top-6 h-8 w-8 rounded-full flex items-center justify-center bg-white/10 text-white/70 hover:bg-white/20 hover:text-white transition-all z-20 border-none p-0">
                     <X className="h-5 w-5" />
                  </AlertDialogCancel>
@@ -458,12 +451,12 @@ export default function ProfilePage() {
 
               <div className="p-6 sm:p-8 pt-8 sm:pt-10 space-y-6 sm:space-y-7 text-center">
                 <div className="space-y-3 sm:space-y-4">
-                  <AlertDialogTitle className="text-2xl sm:text-3xl font-bold tracking-tight text-foreground">
+                  <DialogTitle className="text-2xl sm:text-3xl font-bold tracking-tight text-foreground">
                     Are you absolutely sure?
-                  </AlertDialogTitle>
-                  <AlertDialogDescription className="text-sm font-medium leading-relaxed text-muted-foreground px-2 sm:px-4">
+                  </DialogTitle>
+                  <DialogDescription className="text-sm font-medium leading-relaxed text-muted-foreground px-2 sm:px-4">
                     This action <span className="text-destructive font-extrabold">cannot be undone</span>. This will permanently delete your travel profile and remove all your data from our servers.
-                  </AlertDialogDescription>
+                  </DialogDescription>
                 </div>
 
                 <div className="space-y-4 sm:space-y-5 pt-2 sm:pt-4 flex flex-col items-center">
@@ -475,7 +468,6 @@ export default function ProfilePage() {
                     {isDeleting ? <Loader2 className="h-5 w-5 animate-spin" /> : <Trash2 className="h-5 w-5" />}
                     Delete Permanently
                   </AlertDialogAction>
-                  
                   <AlertDialogCancel className="w-full h-12 rounded-2xl font-bold text-foreground hover:bg-muted hover:text-foreground transition-all text-sm px-8 border-none bg-transparent">
                     Cancel
                   </AlertDialogCancel>
