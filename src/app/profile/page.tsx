@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { 
   ArrowLeft, 
@@ -44,6 +44,7 @@ export default function ProfilePage() {
   const { toast } = useToast();
   const { user, loading: userLoading } = useUser();
   const auth = useAuth();
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [isEditing, setIsEditing] = useState(false);
   const [editedName, setEditedName] = useState("");
@@ -85,6 +86,21 @@ export default function ProfilePage() {
     } finally {
       setIsSaving(false);
     }
+  };
+
+  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setEditedPhotoURL(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const triggerFileUpload = () => {
+    fileInputRef.current?.click();
   };
 
   const handleLinkGoogle = async () => {
@@ -163,6 +179,19 @@ export default function ProfilePage() {
                   <div className="space-y-2 w-full">
                     <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest text-left">Choose avatar</p>
                     <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
+                      <input 
+                        type="file" 
+                        ref={fileInputRef} 
+                        onChange={handleFileChange} 
+                        accept="image/*" 
+                        className="hidden" 
+                      />
+                      <div 
+                        onClick={triggerFileUpload}
+                        className="h-12 w-12 rounded-xl border-2 border-dashed border-muted-foreground/30 flex items-center justify-center text-muted-foreground hover:border-primary hover:text-primary transition-all cursor-pointer flex-shrink-0"
+                      >
+                        <ImageIcon className="h-5 w-5" />
+                      </div>
                       {GUEST_AVATARS.map((url, idx) => (
                         <div 
                           key={idx} 
