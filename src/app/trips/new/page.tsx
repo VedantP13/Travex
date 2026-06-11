@@ -320,36 +320,36 @@ export default function CreateTrip() {
 
       <Dialog open={showGuestPrompt} onOpenChange={setShowGuestPrompt}>
         <DialogContent className="max-w-[calc(100vw-40px)] w-full rounded-[2.5rem] p-0 border-none shadow-2xl bg-white overflow-hidden animate-in fade-in zoom-in-95 duration-300">
-          <div className="h-52 bg-foreground relative flex flex-col items-center justify-center overflow-hidden pt-10">
+          <div className="h-44 sm:h-52 bg-foreground relative flex flex-col items-center justify-center overflow-hidden pt-6">
              <div className="absolute h-48 w-48 bg-accent/20 rounded-full blur-[70px] animate-pulse" />
              
              <div className="relative z-10 flex items-center justify-center">
                <div className="absolute h-28 w-28 rounded-full border border-accent/20 animate-ping duration-[3.5s]" />
                <div className="absolute h-24 w-24 rounded-full border border-accent/30 animate-ping duration-[4.5s]" />
-               <div className="h-20 w-20 bg-accent/10 backdrop-blur-md rounded-[2rem] flex items-center justify-center text-accent shadow-[0_0_50px_rgba(245,166,35,0.25)] border border-accent/20">
-                 <MapPin className="h-10 w-10" />
+               <div className="h-16 w-16 sm:h-20 sm:w-20 bg-accent/10 backdrop-blur-md rounded-[1.5rem] sm:rounded-[2rem] flex items-center justify-center text-accent shadow-[0_0_50px_rgba(245,166,35,0.25)] border border-accent/20">
+                 <MapPin className="h-8 w-8 sm:h-10 sm:w-10" />
                </div>
              </div>
 
-             <DialogClose className="absolute right-6 top-6 h-8 w-8 rounded-full flex items-center justify-center bg-white/10 text-white/70 hover:bg-white/20 hover:text-white transition-all">
+             <DialogClose className="absolute right-4 top-4 sm:right-6 sm:top-6 h-8 w-8 rounded-full flex items-center justify-center bg-white/10 text-white/70 hover:bg-white/20 hover:text-white transition-all">
                 <X className="h-5 w-5" />
              </DialogClose>
           </div>
 
-          <div className="p-8 pt-12 space-y-7 text-center">
-            <div className="space-y-4">
-              <DialogTitle className="text-3xl font-bold tracking-tight text-foreground">
+          <div className="p-6 sm:p-8 pt-8 sm:pt-12 space-y-6 sm:space-y-7 text-center">
+            <div className="space-y-3 sm:space-y-4">
+              <DialogTitle className="text-2xl sm:text-3xl font-bold tracking-tight text-foreground">
                 Secure your adventure
               </DialogTitle>
-              <DialogDescription className="text-sm font-medium leading-relaxed text-muted-foreground px-4">
+              <DialogDescription className="text-sm font-medium leading-relaxed text-muted-foreground px-2 sm:px-4">
                 You&apos;re in <span className="text-accent font-extrabold tracking-tight">Guest Mode</span>. Link your account to sync your trips across all devices and prevent data loss.
               </DialogDescription>
             </div>
 
-            <div className="space-y-5 pt-4 flex flex-col items-center">
+            <div className="space-y-4 sm:space-y-5 pt-2 sm:pt-4 flex flex-col items-center">
               <Link href="/login" className="w-full max-w-[280px]">
                 <Button className="w-full h-14 rounded-2xl bg-accent text-accent-foreground hover:bg-accent/90 font-bold text-base gap-3 shadow-[0_12px_24px_-8px_rgba(245,166,35,0.3)] transition-all active:scale-95 group">
-                  <div className="bg-white p-1 rounded-full border border-white/20">
+                  <div className="bg-white p-1 rounded-full border border-white/20 flex items-center justify-center">
                     <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" className="h-4 w-4" alt="Google" />
                   </div>
                   Link my account now
@@ -358,7 +358,7 @@ export default function CreateTrip() {
               
               <Button 
                 variant="ghost" 
-                className="w-full h-12 rounded-2xl font-bold text-foreground hover:bg-primary/5 transition-all text-sm px-8"
+                className="w-full h-12 rounded-2xl font-bold text-foreground hover:bg-muted hover:text-primary transition-all text-sm px-8"
                 onClick={() => setShowGuestPrompt(false)}
               >
                 Continue as guest explorer
