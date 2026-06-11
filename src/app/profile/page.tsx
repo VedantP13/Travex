@@ -171,10 +171,14 @@ export default function ProfilePage() {
       // Don't show toast if user closed the popup manually
       if (error.code !== 'auth/popup-closed-by-user') {
         console.error("Linking failed", error);
+        let errorMessage = "Could not link Google account.";
+        if (error.code === 'auth/unauthorized-domain') {
+          errorMessage = "Domain not authorized. Please add 'cluster-52r6vzs3ujeoctkkxpjif3x34a.cloudworkstations.dev' to Authorised Domains in Firebase Console.";
+        }
         toast({
           variant: "destructive",
           title: "Linking failed",
-          description: error.message || "Could not link Google account.",
+          description: errorMessage,
         });
       }
     } finally {

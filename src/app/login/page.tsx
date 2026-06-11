@@ -36,7 +36,7 @@ export default function LoginPage() {
         
         let errorMessage = "Could not sign in with Google.";
         if (error.code === 'auth/unauthorized-domain') {
-          errorMessage = "This domain is not authorized in Firebase. Please add it to your Authorized Domains in the Firebase Console.";
+          errorMessage = "Domain not authorized. Please add 'cluster-52r6vzs3ujeoctkkxpjif3x34a.cloudworkstations.dev' to Authorised Domains in Firebase Console.";
         }
 
         toast({
