@@ -26,14 +26,19 @@ The application has been migrated to the project: `travexapp`.
 3.  **Firestore Setup**:
     *   Go to **Firestore Database** > **Create database**.
     *   Select **Location**: `asia-southeast1` (Singapore).
-    *   Select **Production Mode**. Security rules are now managed by the `firestore.rules` file in this repository.
+    *   Select **Production Mode**. Security rules are managed by the `firestore.rules` file.
 
-4.  **Authorized Domains**:
+4.  **Firestore Indexes (Important!)**:
+    *   When you first load the app, you may see an "Index required" error in the console.
+    *   Click the link in the error message to automatically create the composite index for `trips` (`participantIds` + `createdAt`).
+    *   The app will start working once the index status is "Enabled".
+
+5.  **Authorized Domains**:
     *   Go to **Authentication > Settings > Authorized domains**.
     *   Add `travexapp.web.app`.
     *   Add the Firebase Studio domain: `cluster-52r6vzs3ujeoctkkxpjif3x34a.cloudworkstations.dev`.
 
-5.  **App Hosting Deployment**:
+6.  **App Hosting Deployment**:
     *   Create a **new backend** in the `travexapp` console.
     *   Set **Environment Variables**:
         * `NEXT_PUBLIC_FIREBASE_API_KEY`
