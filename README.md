@@ -18,14 +18,18 @@ We have successfully migrated the application context to the new Firebase projec
     *   Go to **Firebase Console > Authentication**.
     *   Click **Get started**.
     *   In the **Sign-in method** tab, enable **Google** and **Anonymous** providers.
-2.  **Authorized Domains**:
+2.  **Firestore Setup**:
+    *   Go to **Firestore Database** > **Create database**.
+    *   Select **Location**: `asia-southeast1` (Singapore).
+    *   Select **Production Mode**. The security rules will be automatically managed by the AI agent.
+3.  **Authorized Domains**:
     *   Go to **Authentication > Settings > Authorized domains**.
     *   Ensure `travexapp.web.app` and `travexapp.firebaseapp.com` are in the list.
     *   **CRITICAL for Development**: Also add your Firebase Studio domain: `cluster-52r6vzs3ujeoctkkxpjif3x34a.cloudworkstations.dev`.
-3.  **App Hosting Environment Variables**:
+4.  **App Hosting Environment Variables**:
     *   Go to **App Hosting > Settings**.
     *   Ensure `NEXT_PUBLIC_FIREBASE_API_KEY`, `NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN`, `NEXT_PUBLIC_FIREBASE_PROJECT_ID`, and `NEXT_PUBLIC_FIREBASE_APP_ID` match your **new** project's settings.
-4.  **Old Project**:
+5.  **Old Project**:
     *   You can now safely delete the old project from the [Google Cloud Console](https://console.cloud.google.com/) once you have verified the new deployment.
 
 ## Deployment Guide (Firebase App Hosting)
