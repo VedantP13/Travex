@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState, useEffect, useMemo } from "react";
@@ -863,14 +862,14 @@ export default function AddExpenseWizard() {
 
           <div className="mt-8 space-y-3">
             <Link href="/login" className="block">
-              <Button className="w-full h-14 rounded-2xl bg-white text-foreground hover:bg-slate-50 border border-slate-200 font-bold text-base gap-3 shadow-md transition-all active:scale-95">
-                <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" className="h-5 w-5" alt="Google" />
+              <Button className="w-full h-14 rounded-2xl bg-accent text-accent-foreground hover:bg-accent/90 font-bold text-base gap-3 shadow-lg shadow-accent/20 transition-all active:scale-95">
+                <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" className="h-5 w-5 brightness-0 invert" alt="Google" />
                 Link my account now
               </Button>
             </Link>
             <Button 
               variant="ghost" 
-              className="w-full h-12 rounded-2xl font-bold text-muted-foreground hover:bg-accent/5 hover:text-accent transition-all"
+              className="w-full h-12 rounded-2xl font-bold text-muted-foreground hover:bg-accent/10 hover:text-accent transition-all"
               onClick={() => setShowGuestPrompt(false)}
             >
               Continue as guest
