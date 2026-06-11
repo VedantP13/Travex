@@ -27,6 +27,8 @@ export default function ProfilePage() {
   useEffect(() => {
     if (user?.displayName) {
       setEditedName(user.displayName);
+    } else if (user?.isAnonymous) {
+      setEditedName("Guest Explorer");
     }
   }, [user]);
 
@@ -71,19 +73,19 @@ export default function ProfilePage() {
     { 
       icon: User, 
       label: "Display Name", 
-      value: user?.displayName || (user?.isAnonymous ? "Guest Explorer" : "User"),
+      value: user?.displayName || (user?.isAnonymous ? "Guest Explorer" : "Explorer"),
       editable: true 
     },
     { 
       icon: Mail, 
       label: "Email Address", 
-      value: user?.email || (user?.isAnonymous ? "Guest Account" : "N/A"),
+      value: user?.isAnonymous ? "Sign in to protect your data" : (user?.email || "N/A"),
       editable: false 
     },
     { 
       icon: Shield, 
       label: "Security", 
-      value: user?.isAnonymous ? "Guest - Unlinked" : "Protected by Google",
+      value: user?.isAnonymous ? "Guest - Session is temporary" : "Verified - Protected by Google",
       editable: false 
     },
     { icon: Bell, label: "Notifications", value: "Push & Email", editable: false },
@@ -125,7 +127,7 @@ export default function ProfilePage() {
                 className="rounded-full px-8 font-bold border-primary text-primary hover:bg-primary/5" 
                 onClick={() => setIsEditing(true)}
               >
-                Manage Account
+                Manage Profile
               </Button>
             ) : (
               <>
@@ -142,7 +144,7 @@ export default function ProfilePage() {
                   className="rounded-full px-6 font-bold flex items-center gap-2" 
                   onClick={() => {
                     setIsEditing(false);
-                    setEditedName(user?.displayName || "");
+                    setEditedName(user?.displayName || (user?.isAnonymous ? "Guest Explorer" : ""));
                   }}
                   disabled={isSaving}
                 >
@@ -177,7 +179,10 @@ export default function ProfilePage() {
                           autoFocus
                         />
                       ) : (
-                        <p className="text-sm font-bold text-foreground">
+                        <p className={cn(
+                          "text-sm font-bold",
+                          item.label === "Email Address" && user?.isAnonymous ? "text-primary animate-pulse" : "text-foreground"
+                        )}>
                           {item.value}
                         </p>
                       )}
@@ -200,8 +205,8 @@ export default function ProfilePage() {
 
         <p className="text-center text-[10px] text-muted-foreground font-medium px-8 leading-relaxed">
           {user?.isAnonymous 
-            ? "Your data is currently stored locally. Sign in to link your data to a permanent account."
-            : "Some profile details are synced automatically from your Google account."}
+            ? "Your data is currently stored locally. Sign in with Google to sync your journeys across all your devices."
+            : "Your profile details and travel data are safely synced with your Google account."}
         </p>
       </main>
 
