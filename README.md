@@ -3,15 +3,9 @@
 
 Travex is a modern web application designed for intelligent expense capture and splitting for travelers. Built with Next.js, React, and Firebase.
 
-## Key Features
-- **Intelligent Categorization:** AI-powered expense tagging.
-- **Hierarchical Splitting:** Split by individual or family group.
-- **Real-time Sync:** Powered by Firestore.
-- **Secure Auth:** Google and Guest login options.
+## Project Migration (Target: travexapp)
 
-## Project Migration (Active Project: travexapp)
-
-The application has been migrated to the project: `travexapp`.
+The application has been successfully migrated to the project: `travexapp`.
 
 ### Final Checklist for your New Project:
 
@@ -23,30 +17,22 @@ The application has been migrated to the project: `travexapp`.
 2.  **Authentication Setup**:
     *   Go to **Firebase Console > Authentication**.
     *   Enable **Google** and **Anonymous** providers.
+    *   **Authorized Domains**: Add `travexapp.web.app` and the Firebase Studio domain.
 
 3.  **Firestore Setup**:
     *   Go to **Firestore Database** > **Create database**.
     *   Select **Location**: `asia-southeast1` (Singapore).
     *   Select **Production Mode**. Security rules are managed by the `firestore.rules` file.
 
-4.  **Firestore Indexes (Important!)**:
-    *   When you first load the app, you may see an "Index required" error in the console.
-    *   Click the link in the error message to automatically create the composite index for `trips` (`participantIds` [Array] + `createdAt` [Descending]).
-    *   The app will start working once the index status is "Enabled".
+4.  **Firestore Indexes (Required)**:
+    *   The dashboard uses a composite index for `trips` (`participantIds` [Array] + `createdAt` [Descending]).
+    *   Click the link in your browser console error to auto-create this index.
 
-5.  **Authorized Domains**:
-    *   Go to **Authentication > Settings > Authorized domains**.
-    *   Add `travexapp.web.app`.
-    *   Add the Firebase Studio domain: `cluster-52r6vzs3ujeoctkkxpjif3x34a.cloudworkstations.dev`.
-
-6.  **App Hosting Deployment**:
-    *   Create a **new backend** in the `travexapp` console.
-    *   Set **Environment Variables**:
-        * `NEXT_PUBLIC_FIREBASE_API_KEY`
-        * `NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN` (travexapp.firebaseapp.com)
-        * `NEXT_PUBLIC_FIREBASE_PROJECT_ID` (travexapp)
-        * `NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET`
-        * `NEXT_PUBLIC_FIREBASE_APP_ID`
+### ⚠️ Deleting the Old Project
+Before you shut down the old `studio-160...` project:
+*   Ensure all active trips have been recreated or finished.
+*   Verify that `travexapp.web.app` is fully functional.
+*   **Note**: Deletion is permanent and removes all legacy Firestore data and Auth users.
 
 ## Tech Stack
 - **Framework:** Next.js 15 (App Router)
@@ -54,6 +40,3 @@ The application has been migrated to the project: `travexapp`.
 - **Database:** Firebase Firestore
 - **Authentication:** Firebase Auth
 - **AI:** Genkit (Google Gemini)
-
-### Best Practice: Anonymous Accounts
-Guest (Anonymous) accounts are temporary. If a user signs out without linking to Google, they **lose access permanently**. The app now includes warnings on the profile page to prevent accidental data loss. Encourage users to use the "Link Account" feature to sync their data safely.
