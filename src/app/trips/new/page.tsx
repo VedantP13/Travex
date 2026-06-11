@@ -339,14 +339,14 @@ export default function CreateTrip() {
 
           <div className="mt-8 space-y-3">
             <Link href="/login" className="block">
-              <Button className="w-full h-14 rounded-2xl bg-primary text-white font-bold text-base gap-2 shadow-lg shadow-primary/20 hover:bg-primary/90 transition-all active:scale-95">
-                <LogIn className="h-5 w-5" /> 
+              <Button className="w-full h-14 rounded-2xl bg-primary text-white font-bold text-base gap-3 shadow-lg shadow-primary/20 hover:bg-primary/90 transition-all active:scale-95">
+                <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" className="h-5 w-5 bg-white rounded-full p-0.5" alt="Google" />
                 Link my account now
               </Button>
             </Link>
             <Button 
               variant="ghost" 
-              className="w-full h-12 rounded-2xl font-bold text-muted-foreground hover:bg-muted/50 transition-colors"
+              className="w-full h-12 rounded-2xl font-bold text-muted-foreground hover:bg-muted hover:text-foreground transition-all"
               onClick={() => setShowGuestPrompt(false)}
             >
               Continue as guest
