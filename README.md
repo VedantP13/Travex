@@ -1,3 +1,4 @@
+
 # Travex: Smart Travel Expenses
 
 Travex is a modern web application designed for intelligent expense capture and splitting for travelers. Built with Next.js, React, and Firebase.
@@ -53,3 +54,6 @@ The application has been migrated to the project: `travexapp`.
 - **Database:** Firebase Firestore
 - **Authentication:** Firebase Auth
 - **AI:** Genkit (Google Gemini)
+
+### Best Practice: Anonymous Accounts
+Guest (Anonymous) accounts are temporary. If a user signs out without linking to Google, they **lose access permanently**. The app now includes warnings on the profile page to prevent accidental data loss. Encourage users to use the "Link Account" feature to sync their data safely.

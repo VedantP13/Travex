@@ -16,7 +16,8 @@ import {
   ImageIcon,
   Trash2,
   AlertTriangle,
-  X
+  X,
+  UserPlus
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -65,6 +66,7 @@ export default function ProfilePage() {
   const [isLinking, setIsLinking] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const [firestoreProfile, setFirestoreProfile] = useState<any>(null);
+  const [showSignOutWarning, setShowSignOutWarning] = useState(false);
 
   useEffect(() => {
     if (!user?.uid || !firestore) return;
@@ -202,6 +204,14 @@ export default function ProfilePage() {
   };
 
   const handleSignOut = async () => {
+    if (user?.isAnonymous) {
+      setShowSignOutWarning(true);
+      return;
+    }
+    confirmSignOut();
+  };
+
+  const confirmSignOut = async () => {
     await signOut(auth);
     router.push("/login");
   };
@@ -471,6 +481,30 @@ export default function ProfilePage() {
                   <AlertDialogCancel className="w-full h-12 rounded-2xl font-bold text-foreground hover:bg-muted hover:text-foreground transition-all text-sm px-8 border-none bg-transparent">
                     Cancel
                   </AlertDialogCancel>
+                </div>
+              </div>
+            </AlertDialogContent>
+          </AlertDialog>
+
+          <AlertDialog open={showSignOutWarning} onOpenChange={setShowSignOutWarning}>
+            <AlertDialogContent className="max-w-[calc(100vw-40px)] w-full rounded-[2.5rem] p-0 border-none shadow-2xl bg-white overflow-hidden">
+              <div className="h-40 bg-accent relative flex flex-col items-center justify-center overflow-hidden">
+                 <AlertTriangle className="h-20 w-20 text-foreground animate-pulse" strokeWidth={1.5} />
+              </div>
+              <div className="p-6 text-center space-y-4">
+                <AlertDialogTitle className="text-2xl font-bold tracking-tight">Warning: Guest Account</AlertDialogTitle>
+                <AlertDialogDescription className="text-sm font-medium text-muted-foreground">
+                  As a guest, signing out will <span className="text-destructive font-bold">permanently lock you out</span> of this account and all your trips. 
+                  We recommend <span className="font-bold text-primary">Linking to Google</span> instead.
+                </AlertDialogDescription>
+                <div className="pt-4 flex flex-col gap-3">
+                  <Button className="w-full h-12 rounded-xl bg-primary gap-2" onClick={handleLinkGoogle}>
+                    <UserPlus className="h-4 w-4" /> Link to Google
+                  </Button>
+                  <Button variant="outline" className="w-full h-12 rounded-xl text-destructive border-destructive/20" onClick={confirmSignOut}>
+                    Sign out anyway
+                  </Button>
+                  <AlertDialogCancel className="w-full h-12 rounded-xl border-none">Stay Logged In</AlertDialogCancel>
                 </div>
               </div>
             </AlertDialogContent>
