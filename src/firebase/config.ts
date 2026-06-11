@@ -5,14 +5,12 @@ import { getFirestore, Firestore } from "firebase/firestore";
 import { getAuth, Auth } from "firebase/auth";
 
 /**
- * To use a custom domain for authentication:
- * 1. Deploy your app to Firebase Hosting.
- * 2. Connect your custom domain (e.g., travex.com).
- * 3. Update 'authDomain' below to your custom domain.
+ * Firebase configuration object.
+ * When deploying to App Hosting, ensure these NEXT_PUBLIC_ variables 
+ * are set in your App Hosting dashboard secrets or environment variables.
  */
 const firebaseConfig = {
   apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
-  // Updated to use the hosted app domain from your App Hosting backend
   authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN || "studio--studio-1601154873-73ee2.us-central1.hosted.app",
   projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
   storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET,
