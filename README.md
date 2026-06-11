@@ -15,9 +15,9 @@ Travex is a modern web application designed for intelligent expense capture and 
 - **Authentication:** Firebase Auth
 - **AI:** Genkit (Google Gemini)
 
-## Deployment Guide (Firebase App Hosting)
+## Deployment Guide (Firebase App Hosting - Recommended)
 
-To complete the setup:
+To complete the setup for Next.js SSR support:
 
 1. **Select Region:** `asia-southeast1` (Singapore).
 2. **Backend ID:** `travex-prod`.
@@ -31,13 +31,26 @@ To complete the setup:
    - `NEXT_PUBLIC_FIREBASE_PROJECT_ID`
    - `NEXT_PUBLIC_FIREBASE_APP_ID`
 5. **Final Step:** Select **"Finish and deploy"** to initiate the build.
-6. **Authorized Domains:** Once the deployment is successful, copy your unique App Hosting URL (e.g., `travex-prod...hosted.app`) and add it to **Firebase Console > Authentication > Settings > Authorized domains** to enable Google Sign-In.
+6. **Authorized Domains:** Once the deployment is successful, copy your unique App Hosting URL and add it to **Firebase Console > Authentication > Settings > Authorized domains**.
 
-## Custom Domains (Improving your URL)
+## Manual Deployment (Standard Firebase Hosting)
 
-To use a custom name like `travex.app` instead of the generated URL:
+If you prefer using the Firebase CLI for static or manual deployments:
+
+1. **Install CLI:** `npm install -g firebase-tools`
+2. **Login:** `firebase login`
+3. **Initialize:** `firebase init hosting`
+4. **Build & Deploy:**
+   ```bash
+   npm run build
+   firebase deploy --only hosting
+   ```
+
+## Custom Domains
+
+To use a custom name like `travex.app`:
 1. Go to **Firebase Console > App Hosting**.
 2. Select your **travex-prod** backend.
 3. Click the **Settings** tab.
 4. Click **Add custom domain** and follow the DNS verification steps.
-5. Once verified, remember to add your new domain to the **Authorized domains** list in the **Authentication** settings.
+5. Add your new domain to the **Authorized domains** list in **Authentication** settings.
