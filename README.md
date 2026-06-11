@@ -6,6 +6,12 @@ Travex is officially **LIVE** on the new project: `travexapp`.
 ## 🎊 Launch Status: SUCCESS
 The first rollout has been completed. The application is now served from your new production environment.
 
+### 🚀 Important: App Hosting vs. Hosting
+This project uses **Firebase App Hosting**, which is designed for Next.js.
+- **Do NOT** use the "Hosting" tab in the Firebase Console.
+- **Do NOT** run `firebase init` or install `firebase-tools` CLI.
+- **Manage everything** via the **App Hosting** tab. It syncs automatically with your GitHub repository.
+
 ### Final Migration Checklist (Completed):
 - [x] **Billing Enabled**: Project is on the Blaze plan.
 - [x] **Authentication**: Google and Anonymous providers are active.
@@ -19,7 +25,7 @@ Now that `travexapp` is live and verified:
 2. Select the old `studio-160...` project.
 3. Click **"Shut Down"** to officially retire the legacy environment.
 
-### 🚀 Custom Design Lock
+### 🛡️ Custom Design Lock
 - The "New Trip" and "Add Expense" dialog boxes contain **custom SVG assets**.
 - **Agent Note**: Do not modify the Dialog components in `src/app/trips/new/page.tsx` or `src/app/trips/[id]/add/page.tsx` unless explicitly requested by the user.
 
