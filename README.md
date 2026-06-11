@@ -30,7 +30,7 @@ The application has been migrated to the project: `travexapp`.
 
 4.  **Firestore Indexes (Important!)**:
     *   When you first load the app, you may see an "Index required" error in the console.
-    *   Click the link in the error message to automatically create the composite index for `trips` (`participantIds` + `createdAt`).
+    *   Click the link in the error message to automatically create the composite index for `trips` (`participantIds` [Array] + `createdAt` [Descending]).
     *   The app will start working once the index status is "Enabled".
 
 5.  **Authorized Domains**:
