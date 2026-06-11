@@ -39,6 +39,7 @@ import {
   DialogDescription,
   DialogHeader,
   DialogTitle,
+  DialogClose,
 } from "@/components/ui/dialog";
 import { suggestExpenseCategory } from "@/ai/flows/suggest-expense-category";
 import { useToast } from "@/hooks/use-toast";
@@ -842,46 +843,47 @@ export default function AddExpenseWizard() {
 
       <Dialog open={showGuestPrompt} onOpenChange={setShowGuestPrompt}>
         <DialogContent className="max-w-[calc(100vw-40px)] w-full rounded-[2.5rem] p-0 border-none shadow-2xl bg-white overflow-hidden animate-in fade-in zoom-in-95 duration-300">
-          {/* Brand Header Section */}
-          <div className="h-48 bg-foreground relative flex flex-col items-center justify-center overflow-hidden pt-8">
-             {/* Glowing Pulse Background */}
-             <div className="absolute h-40 w-40 bg-accent/20 rounded-full blur-[60px] animate-pulse" />
+          <div className="h-52 bg-foreground relative flex flex-col items-center justify-center overflow-hidden pt-10">
+             <div className="absolute h-48 w-48 bg-accent/20 rounded-full blur-[70px] animate-pulse" />
              
-             {/* Shield Icon with Rings */}
              <div className="relative z-10 flex items-center justify-center">
-               <div className="absolute h-24 w-24 rounded-full border border-accent/20 animate-ping duration-[3s]" />
-               <div className="absolute h-20 w-20 rounded-full border border-accent/30 animate-ping duration-[4s]" />
-               <div className="h-20 w-20 bg-accent/10 backdrop-blur-md rounded-3xl flex items-center justify-center text-accent shadow-[0_0_40px_rgba(245,166,35,0.2)] border border-accent/20">
-                 <ShieldAlert className="h-10 w-10" strokeWidth={2} />
+               <div className="absolute h-28 w-28 rounded-full border border-accent/20 animate-ping duration-[3.5s]" />
+               <div className="absolute h-24 w-24 rounded-full border border-accent/30 animate-ping duration-[4.5s]" />
+               <div className="h-20 w-20 bg-accent/10 backdrop-blur-md rounded-[2rem] flex items-center justify-center text-accent shadow-[0_0_50px_rgba(245,166,35,0.25)] border border-accent/20">
+                 <svg width="40" height="40" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                   <path d="M12 2C8.13 2 5 5.13 5 9C5 13.17 9.42 18.92 11.24 21.11C11.64 21.59 12.37 21.59 12.77 21.11C14.58 18.92 19 13.17 19 9C19 5.13 15.87 2 12 2ZM12 11.5C10.62 11.5 9.5 10.38 9.5 9C9.5 7.62 10.62 6.5 12 6.5C13.38 6.5 14.5 7.62 14.5 9C14.5 10.38 13.38 11.5 12 11.5Z" fill="currentColor"/>
+                   <rect x="10" y="8" width="4" height="4" rx="1" fill="white" fillOpacity="0.8"/>
+                   <path d="M12 9V10" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+                 </svg>
                </div>
              </div>
 
-             <DialogClose className="absolute right-5 top-5 h-8 w-8 rounded-full flex items-center justify-center bg-white/10 text-white/70 hover:bg-white/20 hover:text-white transition-all">
+             <DialogClose className="absolute right-6 top-6 h-8 w-8 rounded-full flex items-center justify-center bg-white/10 text-white/70 hover:bg-white/20 hover:text-white transition-all">
                 <X className="h-5 w-5" />
              </DialogClose>
           </div>
 
-          <div className="p-8 pt-10 space-y-6 text-center">
+          <div className="p-8 pt-12 space-y-7 text-center">
             <div className="space-y-4">
               <DialogTitle className="text-3xl font-bold tracking-tight text-foreground">
                 Secure your adventure
               </DialogTitle>
               <DialogDescription className="text-sm font-medium leading-relaxed text-muted-foreground px-4">
-                You're in <span className="text-accent font-extrabold tracking-tight">Guest Mode</span>. Link your account to sync your trips across all devices and prevent data loss.
+                You&apos;re in <span className="text-accent font-extrabold tracking-tight">Guest Mode</span>. Link your account to sync your trips across all devices and prevent data loss.
               </DialogDescription>
             </div>
 
             <div className="space-y-5 pt-4 flex flex-col items-center">
               <Link href="/login" className="w-full max-w-[280px]">
                 <Button className="w-full h-14 rounded-2xl bg-accent text-accent-foreground hover:bg-accent/90 font-bold text-base gap-3 shadow-[0_12px_24px_-8px_rgba(245,166,35,0.3)] transition-all active:scale-95 group">
-                  <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" className="h-5 w-5 brightness-0 invert" alt="Google" />
+                  <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" className="h-5 w-5" alt="Google" />
                   Link my account now
                 </Button>
               </Link>
               
               <Button 
                 variant="ghost" 
-                className="w-full h-12 rounded-2xl font-bold text-foreground hover:bg-transparent transition-all text-sm px-8"
+                className="w-full h-12 rounded-2xl font-bold text-foreground hover:bg-primary/5 transition-all text-sm px-8"
                 onClick={() => setShowGuestPrompt(false)}
               >
                 Continue as guest explorer
