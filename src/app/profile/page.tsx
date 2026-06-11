@@ -17,7 +17,8 @@ import {
   LogIn,
   ChevronRight,
   ShieldCheck,
-  Pencil
+  Pencil,
+  Image as ImageIcon
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -30,6 +31,14 @@ import { signOut, updateProfile, GoogleAuthProvider, linkWithPopup } from "fireb
 import { cn } from "@/lib/utils";
 import Link from "next/link";
 
+const GUEST_AVATARS = [
+  "https://picsum.photos/seed/avatar1/150/150",
+  "https://picsum.photos/seed/avatar2/150/150",
+  "https://picsum.photos/seed/avatar3/150/150",
+  "https://picsum.photos/seed/avatar4/150/150",
+  "https://picsum.photos/seed/avatar5/150/150",
+];
+
 export default function ProfilePage() {
   const router = useRouter();
   const { toast } = useToast();
@@ -38,6 +47,7 @@ export default function ProfilePage() {
 
   const [isEditing, setIsEditing] = useState(false);
   const [editedName, setEditedName] = useState("");
+  const [editedPhotoURL, setEditedPhotoURL] = useState("");
   const [isSaving, setIsSaving] = useState(false);
   const [isLinking, setIsLinking] = useState(false);
 
@@ -47,6 +57,9 @@ export default function ProfilePage() {
     } else if (user?.isAnonymous) {
       setEditedName("Guest Explorer");
     }
+    if (user?.photoURL) {
+      setEditedPhotoURL(user.photoURL);
+    }
   }, [user]);
 
   const handleSaveProfile = async () => {
@@ -55,11 +68,12 @@ export default function ProfilePage() {
     setIsSaving(true);
     try {
       await updateProfile(auth.currentUser, {
-        displayName: editedName.trim() || (user?.isAnonymous ? "Guest Explorer" : "Explorer")
+        displayName: editedName.trim() || (user?.isAnonymous ? "Guest Explorer" : "Explorer"),
+        photoURL: editedPhotoURL
       });
       toast({
         title: "Profile updated",
-        description: "Your display name has been saved successfully.",
+        description: "Your changes have been saved successfully.",
       });
       setIsEditing(false);
     } catch (error: any) {
@@ -132,7 +146,7 @@ export default function ProfilePage() {
         <section className="flex flex-col items-center gap-6">
           <div className="relative group cursor-pointer" onClick={() => setIsEditing(true)}>
             <Avatar className="h-28 w-28 border-[6px] border-white shadow-2xl ring-1 ring-black/5 transition-transform group-hover:scale-105 duration-300">
-              <AvatarImage src={user?.photoURL || ""} />
+              <AvatarImage src={isEditing ? editedPhotoURL : (user?.photoURL || "")} />
               <AvatarFallback className="text-3xl font-bold bg-primary/10 text-primary">
                 {user?.displayName?.[0] || (isGuest ? "G" : "U")}
               </AvatarFallback>
@@ -144,13 +158,37 @@ export default function ProfilePage() {
 
           <div className="text-center space-y-1.5 w-full max-w-[280px]">
             {isEditing ? (
-              <div className="flex flex-col items-center gap-3">
-                <Input 
-                  value={editedName}
-                  onChange={(e) => setEditedName(e.target.value)}
-                  className="h-12 w-full text-center text-xl font-bold rounded-xl border-2 border-primary focus-visible:ring-0 bg-white"
-                  autoFocus
-                />
+              <div className="flex flex-col items-center gap-4 w-full">
+                {isGuest && (
+                  <div className="space-y-2 w-full">
+                    <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest text-left">Choose avatar</p>
+                    <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
+                      {GUEST_AVATARS.map((url, idx) => (
+                        <div 
+                          key={idx} 
+                          onClick={() => setEditedPhotoURL(url)}
+                          className={cn(
+                            "h-12 w-12 rounded-xl border-2 transition-all cursor-pointer flex-shrink-0 overflow-hidden",
+                            editedPhotoURL === url ? "border-primary scale-110 shadow-md" : "border-transparent opacity-60"
+                          )}
+                        >
+                          <img src={url} alt={`Avatar ${idx}`} className="h-full w-full object-cover" />
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+                
+                <div className="space-y-1.5 w-full">
+                  <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest text-left">Display name</p>
+                  <Input 
+                    value={editedName}
+                    onChange={(e) => setEditedName(e.target.value)}
+                    className="h-12 w-full text-center text-xl font-bold rounded-xl border-2 border-primary focus-visible:ring-0 bg-white"
+                    autoFocus
+                  />
+                </div>
+
                 <div className="flex gap-2">
                   <Button size="sm" className="rounded-full px-6 font-bold h-9 bg-primary text-white" onClick={handleSaveProfile} disabled={isSaving}>
                     {isSaving ? <Loader2 className="h-4 w-4 animate-spin" /> : "Save Changes"}
