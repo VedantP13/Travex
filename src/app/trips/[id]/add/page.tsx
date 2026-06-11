@@ -114,16 +114,6 @@ export default function AddExpenseWizard() {
     }));
   }, [currentTrip]);
 
-  useEffect(() => {
-    if (familyList.length > 0) {
-      const initialExpanded: Record<string, boolean> = {};
-      familyList.forEach((f: any) => {
-        initialExpanded[f.id] = true;
-      });
-      setExpandedFamilies(initialExpanded);
-    }
-  }, [familyList]);
-
   const personList = useMemo(() => {
     const list: any[] = [];
     familyList.forEach((f: any) => {
@@ -149,6 +139,47 @@ export default function AddExpenseWizard() {
     });
     return list;
   }, [familyList]);
+
+  useEffect(() => {
+    if (familyList.length > 0) {
+      const initialExpanded: Record<string, boolean> = {};
+      familyList.forEach((f: any) => {
+        initialExpanded[f.id] = true;
+      });
+      setExpandedFamilies(initialExpanded);
+    }
+  }, [familyList]);
+
+  // Sync expanded state when changing view mode
+  useEffect(() => {
+    if (viewMode === 'person' && familyList.length > 0) {
+      const allExpanded: Record<string, boolean> = {};
+      familyList.forEach((f: any) => {
+        allExpanded[f.id] = true;
+      });
+      setExpandedFamilies(allExpanded);
+    }
+  }, [viewMode, familyList]);
+
+  const isAllSelected = useMemo(() => {
+    if (!personList.length) return false;
+    return personList.every(p => formData.selectedIndividuals.includes(p.id));
+  }, [personList, formData.selectedIndividuals]);
+
+  const handleSelectAll = (checked: boolean) => {
+    if (checked) {
+      setFormData(prev => ({
+        ...prev,
+        selectedIndividuals: personList.map(p => p.id)
+      }));
+    } else {
+      setFormData(prev => ({
+        ...prev,
+        selectedIndividuals: [],
+        customAmounts: {}
+      }));
+    }
+  };
 
   useEffect(() => {
     if (formData.isItemized) {
@@ -372,7 +403,9 @@ export default function AddExpenseWizard() {
                         onClick={(e) => { e.stopPropagation(); toggleExpand(e, family.id); }}
                       >
                         <span className="text-[10px] text-muted-foreground font-bold">{family.members.length} members</span>
-                        <ChevronDown className={cn("h-3 w-3 text-muted-foreground transition-transform", isExpanded && "rotate-180")} />
+                        {!isFamilyView && (
+                          <ChevronDown className={cn("h-3 w-3 text-muted-foreground transition-transform", isExpanded && "rotate-180")} />
+                        )}
                       </div>
                     </div>
                   </div>
@@ -414,7 +447,7 @@ export default function AddExpenseWizard() {
                   </div>
                 </div>
 
-                {isExpanded && (
+                {isExpanded && !isFamilyView && (
                   <div className="bg-white/40 divide-y divide-muted/5 animate-in slide-in-from-top-1 duration-200">
                     {family.members.map((member) => {
                       const isMemberSelected = formData.selectedIndividuals.includes(member.id);
@@ -568,7 +601,18 @@ export default function AddExpenseWizard() {
               {formData.isItemized && (
                 <div className="bg-white p-5 rounded-2xl border border-dashed border-primary/20 space-y-4 animate-in fade-in zoom-in-95 duration-300">
                   <div className="flex justify-between items-center">
-                    <p className="text-xs font-bold text-primary">Member split</p>
+                    <div className="flex items-center gap-4">
+                      <p className="text-xs font-bold text-primary">Member split</p>
+                      <div className="flex items-center gap-2">
+                        <Label htmlFor="select-all-step1" className="text-[10px] font-bold text-muted-foreground uppercase">Select All</Label>
+                        <Switch 
+                          id="select-all-step1" 
+                          checked={isAllSelected}
+                          onCheckedChange={handleSelectAll}
+                          className="h-4 w-7 [&>span]:h-3 [&>span]:w-3"
+                        />
+                      </div>
+                    </div>
                     <Tabs value={viewMode} onValueChange={(v: any) => setViewMode(v)} className="w-auto">
                       <TabsList className="h-7 bg-muted/50 rounded-lg p-0.5">
                         <TabsTrigger value="person" className="text-[9px] px-2 h-6 font-bold">Individual</TabsTrigger>
@@ -662,6 +706,15 @@ export default function AddExpenseWizard() {
               <div className="bg-white p-5 rounded-2xl border border-dashed border-primary/20 space-y-4">
                 <div className="flex justify-between items-center">
                   <p className="text-xs font-bold text-primary">Member selection</p>
+                  <div className="flex items-center gap-2">
+                    <Label htmlFor="select-all-step2" className="text-[10px] font-bold text-muted-foreground uppercase">Select All</Label>
+                    <Switch 
+                      id="select-all-step2" 
+                      checked={isAllSelected}
+                      onCheckedChange={handleSelectAll}
+                      className="h-4 w-7 [&>span]:h-3 [&>span]:w-3"
+                    />
+                  </div>
                 </div>
                 
                 {renderHierarchicalList(
