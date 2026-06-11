@@ -63,46 +63,60 @@ export default function ProfilePage() {
     }
   }, [user]);
 
-  const resizeImage = (dataUrl: string, maxWidth: number, maxHeight: number): Promise<string> => {
-    return new Promise((resolve) => {
+  /**
+   * Resizes an image and aggressively compresses it to ensure the Base64 
+   * string is under the 2048 character limit for Firebase Auth photoURL.
+   */
+  const resizeAndCompressImage = (dataUrl: string, size: number): Promise<string> => {
+    return new Promise((resolve, reject) => {
       const img = new Image();
       img.src = dataUrl;
       img.onload = () => {
         const canvas = document.createElement('canvas');
-        let width = img.width;
-        let height = img.height;
+        canvas.width = size;
+        canvas.height = size;
+        const ctx = canvas.getContext('2d');
+        if (!ctx) return reject("Canvas error");
 
-        if (width > height) {
-          if (width > maxWidth) {
-            height *= maxWidth / width;
-            width = maxWidth;
-          }
-        } else {
-          if (height > maxHeight) {
-            width *= maxHeight / height;
-            height = maxHeight;
-          }
+        // Draw and crop to square
+        const minDim = Math.min(img.width, img.height);
+        const startX = (img.width - minDim) / 2;
+        const startY = (img.height - minDim) / 2;
+        ctx.drawImage(img, startX, startY, minDim, minDim, 0, 0, size, size);
+
+        // Iterative compression to stay under 2048 chars
+        let quality = 0.7;
+        let result = canvas.toDataURL('image/jpeg', quality);
+        
+        while (result.length > 2000 && quality > 0.1) {
+          quality -= 0.1;
+          result = canvas.toDataURL('image/jpeg', quality);
         }
 
-        canvas.width = width;
-        canvas.height = height;
-        const ctx = canvas.getContext('2d');
-        ctx?.drawImage(img, 0, 0, width, height);
-        // Use JPEG with lower quality to stay under 2048 characters
-        resolve(canvas.toDataURL('image/jpeg', 0.6));
+        if (result.length > 2048) {
+          // If still too big at low quality, try reducing size
+          if (size > 40) {
+            resolve(resizeAndCompressImage(dataUrl, size - 10));
+          } else {
+            reject("Image too complex for profile limit");
+          }
+        } else {
+          resolve(result);
+        }
       };
+      img.onerror = () => reject("Image load error");
     });
   };
 
   const handleSaveProfile = async () => {
     if (!auth.currentUser) return;
     
-    // Final check for character limit
+    // Safety check for character limit
     if (editedPhotoURL.length > 2048) {
       toast({
         variant: "destructive",
         title: "Image too large",
-        description: "Even after resizing, this image is too large for Firebase. Please try a simpler photo.",
+        description: "Please try a different photo or select one of our avatars.",
       });
       return;
     }
@@ -123,7 +137,7 @@ export default function ProfilePage() {
       let errorMessage = error.message || "Could not update profile.";
       
       if (error.code === 'auth/invalid-profile-attribute' || errorMessage.includes('too long')) {
-        errorMessage = "The selected image is too high resolution. Please try a different photo or one of our avatars.";
+        errorMessage = "The selected image is still too large. Please try a simpler photo.";
       }
 
       toast({
@@ -143,14 +157,14 @@ export default function ProfilePage() {
       reader.onloadend = async () => {
         const base64 = reader.result as string;
         try {
-          // Resize to 80x80 to ensure it fits in the 2048 char limit
-          const resized = await resizeImage(base64, 80, 80);
+          // Resize to 60x60 to stay well within char limits
+          const resized = await resizeAndCompressImage(base64, 60);
           setEditedPhotoURL(resized);
         } catch (e) {
           toast({
             variant: "destructive",
             title: "Processing failed",
-            description: "Could not process the selected image.",
+            description: "The image is too large. Please try a smaller photo.",
           });
         }
       };
