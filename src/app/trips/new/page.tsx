@@ -1,8 +1,9 @@
+
 "use client";
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { ArrowLeft, Plus, X, UserPlus, Lightbulb, Loader2, Calendar } from "lucide-react";
+import { ArrowLeft, Plus, X, UserPlus, Lightbulb, Loader2, Calendar, ShieldAlert, LogIn } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
@@ -10,11 +11,20 @@ import { Badge } from "@/components/ui/badge";
 import { Label } from "@/components/ui/label";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
 import { useFirestore, useUser } from "@/firebase";
 import { collection, addDoc, serverTimestamp } from "firebase/firestore";
 import { errorEmitter } from "@/firebase/error-emitter";
 import { FirestorePermissionError } from "@/firebase/errors";
+import Link from "next/link";
 
 type Participant = {
   id: string;
@@ -38,6 +48,7 @@ export default function CreateTrip() {
   const [newParticipantName, setNewParticipantName] = useState("");
   const [activeFamilyMemberInput, setActiveFamilyMemberInput] = useState<string | null>(null);
   const [newFamilyMemberName, setNewFamilyMemberName] = useState("");
+  const [showGuestPrompt, setShowGuestPrompt] = useState(false);
 
   // Initialize participants with current user
   useEffect(() => {
@@ -52,6 +63,10 @@ export default function CreateTrip() {
           familyMembers: [] 
         }
       ]);
+    }
+
+    if (user?.isAnonymous) {
+      setShowGuestPrompt(true);
     }
   }, [user]);
 
@@ -302,6 +317,37 @@ export default function CreateTrip() {
           ) : "Create trip group"}
         </Button>
       </footer>
+
+      <Dialog open={showGuestPrompt} onOpenChange={setShowGuestPrompt}>
+        <DialogContent className="max-w-[90vw] rounded-[2rem] p-8 border-none shadow-2xl overflow-hidden bg-white">
+          <div className="absolute top-0 right-0 p-4 opacity-10">
+            <ShieldAlert className="h-32 w-32 -mr-10 -mt-10" />
+          </div>
+          <DialogHeader className="text-left space-y-4">
+            <div className="h-14 w-14 bg-accent/10 rounded-2xl flex items-center justify-center text-accent">
+              <ShieldAlert className="h-8 w-8" />
+            </div>
+            <DialogTitle className="text-2xl font-bold leading-tight">Secure your adventure</DialogTitle>
+            <DialogDescription className="text-base font-medium leading-relaxed text-muted-foreground">
+              You're currently using a <span className="text-foreground font-bold italic">Guest Account</span>. If you lose access to this browser, you'll lose all your trip data.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="py-2 space-y-4">
+             <Link href="/login" className="block">
+                <Button className="w-full h-14 rounded-2xl bg-primary text-white font-bold text-lg gap-2 shadow-xl shadow-primary/20">
+                  <LogIn className="h-5 w-5" /> Link my account now
+                </Button>
+             </Link>
+             <Button 
+               variant="ghost" 
+               className="w-full h-10 rounded-xl font-bold text-muted-foreground hover:bg-muted/50"
+               onClick={() => setShowGuestPrompt(false)}
+             >
+               Continue as guest
+             </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

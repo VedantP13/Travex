@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useEffect, useMemo } from "react";
@@ -20,7 +21,9 @@ import {
   Plus,
   Minus,
   Calculator,
-  Zap
+  Zap,
+  ShieldAlert,
+  LogIn
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -31,6 +34,13 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { suggestExpenseCategory } from "@/ai/flows/suggest-expense-category";
 import { useToast } from "@/hooks/use-toast";
 import { useFirestore, useUser } from "@/firebase";
@@ -65,6 +75,7 @@ export default function AddExpenseWizard() {
   const [currentTrip, setCurrentTrip] = useState<any>(null);
   const [viewMode, setViewMode] = useState<'person' | 'family'>('person');
   const [expandedFamilies, setExpandedFamilies] = useState<Record<string, boolean>>({});
+  const [showGuestPrompt, setShowGuestPrompt] = useState(false);
   
   const [formData, setFormData] = useState({
     description: "",
@@ -84,7 +95,11 @@ export default function AddExpenseWizard() {
     if (!selectedTripId && trips.length > 0) {
       setSelectedTripId(trips[0].id);
     }
-  }, [selectedTripId, trips]);
+
+    if (user?.isAnonymous) {
+      setShowGuestPrompt(true);
+    }
+  }, [selectedTripId, trips, user]);
 
   useEffect(() => {
     if (!selectedTripId || !firestore) return;
@@ -825,6 +840,37 @@ export default function AddExpenseWizard() {
           </Button>
         </div>
       </footer>
+
+      <Dialog open={showGuestPrompt} onOpenChange={setShowGuestPrompt}>
+        <DialogContent className="max-w-[90vw] rounded-[2rem] p-8 border-none shadow-2xl overflow-hidden bg-white">
+          <div className="absolute top-0 right-0 p-4 opacity-10">
+            <ShieldAlert className="h-32 w-32 -mr-10 -mt-10" />
+          </div>
+          <DialogHeader className="text-left space-y-4">
+            <div className="h-14 w-14 bg-accent/10 rounded-2xl flex items-center justify-center text-accent">
+              <ShieldAlert className="h-8 w-8" />
+            </div>
+            <DialogTitle className="text-2xl font-bold leading-tight">Secure your adventure</DialogTitle>
+            <DialogDescription className="text-base font-medium leading-relaxed text-muted-foreground">
+              You're currently using a <span className="text-foreground font-bold italic">Guest Account</span>. If you lose access to this browser, you'll lose all your trip data.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="py-2 space-y-4">
+             <Link href="/login" className="block">
+                <Button className="w-full h-14 rounded-2xl bg-primary text-white font-bold text-lg gap-2 shadow-xl shadow-primary/20">
+                  <LogIn className="h-5 w-5" /> Link my account now
+                </Button>
+             </Link>
+             <Button 
+               variant="ghost" 
+               className="w-full h-10 rounded-xl font-bold text-muted-foreground hover:bg-muted/50"
+               onClick={() => setShowGuestPrompt(false)}
+             >
+               Continue as guest
+             </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

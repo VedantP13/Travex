@@ -60,9 +60,18 @@ export default function Home() {
                   </div>
                 )}
               </div>
-              <p className="text-sm opacity-70 text-background">
-                {greeting}
-              </p>
+              <div className="flex items-center gap-2 mt-0.5">
+                <p className="text-sm opacity-70 text-background">
+                  {greeting}
+                </p>
+                {isAnonymous && (
+                  <Link href="/login">
+                    <Badge className="bg-accent/20 hover:bg-accent/30 text-accent border-none font-bold text-[8px] px-2 py-0.5 animate-in fade-in zoom-in duration-500">
+                      Guest • Link Account
+                    </Badge>
+                  </Link>
+                )}
+              </div>
             </div>
           </div>
           <Link href="/profile" className="relative group">
@@ -92,32 +101,8 @@ export default function Home() {
         </div>
       </header>
 
-      {/* Guest Nudge */}
-      {isAnonymous && (
-        <section className="px-safe-pad mt-6">
-          <Card className="border-none shadow-md bg-accent/10 border border-accent/20 rounded-2xl overflow-hidden">
-            <CardContent className="p-4 flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <div className="h-10 w-10 bg-accent rounded-xl flex items-center justify-center text-foreground">
-                  <AlertCircle className="h-5 w-5" />
-                </div>
-                <div>
-                  <p className="text-xs font-bold">Using a Guest account</p>
-                  <p className="text-[10px] text-muted-foreground font-medium">Sign in to save data permanently.</p>
-                </div>
-              </div>
-              <Link href="/login">
-                <Button size="sm" className="h-8 rounded-lg text-[10px] font-bold bg-accent text-foreground hover:bg-accent/90">
-                  <LogIn className="h-3 w-3 mr-1" /> Link Account
-                </Button>
-              </Link>
-            </CardContent>
-          </Card>
-        </section>
-      )}
-
       {/* Dynamic Trip Spotlight */}
-      <section className={cn("px-safe-pad", isAnonymous ? "mt-6" : "-mt-10")}>
+      <section className="px-safe-pad -mt-10">
         <div className="grid grid-cols-12 gap-4 items-stretch">
           {activeTrip ? (
             <Card className="col-span-8 border-none shadow-2xl bg-primary text-primary-foreground rounded-[2rem] p-6 flex flex-col justify-between group transition-all hover:translate-y-[-2px]">
