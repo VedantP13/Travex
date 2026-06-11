@@ -32,3 +32,12 @@ To complete the setup:
    - `NEXT_PUBLIC_FIREBASE_APP_ID`
 5. **Final Step:** Select **"Finish and deploy"** to initiate the build.
 6. **Authorized Domains:** Once the deployment is successful, copy your unique App Hosting URL (e.g., `travex-prod.web.app`) and add it to **Firebase Console > Authentication > Settings > Authorized domains** to enable Google Sign-In.
+
+## Custom Domains (Improving your URL)
+
+To use a custom name like `travex.app` instead of the generated URL:
+1. Go to **Firebase Console > App Hosting**.
+2. Select your **travex-prod** backend.
+3. Click the **Settings** tab.
+4. Click **Add custom domain** and follow the DNS verification steps.
+5. Once verified, remember to add your new domain to the **Authorized domains** list in the **Authentication** settings.
