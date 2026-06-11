@@ -19,7 +19,7 @@ Travex is a modern web application designed for intelligent expense capture and 
 
 To complete the setup shown in your console:
 
-1. **Select Region:** Continue with `asia-southeast1` (Singapore) as selected.
+1. **Select Region:** Continue with `asia-southeast1` (Singapore) as selected in your screenshot.
 2. **Connect GitHub:** Link your repository and select the `main` branch.
 3. **Environment Variables:** In the App Hosting dashboard, add the following secrets/variables from your Firebase Project Settings:
    - `NEXT_PUBLIC_FIREBASE_API_KEY`
