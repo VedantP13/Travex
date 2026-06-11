@@ -852,8 +852,6 @@ export default function AddExpenseWizard() {
                <div className="h-20 w-20 bg-accent/10 backdrop-blur-md rounded-[2rem] flex items-center justify-center text-accent shadow-[0_0_50px_rgba(245,166,35,0.25)] border border-accent/20">
                  <svg width="40" height="40" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                    <path d="M12 2C8.13 2 5 5.13 5 9C5 13.17 9.42 18.92 11.24 21.11C11.64 21.59 12.37 21.59 12.77 21.11C14.58 18.92 19 13.17 19 9C19 5.13 15.87 2 12 2ZM12 11.5C10.62 11.5 9.5 10.38 9.5 9C9.5 7.62 10.62 6.5 12 6.5C13.38 6.5 14.5 7.62 14.5 9C14.5 10.38 13.38 11.5 12 11.5Z" fill="currentColor"/>
-                   <rect x="10" y="8" width="4" height="4" rx="1" fill="white" fillOpacity="0.8"/>
-                   <path d="M12 9V10" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
                  </svg>
                </div>
              </div>
@@ -876,7 +874,9 @@ export default function AddExpenseWizard() {
             <div className="space-y-5 pt-4 flex flex-col items-center">
               <Link href="/login" className="w-full max-w-[280px]">
                 <Button className="w-full h-14 rounded-2xl bg-accent text-accent-foreground hover:bg-accent/90 font-bold text-base gap-3 shadow-[0_12px_24px_-8px_rgba(245,166,35,0.3)] transition-all active:scale-95 group">
-                  <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" className="h-5 w-5" alt="Google" />
+                  <div className="bg-white p-1 rounded-full border border-white/20">
+                    <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" className="h-4 w-4" alt="Google" />
+                  </div>
                   Link my account now
                 </Button>
               </Link>

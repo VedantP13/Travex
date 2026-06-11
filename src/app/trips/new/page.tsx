@@ -353,7 +353,9 @@ export default function CreateTrip() {
             <div className="space-y-5 pt-4 flex flex-col items-center">
               <Link href="/login" className="w-full max-w-[280px]">
                 <Button className="w-full h-14 rounded-2xl bg-accent text-accent-foreground hover:bg-accent/90 font-bold text-base gap-3 shadow-[0_12px_24px_-8px_rgba(245,166,35,0.3)] transition-all active:scale-95 group">
-                  <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" className="h-5 w-5" alt="Google" />
+                  <div className="bg-white p-1 rounded-full border border-white/20">
+                    <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" className="h-4 w-4" alt="Google" />
+                  </div>
                   Link my account now
                 </Button>
               </Link>
