@@ -162,7 +162,10 @@ export default function ProfilePage() {
         <section className="flex flex-col items-center gap-6">
           <div className="relative group cursor-pointer" onClick={() => setIsEditing(true)}>
             <Avatar className="h-28 w-28 border-[6px] border-white shadow-2xl ring-1 ring-black/5 transition-transform group-hover:scale-105 duration-300">
-              <AvatarImage src={isEditing ? editedPhotoURL : (user?.photoURL || "")} />
+              <AvatarImage 
+                src={isEditing ? editedPhotoURL : (user?.photoURL || "")} 
+                className="object-cover"
+              />
               <AvatarFallback className="text-3xl font-bold bg-primary/10 text-primary">
                 {user?.displayName?.[0] || (isGuest ? "G" : "U")}
               </AvatarFallback>
@@ -245,7 +248,7 @@ export default function ProfilePage() {
           </div>
         </section>
 
-        {/* Account Settings section */}
+        {/* Account Information section */}
         <section className="space-y-4">
           <h3 className="text-[11px] font-extrabold text-muted-foreground uppercase tracking-widest ml-1">Account Information</h3>
           
