@@ -843,7 +843,7 @@ export default function AddExpenseWizard() {
       <Dialog open={showGuestPrompt} onOpenChange={setShowGuestPrompt}>
         <DialogContent className="max-w-[calc(100vw-40px)] w-full rounded-[2.5rem] p-0 border-none shadow-2xl bg-white overflow-hidden animate-in fade-in zoom-in-95 duration-300">
           {/* Brand Header Section */}
-          <div className="h-44 bg-foreground relative flex items-center justify-center overflow-hidden">
+          <div className="h-48 bg-foreground relative flex flex-col items-center justify-center overflow-hidden pt-8">
              {/* Glowing Pulse Background */}
              <div className="absolute h-40 w-40 bg-accent/20 rounded-full blur-[60px] animate-pulse" />
              
@@ -855,21 +855,25 @@ export default function AddExpenseWizard() {
                  <ShieldAlert className="h-10 w-10" strokeWidth={2} />
                </div>
              </div>
+
+             <DialogClose className="absolute right-5 top-5 h-8 w-8 rounded-full flex items-center justify-center bg-white/10 text-white/70 hover:bg-white/20 hover:text-white transition-all">
+                <X className="h-5 w-5" />
+             </DialogClose>
           </div>
 
           <div className="p-8 pt-10 space-y-6 text-center">
-            <div className="space-y-3">
+            <div className="space-y-4">
               <DialogTitle className="text-3xl font-bold tracking-tight text-foreground">
                 Secure your adventure
               </DialogTitle>
               <DialogDescription className="text-sm font-medium leading-relaxed text-muted-foreground px-4">
-                You're in <span className="text-accent font-extrabold uppercase tracking-tight">Guest Mode</span>. Link your account to sync your trips across all devices and prevent data loss.
+                You're in <span className="text-accent font-extrabold tracking-tight">Guest Mode</span>. Link your account to sync your trips across all devices and prevent data loss.
               </DialogDescription>
             </div>
 
-            <div className="space-y-4 pt-4 flex flex-col items-center">
+            <div className="space-y-5 pt-4 flex flex-col items-center">
               <Link href="/login" className="w-full max-w-[280px]">
-                <Button className="w-full h-14 rounded-2xl bg-accent text-accent-foreground hover:bg-accent/90 font-bold text-base gap-3 shadow-[0_12px_24px_-8px_rgba(245,166,35,0.4)] transition-all active:scale-95 group">
+                <Button className="w-full h-14 rounded-2xl bg-accent text-accent-foreground hover:bg-accent/90 font-bold text-base gap-3 shadow-[0_12px_24px_-8px_rgba(245,166,35,0.3)] transition-all active:scale-95 group">
                   <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" className="h-5 w-5 brightness-0 invert" alt="Google" />
                   Link my account now
                 </Button>
@@ -877,7 +881,7 @@ export default function AddExpenseWizard() {
               
               <Button 
                 variant="ghost" 
-                className="w-full h-12 rounded-2xl font-bold text-foreground hover:bg-muted transition-all text-sm"
+                className="w-full h-12 rounded-2xl font-bold text-foreground hover:bg-transparent transition-all text-sm px-8"
                 onClick={() => setShowGuestPrompt(false)}
               >
                 Continue as guest explorer
