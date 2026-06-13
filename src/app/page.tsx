@@ -118,7 +118,7 @@ export default function Home() {
       {/* Dynamic Trip Spotlight */}
       <section className="px-safe-pad -mt-10">
         <div className="grid grid-cols-12 gap-4 items-stretch">
-          {activeTrip ? (
+          {activeTrip && (
             <Card className="col-span-8 border-none shadow-2xl bg-primary text-primary-foreground rounded-[2rem] p-6 flex flex-col justify-between group transition-all hover:translate-y-[-2px]">
               <div>
                 <div className="flex items-center gap-2 mb-3">
@@ -135,22 +135,31 @@ export default function Home() {
                 Add expense <ChevronRight className="h-4 w-4" />
               </Link>
             </Card>
-          ) : (
-            <Card className="col-span-8 border-none shadow-2xl bg-primary text-primary-foreground rounded-[2rem] p-6 flex flex-col items-center justify-center text-center border-2 border-white/5">
-               <Map className="h-10 w-10 text-accent mb-3 opacity-90" strokeWidth={1.5} />
-               <p className="text-sm font-bold tracking-tight leading-tight">No active adventures</p>
-               <p className="text-[10px] opacity-70 mt-2 font-medium italic">Create a trip to begin.</p>
-            </Card>
           )}
           
           <Link 
             href="/trips/new" 
-            className="col-span-4 bg-white shadow-2xl rounded-[2rem] flex flex-col items-center justify-center p-6 gap-3 group hover:bg-accent transition-all duration-300 transform hover:-translate-y-1 active:scale-95 border-2 border-accent/10"
+            className={cn(
+              "bg-white shadow-2xl rounded-[2rem] flex flex-col items-center justify-center p-6 gap-3 group hover:bg-accent transition-all duration-300 transform hover:-translate-y-1 active:scale-95 border-2 border-accent/10",
+              activeTrip ? "col-span-4" : "col-span-12 py-12"
+            )}
           >
-            <div className="h-14 w-14 rounded-2xl bg-primary/5 flex items-center justify-center text-primary group-hover:bg-white/20 group-hover:text-white transition-all shadow-sm">
-              <Plus className="h-8 w-8" />
+            <div className={cn(
+              "rounded-2xl bg-primary/5 flex items-center justify-center text-primary group-hover:bg-white/20 group-hover:text-white transition-all shadow-sm",
+              activeTrip ? "h-14 w-14" : "h-16 w-16"
+            )}>
+              <Plus className={activeTrip ? "h-8 w-8" : "h-10 w-10"} />
             </div>
-            <span className="text-sm font-bold tracking-tight text-muted-foreground text-center group-hover:text-white transition-colors leading-tight">New trip</span>
+            <div className="text-center">
+              <span className="text-sm font-bold tracking-tight text-muted-foreground group-hover:text-white transition-colors leading-tight block">
+                {activeTrip ? "New trip" : "Start a new adventure"}
+              </span>
+              {!activeTrip && (
+                <span className="text-[10px] text-muted-foreground/60 font-medium group-hover:text-white/70 transition-colors mt-1 block">
+                  Split expenses effortlessly with friends
+                </span>
+              )}
+            </div>
           </Link>
         </div>
       </section>
