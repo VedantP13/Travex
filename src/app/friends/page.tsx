@@ -133,7 +133,7 @@ export default function FriendsPage() {
     };
 
     const timeoutId = setTimeout(searchUsers, 500);
-    return () => timeoutId);
+    return () => clearTimeout(timeoutId);
   }, [searchQuery, firestore, user?.uid, friends]);
 
   const handleSendRequest = async (targetUser: any) => {
@@ -202,7 +202,7 @@ export default function FriendsPage() {
     if (!user?.uid || !firestore) return;
     try {
       await deleteDoc(doc(firestore, "users", user.uid, "friends", friendId));
-      await deleteDoc(doc(firestore, "friendId", "friends", user.uid));
+      await deleteDoc(doc(firestore, "users", friendId, "friends", user.uid));
       toast({ title: "Friend removed" });
     } catch (err) {
       console.error(err);
