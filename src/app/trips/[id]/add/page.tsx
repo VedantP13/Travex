@@ -585,13 +585,15 @@ export default function AddExpenseWizard() {
               <div className="flex justify-between items-center">
                 <h1 className="text-2xl font-bold">Amount</h1>
                 <Select value={selectedTripId} onValueChange={(val) => setSelectedTripId(val)}>
-                  <SelectTrigger className="w-[160px] h-9 rounded-2xl border-primary/20 bg-primary/5 text-primary font-bold text-[10px] focus:ring-0">
-                    <MapPin className="h-3 w-3 mr-1.5" />
-                    <SelectValue placeholder="Select trip" />
+                  <SelectTrigger className="w-auto min-w-[140px] h-10 rounded-2xl border-2 border-primary/10 bg-white text-foreground font-bold text-xs hover:border-primary/30 hover:bg-primary/5 transition-all shadow-sm focus:ring-0 px-4">
+                    <div className="flex items-center gap-2">
+                      <MapPin className="h-3.5 w-3.5 text-primary" />
+                      <SelectValue placeholder="Select trip" />
+                    </div>
                   </SelectTrigger>
-                  <SelectContent className="rounded-2xl border-none shadow-2xl">
+                  <SelectContent className="rounded-[1.5rem] border-none shadow-[0_20px_50px_rgba(0,0,0,0.15)] bg-white p-2">
                     {trips.map(trip => (
-                      <SelectItem key={trip.id} value={trip.id} className="text-xs font-bold py-3">
+                      <SelectItem key={trip.id} value={trip.id} className="rounded-xl text-xs font-bold py-3 focus:bg-primary/10 focus:text-primary transition-colors cursor-pointer">
                         {trip.name}
                       </SelectItem>
                     ))}
