@@ -139,7 +139,7 @@ export default function Home() {
             <Card className="col-span-8 border-none shadow-2xl bg-primary text-primary-foreground rounded-[2rem] p-6 flex flex-col items-center justify-center text-center border-2 border-white/5">
                <Map className="h-10 w-10 text-accent mb-3 opacity-90" strokeWidth={1.5} />
                <p className="text-sm font-bold tracking-tight leading-tight">No active adventures</p>
-               <p className="text-[10px] opacity-70 mt-2 font-medium italic px-4">Your travel log is ready for its next entry. Create a trip to begin.</p>
+               <p className="text-[10px] opacity-70 mt-2 font-medium italic">Create a trip to begin.</p>
             </Card>
           )}
           
