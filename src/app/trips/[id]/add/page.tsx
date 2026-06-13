@@ -22,7 +22,9 @@ import {
   Minus,
   Calculator,
   Settings,
-  Sparkles
+  Sparkles,
+  Pin,
+  PinOff
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -315,19 +317,20 @@ export default function AddExpenseWizard() {
     }).catch(() => {});
   };
 
-  const handleSetDefaultSplit = (checked: boolean) => {
+  const toggleTripDefaultSplit = (modeId: string) => {
     if (!firestore || !selectedTripId) return;
     
-    const newDefault = checked ? formData.splitType : null;
+    const isCurrentlyDefault = currentTrip?.defaultSplitType === modeId;
+    const newDefault = isCurrentlyDefault ? null : modeId;
     
     updateDoc(doc(firestore, "trips", selectedTripId), {
       defaultSplitType: newDefault
     }).then(() => {
       toast({
-        title: checked ? "Preference saved" : "Preference removed",
-        description: checked 
-          ? `${formData.splitType.replace('_', ' ')} is now your default for this trip.`
-          : "Pre-selection has been disabled for this trip."
+        title: newDefault ? "Preference saved" : "Preference removed",
+        description: newDefault 
+          ? `${modeId.replace('_', ' ')} will now be pre-selected for this trip.`
+          : "Default split mode has been cleared."
       });
     }).catch(err => console.error("Failed to save default:", err));
   };
@@ -722,43 +725,56 @@ export default function AddExpenseWizard() {
                 { id: "equal_family", label: "Per family", icon: Home, desc: "One per family unit" },
                 { id: "custom", label: "Custom amount", icon: Calculator, desc: "Specific ₹ per person" },
                 { id: "just_me", label: "Just you", icon: User, desc: "100% to you" }
-              ].map(mode => (
-                <Card 
-                  key={mode.id}
-                  className={`p-4 rounded-2xl border-2 transition-all cursor-pointer flex flex-col gap-2 ${formData.splitType === mode.id ? 'border-primary bg-primary/5' : 'border-transparent shadow-sm'}`}
-                  onClick={() => {
-                    isSplitTypeManuallyChanged.current = true;
-                    setFormData(prev => ({ ...prev, splitType: mode.id }));
-                  }}
-                >
-                  <mode.icon className={`h-6 w-6 ${formData.splitType === mode.id ? 'text-primary' : 'text-muted-foreground'}`} />
-                  <div className="mt-2">
-                    <p className="font-bold text-sm">{mode.label}</p>
-                    <p className="text-[10px] text-muted-foreground leading-tight">{mode.desc}</p>
-                  </div>
-                </Card>
-              ))}
+              ].map(mode => {
+                const isSelected = formData.splitType === mode.id;
+                const isDefault = currentTrip?.defaultSplitType === mode.id;
+                
+                return (
+                  <Card 
+                    key={mode.id}
+                    className={cn(
+                      "relative p-4 rounded-2xl border-2 transition-all cursor-pointer flex flex-col gap-2 overflow-hidden",
+                      isSelected ? "border-primary bg-primary/5" : "border-transparent shadow-sm",
+                      isDefault && !isSelected && "border-accent/30"
+                    )}
+                    onClick={() => {
+                      isSplitTypeManuallyChanged.current = true;
+                      setFormData(prev => ({ ...prev, splitType: mode.id }));
+                    }}
+                  >
+                    <div className="flex justify-between items-start">
+                      <mode.icon className={cn("h-6 w-6", isSelected ? "text-primary" : "text-muted-foreground")} />
+                      {isSelected && (
+                        <Button 
+                          variant="ghost" 
+                          size="icon" 
+                          className={cn(
+                            "h-6 w-6 p-0 rounded-full transition-all hover:bg-transparent",
+                            isDefault ? "text-accent" : "text-primary/30 hover:text-primary"
+                          )}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            toggleTripDefaultSplit(mode.id);
+                          }}
+                        >
+                          <Pin className={cn("h-3.5 w-3.5", isDefault && "fill-current")} />
+                        </Button>
+                      )}
+                      {!isSelected && isDefault && (
+                        <Pin className="h-3 w-3 text-accent/50 fill-current" />
+                      )}
+                    </div>
+                    <div className="mt-2">
+                      <div className="flex items-center gap-1.5">
+                        <p className="font-bold text-sm">{mode.label}</p>
+                        {isDefault && <div className="h-1.5 w-1.5 rounded-full bg-accent" />}
+                      </div>
+                      <p className="text-[10px] text-muted-foreground leading-tight">{mode.desc}</p>
+                    </div>
+                  </Card>
+                );
+              })}
             </div>
-
-            {/* Trip Preferences Setting */}
-            <Card className="border-none shadow-sm bg-primary/5 rounded-[2rem] overflow-hidden border border-primary/20">
-              <CardContent className="p-5 flex items-center justify-between">
-                <div className="flex items-center gap-4">
-                  <div className="h-10 w-10 rounded-xl bg-primary/10 flex items-center justify-center text-primary">
-                    <Sparkles className="h-5 w-5" />
-                  </div>
-                  <div>
-                    <h4 className="text-xs font-bold text-foreground">Set as trip default</h4>
-                    <p className="text-[9px] font-medium text-muted-foreground">Always use this mode for {currentTrip?.name}</p>
-                  </div>
-                </div>
-                <Switch 
-                  checked={currentTrip?.defaultSplitType === formData.splitType}
-                  onCheckedChange={handleSetDefaultSplit}
-                  disabled={formData.splitType === 'just_me'}
-                />
-              </CardContent>
-            </Card>
 
             {(formData.splitType === 'equal_family' || formData.splitType === 'equal_person' || formData.splitType === 'custom') && (
               <div className="bg-white p-5 rounded-2xl border border-dashed border-primary/20 space-y-4">
