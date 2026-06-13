@@ -25,6 +25,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Card, CardContent } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
@@ -646,14 +647,14 @@ export default function AddExpenseWizard() {
                 </div>
 
                 <div className="grid grid-cols-2 gap-4">
-                  <div className="relative group">
+                  <div className="relative">
+                    <Calendar className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground/30 pointer-events-none" />
                     <Input 
                       type="date"
                       className="h-14 rounded-2xl pl-10 focus-visible:ring-primary shadow-sm text-sm font-semibold bg-white border-none text-foreground/80"
                       value={formData.date}
                       onChange={e => setFormData(prev => ({ ...prev, date: e.target.value }))}
                     />
-                    <Calendar className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground/30 pointer-events-none" />
                   </div>
                   <Select 
                     value={formData.paymentType} 
