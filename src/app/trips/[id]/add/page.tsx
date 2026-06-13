@@ -26,7 +26,6 @@ import {
   Camera,
   Plane,
   Box,
-  Sparkles,
   Settings,
   Trash2,
   Smartphone,
@@ -785,7 +784,7 @@ export default function AddExpenseWizard() {
                     </Label>
                     <Dialog open={isManagingCategories} onOpenChange={setIsManagingCategories}>
                       <DialogTrigger asChild>
-                        <Button variant="ghost" size="sm" className="h-7 px-2 text-[10px] font-bold text-primary hover:bg-primary/5">
+                        <Button variant="ghost" size="sm" className="h-7 px-2 text-[10px] font-medium text-muted-foreground/40 hover:bg-primary/5 hover:text-primary transition-colors">
                           <Settings className="h-3 w-3 mr-1" />
                           Manage
                         </Button>

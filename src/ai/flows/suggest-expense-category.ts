@@ -1,4 +1,3 @@
-
 'use server';
 /**
  * @fileOverview An AI agent that suggests expense categories based on expense descriptions.
@@ -29,6 +28,13 @@ export type SuggestExpenseCategoryOutput = z.infer<typeof SuggestExpenseCategory
 export async function suggestExpenseCategory(input: SuggestExpenseCategoryInput): Promise<SuggestExpenseCategoryOutput> {
   const maxRetries = 2;
   let attempt = 0;
+
+  // Pre-check for exact matches to speed up and improve reliability
+  const lowerDesc = input.description.toLowerCase();
+  const directMatch = input.availableCategories.find(cat => lowerDesc.includes(cat.toLowerCase()));
+  if (directMatch) {
+    return { category: directMatch };
+  }
 
   while (attempt <= maxRetries) {
     try {
@@ -65,9 +71,9 @@ Your goal is to look at a transaction description and pick the BEST matching cat
 
 RULES:
 1. You MUST ONLY pick a category from the provided list.
-2. If multiple categories could apply, pick the most specific one (e.g., "Safari" over "Sightseeing" or "Other").
-3. Semantic matching is key: "dinner", "pizza", "starbucks" -> "Food". "uber", "taxi", "gas" -> "Transport".
-4. If "Safari" is mentioned in the description and "Safari" is in the category list, you MUST pick "Safari".
+2. Direct Keywords: If a word in the description matches a category name EXACTLY (case-insensitive), you MUST pick that category. For example, if description is "Safari tour" and category "Safari" exists, pick "Safari".
+3. Semantic matching: "dinner", "pizza", "starbucks" -> "Food". "uber", "taxi", "gas" -> "Transport".
+4. If multiple categories could apply, pick the most specific one.
 5. If no clear match exists, default to "Other" if it's in the list.
 
 AVAILABLE CATEGORIES:
