@@ -37,7 +37,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Card, CardContent } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
@@ -610,9 +610,6 @@ export default function AddExpenseWizard() {
     );
   }
 
-  const selectedPaymentMethod = PAYMENT_METHODS.find(m => m.id === formData.paymentType);
-  const PaymentIcon = selectedPaymentMethod?.icon || CreditCard;
-
   return (
     <div className="max-w-md mx-auto min-h-screen bg-background flex flex-col">
       <header className="px-safe-pad py-6 flex items-center justify-between border-b bg-white sticky top-0 z-10">
@@ -744,7 +741,10 @@ export default function AddExpenseWizard() {
                     )} />
                     <Input 
                       type="date"
-                      className="h-14 rounded-2xl pl-10 focus-visible:ring-primary shadow-sm text-sm font-bold bg-white border-none text-foreground/80 relative"
+                      className={cn(
+                        "h-14 rounded-2xl pl-10 focus-visible:ring-primary shadow-sm text-sm font-bold bg-white border-none relative",
+                        formData.date ? "text-foreground/80" : "text-muted-foreground/40"
+                      )}
                       value={formData.date}
                       onChange={e => setFormData(prev => ({ ...prev, date: e.target.value }))}
                     />
@@ -753,14 +753,16 @@ export default function AddExpenseWizard() {
                     value={formData.paymentType} 
                     onValueChange={val => setFormData(prev => ({ ...prev, paymentType: val }))}
                   >
-                    <SelectTrigger className="h-14 rounded-2xl shadow-sm focus:ring-primary text-sm font-bold bg-white border-none text-foreground/80">
-                      <div className="flex items-center gap-2">
-                        <PaymentIcon className={cn(
-                          "h-4 w-4 transition-colors",
-                          formData.paymentType ? "text-foreground" : "text-muted-foreground/40"
-                        )} />
-                        <SelectValue placeholder="How did you pay?" />
-                      </div>
+                    <SelectTrigger className={cn(
+                      "h-14 rounded-2xl shadow-sm focus:ring-primary text-sm font-bold bg-white border-none",
+                      formData.paymentType ? "text-foreground/80" : "text-muted-foreground/40"
+                    )}>
+                      <SelectValue placeholder={
+                        <div className="flex items-center gap-2">
+                          <CreditCard className="h-4 w-4" />
+                          <span className="font-medium">How did you pay?</span>
+                        </div>
+                      } />
                     </SelectTrigger>
                     <SelectContent className="rounded-[1.5rem] border-none shadow-[0_20px_50px_rgba(0,0,0,0.1)] bg-white p-2">
                       {PAYMENT_METHODS.map((method) => (
