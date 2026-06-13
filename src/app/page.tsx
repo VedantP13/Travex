@@ -16,6 +16,27 @@ import { useUser, useFirestore } from "@/firebase";
 import { useEffect, useState } from "react";
 import { doc, onSnapshot, setDoc, serverTimestamp } from "firebase/firestore";
 
+// Custom MapPinPlus with filled inner circle for a premium feel
+const CustomMapPinPlus = ({ className }: { className?: string }) => (
+  <svg 
+    xmlns="http://www.w3.org/2000/svg" 
+    width="24" 
+    height="24" 
+    viewBox="0 0 24 24" 
+    fill="none" 
+    stroke="currentColor" 
+    strokeWidth="2" 
+    strokeLinecap="round" 
+    strokeLinejoin="round" 
+    className={className}
+  >
+    <path d="M9 22s-7-6-7-13a7 7 0 0 1 14 0c0 3.38-1.81 7.23-4.14 10.16"/>
+    <circle cx="9" cy="9" r="3" fill="currentColor" />
+    <path d="M16 18h6"/>
+    <path d="M19 15v6"/>
+  </svg>
+);
+
 export default function Home() {
   const { trips, loading, error } = useTrips();
   const { user } = useUser();
@@ -56,7 +77,7 @@ export default function Home() {
   return (
     <div className="max-w-md mx-auto min-h-screen flex flex-col bg-background pb-32">
       {/* Header */}
-      <header className="px-safe-pad pt-10 pb-12 bg-foreground text-background rounded-b-[2.5rem] shadow-2xl shadow-black/10">
+      <header className="px-safe-pad pt-10 pb-10 bg-foreground text-background rounded-b-[2.5rem] shadow-2xl shadow-black/10">
         <div className="flex justify-between items-center mb-10">
           <div className="flex items-center gap-4">
             <div className="h-12 w-12 bg-accent rounded-2xl flex items-center justify-center shadow-xl shadow-accent/20 transition-transform hover:scale-105">
@@ -130,7 +151,7 @@ export default function Home() {
       </header>
 
       {/* Dynamic Trip Spotlight */}
-      <section className="px-safe-pad -mt-10">
+      <section className="px-safe-pad -mt-8">
         <div className="grid grid-cols-12 gap-4 items-stretch">
           {activeTrip ? (
             <>
@@ -155,7 +176,7 @@ export default function Home() {
                 className="col-span-4 bg-white shadow-2xl rounded-[2rem] flex flex-col items-center justify-center p-6 transition-all duration-300 transform hover:-translate-y-1 active:scale-95 border-2 border-accent/10 group hover:bg-accent hover:border-accent"
               >
                 <div className="h-14 w-14 rounded-2xl bg-primary/5 flex items-center justify-center text-primary group-hover:bg-white/20 group-hover:text-white transition-all shadow-sm shrink-0 mb-3">
-                  <MapPinPlus className="h-7 w-7" />
+                  <CustomMapPinPlus className="h-7 w-7" />
                 </div>
                 <span className="text-[10px] font-bold tracking-tight text-foreground group-hover:text-white transition-colors text-center leading-tight">
                   New trip
@@ -168,7 +189,7 @@ export default function Home() {
               className="col-span-12 bg-white shadow-md hover:shadow-xl rounded-[2rem] flex items-center p-4 gap-4 transition-all duration-300 transform hover:-translate-y-1 active:scale-95 border border-primary/5 group hover:bg-accent hover:border-accent"
             >
               <div className="h-16 w-16 rounded-2xl bg-primary/5 flex items-center justify-center text-primary shrink-0 transition-all group-hover:bg-white/20 group-hover:text-white">
-                <MapPinPlus className="h-8 w-8" />
+                <CustomMapPinPlus className="h-8 w-8" />
               </div>
               <div className="flex-1 min-w-0">
                 <h3 className="text-lg font-bold text-foreground tracking-tight leading-tight group-hover:text-white">Create New Trip</h3>
@@ -185,8 +206,8 @@ export default function Home() {
       </section>
 
       {/* Recent Trips Section */}
-      <main className="px-safe-pad pt-12 space-y-6 flex-1">
-        <div className="flex justify-between items-center mb-2">
+      <main className="px-safe-pad pt-8 space-y-6 flex-1">
+        <div className="flex justify-between items-center mb-4">
           <h2 className="text-xl font-bold text-foreground tracking-tight">
             Recent trips
           </h2>

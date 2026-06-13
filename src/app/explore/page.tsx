@@ -11,15 +11,15 @@ import { PlaceHolderImages } from "@/lib/placeholder-images";
 import { BottomNav } from "@/components/bottom-nav";
 import Link from "next/link";
 
-const DESTINATIONS = [
-  { id: "trip-bali", name: "Bali, Indonesia", category: "Tropical", tag: "Most popular" },
-  { id: "trip-paris", name: "Paris, France", category: "Culture", tag: "Seasonal" },
-  { id: "trip-tokyo", name: "Tokyo, Japan", category: "Urban", tag: "Trending" },
-  { id: "trip-rome", name: "Rome, Italy", category: "History", tag: "Must visit" },
-];
-
 export default function ExplorePage() {
   const [searchQuery, setSearchQuery] = useState("");
+
+  const DESTINATIONS = [
+    { id: "trip-bali", name: "Bali, Indonesia", category: "Tropical", tag: "Most popular" },
+    { id: "trip-paris", name: "Paris, France", category: "Culture", tag: "Seasonal" },
+    { id: "trip-tokyo", name: "Tokyo, Japan", category: "Urban", tag: "Trending" },
+    { id: "trip-rome", name: "Rome, Italy", category: "History", tag: "Must visit" },
+  ];
 
   const filteredDestinations = DESTINATIONS.filter(dest => 
     dest.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -46,7 +46,7 @@ export default function ExplorePage() {
         </div>
       </header>
 
-      <main className="px-safe-pad pt-8 space-y-10">
+      <main className="px-safe-pad pt-8 space-y-8">
         {/* Featured Section */}
         <section className="space-y-6">
           <div className="flex justify-between items-center">

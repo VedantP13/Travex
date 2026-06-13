@@ -98,12 +98,10 @@ export default function FriendsPage() {
           snap = await getDocs(nameQ);
         }
 
-        // Filter out guests and self, and those without emails (additional guest safety)
         const initialResults = snap.docs
           .map(d => ({ id: d.id, ...d.data(), mutualCount: 0 }))
           .filter(u => u.id !== user?.uid && u.isAnonymous !== true && !!u.email);
         
-        // Smart Check: Find Mutual Friends
         if (friends.length > 0) {
           const resultsWithMutuals = await Promise.all(initialResults.map(async (resUser) => {
             let mutualCount = 0;
@@ -204,7 +202,7 @@ export default function FriendsPage() {
     if (!user?.uid || !firestore) return;
     try {
       await deleteDoc(doc(firestore, "users", user.uid, "friends", friendId));
-      await deleteDoc(doc(firestore, "users", friendId, "friends", user.uid));
+      await deleteDoc(doc(firestore, "friendId", "friends", user.uid));
       toast({ title: "Friend removed" });
     } catch (err) {
       console.error(err);
@@ -213,7 +211,7 @@ export default function FriendsPage() {
 
   return (
     <div className="max-w-md mx-auto min-h-screen bg-background pb-24">
-      <header className="px-safe-pad pt-12 pb-8 bg-white rounded-b-[2rem] shadow-sm">
+      <header className="px-safe-pad pt-12 pb-6 bg-white rounded-b-[2rem] shadow-sm">
         <h1 className="text-3xl font-bold text-foreground mb-6">Friends</h1>
         
         <div className="relative">
@@ -276,7 +274,7 @@ export default function FriendsPage() {
         )}
       </header>
 
-      <main className="px-safe-pad pt-8 space-y-8">
+      <main className="px-safe-pad pt-6 space-y-8">
         {requests.length > 0 && (
           <section className="space-y-4">
             <h2 className="text-xl font-bold text-foreground tracking-tight">Friend requests</h2>
