@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState, useEffect, useMemo, useRef } from "react";
@@ -37,7 +36,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
@@ -856,7 +855,7 @@ export default function AddExpenseWizard() {
                         >
                           <div className={cn(
                             "h-7 w-7 rounded-xl flex items-center justify-center transition-colors",
-                            isSelected ? "bg-primary text-white" : "bg-muted text-muted-foreground/50"
+                            isSelected ? "bg-primary text-white" : "text-muted-foreground/50"
                           )}>
                             <Icon className="h-4 w-4" />
                           </div>
