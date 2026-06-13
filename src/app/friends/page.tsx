@@ -2,7 +2,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Search, MoreVertical, User, UserX, UserPlus, Check, X, Loader2, Mail, Users as UsersIcon } from "lucide-react";
+import { Search, MoreVertical, User, UserX, UserPlus, Loader2, Mail, Users as UsersIcon } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -70,7 +70,7 @@ export default function FriendsPage() {
     return () => unsub();
   }, [user?.uid, firestore]);
 
-  // Search users with mutual friend prioritization and guest exclusion
+  // Search users
   useEffect(() => {
     const searchUsers = async () => {
       const qry = searchQuery.trim();
@@ -102,29 +102,7 @@ export default function FriendsPage() {
           .map(d => ({ id: d.id, ...d.data(), mutualCount: 0 }))
           .filter(u => u.id !== user?.uid && u.isAnonymous !== true && !!u.email);
         
-        if (friends.length > 0) {
-          const resultsWithMutuals = await Promise.all(initialResults.map(async (resUser) => {
-            let mutualCount = 0;
-            const checks = friends.slice(0, 5).map(async (friend) => {
-              const mutualDoc = await getDoc(doc(firestore, "users", friend.friendId, "friends", resUser.id));
-              if (mutualDoc.exists() && mutualDoc.data()?.status === 'accepted') {
-                return true;
-              }
-              return false;
-            });
-
-            const checkResults = await Promise.all(checks);
-            mutualCount = checkResults.filter(Boolean).length;
-            
-            return { ...resUser, mutualCount };
-          }));
-
-          resultsWithMutuals.sort((a, b) => b.mutualCount - a.mutualCount);
-          setSearchResults(resultsWithMutuals);
-        } else {
-          setSearchResults(initialResults);
-        }
-
+        setSearchResults(initialResults);
       } catch (err) {
         console.error("Search failed:", err);
       } finally {
@@ -134,7 +112,7 @@ export default function FriendsPage() {
 
     const timeoutId = setTimeout(searchUsers, 500);
     return () => clearTimeout(timeoutId);
-  }, [searchQuery, firestore, user?.uid, friends]);
+  }, [searchQuery, firestore, user?.uid]);
 
   const handleSendRequest = async (targetUser: any) => {
     if (!user?.uid || !firestore) return;
@@ -241,15 +219,7 @@ export default function FriendsPage() {
                       <AvatarFallback className="text-foreground">{result.displayName?.[0]}</AvatarFallback>
                     </Avatar>
                     <div className="min-w-0">
-                      <div className="flex items-center gap-2">
-                        <p className="font-bold text-sm truncate">{result.displayName}</p>
-                        {result.mutualCount > 0 && (
-                          <div className="flex items-center gap-1 bg-primary/10 text-primary px-2 py-0.5 rounded-full">
-                            <UsersIcon className="h-2 w-2" />
-                            <span className="text-[8px] font-bold uppercase tracking-tighter">{result.mutualCount} mutual</span>
-                          </div>
-                        )}
-                      </div>
+                      <p className="font-bold text-sm truncate">{result.displayName}</p>
                       <p className="text-[9px] text-muted-foreground font-medium flex items-center gap-1">
                         <Mail className="h-2 w-2" />
                         {result.email}
@@ -288,7 +258,7 @@ export default function FriendsPage() {
                         <AvatarFallback>{request.senderName[0]}</AvatarFallback>
                       </Avatar>
                       <div>
-                        <h3 className="font-bold text-sm">{request.senderName}</h3>
+                        <h3 className="font-bold text-sm text-foreground">{request.senderName}</h3>
                         <p className="text-[10px] text-muted-foreground font-bold">Wants to be friends</p>
                       </div>
                     </div>
@@ -332,7 +302,7 @@ export default function FriendsPage() {
                           <AvatarFallback>{friend.friendName[0]}</AvatarFallback>
                         </Avatar>
                         <div>
-                          <h3 className="font-bold text-base">{friend.friendName}</h3>
+                          <h3 className="font-bold text-base text-foreground">{friend.friendName}</h3>
                           <p className="text-[10px] font-bold text-muted-foreground flex items-center gap-1.5 mt-0.5">
                             <span className="h-2 w-2 rounded-full bg-green-500" />
                             Connected
@@ -370,7 +340,7 @@ export default function FriendsPage() {
                <div className="h-16 w-16 bg-muted/20 rounded-full flex items-center justify-center mx-auto mb-6">
                  <UserPlus className="h-7 w-7 text-muted-foreground/40" />
                </div>
-               <p className="text-lg font-bold text-foreground">No friends yet</p>
+               <h3 className="text-lg font-bold text-foreground">No friends yet</h3>
                <p className="text-sm text-muted-foreground mt-1 mb-8 leading-relaxed">Connect with your travel buddies to start splitting expenses.</p>
                <Button 
                 variant="default" 
