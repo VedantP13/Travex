@@ -19,7 +19,14 @@ import {
   Plus,
   Minus,
   Calculator,
-  Pin
+  Pin,
+  Utensils,
+  Car,
+  ShoppingBag,
+  Camera,
+  Plane,
+  Box,
+  Sparkles
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -45,6 +52,16 @@ const FAMILY_SCHEMES = [
   { border: "border-secondary", bg: "bg-secondary/5", text: "text-secondary", badge: "bg-secondary/10 text-secondary", darkBg: "bg-secondary/10", focus: "focus-visible:ring-secondary" },
   { border: "border-blue-500", bg: "bg-blue-500/5", text: "text-blue-500", badge: "bg-blue-500/10 text-blue-500", darkBg: "bg-blue-500/10", focus: "focus-visible:ring-blue-500" },
   { border: "border-green-500", bg: "bg-green-500/5", text: "text-green-500", badge: "bg-green-500/10 text-green-500", darkBg: "bg-green-500/10", focus: "focus-visible:ring-green-500" },
+];
+
+const PREDEFINED_CATEGORIES = [
+  { name: 'Food', icon: Utensils },
+  { name: 'Transport', icon: Car },
+  { name: 'Shopping', icon: ShoppingBag },
+  { name: 'Stay', icon: Home },
+  { name: 'Flights', icon: Plane },
+  { name: 'Sightseeing', icon: Camera },
+  { name: 'Other', icon: Box },
 ];
 
 export default function AddExpenseWizard() {
@@ -75,7 +92,7 @@ export default function AddExpenseWizard() {
     isItemized: false,
     date: new Date().toISOString().split('T')[0],
     paymentType: "UPI",
-    category: ""
+    category: "Other"
   });
 
   useEffect(() => {
@@ -203,11 +220,13 @@ export default function AddExpenseWizard() {
   }, [customSum, formData.isItemized]);
 
   const handleDescriptionBlur = async () => {
-    if (formData.description.length > 3 && !formData.category) {
+    if (formData.description.length > 3) {
       setIsAnalyzing(true);
       try {
         const result = await suggestExpenseCategory({ description: formData.description });
-        setFormData(prev => ({ ...prev, category: result.category }));
+        if (result.category) {
+          setFormData(prev => ({ ...prev, category: result.category }));
+        }
       } catch (e) {
         console.warn("AI categorization failed", e);
       } finally {
@@ -686,17 +705,52 @@ export default function AddExpenseWizard() {
                   </Select>
                 </div>
 
-                <div className="relative">
-                  <Tag className={cn(
-                    "absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 transition-colors",
-                    formData.category ? "text-foreground" : "text-muted-foreground/40"
-                  )} />
-                  <Input 
-                    placeholder="Category (e.g. Dining, Travel)"
-                    className="h-14 rounded-2xl pl-12 focus-visible:ring-primary shadow-sm text-sm font-bold bg-white border-none text-foreground/80 placeholder:text-muted-foreground/40 placeholder:font-medium"
-                    value={formData.category}
-                    onChange={e => setFormData(prev => ({ ...prev, category: e.target.value }))}
-                  />
+                {/* Category Selection */}
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between px-1">
+                    <Label className="text-[10px] font-bold text-muted-foreground/60 uppercase tracking-widest flex items-center gap-2">
+                      <Tag className="h-3 w-3" />
+                      Category
+                    </Label>
+                    {isAnalyzing && (
+                      <div className="flex items-center gap-1.5 animate-pulse">
+                        <Sparkles className="h-3 w-3 text-primary" />
+                        <span className="text-[8px] font-bold text-primary uppercase">Auto-assigning...</span>
+                      </div>
+                    )}
+                  </div>
+                  
+                  <div className="grid grid-cols-4 gap-2">
+                    {PREDEFINED_CATEGORIES.map((cat) => {
+                      const Icon = cat.icon;
+                      const isSelected = formData.category === cat.name;
+                      return (
+                        <Card 
+                          key={cat.name}
+                          className={cn(
+                            "p-2 rounded-2xl border-2 transition-all cursor-pointer flex flex-col items-center justify-center gap-1 group",
+                            isSelected 
+                              ? "border-primary bg-primary/5 shadow-sm" 
+                              : "border-transparent bg-white shadow-sm hover:border-muted/20"
+                          )}
+                          onClick={() => setFormData(prev => ({ ...prev, category: cat.name }))}
+                        >
+                          <div className={cn(
+                            "h-7 w-7 rounded-xl flex items-center justify-center transition-colors",
+                            isSelected ? "bg-primary text-white" : "bg-muted text-muted-foreground/50"
+                          )}>
+                            <Icon className="h-4 w-4" />
+                          </div>
+                          <span className={cn(
+                            "text-[8px] font-bold text-center leading-tight truncate w-full px-1",
+                            isSelected ? "text-foreground" : "text-muted-foreground"
+                          )}>
+                            {cat.name}
+                          </span>
+                        </Card>
+                      );
+                    })}
+                  </div>
                 </div>
               </div>
 
