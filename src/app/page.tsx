@@ -167,11 +167,8 @@ export default function Home() {
               href="/trips/new" 
               className="col-span-12 bg-white shadow-md hover:shadow-xl rounded-[2rem] flex items-center p-4 gap-4 transition-all duration-300 transform hover:-translate-y-1 active:scale-95 border border-primary/5 group"
             >
-              <div className="relative h-16 w-16 rounded-2xl bg-primary/5 flex items-center justify-center text-primary shrink-0 transition-all group-hover:bg-primary/10">
-                <Compass className="h-8 w-8" />
-                <div className="absolute -bottom-1 -right-1 h-6 w-6 bg-primary rounded-full border-2 border-white flex items-center justify-center shadow-sm">
-                  <Plus className="h-3 w-3 text-white" strokeWidth={3} />
-                </div>
+              <div className="h-16 w-16 rounded-2xl bg-primary/5 flex items-center justify-center text-primary shrink-0 transition-all group-hover:bg-primary/10">
+                <Map className="h-8 w-8 fill-primary/10" />
               </div>
               <div className="flex-1 min-w-0">
                 <h3 className="text-lg font-bold text-foreground tracking-tight leading-tight">Create New Trip</h3>
