@@ -46,7 +46,7 @@ export default function ExplorePage() {
         </div>
       </header>
 
-      <main className="px-safe-pad pt-8 space-y-8">
+      <main className="px-safe-pad pt-6 space-y-8">
         {/* Featured Section */}
         <section className="space-y-6">
           <div className="flex justify-between items-center">

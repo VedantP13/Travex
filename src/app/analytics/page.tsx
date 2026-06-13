@@ -1,3 +1,4 @@
+
 "use client";
 
 import { BarChart3, TrendingDown, TrendingUp, PieChart as PieChartIcon, Search } from "lucide-react";
@@ -23,7 +24,7 @@ export default function AnalyticsPage() {
         </p>
       </header>
 
-      <main className="px-safe-pad pt-8 space-y-6">
+      <main className="px-safe-pad pt-6 space-y-6">
         {!hasTrips ? (
           <div className="text-center py-20 space-y-4">
             <div className="h-20 w-20 bg-muted rounded-full flex items-center justify-center mx-auto opacity-20">

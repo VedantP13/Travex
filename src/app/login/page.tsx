@@ -60,7 +60,7 @@ export default function LoginPage() {
         toast({
           variant: "destructive",
           title: "Account already exists",
-          description: "This Google account is already linked to another Travex user.",
+          description: "This Google account is already linked to another Travex user. Please sign in directly with Google.",
         });
       } else if (error.code !== 'auth/popup-closed-by-user') {
         console.error('Login failed:', error);

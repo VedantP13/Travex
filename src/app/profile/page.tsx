@@ -221,7 +221,7 @@ export default function ProfilePage() {
         if (error.code === 'auth/unauthorized-domain') {
           errorMessage = "Domain not authorized. Please add authorized domains in Firebase Console.";
         } else if (error.code === 'auth/credential-already-in-use') {
-          errorMessage = "This Google account is already linked to another user.";
+          errorMessage = "This Google account is already linked to another Travex user. Please sign out and sign in with Google directly.";
         }
         toast({
           variant: "destructive",
@@ -299,10 +299,10 @@ export default function ProfilePage() {
         <Button variant="ghost" size="icon" onClick={() => router.back()} className="rounded-xl">
           <ArrowLeft className="h-6 w-6" />
         </Button>
-        <h1 className="text-xl font-bold tracking-tight">Profile</h1>
+        <h1 className="text-xl font-bold tracking-tight text-foreground">Profile</h1>
       </header>
 
-      <main className="px-safe-pad pt-8 space-y-10">
+      <main className="px-safe-pad pt-6 space-y-10">
         <section className="flex flex-col items-center gap-6">
           <div className="relative group cursor-pointer" onClick={() => setIsEditing(true)}>
             <Avatar className="h-28 w-28 border-[6px] border-white shadow-2xl ring-1 ring-black/5 transition-transform group-hover:scale-105 duration-300">

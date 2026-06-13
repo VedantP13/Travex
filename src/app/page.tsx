@@ -206,7 +206,7 @@ export default function Home() {
       </section>
 
       {/* Recent Trips Section */}
-      <main className="px-safe-pad pt-8 space-y-6 flex-1">
+      <main className="px-safe-pad pt-6 space-y-6 flex-1">
         <div className="flex justify-between items-center mb-4">
           <h2 className="text-xl font-bold text-foreground tracking-tight">
             Recent trips
