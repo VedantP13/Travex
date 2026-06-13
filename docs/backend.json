@@ -13,6 +13,11 @@
         "totalSpent": { "type": "number", "default": 0 },
         "yourBalance": { "type": "number", "default": 0 },
         "image": { "type": "string" },
+        "defaultSplitType": { 
+          "type": "string", 
+          "enum": ["equal_person", "equal_family", "custom", "just_me"],
+          "description": "The pre-selected split mode for new expenses in this trip."
+        },
         "participantIds": {
           "type": "array",
           "items": { "type": "string" },

@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useRef } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { 
   ChevronRight, 
@@ -21,9 +21,8 @@ import {
   Plus,
   Minus,
   Calculator,
-  Zap,
-  ShieldAlert,
-  LogIn
+  Settings,
+  Sparkles
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -34,20 +33,11 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-  DialogClose,
-} from "@/components/ui/dialog";
 import { suggestExpenseCategory } from "@/ai/flows/suggest-expense-category";
 import { useToast } from "@/hooks/use-toast";
 import { useFirestore, useUser } from "@/firebase";
 import { collection, addDoc, doc, updateDoc, increment, serverTimestamp, onSnapshot } from "firebase/firestore";
 import { useTrips } from "@/context/trips-context";
-import Link from "next/link";
 import { AnimatedCompass } from "@/components/animated-compass";
 import { errorEmitter } from "@/firebase/error-emitter";
 import { FirestorePermissionError } from "@/firebase/errors";
@@ -76,6 +66,7 @@ export default function AddExpenseWizard() {
   const [currentTrip, setCurrentTrip] = useState<any>(null);
   const [viewMode, setViewMode] = useState<'person' | 'family'>('person');
   const [expandedFamilies, setExpandedFamilies] = useState<Record<string, boolean>>({});
+  const isSplitTypeManuallyChanged = useRef(false);
   
   const [formData, setFormData] = useState({
     description: "",
@@ -106,17 +97,23 @@ export default function AddExpenseWizard() {
         
         // Find current user in participants to set as default payer
         const me = data.participants.find((p: any) => p.isUser && p.userId === user?.uid) || data.participants[0];
-        if (me && !formData.payerId) {
-          setFormData(prev => ({ 
-            ...prev, 
-            payerId: me.id,
-            payerName: me.name
-          }));
-        }
+        
+        setFormData(prev => {
+          const updates: any = {};
+          if (!prev.payerId && me) {
+            updates.payerId = me.id;
+            updates.payerName = me.name;
+          }
+          // Set default split type from trip if not manually changed by user in this session
+          if (data.defaultSplitType && !isSplitTypeManuallyChanged.current) {
+            updates.splitType = data.defaultSplitType;
+          }
+          return { ...prev, ...updates };
+        });
       }
     });
     return () => unsubscribe();
-  }, [selectedTripId, user, firestore, formData.payerId]);
+  }, [selectedTripId, user, firestore]);
 
   const familyList = useMemo(() => {
     if (!currentTrip?.participants) return [];
@@ -203,7 +200,8 @@ export default function AddExpenseWizard() {
     if (formData.isItemized) {
       setFormData(prev => ({ ...prev, splitType: 'custom' }));
     } else {
-      if (formData.splitType === 'equal_person') {
+      // By default, toggle select all for most modes when switched
+      if (formData.splitType === 'equal_person' || formData.splitType === 'custom') {
         setFormData(prev => ({ ...prev, selectedIndividuals: personList.map(t => t.id) }));
       } else if (formData.splitType === 'equal_family') {
         setFormData(prev => ({ ...prev, selectedIndividuals: familyList.map(p => p.id) }));
@@ -315,6 +313,23 @@ export default function AddExpenseWizard() {
     updateDoc(doc(firestore, "trips", selectedTripId), {
       totalSpent: increment(amount)
     }).catch(() => {});
+  };
+
+  const handleSetDefaultSplit = (checked: boolean) => {
+    if (!firestore || !selectedTripId) return;
+    
+    const newDefault = checked ? formData.splitType : null;
+    
+    updateDoc(doc(firestore, "trips", selectedTripId), {
+      defaultSplitType: newDefault
+    }).then(() => {
+      toast({
+        title: checked ? "Preference saved" : "Preference removed",
+        description: checked 
+          ? `${formData.splitType.replace('_', ' ')} is now your default for this trip.`
+          : "Pre-selection has been disabled for this trip."
+      });
+    }).catch(err => console.error("Failed to save default:", err));
   };
 
   const handleSplitLater = () => {
@@ -711,7 +726,10 @@ export default function AddExpenseWizard() {
                 <Card 
                   key={mode.id}
                   className={`p-4 rounded-2xl border-2 transition-all cursor-pointer flex flex-col gap-2 ${formData.splitType === mode.id ? 'border-primary bg-primary/5' : 'border-transparent shadow-sm'}`}
-                  onClick={() => setFormData(prev => ({ ...prev, splitType: mode.id }))}
+                  onClick={() => {
+                    isSplitTypeManuallyChanged.current = true;
+                    setFormData(prev => ({ ...prev, splitType: mode.id }));
+                  }}
                 >
                   <mode.icon className={`h-6 w-6 ${formData.splitType === mode.id ? 'text-primary' : 'text-muted-foreground'}`} />
                   <div className="mt-2">
@@ -721,6 +739,26 @@ export default function AddExpenseWizard() {
                 </Card>
               ))}
             </div>
+
+            {/* Trip Preferences Setting */}
+            <Card className="border-none shadow-sm bg-primary/5 rounded-[2rem] overflow-hidden border border-primary/20">
+              <CardContent className="p-5 flex items-center justify-between">
+                <div className="flex items-center gap-4">
+                  <div className="h-10 w-10 rounded-xl bg-primary/10 flex items-center justify-center text-primary">
+                    <Sparkles className="h-5 w-5" />
+                  </div>
+                  <div>
+                    <h4 className="text-xs font-bold text-foreground">Set as trip default</h4>
+                    <p className="text-[9px] font-medium text-muted-foreground">Always use this mode for {currentTrip?.name}</p>
+                  </div>
+                </div>
+                <Switch 
+                  checked={currentTrip?.defaultSplitType === formData.splitType}
+                  onCheckedChange={handleSetDefaultSplit}
+                  disabled={formData.splitType === 'just_me'}
+                />
+              </CardContent>
+            </Card>
 
             {(formData.splitType === 'equal_family' || formData.splitType === 'equal_person' || formData.splitType === 'custom') && (
               <div className="bg-white p-5 rounded-2xl border border-dashed border-primary/20 space-y-4">
