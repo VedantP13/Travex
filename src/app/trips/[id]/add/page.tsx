@@ -778,8 +778,7 @@ export default function AddExpenseWizard() {
                 {/* Category Selection */}
                 <div className="space-y-3">
                   <div className="flex items-center justify-between px-1">
-                    <Label className="text-[10px] font-bold text-muted-foreground/60 uppercase tracking-widest flex items-center gap-2">
-                      <Tag className="h-3 w-3" />
+                    <Label className="text-xs font-bold text-muted-foreground/80 ml-1">
                       Category
                     </Label>
                     <Dialog open={isManagingCategories} onOpenChange={setIsManagingCategories}>
@@ -873,7 +872,7 @@ export default function AddExpenseWizard() {
 
               {/* Payer Selection */}
               <div className="space-y-3">
-                <Label className="text-[10px] font-bold text-muted-foreground/60 uppercase tracking-widest ml-1">Who paid?</Label>
+                <Label className="text-xs font-bold text-muted-foreground/80 ml-1">Who paid?</Label>
                 <div className="grid grid-cols-2 gap-3">
                   {currentTrip?.participants?.map((p: any) => {
                     const isMe = p.isUser && p.userId === user?.uid;
