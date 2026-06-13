@@ -29,7 +29,10 @@ import {
   Box,
   Sparkles,
   Settings,
-  Trash2
+  Trash2,
+  Smartphone,
+  Banknote,
+  Globe
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -68,6 +71,13 @@ const DEFAULT_CATEGORIES = [
   { name: 'Other', icon: Box },
 ];
 
+const PAYMENT_METHODS = [
+  { id: 'UPI', label: 'UPI', icon: Smartphone },
+  { id: 'Cash', label: 'Cash', icon: Banknote },
+  { id: 'Card', label: 'Card', icon: CreditCard },
+  { id: 'Net Banking', label: 'Net Banking', icon: Globe },
+];
+
 export default function AddExpenseWizard() {
   const router = useRouter();
   const params = useParams();
@@ -99,7 +109,7 @@ export default function AddExpenseWizard() {
     customAmounts: {} as Record<string, string>,
     isItemized: false,
     date: new Date().toISOString().split('T')[0],
-    paymentType: "UPI",
+    paymentType: "",
     category: "Other"
   });
 
@@ -600,6 +610,9 @@ export default function AddExpenseWizard() {
     );
   }
 
+  const selectedPaymentMethod = PAYMENT_METHODS.find(m => m.id === formData.paymentType);
+  const PaymentIcon = selectedPaymentMethod?.icon || CreditCard;
+
   return (
     <div className="max-w-md mx-auto min-h-screen bg-background flex flex-col">
       <header className="px-safe-pad py-6 flex items-center justify-between border-b bg-white sticky top-0 z-10">
@@ -742,18 +755,22 @@ export default function AddExpenseWizard() {
                   >
                     <SelectTrigger className="h-14 rounded-2xl shadow-sm focus:ring-primary text-sm font-bold bg-white border-none text-foreground/80">
                       <div className="flex items-center gap-2">
-                        <CreditCard className={cn(
+                        <PaymentIcon className={cn(
                           "h-4 w-4 transition-colors",
                           formData.paymentType ? "text-foreground" : "text-muted-foreground/40"
                         )} />
-                        <SelectValue placeholder="Payment" />
+                        <SelectValue placeholder="How did you pay?" />
                       </div>
                     </SelectTrigger>
                     <SelectContent className="rounded-[1.5rem] border-none shadow-[0_20px_50px_rgba(0,0,0,0.1)] bg-white p-2">
-                      <SelectItem value="UPI" className="rounded-xl font-bold py-3 text-xs">UPI</SelectItem>
-                      <SelectItem value="Cash" className="rounded-xl font-bold py-3 text-xs">Cash</SelectItem>
-                      <SelectItem value="Card" className="rounded-xl font-bold py-3 text-xs">Card</SelectItem>
-                      <SelectItem value="Net Banking" className="rounded-xl font-bold py-3 text-xs">Net Banking</SelectItem>
+                      {PAYMENT_METHODS.map((method) => (
+                        <SelectItem key={method.id} value={method.id} className="rounded-xl font-bold py-3 text-xs">
+                          <div className="flex items-center gap-2">
+                            <method.icon className="h-3.5 w-3.5" />
+                            {method.label}
+                          </div>
+                        </SelectItem>
+                      ))}
                     </SelectContent>
                   </Select>
                 </div>
