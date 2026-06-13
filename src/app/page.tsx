@@ -2,7 +2,7 @@
 "use client";
 
 import Link from "next/link";
-import { Plus, ChevronRight, Compass, Map, Users, Wifi, ShieldAlert } from "lucide-react";
+import { Plus, ChevronRight, Compass, MapPinPlus, Users, Wifi, ShieldAlert } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -121,9 +121,9 @@ export default function Home() {
             </div>
           </div>
         ) : (
-          <div className="animate-in fade-in slide-in-from-bottom-2 duration-500 py-1">
-            <p className="text-sm font-medium text-white/50 leading-snug">
-              Ready for your next journey?
+          <div className="animate-in fade-in slide-in-from-bottom-2 duration-500 py-2">
+            <p className="text-sm font-medium text-white/50 leading-relaxed">
+              Welcome to Travex. Start by creating a trip group to split expenses.
             </p>
           </div>
         )}
@@ -138,7 +138,7 @@ export default function Home() {
                 <div>
                   <div className="flex items-center gap-2 mb-3">
                     <span className="h-2 w-2 rounded-full bg-accent animate-pulse" />
-                    <span className="text-[10px] font-extrabold opacity-80 uppercase tracking-wider">Ongoing: {activeTrip.name}</span>
+                    <span className="text-[10px] font-extrabold opacity-80 uppercase tracking-wider truncate">Active: {activeTrip.name}</span>
                   </div>
                   <p className="text-2xl font-bold">₹{(activeTrip.totalSpent || 0).toFixed(2)} spent</p>
                   <p className="text-[11px] opacity-70 mt-1 font-semibold">{(activeTrip.participants?.length || 0)} friends splitting</p>
@@ -155,9 +155,9 @@ export default function Home() {
                 className="col-span-4 bg-white shadow-2xl rounded-[2rem] flex flex-col items-center justify-center p-6 transition-all duration-300 transform hover:-translate-y-1 active:scale-95 border-2 border-accent/10 group hover:bg-accent hover:border-accent"
               >
                 <div className="h-14 w-14 rounded-2xl bg-primary/5 flex items-center justify-center text-primary group-hover:bg-white/20 group-hover:text-white transition-all shadow-sm shrink-0 mb-3">
-                  <Plus className="h-8 w-8" />
+                  <MapPinPlus className="h-7 w-7" />
                 </div>
-                <span className="text-xs font-bold tracking-tight text-foreground group-hover:text-white transition-colors text-center leading-tight">
+                <span className="text-[10px] font-bold tracking-tight text-foreground group-hover:text-white transition-colors text-center leading-tight">
                   New trip
                 </span>
               </Link>
@@ -165,18 +165,18 @@ export default function Home() {
           ) : (
             <Link 
               href="/trips/new" 
-              className="col-span-12 bg-white shadow-md hover:shadow-xl rounded-[2rem] flex items-center p-4 gap-4 transition-all duration-300 transform hover:-translate-y-1 active:scale-95 border border-primary/5 group"
+              className="col-span-12 bg-white shadow-md hover:shadow-xl rounded-[2rem] flex items-center p-4 gap-4 transition-all duration-300 transform hover:-translate-y-1 active:scale-95 border border-primary/5 group hover:bg-accent hover:border-accent"
             >
-              <div className="h-16 w-16 rounded-2xl bg-primary/5 flex items-center justify-center text-primary shrink-0 transition-all group-hover:bg-primary/10">
-                <Map className="h-8 w-8 fill-primary/10" />
+              <div className="h-16 w-16 rounded-2xl bg-primary/5 flex items-center justify-center text-primary shrink-0 transition-all group-hover:bg-white/20 group-hover:text-white">
+                <MapPinPlus className="h-8 w-8" />
               </div>
               <div className="flex-1 min-w-0">
-                <h3 className="text-lg font-bold text-foreground tracking-tight leading-tight">Create New Trip</h3>
-                <p className="text-xs text-muted-foreground font-medium mt-0.5 line-clamp-2">
-                  Plan trips and split expenses effortlessly with friends
+                <h3 className="text-lg font-bold text-foreground tracking-tight leading-tight group-hover:text-white">Create New Trip</h3>
+                <p className="text-xs text-muted-foreground font-medium mt-0.5 line-clamp-2 group-hover:text-white/70">
+                  Plan journeys and split expenses effortlessly
                 </p>
               </div>
-              <div className="h-10 w-10 rounded-full bg-primary flex items-center justify-center text-white shadow-sm transition-transform group-hover:translate-x-1 shrink-0">
+              <div className="h-10 w-10 rounded-full bg-primary flex items-center justify-center text-white shadow-sm transition-transform group-hover:translate-x-1 shrink-0 group-hover:bg-white group-hover:text-accent">
                 <ChevronRight className="h-5 w-5" />
               </div>
             </Link>
@@ -205,7 +205,6 @@ export default function Home() {
         ) : error ? (
            <div className="text-center py-20 bg-destructive/5 rounded-[2rem] border-2 border-dashed border-destructive/20 px-8">
              <p className="text-sm font-bold text-destructive">Could not load trips</p>
-             <p className="text-[10px] text-muted-foreground mt-1">Check your connection or Firebase config.</p>
              <Button 
                variant="outline" 
                className="mt-4 rounded-xl font-bold text-xs" 
