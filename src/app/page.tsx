@@ -47,8 +47,8 @@ export default function Home() {
   const displayPhoto = firestoreProfile?.photoURL || user?.photoURL || "";
   const welcomeName = firestoreProfile?.displayName || user?.displayName;
   const greeting = welcomeName 
-    ? `Welcome back, ${welcomeName.split(' ')[0]}` 
-    : (isAnonymous ? 'Guest Explorer' : 'Welcome back, Explorer');
+    ? `Hi, ${welcomeName.split(' ')[0]}` 
+    : (isAnonymous ? 'Guest' : 'Explorer');
   
   const displayNameForFallback = welcomeName || (isAnonymous ? "Guest" : "User");
 
@@ -81,7 +81,7 @@ export default function Home() {
                     className="flex items-center gap-1.5 px-2.5 py-1 bg-accent/15 hover:bg-accent/25 border border-accent/20 rounded-full transition-all group animate-in fade-in slide-in-from-left-2 duration-700"
                   >
                     <ShieldAlert className="h-2.5 w-2.5 text-accent" />
-                    <span className="text-[8px] font-extrabold text-accent uppercase tracking-widest">Link Account</span>
+                    <span className="text-[8px] font-extrabold text-accent uppercase tracking-widest text-nowrap">Link Account</span>
                   </Link>
                 )}
               </div>
@@ -120,10 +120,10 @@ export default function Home() {
             </div>
           </div>
         ) : (
-          <div className="bg-white/5 backdrop-blur-md p-6 rounded-3xl border border-white/10 animate-in fade-in slide-in-from-bottom-2 duration-500">
-            <p className="text-xs font-medium text-white/80 leading-relaxed italic">
-              "Travel is the only thing you buy that makes you richer." 
-              Start your first trip group to begin tracking shared expenses and settled balances.
+          <div className="animate-in fade-in slide-in-from-bottom-2 duration-500 py-1">
+            <p className="text-sm font-medium text-white/50 leading-snug">
+              Ready for your next journey?<br />
+              <span className="text-accent">Create a group to start splitting.</span>
             </p>
           </div>
         )}
@@ -132,49 +132,54 @@ export default function Home() {
       {/* Dynamic Trip Spotlight */}
       <section className="px-safe-pad -mt-10">
         <div className="grid grid-cols-12 gap-4 items-stretch">
-          {activeTrip && (
-            <Card className="col-span-8 border-none shadow-2xl bg-primary text-primary-foreground rounded-[2rem] p-6 flex flex-col justify-between group transition-all hover:translate-y-[-2px]">
-              <div>
-                <div className="flex items-center gap-2 mb-3">
-                  <span className="h-2 w-2 rounded-full bg-accent animate-pulse" />
-                  <span className="text-[10px] font-extrabold opacity-80 uppercase tracking-wider">Ongoing: {activeTrip.name}</span>
+          {activeTrip ? (
+            <>
+              <Card className="col-span-8 border-none shadow-2xl bg-primary text-primary-foreground rounded-[2rem] p-6 flex flex-col justify-between group transition-all hover:translate-y-[-2px]">
+                <div>
+                  <div className="flex items-center gap-2 mb-3">
+                    <span className="h-2 w-2 rounded-full bg-accent animate-pulse" />
+                    <span className="text-[10px] font-extrabold opacity-80 uppercase tracking-wider">Ongoing: {activeTrip.name}</span>
+                  </div>
+                  <p className="text-2xl font-bold">₹{(activeTrip.totalSpent || 0).toFixed(2)} spent</p>
+                  <p className="text-[11px] opacity-70 mt-1 font-semibold">{(activeTrip.participants?.length || 0)} friends splitting</p>
                 </div>
-                <p className="text-2xl font-bold">₹{(activeTrip.totalSpent || 0).toFixed(2)} spent</p>
-                <p className="text-[11px] opacity-70 mt-1 font-semibold">{(activeTrip.participants?.length || 0)} friends splitting</p>
-              </div>
+                <Link 
+                  href={`/trips/${activeTrip.id}/add`} 
+                  className="mt-8 flex items-center gap-2 text-xs font-bold text-accent hover:opacity-80 transition-opacity"
+                >
+                  Add expense <ChevronRight className="h-4 w-4" />
+                </Link>
+              </Card>
               <Link 
-                href={`/trips/${activeTrip.id}/add`} 
-                className="mt-8 flex items-center gap-2 text-xs font-bold text-accent hover:opacity-80 transition-opacity"
+                href="/trips/new" 
+                className="col-span-4 bg-white shadow-2xl rounded-[2rem] flex flex-col items-center justify-center p-6 transition-all duration-300 transform hover:-translate-y-1 active:scale-95 border-2 border-accent/10 group hover:bg-accent hover:border-accent"
               >
-                Add expense <ChevronRight className="h-4 w-4" />
+                <div className="h-14 w-14 rounded-2xl bg-primary/5 flex items-center justify-center text-primary group-hover:bg-white/20 group-hover:text-white transition-all shadow-sm shrink-0 mb-3">
+                  <Plus className="h-8 w-8" />
+                </div>
+                <span className="text-xs font-bold tracking-tight text-foreground group-hover:text-white transition-colors text-center leading-tight">
+                  New trip
+                </span>
               </Link>
-            </Card>
-          )}
-          
-          <Link 
-            href="/trips/new" 
-            className={cn(
-              "bg-white shadow-2xl rounded-[2rem] flex items-center justify-center p-6 transition-all duration-300 transform hover:-translate-y-1 active:scale-95 border-2 border-accent/10 group hover:bg-accent hover:border-accent",
-              activeTrip ? "col-span-4 flex-col gap-3" : "col-span-12 py-7 flex-row gap-5"
-            )}
-          >
-            <div className={cn(
-              "rounded-2xl bg-primary/5 flex items-center justify-center text-primary group-hover:bg-white/20 group-hover:text-white transition-all shadow-sm shrink-0",
-              activeTrip ? "h-14 w-14" : "h-12 w-12"
-            )}>
-              <Plus className={activeTrip ? "h-8 w-8" : "h-7 w-7"} />
-            </div>
-            <div className={cn("flex flex-col", activeTrip ? "text-center" : "text-left")}>
-              <span className="text-sm font-bold tracking-tight text-foreground group-hover:text-white transition-colors leading-tight">
-                {activeTrip ? "New trip" : "Start a new adventure"}
-              </span>
-              {!activeTrip && (
+            </>
+          ) : (
+            <Link 
+              href="/trips/new" 
+              className="col-span-12 bg-white shadow-2xl rounded-[2rem] flex items-center justify-center p-6 transition-all duration-300 transform hover:-translate-y-1 active:scale-95 border-2 border-accent/10 group hover:bg-accent hover:border-accent py-8 flex-row gap-6"
+            >
+              <div className="h-12 w-12 rounded-2xl bg-primary/5 flex items-center justify-center text-primary group-hover:bg-white/20 group-hover:text-white transition-all shadow-sm shrink-0">
+                <Plus className="h-7 w-7" />
+              </div>
+              <div className="flex flex-col">
+                <span className="text-base font-bold tracking-tight text-foreground group-hover:text-white transition-colors leading-tight">
+                  Start a new adventure
+                </span>
                 <span className="text-[10px] text-muted-foreground font-medium group-hover:text-white/70 transition-colors mt-0.5">
                   Split expenses effortlessly with friends
                 </span>
-              )}
-            </div>
-          </Link>
+              </div>
+            </Link>
+          )}
         </div>
       </section>
 
