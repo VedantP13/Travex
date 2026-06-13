@@ -1,4 +1,3 @@
-
 "use client";
 
 import Link from "next/link";
@@ -140,15 +139,15 @@ export default function Home() {
           <Link 
             href="/trips/new" 
             className={cn(
-              "bg-white shadow-2xl rounded-[2rem] flex items-center justify-center p-6 transition-all duration-300 transform hover:-translate-y-1 active:scale-95 border-2 border-accent/10 group",
-              activeTrip ? "col-span-4 flex-col gap-3" : "col-span-12 py-8 flex-row gap-6"
+              "bg-white shadow-2xl rounded-[2rem] flex items-center justify-center p-6 transition-all duration-300 transform hover:-translate-y-1 active:scale-95 border-2 border-accent/10 group hover:bg-accent hover:border-accent",
+              activeTrip ? "col-span-4 flex-col gap-3" : "col-span-12 py-7 flex-row gap-5"
             )}
           >
             <div className={cn(
               "rounded-2xl bg-primary/5 flex items-center justify-center text-primary group-hover:bg-white/20 group-hover:text-white transition-all shadow-sm shrink-0",
-              activeTrip ? "h-14 w-14" : "h-14 w-14"
+              activeTrip ? "h-14 w-14" : "h-12 w-12"
             )}>
-              <Plus className={activeTrip ? "h-8 w-8" : "h-8 w-8"} />
+              <Plus className={activeTrip ? "h-8 w-8" : "h-7 w-7"} />
             </div>
             <div className={cn("flex flex-col", activeTrip ? "text-center" : "text-left")}>
               <span className="text-sm font-bold tracking-tight text-foreground group-hover:text-white transition-colors leading-tight">
