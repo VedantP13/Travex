@@ -366,15 +366,15 @@ export default function FriendsPage() {
               })}
             </div>
           ) : (
-            <div className="text-center py-16 bg-white rounded-3xl border-2 border-dashed border-muted/50">
+            <div className="text-center py-16 bg-white rounded-3xl border-2 border-dashed border-muted/50 px-10">
                <div className="h-16 w-16 bg-muted/20 rounded-full flex items-center justify-center mx-auto mb-6">
                  <UserPlus className="h-7 w-7 text-muted-foreground/40" />
                </div>
                <p className="text-lg font-bold text-foreground">No friends yet</p>
-               <p className="text-sm text-muted-foreground mt-1 mb-6 px-10 leading-relaxed">Connect with your travel buddies to start splitting expenses.</p>
+               <p className="text-sm text-muted-foreground mt-1 mb-8 leading-relaxed">Connect with your travel buddies to start splitting expenses.</p>
                <Button 
-                variant="outline" 
-                className="rounded-2xl px-8 h-12 font-bold border-primary text-primary hover:bg-primary/5"
+                variant="default" 
+                className="font-bold rounded-2xl px-10 h-14 shadow-xl shadow-primary/20 bg-primary hover:bg-primary/90 transition-transform hover:scale-105"
                 onClick={() => document.querySelector('input')?.focus()}
               >
                  Find a friend
