@@ -97,7 +97,6 @@ export default function AddExpenseWizard() {
         const data = snapshot.data();
         setCurrentTrip({ id: snapshot.id, ...data });
         
-        // Find current user in participants to set as default payer
         const me = data.participants.find((p: any) => p.isUser && p.userId === user?.uid) || data.participants[0];
         
         setFormData(prev => {
@@ -106,7 +105,6 @@ export default function AddExpenseWizard() {
             updates.payerId = me.id;
             updates.payerName = me.name;
           }
-          // Set default split type from trip if not manually changed by user in this session
           if (data.defaultSplitType && !isSplitTypeManuallyChanged.current) {
             updates.splitType = data.defaultSplitType;
           }
@@ -202,12 +200,8 @@ export default function AddExpenseWizard() {
     if (formData.isItemized) {
       setFormData(prev => ({ ...prev, splitType: 'custom' }));
     } else {
-      // By default, toggle select all for most modes when switched
-      if (formData.splitType === 'equal_person' || formData.splitType === 'custom') {
+      if (formData.splitType === 'equal_person' || formData.splitType === 'custom' || formData.splitType === 'equal_family') {
         setFormData(prev => ({ ...prev, selectedIndividuals: personList.map(t => t.id) }));
-      } else if (formData.splitType === 'equal_family') {
-        // Correctly toggle all participants for the family view to ensure the UI shows all as selected
-        setFormData(prev => ({ ...prev, selectedIndividuals: personList.map(p => p.id) }));
       } else if (formData.splitType === 'just_me') {
         setFormData(prev => ({ ...prev, selectedIndividuals: [formData.payerId] }));
       }
@@ -248,22 +242,12 @@ export default function AddExpenseWizard() {
         toast({ title: "Enter a description", variant: "destructive" });
         return;
       }
-      if (formData.isItemized) {
-        setStep(3);
-      } else {
-        setStep(2);
-      }
-    } else {
-      setStep(prev => Math.min(prev + 1, 3));
+      setStep(2);
     }
   };
 
   const prevStep = () => {
-    if (step === 3 && formData.isItemized) {
-      setStep(1);
-    } else {
-      setStep(prev => Math.max(prev - 1, 1));
-    }
+    setStep(prev => Math.max(prev - 1, 1));
   };
 
   const handlePostExpense = (overrideSplitType?: string) => {
@@ -567,10 +551,10 @@ export default function AddExpenseWizard() {
           <ChevronLeft className="h-6 w-6" />
         </Button>
         <div className="flex gap-2">
-          {[1, 2, 3].map(s => (
+          {[1, 2].map(s => (
             <div 
               key={s} 
-              className={`h-1.5 w-12 rounded-full transition-all duration-300 ${s <= step || (step === 3 && s === 2 && formData.isItemized) ? 'bg-primary' : 'bg-muted'}`}
+              className={`h-1.5 w-12 rounded-full transition-all duration-300 ${s <= step ? 'bg-primary' : 'bg-muted'}`}
             />
           ))}
         </div>
@@ -584,7 +568,7 @@ export default function AddExpenseWizard() {
           <div className="space-y-8 animate-in fade-in slide-in-from-right-4 duration-300">
             <div className="space-y-3">
               <div className="flex justify-between items-center">
-                <h1 className="text-2xl font-bold">Amount</h1>
+                <h1 className="text-2xl font-bold">Details</h1>
                 <Select value={selectedTripId} onValueChange={(val) => setSelectedTripId(val)}>
                   <SelectTrigger className="w-auto min-w-[140px] h-10 rounded-2xl border-2 border-primary/10 bg-white text-foreground font-bold text-xs hover:border-primary/30 hover:bg-primary/5 transition-all shadow-sm focus:ring-0 px-4">
                     <div className="flex items-center gap-2">
@@ -607,6 +591,7 @@ export default function AddExpenseWizard() {
             </div>
 
             <div className="space-y-6">
+              {/* Amount Input */}
               <div className="relative">
                 <span className="absolute left-4 top-1/2 -translate-y-1/2 text-3xl font-bold text-muted-foreground">₹</span>
                 <Input 
@@ -663,20 +648,63 @@ export default function AddExpenseWizard() {
                 </div>
               )}
 
-              <div className="relative">
-                <AlignLeft className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground/50" />
-                <Input 
-                  placeholder="What was it for?"
-                  className="h-16 text-lg rounded-2xl pl-12 pr-4 focus-visible:ring-primary shadow-sm"
-                  value={formData.description}
-                  onChange={e => setFormData(prev => ({ ...prev, description: e.target.value }))}
-                  onBlur={handleDescriptionBlur}
-                />
-                {isAnalyzing && <Loader2 className="absolute right-4 top-1/2 -translate-y-1/2 h-4 w-4 animate-spin text-primary" />}
+              {/* Description & Metadata */}
+              <div className="space-y-4">
+                <div className="relative">
+                  <AlignLeft className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground/50" />
+                  <Input 
+                    placeholder="What was it for?"
+                    className="h-16 text-lg rounded-2xl pl-12 pr-4 focus-visible:ring-primary shadow-sm"
+                    value={formData.description}
+                    onChange={e => setFormData(prev => ({ ...prev, description: e.target.value }))}
+                    onBlur={handleDescriptionBlur}
+                  />
+                  {isAnalyzing && <Loader2 className="absolute right-4 top-1/2 -translate-y-1/2 h-4 w-4 animate-spin text-primary" />}
+                </div>
+
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="relative">
+                    <Input 
+                      type="date"
+                      className="h-14 rounded-2xl pl-10 focus-visible:ring-primary shadow-sm text-xs font-bold"
+                      value={formData.date}
+                      onChange={e => setFormData(prev => ({ ...prev, date: e.target.value }))}
+                    />
+                    <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                  </div>
+                  <Select 
+                    value={formData.paymentType} 
+                    onValueChange={val => setFormData(prev => ({ ...prev, paymentType: val }))}
+                  >
+                    <SelectTrigger className="h-14 rounded-2xl shadow-sm focus:ring-primary text-xs font-bold">
+                      <div className="flex items-center gap-2">
+                        <CreditCard className="h-4 w-4 text-muted-foreground" />
+                        <SelectValue placeholder="Payment" />
+                      </div>
+                    </SelectTrigger>
+                    <SelectContent className="rounded-xl border-none shadow-xl">
+                      <SelectItem value="UPI">UPI</SelectItem>
+                      <SelectItem value="Cash">Cash</SelectItem>
+                      <SelectItem value="Card">Card</SelectItem>
+                      <SelectItem value="Net Banking">Net Banking</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="relative">
+                  <Tag className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                  <Input 
+                    placeholder="Category (e.g. Dining, Travel)"
+                    className="h-14 rounded-2xl pl-12 focus-visible:ring-primary shadow-sm text-xs font-bold"
+                    value={formData.category}
+                    onChange={e => setFormData(prev => ({ ...prev, category: e.target.value }))}
+                  />
+                </div>
               </div>
 
+              {/* Payer Selection */}
               <div className="space-y-3">
-                <Label className="text-sm font-bold text-muted-foreground ml-1">Who paid?</Label>
+                <Label className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider ml-1">Who paid?</Label>
                 <div className="grid grid-cols-2 gap-3">
                   {currentTrip?.participants?.map((p: any) => {
                     const isMe = p.isUser && p.userId === user?.uid;
@@ -690,7 +718,7 @@ export default function AddExpenseWizard() {
                           <AvatarImage src={p.avatar} />
                           <AvatarFallback>{p.name?.[0]}</AvatarFallback>
                         </Avatar>
-                        <span className="font-bold text-sm truncate">{isMe ? "You" : p.name}</span>
+                        <span className="font-bold text-xs truncate">{isMe ? "You" : p.name}</span>
                       </Card>
                     );
                   })}
@@ -802,66 +830,6 @@ export default function AddExpenseWizard() {
             )}
           </div>
         )}
-
-        {step === 3 && (
-          <div className="space-y-8 animate-in fade-in slide-in-from-right-4 duration-300">
-            <div className="space-y-2">
-              <h1 className="text-2xl font-bold">Details</h1>
-              <p className="text-muted-foreground">Finalize date and category.</p>
-            </div>
-
-            <div className="space-y-6">
-              <div className="space-y-3">
-                <Label className="text-sm font-bold text-muted-foreground ml-1">Date</Label>
-                <div className="relative">
-                  <Input 
-                    type="date"
-                    className="h-14 rounded-2xl pl-12 focus-visible:ring-primary shadow-sm"
-                    value={formData.date}
-                    onChange={e => setFormData(prev => ({ ...prev, date: e.target.value }))}
-                  />
-                  <Calendar className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
-                </div>
-              </div>
-
-              <div className="space-y-3">
-                <Label className="text-sm font-bold text-muted-foreground ml-1">Payment type</Label>
-                <div className="relative">
-                  <Select 
-                    value={formData.paymentType} 
-                    onValueChange={val => setFormData(prev => ({ ...prev, paymentType: val }))}
-                  >
-                    <SelectTrigger className="h-14 rounded-2xl shadow-sm focus:ring-primary">
-                      <div className="flex items-center gap-3">
-                        <CreditCard className="h-5 w-5 text-muted-foreground" />
-                        <SelectValue placeholder="Payment method" />
-                      </div>
-                    </SelectTrigger>
-                    <SelectContent className="rounded-xl border-none shadow-xl">
-                      <SelectItem value="UPI">UPI (GPay/PhonePe)</SelectItem>
-                      <SelectItem value="Cash">Cash</SelectItem>
-                      <SelectItem value="Card">Credit/Debit Card</SelectItem>
-                      <SelectItem value="Net Banking">Net Banking</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
-
-              <div className="space-y-3">
-                <Label className="text-sm font-bold text-muted-foreground ml-1">Category tags</Label>
-                <div className="relative">
-                  <Input 
-                    placeholder="e.g. Dining, Travel"
-                    className="h-14 rounded-2xl pl-12 focus-visible:ring-primary shadow-sm"
-                    value={formData.category}
-                    onChange={e => setFormData(prev => ({ ...prev, category: e.target.value }))}
-                  />
-                  <Tag className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
       </main>
 
       <footer className="p-safe-pad border-t bg-white fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-md z-20">
@@ -881,7 +849,7 @@ export default function AddExpenseWizard() {
               "h-14 rounded-2xl text-lg font-bold shadow-lg shadow-primary/20 flex items-center justify-center gap-2",
               step === 1 ? "flex-1" : "w-full"
             )}
-            onClick={step === 3 ? handlePostExpense : nextStep}
+            onClick={step === 2 ? () => handlePostExpense() : nextStep}
             disabled={isPosting || (step === 1 && !formData.isItemized && !formData.amount)}
           >
             {isPosting ? (
@@ -891,8 +859,8 @@ export default function AddExpenseWizard() {
               </>
             ) : (
               <>
-                {step === 1 ? "Split now" : step === 3 ? "Post expense" : "Next step"}
-                {step !== 3 && <ChevronRight className="h-5 w-5" />}
+                {step === 1 ? "Next Step" : "Post Expense"}
+                {step === 1 && <ChevronRight className="h-5 w-5" />}
               </>
             )}
           </Button>
