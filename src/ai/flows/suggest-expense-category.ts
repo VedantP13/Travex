@@ -1,3 +1,4 @@
+
 'use server';
 /**
  * @fileOverview An AI agent that suggests expense categories based on expense descriptions.
@@ -29,8 +30,25 @@ export async function suggestExpenseCategory(input: SuggestExpenseCategoryInput)
   const maxRetries = 2;
   let attempt = 0;
 
-  // Pre-check for exact matches to speed up and improve reliability
+  // Pre-check for exact matches or common keywords to speed up and improve reliability
   const lowerDesc = input.description.toLowerCase();
+  
+  // Quick keyword map for common travel scenarios
+  const keywordMap: Record<string, string> = {
+    'lunch': 'Food', 'dinner': 'Food', 'breakfast': 'Food', 'coffee': 'Food', 'starbucks': 'Food', 'pizza': 'Food', 'restaurant': 'Food', 'cafe': 'Food', 'burger': 'Food',
+    'uber': 'Transport', 'taxi': 'Transport', 'gas': 'Transport', 'petrol': 'Transport', 'fuel': 'Transport', 'bus': 'Transport', 'train': 'Transport', 'metro': 'Transport',
+    'hotel': 'Stay', 'airbnb': 'Stay', 'hostel': 'Stay', 'resort': 'Stay',
+    'flight': 'Flights', 'airline': 'Flights', 'ticket': 'Flights',
+    'safari': 'Safari', 'zoo': 'Sightseeing', 'museum': 'Sightseeing', 'tour': 'Sightseeing'
+  };
+
+  for (const [kw, cat] of Object.entries(keywordMap)) {
+    if (lowerDesc.includes(kw) && input.availableCategories.includes(cat)) {
+      return { category: cat };
+    }
+  }
+
+  // Exact matches
   const directMatch = input.availableCategories.find(cat => lowerDesc.includes(cat.toLowerCase()));
   if (directMatch) {
     return { category: directMatch };
@@ -54,7 +72,6 @@ export async function suggestExpenseCategory(input: SuggestExpenseCategoryInput)
       }
 
       console.warn('AI categorization failed:', errorMessage);
-      // Neutral fallback instead of first item to avoid misleading users
       return { category: input.availableCategories.includes("Other") ? "Other" : input.availableCategories[0] || "Other" };
     }
   }
@@ -71,9 +88,15 @@ Your goal is to look at a transaction description and pick the BEST matching cat
 
 RULES:
 1. You MUST ONLY pick a category from the provided list.
-2. Direct Keywords: If a word in the description matches a category name EXACTLY (case-insensitive), you MUST pick that category. For example, if description is "Safari tour" and category "Safari" exists, pick "Safari".
-3. Semantic matching: "dinner", "pizza", "starbucks" -> "Food". "uber", "taxi", "gas" -> "Transport".
-4. If multiple categories could apply, pick the most specific one.
+2. Direct Keywords: If a word in the description matches a category name EXACTLY (case-insensitive), you MUST pick that category.
+3. Semantic matching Examples:
+   - "lunch", "dinner", "pizza", "coffee", "starbucks", "burger", "mcdonalds" -> "Food"
+   - "uber", "taxi", "gas", "petrol", "parking", "grab", "bolt", "bus", "train" -> "Transport"
+   - "shopping", "mall", "clothes", "zara", "souvenir", "gift" -> "Shopping"
+   - "hotel", "hostel", "airbnb", "booking.com", "resort" -> "Stay"
+   - "flight", "boarding pass", "indigo", "air asia", "emirates" -> "Flights"
+   - "safari", "tour", "museum", "entry ticket", "zoo", "guide" -> "Sightseeing" (unless "Safari" is its own category)
+4. If a custom category exists that matches specifically (like "Safari" for a safari description), pick that instead of a generic one.
 5. If no clear match exists, default to "Other" if it's in the list.
 
 AVAILABLE CATEGORIES:

@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useEffect, useMemo, useRef } from "react";
@@ -148,6 +149,32 @@ export default function AddExpenseWizard() {
     return () => unsubscribe();
   }, [selectedTripId, user, firestore]);
 
+  // AI Auto-categorization with Debounce
+  useEffect(() => {
+    const trimmedDesc = formData.description.trim();
+    if (trimmedDesc.length < 3 || trimmedDesc === lastAnalyzedDescription.current) return;
+
+    const timer = setTimeout(async () => {
+      setIsAnalyzing(true);
+      lastAnalyzedDescription.current = trimmedDesc;
+      try {
+        const result = await suggestExpenseCategory({ 
+          description: trimmedDesc,
+          availableCategories: categoriesList
+        });
+        if (result.category) {
+          setFormData(prev => ({ ...prev, category: result.category }));
+        }
+      } catch (e) {
+        console.warn("AI categorization failed", e);
+      } finally {
+        setIsAnalyzing(false);
+      }
+    }, 800);
+
+    return () => clearTimeout(timer);
+  }, [formData.description, categoriesList]);
+
   const familyList = useMemo(() => {
     if (!currentTrip?.participants) return [];
     return currentTrip.participants.map((p: any, index: number) => {
@@ -240,27 +267,6 @@ export default function AddExpenseWizard() {
       setFormData(prev => ({ ...prev, amount: customSum.toFixed(2) }));
     }
   }, [customSum, formData.isItemized]);
-
-  const handleDescriptionBlur = async () => {
-    const trimmedDesc = formData.description.trim();
-    if (trimmedDesc.length > 2 && trimmedDesc !== lastAnalyzedDescription.current) {
-      setIsAnalyzing(true);
-      lastAnalyzedDescription.current = trimmedDesc;
-      try {
-        const result = await suggestExpenseCategory({ 
-          description: trimmedDesc,
-          availableCategories: categoriesList
-        });
-        if (result.category) {
-          setFormData(prev => ({ ...prev, category: result.category }));
-        }
-      } catch (e) {
-        console.warn("AI categorization failed", e);
-      } finally {
-        setIsAnalyzing(false);
-      }
-    }
-  };
 
   const nextStep = () => {
     if (step === 1) {
@@ -726,7 +732,6 @@ export default function AddExpenseWizard() {
                     className="h-16 text-lg rounded-2xl pl-12 pr-4 focus-visible:ring-primary shadow-sm bg-white border-none placeholder:text-muted-foreground/40 placeholder:font-medium"
                     value={formData.description}
                     onChange={e => setFormData(prev => ({ ...prev, description: e.target.value }))}
-                    onBlur={handleDescriptionBlur}
                   />
                   {isAnalyzing && <Loader2 className="absolute right-4 top-1/2 -translate-y-1/2 h-4 w-4 animate-spin text-primary" />}
                 </div>
@@ -778,7 +783,7 @@ export default function AddExpenseWizard() {
                 {/* Category Selection */}
                 <div className="space-y-3">
                   <div className="flex items-center justify-between px-1">
-                    <Label className="text-xs font-bold text-muted-foreground/80 ml-1">
+                    <Label className="text-base font-bold text-foreground">
                       Category
                     </Label>
                     <Dialog open={isManagingCategories} onOpenChange={setIsManagingCategories}>
@@ -872,7 +877,7 @@ export default function AddExpenseWizard() {
 
               {/* Payer Selection */}
               <div className="space-y-3">
-                <Label className="text-xs font-bold text-muted-foreground/80 ml-1">Who paid?</Label>
+                <Label className="text-base font-bold text-foreground">Who paid?</Label>
                 <div className="grid grid-cols-2 gap-3">
                   {currentTrip?.participants?.map((p: any) => {
                     const isMe = p.isUser && p.userId === user?.uid;
