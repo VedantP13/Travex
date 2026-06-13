@@ -206,7 +206,8 @@ export default function AddExpenseWizard() {
       if (formData.splitType === 'equal_person' || formData.splitType === 'custom') {
         setFormData(prev => ({ ...prev, selectedIndividuals: personList.map(t => t.id) }));
       } else if (formData.splitType === 'equal_family') {
-        setFormData(prev => ({ ...prev, selectedIndividuals: familyList.map(p => p.id) }));
+        // Correctly toggle all participants for the family view to ensure the UI shows all as selected
+        setFormData(prev => ({ ...prev, selectedIndividuals: personList.map(p => p.id) }));
       } else if (formData.splitType === 'just_me') {
         setFormData(prev => ({ ...prev, selectedIndividuals: [formData.payerId] }));
       }
