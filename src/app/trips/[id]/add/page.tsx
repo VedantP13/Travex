@@ -8,7 +8,6 @@ import {
   ChevronLeft,
   ChevronDown,
   X,
-  Check,
   Loader2,
   Calendar,
   CreditCard,
@@ -21,15 +20,10 @@ import {
   Plus,
   Minus,
   Calculator,
-  Settings,
-  Sparkles,
-  Pin,
-  PinOff
+  Pin
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Badge } from "@/components/ui/badge";
-import { Card, CardContent } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -166,16 +160,6 @@ export default function AddExpenseWizard() {
     }
   }, [familyList]);
 
-  useEffect(() => {
-    if (viewMode === 'person' && familyList.length > 0) {
-      const allExpanded: Record<string, boolean> = {};
-      familyList.forEach((f: any) => {
-        allExpanded[f.id] = true;
-      });
-      setExpandedFamilies(allExpanded);
-    }
-  }, [viewMode, familyList]);
-
   const isAllSelected = useMemo(() => {
     if (!personList.length) return false;
     return personList.every(p => formData.selectedIndividuals.includes(p.id));
@@ -206,7 +190,7 @@ export default function AddExpenseWizard() {
         setFormData(prev => ({ ...prev, selectedIndividuals: [formData.payerId] }));
       }
     }
-  }, [formData.isItemized, formData.splitType, personList, familyList, formData.payerId]);
+  }, [formData.isItemized, formData.splitType, personList, formData.payerId]);
 
   const customSum = useMemo(() => {
     return Object.values(formData.customAmounts).reduce((acc, val) => acc + (parseFloat(val) || 0), 0);
@@ -593,20 +577,20 @@ export default function AddExpenseWizard() {
             <div className="space-y-6">
               {/* Amount Input */}
               <div className="relative">
-                <span className="absolute left-4 top-1/2 -translate-y-1/2 text-3xl font-bold text-muted-foreground">₹</span>
+                <span className="absolute left-6 top-1/2 -translate-y-1/2 text-3xl font-bold text-muted-foreground/60">₹</span>
                 <Input 
                   type="number"
                   placeholder={formData.isItemized ? "Total calculated" : "0.00"}
                   className={cn(
-                    "h-20 text-4xl font-bold rounded-2xl pl-12 focus-visible:ring-primary shadow-sm",
-                    formData.isItemized && "bg-muted text-muted-foreground/60 cursor-not-allowed"
+                    "h-24 text-4xl font-bold rounded-3xl pl-14 focus-visible:ring-primary shadow-sm bg-white border-none",
+                    formData.isItemized && "bg-muted/50 text-muted-foreground/60 cursor-not-allowed"
                   )}
                   value={formData.amount}
                   onChange={e => setFormData(prev => ({ ...prev, amount: e.target.value }))}
                   disabled={formData.isItemized}
                 />
-                <div className="absolute right-4 bottom-2 flex items-center gap-2">
-                   <Label htmlFor="itemized-split" className="text-[10px] font-bold text-muted-foreground uppercase">Itemized Split</Label>
+                <div className="absolute right-6 bottom-4 flex items-center gap-2">
+                   <Label htmlFor="itemized-split" className="text-[10px] font-bold text-muted-foreground/60 uppercase tracking-wider">Itemized Split</Label>
                    <Switch 
                      id="itemized-split" 
                      checked={formData.isItemized} 
@@ -622,24 +606,23 @@ export default function AddExpenseWizard() {
               </div>
 
               {formData.isItemized && (
-                <div className="bg-white p-5 rounded-2xl border border-dashed border-primary/20 space-y-4 animate-in fade-in zoom-in-95 duration-300">
+                <div className="bg-white p-5 rounded-3xl border-2 border-dashed border-primary/20 space-y-4 animate-in fade-in zoom-in-95 duration-300 shadow-sm">
                   <div className="flex justify-between items-center">
                     <div className="flex items-center gap-4">
                       <p className="text-xs font-bold text-primary">Member split</p>
                       <div className="flex items-center gap-2">
-                        <Label htmlFor="select-all-step1" className="text-[10px] font-bold text-muted-foreground uppercase">Select All</Label>
+                        <Label htmlFor="select-all-step1" className="text-[10px] font-bold text-muted-foreground/60 uppercase tracking-wider">Select All</Label>
                         <Switch 
                           id="select-all-step1" 
                           checked={isAllSelected}
                           onCheckedChange={handleSelectAll}
-                          className="h-4 w-7 [&>span]:h-3 [&>span]:w-3 data-[state=checked]:[&>span]:translate-x-3"
                         />
                       </div>
                     </div>
                     <Tabs value={viewMode} onValueChange={(v: any) => setViewMode(v)} className="w-auto">
-                      <TabsList className="h-7 bg-muted/50 rounded-lg p-0.5">
-                        <TabsTrigger value="person" className="text-[9px] px-2 h-6 font-bold">Individual</TabsTrigger>
-                        <TabsTrigger value="family" className="text-[9px] px-2 h-6 font-bold">Family</TabsTrigger>
+                      <TabsList className="h-8 bg-muted/50 rounded-xl p-0.5">
+                        <TabsTrigger value="person" className="text-[10px] px-3 h-7 font-bold rounded-lg">Individual</TabsTrigger>
+                        <TabsTrigger value="family" className="text-[10px] px-3 h-7 font-bold rounded-lg">Family</TabsTrigger>
                       </TabsList>
                     </Tabs>
                   </div>
@@ -651,10 +634,10 @@ export default function AddExpenseWizard() {
               {/* Description & Metadata */}
               <div className="space-y-4">
                 <div className="relative">
-                  <AlignLeft className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground/50" />
+                  <AlignLeft className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground/30" />
                   <Input 
                     placeholder="What was it for?"
-                    className="h-16 text-lg rounded-2xl pl-12 pr-4 focus-visible:ring-primary shadow-sm"
+                    className="h-16 text-lg rounded-2xl pl-12 pr-4 focus-visible:ring-primary shadow-sm bg-white border-none"
                     value={formData.description}
                     onChange={e => setFormData(prev => ({ ...prev, description: e.target.value }))}
                     onBlur={handleDescriptionBlur}
@@ -662,40 +645,40 @@ export default function AddExpenseWizard() {
                   {isAnalyzing && <Loader2 className="absolute right-4 top-1/2 -translate-y-1/2 h-4 w-4 animate-spin text-primary" />}
                 </div>
 
-                <div className="grid grid-cols-2 gap-3">
-                  <div className="relative">
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="relative group">
                     <Input 
                       type="date"
-                      className="h-14 rounded-2xl pl-10 focus-visible:ring-primary shadow-sm text-xs font-bold"
+                      className="h-14 rounded-2xl pl-10 focus-visible:ring-primary shadow-sm text-sm font-semibold bg-white border-none text-foreground/80"
                       value={formData.date}
                       onChange={e => setFormData(prev => ({ ...prev, date: e.target.value }))}
                     />
-                    <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                    <Calendar className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground/30 pointer-events-none" />
                   </div>
                   <Select 
                     value={formData.paymentType} 
                     onValueChange={val => setFormData(prev => ({ ...prev, paymentType: val }))}
                   >
-                    <SelectTrigger className="h-14 rounded-2xl shadow-sm focus:ring-primary text-xs font-bold">
+                    <SelectTrigger className="h-14 rounded-2xl shadow-sm focus:ring-primary text-sm font-semibold bg-white border-none text-foreground/80">
                       <div className="flex items-center gap-2">
-                        <CreditCard className="h-4 w-4 text-muted-foreground" />
+                        <CreditCard className="h-4 w-4 text-muted-foreground/30" />
                         <SelectValue placeholder="Payment" />
                       </div>
                     </SelectTrigger>
-                    <SelectContent className="rounded-xl border-none shadow-xl">
-                      <SelectItem value="UPI">UPI</SelectItem>
-                      <SelectItem value="Cash">Cash</SelectItem>
-                      <SelectItem value="Card">Card</SelectItem>
-                      <SelectItem value="Net Banking">Net Banking</SelectItem>
+                    <SelectContent className="rounded-[1.5rem] border-none shadow-[0_20px_50px_rgba(0,0,0,0.1)] bg-white p-2">
+                      <SelectItem value="UPI" className="rounded-xl font-bold py-3 text-xs">UPI</SelectItem>
+                      <SelectItem value="Cash" className="rounded-xl font-bold py-3 text-xs">Cash</SelectItem>
+                      <SelectItem value="Card" className="rounded-xl font-bold py-3 text-xs">Card</SelectItem>
+                      <SelectItem value="Net Banking" className="rounded-xl font-bold py-3 text-xs">Net Banking</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
 
                 <div className="relative">
-                  <Tag className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                  <Tag className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground/30" />
                   <Input 
                     placeholder="Category (e.g. Dining, Travel)"
-                    className="h-14 rounded-2xl pl-12 focus-visible:ring-primary shadow-sm text-xs font-bold"
+                    className="h-14 rounded-2xl pl-12 focus-visible:ring-primary shadow-sm text-sm font-semibold bg-white border-none text-foreground/80"
                     value={formData.category}
                     onChange={e => setFormData(prev => ({ ...prev, category: e.target.value }))}
                   />
@@ -704,21 +687,24 @@ export default function AddExpenseWizard() {
 
               {/* Payer Selection */}
               <div className="space-y-3">
-                <Label className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider ml-1">Who paid?</Label>
+                <Label className="text-[10px] font-bold text-muted-foreground/60 uppercase tracking-widest ml-1">Who paid?</Label>
                 <div className="grid grid-cols-2 gap-3">
                   {currentTrip?.participants?.map((p: any) => {
                     const isMe = p.isUser && p.userId === user?.uid;
                     return (
                       <Card 
                         key={p.id}
-                        className={`p-3 rounded-2xl border-2 transition-all cursor-pointer flex items-center gap-3 ${formData.payerId === p.id ? 'border-primary bg-primary/5' : 'border-transparent shadow-sm'}`}
+                        className={cn(
+                          "p-3 rounded-2xl border-2 transition-all cursor-pointer flex items-center gap-3",
+                          formData.payerId === p.id ? 'border-primary bg-primary/5 shadow-sm' : 'border-transparent bg-white shadow-sm hover:border-muted/20'
+                        )}
                         onClick={() => setFormData(prev => ({ ...prev, payerId: p.id, payerName: p.name }))}
                       >
-                        <Avatar className="h-8 w-8">
+                        <Avatar className="h-8 w-8 shadow-sm">
                           <AvatarImage src={p.avatar} />
                           <AvatarFallback>{p.name?.[0]}</AvatarFallback>
                         </Avatar>
-                        <span className="font-bold text-xs truncate">{isMe ? "You" : p.name}</span>
+                        <span className="font-bold text-xs truncate text-foreground/80">{isMe ? "You" : p.name}</span>
                       </Card>
                     );
                   })}
@@ -750,7 +736,7 @@ export default function AddExpenseWizard() {
               </div>
             </div>
 
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-2 gap-4">
               {[
                 { id: "equal_person", label: "Per person", icon: Users, desc: "Include all members" },
                 { id: "equal_family", label: "Per family", icon: Home, desc: "One per family unit" },
@@ -764,8 +750,8 @@ export default function AddExpenseWizard() {
                   <Card 
                     key={mode.id}
                     className={cn(
-                      "relative p-4 rounded-2xl border-2 transition-all cursor-pointer flex flex-col gap-2 overflow-hidden",
-                      isSelected ? "border-primary bg-primary/5" : "border-transparent shadow-sm",
+                      "relative p-5 rounded-3xl border-2 transition-all cursor-pointer flex flex-col gap-2 overflow-hidden bg-white shadow-sm",
+                      isSelected ? "border-primary bg-primary/5 shadow-md" : "border-transparent hover:border-muted/20",
                       isDefault && !isSelected && "border-accent/30"
                     )}
                     onClick={() => {
@@ -774,21 +760,26 @@ export default function AddExpenseWizard() {
                     }}
                   >
                     <div className="flex justify-between items-start">
-                      <mode.icon className={cn("h-6 w-6", isSelected ? "text-primary" : "text-muted-foreground")} />
+                      <div className={cn(
+                        "h-10 w-10 rounded-xl flex items-center justify-center transition-colors",
+                        isSelected ? "bg-primary text-white" : "bg-muted text-muted-foreground/50"
+                      )}>
+                        <mode.icon className="h-5 w-5" />
+                      </div>
                       {isSelected && (
                         <Button 
                           variant="ghost" 
                           size="icon" 
                           className={cn(
-                            "h-6 w-6 p-0 rounded-full transition-all hover:bg-transparent",
-                            isDefault ? "text-accent" : "text-primary/30 hover:text-primary"
+                            "h-7 w-7 p-0 rounded-full transition-all hover:bg-transparent",
+                            isDefault ? "text-accent" : "text-primary/20 hover:text-primary"
                           )}
                           onClick={(e) => {
                             e.stopPropagation();
                             toggleTripDefaultSplit(mode.id);
                           }}
                         >
-                          <Pin className={cn("h-3.5 w-3.5", isDefault && "fill-current")} />
+                          <Pin className={cn("h-4 w-4", isDefault && "fill-current")} />
                         </Button>
                       )}
                       {!isSelected && isDefault && (
@@ -797,10 +788,10 @@ export default function AddExpenseWizard() {
                     </div>
                     <div className="mt-2">
                       <div className="flex items-center gap-1.5">
-                        <p className="font-bold text-sm">{mode.label}</p>
+                        <p className="font-bold text-sm tracking-tight text-foreground/90">{mode.label}</p>
                         {isDefault && <div className="h-1.5 w-1.5 rounded-full bg-accent" />}
                       </div>
-                      <p className="text-[10px] text-muted-foreground leading-tight">{mode.desc}</p>
+                      <p className="text-[10px] text-muted-foreground/60 font-medium leading-tight">{mode.desc}</p>
                     </div>
                   </Card>
                 );
@@ -808,16 +799,15 @@ export default function AddExpenseWizard() {
             </div>
 
             {(formData.splitType === 'equal_family' || formData.splitType === 'equal_person' || formData.splitType === 'custom') && (
-              <div className="bg-white p-5 rounded-2xl border border-dashed border-primary/20 space-y-4">
+              <div className="bg-white p-6 rounded-3xl border-2 border-dashed border-primary/20 space-y-4 shadow-sm">
                 <div className="flex justify-between items-center">
                   <p className="text-xs font-bold text-primary">Member selection</p>
                   <div className="flex items-center gap-2">
-                    <Label htmlFor="select-all-step2" className="text-[10px] font-bold text-muted-foreground uppercase">Select All</Label>
+                    <Label htmlFor="select-all-step2" className="text-[10px] font-bold text-muted-foreground/60 uppercase tracking-widest">Select All</Label>
                     <Switch 
                       id="select-all-step2" 
                       checked={isAllSelected}
                       onCheckedChange={handleSelectAll}
-                      className="h-4 w-7 [&>span]:h-3 [&>span]:w-3 data-[state=checked]:[&>span]:translate-x-3"
                     />
                   </div>
                 </div>
@@ -832,12 +822,12 @@ export default function AddExpenseWizard() {
         )}
       </main>
 
-      <footer className="p-safe-pad border-t bg-white fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-md z-20">
+      <footer className="p-safe-pad border-t bg-white fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-md z-20 shadow-[0_-4px_25px_rgba(0,0,0,0.05)]">
         <div className="flex gap-3">
           {step === 1 && (
             <Button 
               variant="outline"
-              className="flex-1 h-14 rounded-2xl text-lg font-bold border-primary text-primary"
+              className="flex-1 h-14 rounded-2xl text-base font-bold border-2 border-primary/20 text-primary hover:bg-primary/5 transition-all"
               onClick={handleSplitLater}
               disabled={isPosting || !formData.amount || !formData.description}
             >
@@ -846,7 +836,7 @@ export default function AddExpenseWizard() {
           )}
           <Button 
             className={cn(
-              "h-14 rounded-2xl text-lg font-bold shadow-lg shadow-primary/20 flex items-center justify-center gap-2",
+              "h-14 rounded-2xl text-base font-bold shadow-lg shadow-primary/20 flex items-center justify-center gap-2 transition-all active:scale-95",
               step === 1 ? "flex-1" : "w-full"
             )}
             onClick={step === 2 ? () => handlePostExpense() : nextStep}
@@ -859,7 +849,7 @@ export default function AddExpenseWizard() {
               </>
             ) : (
               <>
-                {step === 1 ? "Next Step" : "Post Expense"}
+                {step === 1 ? "Choose Splitting" : "Post Expense"}
                 {step === 1 && <ChevronRight className="h-5 w-5" />}
               </>
             )}
