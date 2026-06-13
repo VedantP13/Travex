@@ -1,3 +1,4 @@
+
 "use client";
 
 import Link from "next/link";
@@ -122,8 +123,7 @@ export default function Home() {
         ) : (
           <div className="animate-in fade-in slide-in-from-bottom-2 duration-500 py-1">
             <p className="text-sm font-medium text-white/50 leading-snug">
-              Ready for your next journey?<br />
-              <span className="text-accent">Create a group to start splitting.</span>
+              Ready for your next journey?
             </p>
           </div>
         )}
@@ -165,18 +165,22 @@ export default function Home() {
           ) : (
             <Link 
               href="/trips/new" 
-              className="col-span-12 bg-white shadow-2xl rounded-[2rem] flex items-center justify-center p-6 transition-all duration-300 transform hover:-translate-y-1 active:scale-95 border-2 border-accent/10 group hover:bg-accent hover:border-accent py-8 flex-row gap-6"
+              className="col-span-12 bg-white shadow-md hover:shadow-xl rounded-[2rem] flex items-center p-4 gap-4 transition-all duration-300 transform hover:-translate-y-1 active:scale-95 border border-primary/5 group"
             >
-              <div className="h-12 w-12 rounded-2xl bg-primary/5 flex items-center justify-center text-primary group-hover:bg-white/20 group-hover:text-white transition-all shadow-sm shrink-0">
-                <Plus className="h-7 w-7" />
+              <div className="relative h-16 w-16 rounded-2xl bg-primary/5 flex items-center justify-center text-primary shrink-0 transition-all group-hover:bg-primary/10">
+                <Compass className="h-8 w-8" />
+                <div className="absolute -bottom-1 -right-1 h-6 w-6 bg-primary rounded-full border-2 border-white flex items-center justify-center shadow-sm">
+                  <Plus className="h-3 w-3 text-white" strokeWidth={3} />
+                </div>
               </div>
-              <div className="flex flex-col">
-                <span className="text-base font-bold tracking-tight text-foreground group-hover:text-white transition-colors leading-tight">
-                  Start a new adventure
-                </span>
-                <span className="text-[10px] text-muted-foreground font-medium group-hover:text-white/70 transition-colors mt-0.5">
-                  Split expenses effortlessly with friends
-                </span>
+              <div className="flex-1 min-w-0">
+                <h3 className="text-lg font-bold text-foreground tracking-tight leading-tight">Create New Trip</h3>
+                <p className="text-xs text-muted-foreground font-medium mt-0.5 line-clamp-2">
+                  Plan trips and split expenses effortlessly with friends
+                </p>
+              </div>
+              <div className="h-10 w-10 rounded-full bg-primary flex items-center justify-center text-white shadow-sm transition-transform group-hover:translate-x-1 shrink-0">
+                <ChevronRight className="h-5 w-5" />
               </div>
             </Link>
           )}
