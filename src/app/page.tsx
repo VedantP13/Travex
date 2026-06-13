@@ -138,9 +138,10 @@ export default function Home() {
               </Link>
             </Card>
           ) : (
-            <Card className="col-span-8 border-none shadow-2xl bg-primary text-primary-foreground rounded-[2rem] p-6 flex flex-col items-center justify-center text-center">
-               <Map className="h-10 w-10 text-accent mb-3 opacity-50" />
-               <p className="text-sm font-bold tracking-tight opacity-90 leading-tight">No active adventures yet</p>
+            <Card className="col-span-8 border-none shadow-2xl bg-foreground text-background rounded-[2rem] p-6 flex flex-col items-center justify-center text-center border-2 border-white/5">
+               <Map className="h-10 w-10 text-primary mb-3 opacity-80" strokeWidth={1.5} />
+               <p className="text-sm font-bold tracking-tight opacity-90 leading-tight">No expeditions currently active</p>
+               <p className="text-[10px] opacity-40 mt-1 font-medium italic px-4">Your travel log is prepared for a new entry</p>
             </Card>
           )}
           
