@@ -180,17 +180,48 @@ export default function ProfilePage() {
     setIsLinking(true);
     const provider = new GoogleAuthProvider();
     try {
-      await linkWithPopup(auth.currentUser, provider);
-      toast({
-        title: "Account linked!",
-        description: "Your data is now safely synced with your Google account.",
-      });
+      const result = await linkWithPopup(auth.currentUser, provider);
+      const linkedUser = result.user;
+      
+      // Automatically update the main profile with Google's info
+      const googleInfo = linkedUser.providerData.find(p => p.providerId === 'google.com');
+      
+      if (googleInfo) {
+        // 1. Update Firebase Auth Profile
+        await updateProfile(linkedUser, {
+          displayName: googleInfo.displayName,
+          photoURL: googleInfo.photoURL
+        });
+
+        // 2. Update Firestore immediately for consistency
+        if (firestore) {
+          const userDocRef = doc(firestore, "users", linkedUser.uid);
+          await setDoc(userDocRef, {
+            displayName: googleInfo.displayName,
+            photoURL: googleInfo.photoURL,
+            email: googleInfo.email,
+            isAnonymous: false,
+            updatedAt: serverTimestamp(),
+          }, { merge: true });
+        }
+
+        // 3. Update local UI state
+        setEditedName(googleInfo.displayName || "");
+        setEditedPhotoURL(googleInfo.photoURL || "");
+
+        toast({
+          title: "Account linked!",
+          description: `Welcome ${googleInfo.displayName}! Your profile has been updated from Google.`,
+        });
+      }
     } catch (error: any) {
       if (error.code !== 'auth/popup-closed-by-user') {
         console.error("Linking failed", error);
         let errorMessage = "Could not link Google account.";
         if (error.code === 'auth/unauthorized-domain') {
           errorMessage = "Domain not authorized. Please add authorized domains in Firebase Console.";
+        } else if (error.code === 'auth/credential-already-in-use') {
+          errorMessage = "This Google account is already linked to another user.";
         }
         toast({
           variant: "destructive",

@@ -3,7 +3,7 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { GoogleAuthProvider, signInWithPopup, signInAnonymously } from 'firebase/auth';
+import { GoogleAuthProvider, signInWithPopup, signInAnonymously, linkWithPopup, updateProfile } from 'firebase/auth';
 import { useAuth, useUser } from '@/firebase';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -19,7 +19,7 @@ export default function LoginPage() {
   const [isLoggingIn, setIsLoggingIn] = useState(false);
 
   useEffect(() => {
-    if (user && !loading) {
+    if (user && !loading && !user.isAnonymous) {
       router.push('/');
     }
   }, [user, loading, router]);
@@ -28,15 +28,46 @@ export default function LoginPage() {
     setIsLoggingIn(true);
     const provider = new GoogleAuthProvider();
     try {
-      await signInWithPopup(auth, provider);
+      let result;
+      // If there is already an anonymous user, link the account instead of signing in fresh
+      // This ensures guest data (like trips) is preserved and attached to the Google account.
+      if (auth.currentUser?.isAnonymous) {
+        result = await linkWithPopup(auth.currentUser, provider);
+      } else {
+        result = await signInWithPopup(auth, provider);
+      }
+
+      const userInstance = result.user;
+      const googleInfo = userInstance.providerData.find(p => p.providerId === 'google.com');
+
+      if (googleInfo) {
+        // Automatically update the main profile with Google's info
+        await updateProfile(userInstance, {
+          displayName: googleInfo.displayName,
+          photoURL: googleInfo.photoURL
+        });
+        
+        toast({
+          title: "Welcome back!",
+          description: `Logged in as ${googleInfo.displayName}. Your profile has been synced.`,
+        });
+      }
+
+      router.push('/');
     } catch (error: any) {
-      // Don't show toast if user closed the popup manually
-      if (error.code !== 'auth/popup-closed-by-user') {
+      // Handle the case where the Google account is already linked to another user
+      if (error.code === 'auth/credential-already-in-use') {
+        toast({
+          variant: "destructive",
+          title: "Account already exists",
+          description: "This Google account is already linked to another Travex user.",
+        });
+      } else if (error.code !== 'auth/popup-closed-by-user') {
         console.error('Login failed:', error);
         
         let errorMessage = "Could not sign in with Google.";
         if (error.code === 'auth/unauthorized-domain') {
-          errorMessage = "Domain not authorized. Please add 'cluster-52r6vzs3ujeoctkkxpjif3x34a.cloudworkstations.dev' to Authorised Domains in Firebase Console.";
+          errorMessage = "Domain not authorized. Please add authorized domains in Firebase Console.";
         }
 
         toast({
@@ -53,6 +84,7 @@ export default function LoginPage() {
     setIsLoggingIn(true);
     try {
       await signInAnonymously(auth);
+      router.push('/');
     } catch (error: any) {
       console.error('Guest login failed:', error);
       toast({
@@ -64,7 +96,7 @@ export default function LoginPage() {
     }
   };
 
-  if (loading || (user && !loading)) {
+  if (loading || (user && !loading && !user.isAnonymous)) {
     return (
       <div className="max-w-md mx-auto min-h-screen flex flex-col items-center justify-center bg-background gap-4">
         <AnimatedCompass className="h-12 w-12 text-primary" />
