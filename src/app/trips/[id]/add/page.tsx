@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState, useEffect, useMemo, useRef } from "react";
@@ -578,12 +577,15 @@ export default function AddExpenseWizard() {
             <div className="space-y-6">
               {/* Amount Input */}
               <div className="relative">
-                <span className="absolute left-6 top-1/2 -translate-y-1/2 text-3xl font-bold text-muted-foreground/60">₹</span>
+                <span className={cn(
+                  "absolute left-6 top-1/2 -translate-y-1/2 text-3xl font-bold transition-colors",
+                  formData.amount ? "text-foreground" : "text-muted-foreground/40"
+                )}>₹</span>
                 <Input 
                   type="number"
                   placeholder={formData.isItemized ? "Total calculated" : "0.00"}
                   className={cn(
-                    "h-24 text-4xl font-bold rounded-3xl pl-14 focus-visible:ring-primary shadow-sm bg-white border-none",
+                    "h-24 text-4xl font-bold rounded-3xl pl-14 focus-visible:ring-primary shadow-sm bg-white border-none placeholder:text-muted-foreground/40 placeholder:font-medium",
                     formData.isItemized && "bg-muted/50 text-muted-foreground/60 cursor-not-allowed"
                   )}
                   value={formData.amount}
@@ -635,10 +637,13 @@ export default function AddExpenseWizard() {
               {/* Description & Metadata */}
               <div className="space-y-4">
                 <div className="relative">
-                  <AlignLeft className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground/30" />
+                  <AlignLeft className={cn(
+                    "absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 transition-colors",
+                    formData.description ? "text-foreground" : "text-muted-foreground/40"
+                  )} />
                   <Input 
                     placeholder="What was it for?"
-                    className="h-16 text-lg rounded-2xl pl-12 pr-4 focus-visible:ring-primary shadow-sm bg-white border-none"
+                    className="h-16 text-lg rounded-2xl pl-12 pr-4 focus-visible:ring-primary shadow-sm bg-white border-none placeholder:text-muted-foreground/40 placeholder:font-medium"
                     value={formData.description}
                     onChange={e => setFormData(prev => ({ ...prev, description: e.target.value }))}
                     onBlur={handleDescriptionBlur}
@@ -648,10 +653,13 @@ export default function AddExpenseWizard() {
 
                 <div className="grid grid-cols-2 gap-4">
                   <div className="relative">
-                    <Calendar className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground/30 pointer-events-none" />
+                    <Calendar className={cn(
+                      "absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 pointer-events-none transition-colors z-10",
+                      formData.date ? "text-foreground" : "text-muted-foreground/40"
+                    )} />
                     <Input 
                       type="date"
-                      className="h-14 rounded-2xl pl-10 focus-visible:ring-primary shadow-sm text-sm font-semibold bg-white border-none text-foreground/80"
+                      className="h-14 rounded-2xl pl-10 focus-visible:ring-primary shadow-sm text-sm font-bold bg-white border-none text-foreground/80 relative"
                       value={formData.date}
                       onChange={e => setFormData(prev => ({ ...prev, date: e.target.value }))}
                     />
@@ -660,9 +668,12 @@ export default function AddExpenseWizard() {
                     value={formData.paymentType} 
                     onValueChange={val => setFormData(prev => ({ ...prev, paymentType: val }))}
                   >
-                    <SelectTrigger className="h-14 rounded-2xl shadow-sm focus:ring-primary text-sm font-semibold bg-white border-none text-foreground/80">
+                    <SelectTrigger className="h-14 rounded-2xl shadow-sm focus:ring-primary text-sm font-bold bg-white border-none text-foreground/80">
                       <div className="flex items-center gap-2">
-                        <CreditCard className="h-4 w-4 text-muted-foreground/30" />
+                        <CreditCard className={cn(
+                          "h-4 w-4 transition-colors",
+                          formData.paymentType ? "text-foreground" : "text-muted-foreground/40"
+                        )} />
                         <SelectValue placeholder="Payment" />
                       </div>
                     </SelectTrigger>
@@ -676,10 +687,13 @@ export default function AddExpenseWizard() {
                 </div>
 
                 <div className="relative">
-                  <Tag className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground/30" />
+                  <Tag className={cn(
+                    "absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 transition-colors",
+                    formData.category ? "text-foreground" : "text-muted-foreground/40"
+                  )} />
                   <Input 
                     placeholder="Category (e.g. Dining, Travel)"
-                    className="h-14 rounded-2xl pl-12 focus-visible:ring-primary shadow-sm text-sm font-semibold bg-white border-none text-foreground/80"
+                    className="h-14 rounded-2xl pl-12 focus-visible:ring-primary shadow-sm text-sm font-bold bg-white border-none text-foreground/80 placeholder:text-muted-foreground/40 placeholder:font-medium"
                     value={formData.category}
                     onChange={e => setFormData(prev => ({ ...prev, category: e.target.value }))}
                   />
@@ -692,12 +706,13 @@ export default function AddExpenseWizard() {
                 <div className="grid grid-cols-2 gap-3">
                   {currentTrip?.participants?.map((p: any) => {
                     const isMe = p.isUser && p.userId === user?.uid;
+                    const isSelected = formData.payerId === p.id;
                     return (
                       <Card 
                         key={p.id}
                         className={cn(
                           "p-3 rounded-2xl border-2 transition-all cursor-pointer flex items-center gap-3",
-                          formData.payerId === p.id ? 'border-primary bg-primary/5 shadow-sm' : 'border-transparent bg-white shadow-sm hover:border-muted/20'
+                          isSelected ? 'border-primary bg-primary/5 shadow-sm' : 'border-transparent bg-white shadow-sm hover:border-muted/20'
                         )}
                         onClick={() => setFormData(prev => ({ ...prev, payerId: p.id, payerName: p.name }))}
                       >
@@ -705,7 +720,10 @@ export default function AddExpenseWizard() {
                           <AvatarImage src={p.avatar} />
                           <AvatarFallback>{p.name?.[0]}</AvatarFallback>
                         </Avatar>
-                        <span className="font-bold text-xs truncate text-foreground/80">{isMe ? "You" : p.name}</span>
+                        <span className={cn(
+                          "font-bold text-xs truncate",
+                          isSelected ? "text-foreground" : "text-foreground/80"
+                        )}>{isMe ? "You" : p.name}</span>
                       </Card>
                     );
                   })}
