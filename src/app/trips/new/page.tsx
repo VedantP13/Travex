@@ -3,7 +3,7 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { ArrowLeft, Plus, X, UserPlus, Lightbulb, Loader2, Calendar, ShieldAlert, LogIn, MapPin } from "lucide-react";
+import { ArrowLeft, Plus, X, UserPlus, Lightbulb, Loader2, Calendar, ShieldAlert, LogIn, MapPin, User, Users, Home } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
@@ -42,6 +42,7 @@ export default function CreateTrip() {
   const firestore = useFirestore();
   const { user } = useUser();
   
+  const [travelMode, setTravelMode] = useState<'solo' | 'family' | 'group'>('group');
   const [name, setName] = useState("");
   const [date, setDate] = useState("");
   const [isCreating, setIsCreating] = useState(false);
@@ -69,7 +70,7 @@ export default function CreateTrip() {
     if (user?.isAnonymous) {
       setShowGuestPrompt(true);
     }
-  }, [user]);
+  }, [user, participants.length]);
 
   const addParticipant = () => {
     if (!newParticipantName.trim()) return;
@@ -121,7 +122,7 @@ export default function CreateTrip() {
       return;
     }
 
-    if (participants.length < 2) {
+    if (travelMode === 'group' && participants.length < 2) {
       toast({
         title: "Missing friends",
         description: "Add at least one friend to split expenses with.",
@@ -142,6 +143,7 @@ export default function CreateTrip() {
     const tripData = {
       name: name.trim(),
       date: date.trim() || null,
+      travelMode,
       participants: participants,
       participantIds: participantIds,
       createdAt: serverTimestamp(),
@@ -182,6 +184,43 @@ export default function CreateTrip() {
       </header>
 
       <main className="flex-1 px-safe-pad py-8 space-y-8 overflow-y-auto">
+        {/* Travel Mode Selector */}
+        <div className="space-y-4">
+          <Label className="text-sm font-bold text-muted-foreground ml-1">Who&apos;s traveling?</Label>
+          <div className="grid grid-cols-3 gap-3">
+            {[
+              { id: 'solo', label: 'Solo', icon: User, desc: 'Just me' },
+              { id: 'family', label: 'Family', icon: Home, desc: 'Me & kin' },
+              { id: 'group', label: 'Group', icon: Users, desc: 'Friends' },
+            ].map((mode) => (
+              <Card 
+                key={mode.id}
+                className={cn(
+                  "p-4 rounded-[2rem] border-2 transition-all cursor-pointer flex flex-col items-center gap-2 text-center",
+                  travelMode === mode.id ? "border-primary bg-primary/5" : "border-transparent shadow-sm bg-white"
+                )}
+                onClick={() => {
+                  setTravelMode(mode.id as any);
+                  if (mode.id === 'solo' || mode.id === 'family') {
+                    setParticipants(prev => prev.filter(p => p.id === 'me'));
+                  }
+                }}
+              >
+                <div className={cn(
+                  "h-10 w-10 rounded-2xl flex items-center justify-center transition-colors",
+                  travelMode === mode.id ? "bg-primary text-white" : "bg-muted text-muted-foreground"
+                )}>
+                  <mode.icon className="h-5 w-5" />
+                </div>
+                <div className="space-y-0.5">
+                  <p className={cn("text-xs font-bold", travelMode === mode.id ? "text-primary" : "text-foreground")}>{mode.label}</p>
+                  <p className="text-[8px] text-muted-foreground font-medium uppercase tracking-tighter">{mode.desc}</p>
+                </div>
+              </Card>
+            ))}
+          </div>
+        </div>
+
         <div className="space-y-4">
           <Label className="text-sm font-bold text-muted-foreground ml-1">Trip name</Label>
           <Input 
@@ -206,113 +245,117 @@ export default function CreateTrip() {
           </div>
         </div>
 
-        <div className="space-y-4">
-          <div className="flex justify-between items-end">
-            <Label className="text-sm font-bold text-muted-foreground ml-1">Friends & families</Label>
-            <span className="text-[10px] text-primary font-bold">{participants.length} groups added</span>
-          </div>
-          
-          <div className="flex gap-2">
-            <Input 
-              placeholder="Who's coming with you?" 
-              className="h-12 rounded-xl shadow-sm bg-white"
-              value={newParticipantName}
-              onChange={e => setNewParticipantName(e.target.value)}
-              onKeyDown={e => e.key === 'Enter' && addParticipant()}
-            />
-            <Button size="icon" className="h-12 w-12 rounded-xl shrink-0 bg-primary" onClick={addParticipant}>
-              <UserPlus className="h-5 w-5" />
-            </Button>
-          </div>
+        {travelMode !== 'solo' && (
+          <div className="space-y-4">
+            <div className="flex justify-between items-end">
+              <Label className="text-sm font-bold text-muted-foreground ml-1">Friends & families</Label>
+              <span className="text-[10px] text-primary font-bold">{participants.length} groups added</span>
+            </div>
+            
+            {travelMode === 'group' && (
+              <div className="flex gap-2">
+                <Input 
+                  placeholder="Who's coming with you?" 
+                  className="h-12 rounded-xl shadow-sm bg-white"
+                  value={newParticipantName}
+                  onChange={e => setNewParticipantName(e.target.value)}
+                  onKeyDown={e => e.key === 'Enter' && addParticipant()}
+                />
+                <Button size="icon" className="h-12 w-12 rounded-xl shrink-0 bg-primary" onClick={addParticipant}>
+                  <UserPlus className="h-5 w-5" />
+                </Button>
+              </div>
+            )}
 
-          <Alert className="bg-primary/10 border-primary/30 rounded-2xl py-3 shadow-sm">
-            <Lightbulb className="h-5 w-5 text-foreground/60" strokeWidth={1.5} />
-            <AlertDescription className="text-xs text-foreground/60 font-medium leading-relaxed">
-              Traveling with others? Add their names! This helps Travex split costs perfectly by individual person or family later.
-            </AlertDescription>
-          </Alert>
+            <Alert className="bg-primary/10 border-primary/30 rounded-2xl py-3 shadow-sm">
+              <Lightbulb className="h-5 w-5 text-foreground/60" strokeWidth={1.5} />
+              <AlertDescription className="text-xs text-foreground/60 font-medium leading-relaxed">
+                {travelMode === 'family' 
+                  ? "Traveling with your household? Add them below to track individual spending within your family."
+                  : "Add your travel buddies! This helps Travex split costs perfectly by individual person or family later."}
+              </AlertDescription>
+            </Alert>
 
-          <div className="space-y-4 pt-2">
-            {participants.map((p) => {
-              const headName = p.name.replace(" (You)", "");
-              const familyDisplayName = p.id === "me" 
-                ? "Your family" 
-                : headName === "You" ? "Your family" : `${headName}'s family`;
+            <div className="space-y-4 pt-2">
+              {participants.map((p) => {
+                const headName = p.name.replace(" (You)", "");
+                const familyDisplayName = p.isUser ? "Your family" : `${headName}'s family`;
 
-              return (
-                <Card key={p.id} className="rounded-2xl border-none shadow-sm overflow-hidden bg-white">
-                  <CardContent className="p-4 space-y-4">
-                    <div className="flex justify-between items-center">
-                      <div className="flex items-center gap-3">
-                        <Avatar className="h-8 w-8">
-                          <AvatarImage src={p.avatar} />
-                          <AvatarFallback>{headName[0]}</AvatarFallback>
-                        </Avatar>
-                        <span className="font-bold text-sm tracking-tight">{familyDisplayName}</span>
-                      </div>
-                      {p.id !== "me" && (
-                        <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive" onClick={() => removeParticipant(p.id)}>
-                          <X className="h-4 w-4" />
-                        </Button>
-                      )}
-                    </div>
-
-                    <div className="space-y-3">
-                      <div className="flex flex-wrap gap-2 items-center">
-                        <Badge 
-                          variant="outline" 
-                          className="px-3 py-1.5 rounded-full flex items-center gap-2 bg-primary/5 border-primary/30 text-primary font-bold shadow-sm"
-                        >
-                          <span className="text-[10px] font-bold">{headName}</span>
-                        </Badge>
-
-                        {p.familyMembers.map((fm) => (
-                          <Badge 
-                            key={fm} 
-                            variant="outline" 
-                            className="pl-3 pr-2 py-1.5 rounded-full flex items-center gap-2 bg-white border-primary/30 text-primary font-bold shadow-sm group animate-in zoom-in-95 duration-200"
-                          >
-                            <span className="text-[10px] font-bold">{fm}</span>
-                            <X 
-                              className="h-3.5 w-3.5 cursor-pointer text-muted-foreground hover:text-destructive transition-colors" 
-                              onClick={() => removeFamilyMember(p.id, fm)} 
-                            />
-                          </Badge>
-                        ))}
-                        
-                        {activeFamilyMemberInput === p.id ? (
-                          <div className="flex gap-1 items-center w-full sm:w-auto animate-in fade-in slide-in-from-top-1">
-                            <Input 
-                              autoFocus
-                              placeholder="Name..." 
-                              className="h-8 text-xs rounded-lg bg-white w-24 sm:w-32"
-                              value={newFamilyMemberName}
-                              onChange={e => setNewFamilyMemberName(e.target.value)}
-                              onKeyDown={e => e.key === 'Enter' && addFamilyMember(p.id)}
-                              onBlur={() => {
-                                if (!newFamilyMemberName.trim()) setActiveFamilyMemberInput(null);
-                              }}
-                            />
-                            <Button size="sm" className="h-8 px-3 rounded-lg bg-primary" onClick={() => addFamilyMember(p.id)}>Add</Button>
-                          </div>
-                        ) : (
-                          <Button 
-                            variant="ghost" 
-                            size="sm" 
-                            className="h-7 text-[10px] font-bold text-primary hover:bg-primary/20 hover:text-primary p-0 px-3 flex items-center gap-1 bg-primary/5 rounded-full transition-colors border border-primary/10"
-                            onClick={() => setActiveFamilyMemberInput(p.id)}
-                          >
-                            <Plus className="h-3.5 w-3.5" /> Add family member
+                return (
+                  <Card key={p.id} className="rounded-2xl border-none shadow-sm overflow-hidden bg-white">
+                    <CardContent className="p-4 space-y-4">
+                      <div className="flex justify-between items-center">
+                        <div className="flex items-center gap-3">
+                          <Avatar className="h-8 w-8">
+                            <AvatarImage src={p.avatar} />
+                            <AvatarFallback>{headName[0]}</AvatarFallback>
+                          </Avatar>
+                          <span className="font-bold text-sm tracking-tight">{familyDisplayName}</span>
+                        </div>
+                        {p.id !== "me" && (
+                          <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive" onClick={() => removeParticipant(p.id)}>
+                            <X className="h-4 w-4" />
                           </Button>
                         )}
                       </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              );
-            })}
+
+                      <div className="space-y-3">
+                        <div className="flex flex-wrap gap-2 items-center">
+                          <Badge 
+                            variant="outline" 
+                            className="px-3 py-1.5 rounded-full flex items-center gap-2 bg-primary/5 border-primary/30 text-primary font-bold shadow-sm"
+                          >
+                            <span className="text-[10px] font-bold">{headName}</span>
+                          </Badge>
+
+                          {p.familyMembers.map((fm) => (
+                            <Badge 
+                              key={fm} 
+                              variant="outline" 
+                              className="pl-3 pr-2 py-1.5 rounded-full flex items-center gap-2 bg-white border-primary/30 text-primary font-bold shadow-sm group animate-in zoom-in-95 duration-200"
+                            >
+                              <span className="text-[10px] font-bold">{fm}</span>
+                              <X 
+                                className="h-3.5 w-3.5 cursor-pointer text-muted-foreground hover:text-destructive transition-colors" 
+                                onClick={() => removeFamilyMember(p.id, fm)} 
+                              />
+                            </Badge>
+                          ))}
+                          
+                          {activeFamilyMemberInput === p.id ? (
+                            <div className="flex gap-1 items-center w-full sm:w-auto animate-in fade-in slide-in-from-top-1">
+                              <Input 
+                                autoFocus
+                                placeholder="Name..." 
+                                className="h-8 text-xs rounded-lg bg-white w-24 sm:w-32"
+                                value={newFamilyMemberName}
+                                onChange={e => setNewFamilyMemberName(e.target.value)}
+                                onKeyDown={e => e.key === 'Enter' && addFamilyMember(p.id)}
+                                onBlur={() => {
+                                  if (!newFamilyMemberName.trim()) setActiveFamilyMemberInput(null);
+                                }}
+                              />
+                              <Button size="sm" className="h-8 px-3 rounded-lg bg-primary" onClick={() => addFamilyMember(p.id)}>Add</Button>
+                            </div>
+                          ) : (
+                            <Button 
+                              variant="ghost" 
+                              size="sm" 
+                              className="h-7 text-[10px] font-bold text-primary hover:bg-primary/20 hover:text-primary p-0 px-3 flex items-center gap-1 bg-primary/5 rounded-full transition-colors border border-primary/10"
+                              onClick={() => setActiveFamilyMemberInput(p.id)}
+                            >
+                              <Plus className="h-3.5 w-3.5" /> Add family member
+                            </Button>
+                          )}
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                );
+              })}
+            </div>
           </div>
-        </div>
+        )}
       </main>
 
       <footer className="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-md p-safe-pad bg-white border-t z-20">
@@ -326,7 +369,7 @@ export default function CreateTrip() {
               <Loader2 className="h-5 w-5 animate-spin mr-2" />
               Creating...
             </>
-          ) : "Create trip group"}
+          ) : travelMode === 'solo' ? "Start solo trip" : "Create trip group"}
         </Button>
       </footer>
 
