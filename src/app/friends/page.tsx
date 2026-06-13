@@ -133,7 +133,7 @@ export default function FriendsPage() {
     };
 
     const timeoutId = setTimeout(searchUsers, 500);
-    return () => clearTimeout(timeoutId);
+    return () => timeoutId);
   }, [searchQuery, firestore, user?.uid, friends]);
 
   const handleSendRequest = async (targetUser: any) => {
@@ -211,14 +211,14 @@ export default function FriendsPage() {
 
   return (
     <div className="max-w-md mx-auto min-h-screen bg-background pb-24">
-      <header className="px-safe-pad pt-12 pb-6 bg-white rounded-b-[2rem] shadow-sm">
-        <h1 className="text-3xl font-bold text-foreground mb-6">Friends</h1>
+      <header className="px-safe-pad pt-12 pb-10 bg-foreground text-background rounded-b-[2.5rem] shadow-lg shadow-black/10">
+        <h1 className="text-3xl font-bold text-background mb-6">Friends</h1>
         
         <div className="relative">
-          <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+          <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground/60" />
           <Input 
             placeholder="Search by name or email..." 
-            className="h-14 pl-12 rounded-2xl bg-muted border-none shadow-sm focus-visible:ring-primary placeholder:text-muted-foreground/60"
+            className="h-14 pl-12 rounded-2xl bg-white border-none shadow-sm focus-visible:ring-primary text-foreground placeholder:text-muted-foreground/50"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
           />
@@ -230,7 +230,7 @@ export default function FriendsPage() {
         </div>
 
         {searchResults.length > 0 && (
-          <Card className="mt-4 border-none shadow-xl bg-white rounded-2xl overflow-hidden divide-y animate-in fade-in slide-in-from-top-2 duration-300">
+          <Card className="mt-4 border-none shadow-xl bg-white rounded-2xl overflow-hidden divide-y animate-in fade-in slide-in-from-top-2 duration-300 text-foreground">
             {searchResults.map(result => {
               const isAlreadyFriend = friends.some(f => f.friendId === result.id);
               return (
@@ -238,7 +238,7 @@ export default function FriendsPage() {
                   <div className="flex items-center gap-3">
                     <Avatar className="h-10 w-10 border shadow-sm">
                       <AvatarImage src={result.photoURL} />
-                      <AvatarFallback>{result.displayName?.[0]}</AvatarFallback>
+                      <AvatarFallback className="text-foreground">{result.displayName?.[0]}</AvatarFallback>
                     </Avatar>
                     <div className="min-w-0">
                       <div className="flex items-center gap-2">
@@ -274,7 +274,7 @@ export default function FriendsPage() {
         )}
       </header>
 
-      <main className="px-safe-pad pt-6 space-y-8">
+      <main className="px-safe-pad pt-8 space-y-8">
         {requests.length > 0 && (
           <section className="space-y-4">
             <h2 className="text-xl font-bold text-foreground tracking-tight">Friend requests</h2>
