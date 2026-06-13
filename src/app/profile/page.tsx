@@ -183,17 +183,15 @@ export default function ProfilePage() {
       const result = await linkWithPopup(auth.currentUser, provider);
       const linkedUser = result.user;
       
-      // Automatically update the main profile with Google's info
       const googleInfo = linkedUser.providerData.find(p => p.providerId === 'google.com');
       
       if (googleInfo) {
-        // 1. Update Firebase Auth Profile
+        // Automatically sync profile with Google data
         await updateProfile(linkedUser, {
           displayName: googleInfo.displayName,
           photoURL: googleInfo.photoURL
         });
 
-        // 2. Update Firestore immediately for consistency
         if (firestore) {
           const userDocRef = doc(firestore, "users", linkedUser.uid);
           await setDoc(userDocRef, {
@@ -205,24 +203,25 @@ export default function ProfilePage() {
           }, { merge: true });
         }
 
-        // 3. Update local UI state
         setEditedName(googleInfo.displayName || "");
         setEditedPhotoURL(googleInfo.photoURL || "");
 
         toast({
-          title: "Account linked!",
-          description: `Welcome ${googleInfo.displayName}! Your profile has been updated from Google.`,
+          title: "Account secured!",
+          description: `All your guest trips are now linked to your Google account, ${googleInfo.displayName}.`,
         });
       }
     } catch (error: any) {
       if (error.code !== 'auth/popup-closed-by-user') {
         console.error("Linking failed", error);
         let errorMessage = "Could not link Google account.";
-        if (error.code === 'auth/unauthorized-domain') {
-          errorMessage = "Domain not authorized. Please add authorized domains in Firebase Console.";
-        } else if (error.code === 'auth/credential-already-in-use') {
-          errorMessage = "This Google account is already linked to another Travex user. Please sign out and sign in with Google directly.";
+        
+        if (error.code === 'auth/credential-already-in-use') {
+          errorMessage = "This Google account already has a Travex profile. You can't merge your current guest trips into it automatically. Sign out and sign in with Google to access that account.";
+        } else if (error.code === 'auth/unauthorized-domain') {
+          errorMessage = "Domain not authorized. Please check your Firebase Console settings.";
         }
+
         toast({
           variant: "destructive",
           title: "Linking failed",

@@ -48,8 +48,8 @@ export default function LoginPage() {
         });
         
         toast({
-          title: "Welcome back!",
-          description: `Logged in as ${googleInfo.displayName}. Your profile has been synced.`,
+          title: "Welcome to the crew!",
+          description: `Successfully linked your account as ${googleInfo.displayName}. Your guest data is now safe.`,
         });
       }
 
@@ -60,7 +60,7 @@ export default function LoginPage() {
         toast({
           variant: "destructive",
           title: "Account already exists",
-          description: "This Google account is already linked to another Travex user. Please sign in directly with Google.",
+          description: "This Google account is already linked to another Travex profile. Sign in directly with Google to access your existing data, but note that your current guest trips won't be merged automatically.",
         });
       } else if (error.code !== 'auth/popup-closed-by-user') {
         console.error('Login failed:', error);
@@ -113,15 +113,15 @@ export default function LoginPage() {
         
         <div className="space-y-2">
           <h1 className="text-4xl font-bold tracking-tight text-white">Travex</h1>
-          <p className="text-muted-foreground font-medium">Smart splitting for modern explorers.</p>
+          <p className="text-muted-foreground font-medium text-sm">Smart splitting for modern explorers.</p>
         </div>
 
         <Card className="w-full bg-white/5 border-white/10 backdrop-blur-md rounded-[2.5rem] p-4">
           <CardContent className="p-6 space-y-4">
             <div className="space-y-2">
-              <h2 className="text-xl font-bold text-white">Welcome</h2>
+              <h2 className="text-xl font-bold text-white">Welcome aboard</h2>
               <p className="text-sm text-muted-foreground leading-relaxed">
-                Join your friends and start splitting expenses effortlessly on your next adventure.
+                Connect with your travel buddies and start splitting expenses effortlessly.
               </p>
             </div>
             
