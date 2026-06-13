@@ -366,7 +366,7 @@ export default function CreateTrip() {
               
               <Button 
                 variant="ghost" 
-                className="w-full h-12 rounded-2xl font-bold text-foreground hover:bg-muted hover:text-foreground transition-all text-sm px-8"
+                className="w-full max-w-[280px] h-12 rounded-2xl font-bold text-foreground hover:bg-muted hover:text-foreground transition-all text-sm px-8"
                 onClick={() => setShowGuestPrompt(false)}
               >
                 Continue as guest explorer
