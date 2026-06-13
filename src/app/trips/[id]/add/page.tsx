@@ -626,7 +626,7 @@ export default function AddExpenseWizard() {
                           id="select-all-step1" 
                           checked={isAllSelected}
                           onCheckedChange={handleSelectAll}
-                          className="h-4 w-7 [&>span]:h-3 [&>span]:w-3"
+                          className="h-4 w-7 [&>span]:h-3 [&>span]:w-3 data-[state=checked]:[&>span]:translate-x-3"
                         />
                       </div>
                     </div>
@@ -732,7 +732,7 @@ export default function AddExpenseWizard() {
                       id="select-all-step2" 
                       checked={isAllSelected}
                       onCheckedChange={handleSelectAll}
-                      className="h-4 w-7 [&>span]:h-3 [&>span]:w-3"
+                      className="h-4 w-7 [&>span]:h-3 [&>span]:w-3 data-[state=checked]:[&>span]:translate-x-3"
                     />
                   </div>
                 </div>
