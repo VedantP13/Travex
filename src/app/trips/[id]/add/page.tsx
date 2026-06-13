@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useEffect, useMemo } from "react";
@@ -119,13 +120,18 @@ export default function AddExpenseWizard() {
 
   const familyList = useMemo(() => {
     if (!currentTrip?.participants) return [];
-    return currentTrip.participants.map((p: any, index: number) => ({
-      ...p,
-      scheme: FAMILY_SCHEMES[index % FAMILY_SCHEMES.length],
-      familyName: `${p.name.replace(" (You)", "")}'s Family`,
-      type: 'family-group'
-    }));
-  }, [currentTrip]);
+    return currentTrip.participants.map((p: any, index: number) => {
+      const isMe = p.isUser && p.userId === user?.uid;
+      const headName = p.name.replace(" (You)", "");
+      
+      return {
+        ...p,
+        scheme: FAMILY_SCHEMES[index % FAMILY_SCHEMES.length],
+        familyName: isMe || headName === "You" ? "Your Family" : `${headName}'s Family`,
+        type: 'family-group'
+      };
+    });
+  }, [currentTrip, user?.uid]);
 
   const personList = useMemo(() => {
     const list: any[] = [];

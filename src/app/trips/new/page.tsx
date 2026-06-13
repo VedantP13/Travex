@@ -235,6 +235,10 @@ export default function CreateTrip() {
           <div className="space-y-4 pt-2">
             {participants.map((p) => {
               const headName = p.name.replace(" (You)", "");
+              const familyDisplayName = p.id === "me" 
+                ? "Your family" 
+                : headName === "You" ? "Your family" : `${headName}'s family`;
+
               return (
                 <Card key={p.id} className="rounded-2xl border-none shadow-sm overflow-hidden bg-white">
                   <CardContent className="p-4 space-y-4">
@@ -244,7 +248,7 @@ export default function CreateTrip() {
                           <AvatarImage src={p.avatar} />
                           <AvatarFallback>{headName[0]}</AvatarFallback>
                         </Avatar>
-                        <span className="font-bold text-sm tracking-tight">{headName}&apos;s family</span>
+                        <span className="font-bold text-sm tracking-tight">{familyDisplayName}</span>
                       </div>
                       {p.id !== "me" && (
                         <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive" onClick={() => removeParticipant(p.id)}>
