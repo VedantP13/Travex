@@ -140,22 +140,22 @@ export default function Home() {
           <Link 
             href="/trips/new" 
             className={cn(
-              "bg-white shadow-2xl rounded-[2rem] flex flex-col items-center justify-center p-6 gap-3 group hover:bg-accent transition-all duration-300 transform hover:-translate-y-1 active:scale-95 border-2 border-accent/10",
-              activeTrip ? "col-span-4" : "col-span-12 py-12"
+              "bg-white shadow-2xl rounded-[2rem] flex items-center justify-center p-6 transition-all duration-300 transform hover:-translate-y-1 active:scale-95 border-2 border-accent/10 group",
+              activeTrip ? "col-span-4 flex-col gap-3" : "col-span-12 py-8 flex-row gap-6"
             )}
           >
             <div className={cn(
-              "rounded-2xl bg-primary/5 flex items-center justify-center text-primary group-hover:bg-white/20 group-hover:text-white transition-all shadow-sm",
-              activeTrip ? "h-14 w-14" : "h-16 w-16"
+              "rounded-2xl bg-primary/5 flex items-center justify-center text-primary group-hover:bg-white/20 group-hover:text-white transition-all shadow-sm shrink-0",
+              activeTrip ? "h-14 w-14" : "h-14 w-14"
             )}>
-              <Plus className={activeTrip ? "h-8 w-8" : "h-10 w-10"} />
+              <Plus className={activeTrip ? "h-8 w-8" : "h-8 w-8"} />
             </div>
-            <div className="text-center">
-              <span className="text-sm font-bold tracking-tight text-muted-foreground group-hover:text-white transition-colors leading-tight block">
+            <div className={cn("flex flex-col", activeTrip ? "text-center" : "text-left")}>
+              <span className="text-sm font-bold tracking-tight text-foreground group-hover:text-white transition-colors leading-tight">
                 {activeTrip ? "New trip" : "Start a new adventure"}
               </span>
               {!activeTrip && (
-                <span className="text-[10px] text-muted-foreground/60 font-medium group-hover:text-white/70 transition-colors mt-1 block">
+                <span className="text-[10px] text-muted-foreground font-medium group-hover:text-white/70 transition-colors mt-0.5">
                   Split expenses effortlessly with friends
                 </span>
               )}
