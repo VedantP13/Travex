@@ -100,18 +100,33 @@ export default function Home() {
           </Link>
         </div>
 
-        <div className="grid grid-cols-2 gap-4">
-          <div className="bg-white/5 backdrop-blur-md p-6 rounded-3xl border border-white/10 shadow-inner">
-            <p className="text-[10px] font-bold opacity-60 mb-2 uppercase tracking-widest">You owe</p>
-            <p className="text-2xl font-bold">₹0.00</p>
-            <p className="text-[9px] opacity-40 mt-1 font-medium italic">All settled up!</p>
+        {loading ? (
+          <div className="h-20 flex items-center justify-center">
+            <div className="h-1.5 w-32 bg-white/10 rounded-full overflow-hidden">
+              <div className="h-full bg-accent w-1/2 animate-[progress-loading_1.5s_infinite_linear]" />
+            </div>
           </div>
-          <div className="bg-accent/10 backdrop-blur-md p-6 rounded-3xl border border-accent/20 shadow-inner">
-            <p className="text-[10px] font-bold text-accent mb-2 uppercase tracking-widest">Owed to you</p>
-            <p className="text-2xl font-bold text-accent">₹0.00</p>
-            <p className="text-[9px] text-accent/50 mt-1 font-medium italic">No pending dues</p>
+        ) : trips.length > 0 ? (
+          <div className="grid grid-cols-2 gap-4 animate-in fade-in slide-in-from-bottom-2 duration-500">
+            <div className="bg-white/5 backdrop-blur-md p-6 rounded-3xl border border-white/10 shadow-inner">
+              <p className="text-[10px] font-bold opacity-60 mb-2 uppercase tracking-widest">You owe</p>
+              <p className="text-2xl font-bold">₹0.00</p>
+              <p className="text-[9px] opacity-40 mt-1 font-medium italic">All settled up!</p>
+            </div>
+            <div className="bg-accent/10 backdrop-blur-md p-6 rounded-3xl border border-accent/20 shadow-inner">
+              <p className="text-[10px] font-bold text-accent mb-2 uppercase tracking-widest">Owed to you</p>
+              <p className="text-2xl font-bold text-accent">₹0.00</p>
+              <p className="text-[9px] text-accent/50 mt-1 font-medium italic">No pending dues</p>
+            </div>
           </div>
-        </div>
+        ) : (
+          <div className="bg-white/5 backdrop-blur-md p-6 rounded-3xl border border-white/10 animate-in fade-in slide-in-from-bottom-2 duration-500">
+            <p className="text-xs font-medium text-white/80 leading-relaxed italic">
+              "Travel is the only thing you buy that makes you richer." 
+              Start your first trip group to begin tracking shared expenses and settled balances.
+            </p>
+          </div>
+        )}
       </header>
 
       {/* Dynamic Trip Spotlight */}
