@@ -1,3 +1,4 @@
+
 'use server';
 /**
  * @fileOverview An AI agent that suggests expense categories based on expense descriptions.
@@ -10,28 +11,19 @@
 import { ai } from '@/ai/genkit';
 import { z } from 'genkit';
 
-const CATEGORIES = [
-  'Food',
-  'Transport',
-  'Shopping',
-  'Stay',
-  'Flights',
-  'Sightseeing',
-  'Other'
-];
-
 const SuggestExpenseCategoryInputSchema = z.object({
   description: z.string().describe('The name or description of the expense.'),
+  availableCategories: z.array(z.string()).describe('The list of categories to choose from.'),
 });
 export type SuggestExpenseCategoryInput = z.infer<typeof SuggestExpenseCategoryInputSchema>;
 
 const SuggestExpenseCategoryOutputSchema = z.object({
-  category: z.string().describe('The suggested expense category. Must be one of: Food, Transport, Shopping, Stay, Flights, Sightseeing, Other.'),
+  category: z.string().describe('The suggested expense category from the provided list.'),
 });
 export type SuggestExpenseCategoryOutput = z.infer<typeof SuggestExpenseCategoryOutputSchema>;
 
 /**
- * Suggests an expense category based on the description.
+ * Suggests an expense category based on the description and available categories.
  * Includes a retry mechanism for transient 503 errors.
  */
 export async function suggestExpenseCategory(input: SuggestExpenseCategoryInput): Promise<SuggestExpenseCategoryOutput> {
@@ -55,15 +47,12 @@ export async function suggestExpenseCategory(input: SuggestExpenseCategoryInput)
         continue;
       }
 
-      // If we've exhausted retries or it's a non-transient error, 
-      // we log it and return "Other" instead of throwing
-      // to avoid triggering the Next.js error overlay on the client.
       console.warn('AI categorization failed:', errorMessage);
-      return { category: "Other" };
+      return { category: input.availableCategories[0] || "Other" };
     }
   }
 
-  return { category: "Other" };
+  return { category: input.availableCategories[0] || "Other" };
 }
 
 const prompt = ai.definePrompt({
@@ -72,13 +61,9 @@ const prompt = ai.definePrompt({
   output: { schema: SuggestExpenseCategoryOutputSchema },
   prompt: `You are an AI assistant that categorizes expenses for a travel app.
 Based on the following expense description, suggest the most relevant expense category from the following list:
-- Food
-- Transport
-- Shopping
-- Stay
-- Flights
-- Sightseeing
-- Other
+{{#each availableCategories}}
+- {{{this}}}
+{{/each}}
 
 Only return a category from the provided list.
 

@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useEffect, useMemo, useRef } from "react";
@@ -26,7 +27,9 @@ import {
   Camera,
   Plane,
   Box,
-  Sparkles
+  Sparkles,
+  Settings,
+  Trash2
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -45,6 +48,7 @@ import { AnimatedCompass } from "@/components/animated-compass";
 import { errorEmitter } from "@/firebase/error-emitter";
 import { FirestorePermissionError } from "@/firebase/errors";
 import { cn } from "@/lib/utils";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 
 const FAMILY_SCHEMES = [
   { border: "border-primary", bg: "bg-primary/5", text: "text-primary", badge: "bg-primary/10 text-primary", darkBg: "bg-primary/10", focus: "focus-visible:ring-primary" },
@@ -54,7 +58,7 @@ const FAMILY_SCHEMES = [
   { border: "border-green-500", bg: "bg-green-500/5", text: "text-green-500", badge: "bg-green-500/10 text-green-500", darkBg: "bg-green-500/10", focus: "focus-visible:ring-green-500" },
 ];
 
-const PREDEFINED_CATEGORIES = [
+const DEFAULT_CATEGORIES = [
   { name: 'Food', icon: Utensils },
   { name: 'Transport', icon: Car },
   { name: 'Shopping', icon: ShoppingBag },
@@ -81,6 +85,9 @@ export default function AddExpenseWizard() {
   const [expandedFamilies, setExpandedFamilies] = useState<Record<string, boolean>>({});
   const isSplitTypeManuallyChanged = useRef(false);
   
+  const [newCategoryName, setNewCategoryName] = useState("");
+  const [isManagingCategories, setIsManagingCategories] = useState(false);
+
   const [formData, setFormData] = useState({
     description: "",
     amount: "",
@@ -94,6 +101,12 @@ export default function AddExpenseWizard() {
     paymentType: "UPI",
     category: "Other"
   });
+
+  const categoriesList = useMemo(() => {
+    const customOnes = currentTrip?.customCategories || [];
+    const base = DEFAULT_CATEGORIES.map(c => c.name);
+    return Array.from(new Set([...base, ...customOnes]));
+  }, [currentTrip?.customCategories]);
 
   useEffect(() => {
     if (!selectedTripId && trips.length > 0) {
@@ -223,7 +236,10 @@ export default function AddExpenseWizard() {
     if (formData.description.length > 3) {
       setIsAnalyzing(true);
       try {
-        const result = await suggestExpenseCategory({ description: formData.description });
+        const result = await suggestExpenseCategory({ 
+          description: formData.description,
+          availableCategories: categoriesList
+        });
         if (result.category) {
           setFormData(prev => ({ ...prev, category: result.category }));
         }
@@ -321,6 +337,39 @@ export default function AddExpenseWizard() {
           : "Default split mode has been cleared."
       });
     }).catch(err => console.error("Failed to save default:", err));
+  };
+
+  const handleAddCustomCategory = async () => {
+    if (!newCategoryName.trim() || !selectedTripId || !firestore) return;
+    const existing = currentTrip?.customCategories || [];
+    if (existing.includes(newCategoryName.trim())) {
+      toast({ title: "Category already exists", variant: "destructive" });
+      return;
+    }
+    const updated = [...existing, newCategoryName.trim()];
+    try {
+      await updateDoc(doc(firestore, "trips", selectedTripId), {
+        customCategories: updated
+      });
+      setNewCategoryName("");
+      toast({ title: "Category added" });
+    } catch (e) {
+      console.error(e);
+    }
+  };
+
+  const handleRemoveCustomCategory = async (catName: string) => {
+    if (!selectedTripId || !firestore) return;
+    const existing = currentTrip?.customCategories || [];
+    const updated = existing.filter((c: string) => c !== catName);
+    try {
+      await updateDoc(doc(firestore, "trips", selectedTripId), {
+        customCategories: updated
+      });
+      toast({ title: "Category removed" });
+    } catch (e) {
+      console.error(e);
+    }
   };
 
   const handleSplitLater = () => {
@@ -712,28 +761,69 @@ export default function AddExpenseWizard() {
                       <Tag className="h-3 w-3" />
                       Category
                     </Label>
-                    {isAnalyzing && (
-                      <div className="flex items-center gap-1.5 animate-pulse">
-                        <Sparkles className="h-3 w-3 text-primary" />
-                        <span className="text-[8px] font-bold text-primary uppercase">Auto-assigning...</span>
-                      </div>
-                    )}
+                    <Dialog open={isManagingCategories} onOpenChange={setIsManagingCategories}>
+                      <DialogTrigger asChild>
+                        <Button variant="ghost" size="sm" className="h-7 px-2 text-[10px] font-bold text-primary hover:bg-primary/5">
+                          <Settings className="h-3 w-3 mr-1" />
+                          Manage
+                        </Button>
+                      </DialogTrigger>
+                      <DialogContent className="max-w-[calc(100vw-40px)] w-full rounded-[2.5rem] p-6 border-none shadow-2xl bg-white overflow-hidden animate-in fade-in zoom-in-95 duration-300">
+                        <DialogHeader className="mb-6">
+                          <DialogTitle className="text-xl font-bold text-center">Manage Categories</DialogTitle>
+                        </DialogHeader>
+                        <div className="space-y-4">
+                          <div className="max-h-[300px] overflow-y-auto space-y-2 pr-1 scrollbar-thin">
+                            {categoriesList.map(cat => {
+                              const isBase = DEFAULT_CATEGORIES.some(c => c.name === cat);
+                              return (
+                                <div key={cat} className="flex items-center justify-between p-3 bg-muted/30 rounded-2xl">
+                                  <span className="text-sm font-medium">{cat}</span>
+                                  {!isBase && (
+                                    <Button 
+                                      variant="ghost" 
+                                      size="icon" 
+                                      className="h-8 w-8 text-destructive hover:bg-destructive/10"
+                                      onClick={() => handleRemoveCustomCategory(cat)}
+                                    >
+                                      <Trash2 className="h-4 w-4" />
+                                    </Button>
+                                  )}
+                                </div>
+                              );
+                            })}
+                          </div>
+                          <div className="flex gap-2 pt-4 border-t">
+                            <Input 
+                              placeholder="New category name" 
+                              className="h-12 rounded-xl"
+                              value={newCategoryName}
+                              onChange={e => setNewCategoryName(e.target.value)}
+                            />
+                            <Button className="h-12 rounded-xl bg-primary px-6" onClick={handleAddCustomCategory}>
+                              Add
+                            </Button>
+                          </div>
+                        </div>
+                      </DialogContent>
+                    </Dialog>
                   </div>
                   
                   <div className="grid grid-cols-4 gap-2">
-                    {PREDEFINED_CATEGORIES.map((cat) => {
-                      const Icon = cat.icon;
-                      const isSelected = formData.category === cat.name;
+                    {categoriesList.slice(0, 11).map((catName) => {
+                      const baseCat = DEFAULT_CATEGORIES.find(c => c.name === catName);
+                      const Icon = baseCat?.icon || Box;
+                      const isSelected = formData.category === catName;
                       return (
                         <Card 
-                          key={cat.name}
+                          key={catName}
                           className={cn(
                             "p-2 rounded-2xl border-2 transition-all cursor-pointer flex flex-col items-center justify-center gap-1 group",
                             isSelected 
                               ? "border-primary bg-primary/5 shadow-sm" 
                               : "border-transparent bg-white shadow-sm hover:border-muted/20"
                           )}
-                          onClick={() => setFormData(prev => ({ ...prev, category: cat.name }))}
+                          onClick={() => setFormData(prev => ({ ...prev, category: catName }))}
                         >
                           <div className={cn(
                             "h-7 w-7 rounded-xl flex items-center justify-center transition-colors",
@@ -745,7 +835,7 @@ export default function AddExpenseWizard() {
                             "text-[8px] font-bold text-center leading-tight truncate w-full px-1",
                             isSelected ? "text-foreground" : "text-muted-foreground"
                           )}>
-                            {cat.name}
+                            {catName}
                           </span>
                         </Card>
                       );

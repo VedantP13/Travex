@@ -18,6 +18,11 @@
           "enum": ["equal_person", "equal_family", "custom", "just_me"],
           "description": "The pre-selected split mode for new expenses in this trip."
         },
+        "customCategories": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "User-defined categories for this specific trip."
+        },
         "participantIds": {
           "type": "array",
           "items": { "type": "string" },
