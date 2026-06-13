@@ -215,16 +215,16 @@ export default function FriendsPage() {
         <h1 className="text-3xl font-bold text-background mb-6">Friends</h1>
         
         <div className="relative">
-          <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground/60" />
+          <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-white/40" />
           <Input 
             placeholder="Search by name or email..." 
-            className="h-14 pl-12 rounded-2xl bg-white border-none shadow-sm focus-visible:ring-primary text-foreground placeholder:text-muted-foreground/50"
+            className="h-14 pl-12 rounded-2xl bg-white/10 border-white/10 shadow-inner focus-visible:ring-accent text-white placeholder:text-white/40"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
           />
           {isSearching && (
             <div className="absolute right-4 top-1/2 -translate-y-1/2">
-              <Loader2 className="h-4 w-4 animate-spin text-primary" />
+              <Loader2 className="h-4 w-4 animate-spin text-accent" />
             </div>
           )}
         </div>
