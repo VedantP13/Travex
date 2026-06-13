@@ -84,6 +84,7 @@ export default function AddExpenseWizard() {
   const [viewMode, setViewMode] = useState<'person' | 'family'>('person');
   const [expandedFamilies, setExpandedFamilies] = useState<Record<string, boolean>>({});
   const isSplitTypeManuallyChanged = useRef(false);
+  const lastAnalyzedDescription = useRef("");
   
   const [newCategoryName, setNewCategoryName] = useState("");
   const [isManagingCategories, setIsManagingCategories] = useState(false);
@@ -233,11 +234,13 @@ export default function AddExpenseWizard() {
   }, [customSum, formData.isItemized]);
 
   const handleDescriptionBlur = async () => {
-    if (formData.description.length > 3) {
+    const trimmedDesc = formData.description.trim();
+    if (trimmedDesc.length > 2 && trimmedDesc !== lastAnalyzedDescription.current) {
       setIsAnalyzing(true);
+      lastAnalyzedDescription.current = trimmedDesc;
       try {
         const result = await suggestExpenseCategory({ 
-          description: formData.description,
+          description: trimmedDesc,
           availableCategories: categoriesList
         });
         if (result.category) {
@@ -340,13 +343,14 @@ export default function AddExpenseWizard() {
   };
 
   const handleAddCustomCategory = async () => {
-    if (!newCategoryName.trim() || !selectedTripId || !firestore) return;
+    const trimmed = newCategoryName.trim();
+    if (!trimmed || !selectedTripId || !firestore) return;
     const existing = currentTrip?.customCategories || [];
-    if (existing.includes(newCategoryName.trim())) {
+    if (existing.some((c: string) => c.toLowerCase() === trimmed.toLowerCase())) {
       toast({ title: "Category already exists", variant: "destructive" });
       return;
     }
-    const updated = [...existing, newCategoryName.trim()];
+    const updated = [...existing, trimmed];
     try {
       await updateDoc(doc(firestore, "trips", selectedTripId), {
         customCategories: updated
@@ -772,37 +776,43 @@ export default function AddExpenseWizard() {
                         <DialogHeader className="mb-6">
                           <DialogTitle className="text-xl font-bold text-center">Manage Categories</DialogTitle>
                         </DialogHeader>
-                        <div className="space-y-4">
+                        <div className="space-y-6">
                           <div className="max-h-[300px] overflow-y-auto space-y-2 pr-1 scrollbar-thin">
-                            {categoriesList.map(cat => {
-                              const isBase = DEFAULT_CATEGORIES.some(c => c.name === cat);
-                              return (
-                                <div key={cat} className="flex items-center justify-between p-3 bg-muted/30 rounded-2xl">
-                                  <span className="text-sm font-medium">{cat}</span>
-                                  {!isBase && (
-                                    <Button 
-                                      variant="ghost" 
-                                      size="icon" 
-                                      className="h-8 w-8 text-destructive hover:bg-destructive/10"
-                                      onClick={() => handleRemoveCustomCategory(cat)}
-                                    >
-                                      <Trash2 className="h-4 w-4" />
-                                    </Button>
-                                  )}
-                                </div>
-                              );
-                            })}
+                            <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest mb-3">Custom Categories</p>
+                            {(currentTrip?.customCategories || []).length > 0 ? currentTrip.customCategories.map((cat: string) => (
+                              <div key={cat} className="flex items-center justify-between p-4 bg-muted/30 rounded-2xl border border-transparent hover:border-primary/20 transition-all">
+                                <span className="text-sm font-bold text-foreground">{cat}</span>
+                                <Button 
+                                  variant="ghost" 
+                                  size="icon" 
+                                  className="h-10 w-10 text-destructive hover:bg-destructive/10 rounded-xl"
+                                  onClick={() => handleRemoveCustomCategory(cat)}
+                                >
+                                  <Trash2 className="h-4 w-4" />
+                                </Button>
+                              </div>
+                            )) : (
+                              <p className="text-xs text-center py-6 text-muted-foreground italic bg-muted/10 rounded-2xl">No custom categories added.</p>
+                            )}
                           </div>
-                          <div className="flex gap-2 pt-4 border-t">
-                            <Input 
-                              placeholder="New category name" 
-                              className="h-12 rounded-xl"
-                              value={newCategoryName}
-                              onChange={e => setNewCategoryName(e.target.value)}
-                            />
-                            <Button className="h-12 rounded-xl bg-primary px-6" onClick={handleAddCustomCategory}>
-                              Add
-                            </Button>
+                          
+                          <div className="pt-6 border-t space-y-3">
+                            <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Add New</p>
+                            <div className="flex gap-3">
+                              <Input 
+                                placeholder="e.g. Safari, Diving" 
+                                className="h-14 rounded-2xl shadow-inner border-none bg-muted/40 font-bold"
+                                value={newCategoryName}
+                                onChange={e => setNewCategoryName(e.target.value)}
+                                onKeyDown={e => e.key === 'Enter' && handleAddCustomCategory()}
+                              />
+                              <Button 
+                                className="h-14 w-14 rounded-2xl bg-primary text-white shadow-lg shadow-primary/20 shrink-0" 
+                                onClick={handleAddCustomCategory}
+                              >
+                                <Plus className="h-6 w-6" />
+                              </Button>
+                            </div>
                           </div>
                         </div>
                       </DialogContent>

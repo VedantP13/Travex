@@ -48,26 +48,36 @@ export async function suggestExpenseCategory(input: SuggestExpenseCategoryInput)
       }
 
       console.warn('AI categorization failed:', errorMessage);
-      return { category: input.availableCategories[0] || "Other" };
+      // Neutral fallback instead of first item to avoid misleading users
+      return { category: input.availableCategories.includes("Other") ? "Other" : input.availableCategories[0] || "Other" };
     }
   }
 
-  return { category: input.availableCategories[0] || "Other" };
+  return { category: input.availableCategories.includes("Other") ? "Other" : input.availableCategories[0] || "Other" };
 }
 
 const prompt = ai.definePrompt({
   name: 'suggestExpenseCategoryPrompt',
   input: { schema: SuggestExpenseCategoryInputSchema },
   output: { schema: SuggestExpenseCategoryOutputSchema },
-  prompt: `You are an AI assistant that categorizes expenses for a travel app.
-Based on the following expense description, suggest the most relevant expense category from the following list:
+  prompt: `You are an expert expense classifier for a travel app.
+Your goal is to look at a transaction description and pick the BEST matching category from a specific list provided by the user.
+
+RULES:
+1. You MUST ONLY pick a category from the provided list.
+2. If multiple categories could apply, pick the most specific one (e.g., "Safari" over "Sightseeing" or "Other").
+3. Semantic matching is key: "dinner", "pizza", "starbucks" -> "Food". "uber", "taxi", "gas" -> "Transport".
+4. If "Safari" is mentioned in the description and "Safari" is in the category list, you MUST pick "Safari".
+5. If no clear match exists, default to "Other" if it's in the list.
+
+AVAILABLE CATEGORIES:
 {{#each availableCategories}}
 - {{{this}}}
 {{/each}}
 
-Only return a category from the provided list.
+EXPENSE DESCRIPTION: {{{description}}}
 
-Expense Description: {{{description}}}`,
+Respond with a JSON object containing the chosen category. The category name must match the casing and spelling in the list exactly.`,
 });
 
 const suggestExpenseCategoryFlow = ai.defineFlow(
