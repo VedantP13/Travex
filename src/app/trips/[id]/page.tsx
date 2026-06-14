@@ -28,6 +28,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Card, CardContent } from "@/components/ui/card";
 import { useFirestore, useUser } from "@/firebase";
 import { doc, onSnapshot, collection, query, orderBy, updateDoc, deleteDoc } from "firebase/firestore";
 import { errorEmitter } from "@/firebase/error-emitter";
@@ -526,9 +527,9 @@ export default function TripDetails() {
                 </div>
 
                 <div className="space-y-4 pt-2">
-                  <div className="flex justify-between items-center">
-                    <Label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest ml-1">Participants</Label>
-                    <span className="text-[10px] font-bold text-primary">{editParticipants.length} groups</span>
+                  <div className="flex justify-between items-end">
+                    <Label className="text-sm font-bold text-muted-foreground ml-1">Friends & families</Label>
+                    <span className="text-[10px] font-bold text-primary">{editParticipants.length} groups added</span>
                   </div>
 
                   <div className="flex gap-2">
@@ -544,69 +545,83 @@ export default function TripDetails() {
                     </Button>
                   </div>
 
-                  <div className="space-y-3">
-                    {editParticipants.map((p) => (
-                      <div key={p.id} className="p-4 bg-white/50 rounded-2xl border border-muted/20 space-y-3">
-                        <div className="flex justify-between items-center">
-                          <div className="flex items-center gap-3">
-                            <Avatar className="h-7 w-7 border">
-                              <AvatarImage src={p.avatar} />
-                              <AvatarFallback>{p.name[0]}</AvatarFallback>
-                            </Avatar>
-                            <span className="text-xs font-bold truncate max-w-[120px]">{p.name}</span>
-                          </div>
-                          {!p.isUser && (
-                            <Button 
-                              variant="ghost" 
-                              size="icon" 
-                              className="h-7 w-7 text-destructive hover:bg-destructive/10 rounded-lg"
-                              onClick={() => handleRemoveParticipant(p.id)}
-                            >
-                              <Trash2 className="h-3.5 w-3.5" />
-                            </Button>
-                          )}
-                        </div>
+                  <div className="space-y-4 pt-2">
+                    {editParticipants.map((p) => {
+                      const headName = p.name.replace(" (You)", "");
+                      const familyDisplayName = p.isUser ? "Your family" : `${headName}'s family`;
 
-                        <div className="flex flex-wrap gap-2">
-                          {p.familyMembers.map((fm: string) => (
-                            <Badge 
-                              key={fm} 
-                              variant="outline" 
-                              className="bg-white border-primary/20 text-primary font-bold text-[9px] py-1 pl-2 pr-1 rounded-lg flex items-center gap-1"
-                            >
-                              {fm}
-                              <X 
-                                className="h-3 w-3 cursor-pointer text-muted-foreground hover:text-destructive" 
-                                onClick={() => handleRemoveFamilyMember(p.id, fm)} 
-                              />
-                            </Badge>
-                          ))}
-                          
-                          {activeFamilyMemberInput === p.id ? (
-                            <div className="flex gap-1 items-center animate-in fade-in">
-                              <Input 
-                                autoFocus
-                                placeholder="..." 
-                                className="h-7 text-[10px] rounded-lg bg-white w-20 px-2"
-                                value={newFamilyMemberName}
-                                onChange={e => setNewFamilyMemberName(e.target.value)}
-                                onKeyDown={e => e.key === 'Enter' && handleAddFamilyMember(p.id)}
-                                onBlur={() => { if (!newFamilyMemberName) setActiveFamilyMemberInput(null); }}
-                              />
+                      return (
+                        <Card key={p.id} className="rounded-2xl border-none shadow-sm overflow-hidden bg-white">
+                          <CardContent className="p-4 space-y-4">
+                            <div className="flex justify-between items-center">
+                              <div className="flex items-center gap-3">
+                                <Avatar className="h-8 w-8">
+                                  <AvatarImage src={p.avatar} />
+                                  <AvatarFallback>{headName[0]}</AvatarFallback>
+                                </Avatar>
+                                <span className="font-bold text-sm tracking-tight">{familyDisplayName}</span>
+                              </div>
+                              {!p.isUser && (
+                                <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive" onClick={() => handleRemoveParticipant(p.id)}>
+                                  <Trash2 className="h-4 w-4" />
+                                </Button>
+                              )}
                             </div>
-                          ) : (
-                            <Button 
-                              variant="ghost" 
-                              size="sm" 
-                              className="h-6 text-[9px] font-bold text-primary hover:bg-primary/5 p-0 px-2 border border-primary/10 rounded-lg"
-                              onClick={() => setActiveFamilyMemberInput(p.id)}
-                            >
-                              <Plus className="h-3 w-3 mr-1" /> Family
-                            </Button>
-                          )}
-                        </div>
-                      </div>
-                    ))}
+
+                            <div className="space-y-3">
+                              <div className="flex flex-wrap gap-2 items-center">
+                                <Badge 
+                                  variant="outline" 
+                                  className="px-3 py-1.5 rounded-full flex items-center gap-2 bg-primary/5 border-primary/30 text-primary font-bold shadow-sm"
+                                >
+                                  <span className="text-[10px] font-bold">{headName}</span>
+                                </Badge>
+
+                                {p.familyMembers.map((fm: string) => (
+                                  <Badge 
+                                    key={fm} 
+                                    variant="outline" 
+                                    className="pl-3 pr-2 py-1.5 rounded-full flex items-center gap-2 bg-white border-primary/30 text-primary font-bold shadow-sm group animate-in zoom-in-95 duration-200"
+                                  >
+                                    <span className="text-[10px] font-bold">{fm}</span>
+                                    <X 
+                                      className="h-3.5 w-3.5 cursor-pointer text-muted-foreground hover:text-destructive transition-colors" 
+                                      onClick={() => handleRemoveFamilyMember(p.id, fm)} 
+                                    />
+                                  </Badge>
+                                ))}
+                                
+                                {activeFamilyMemberInput === p.id ? (
+                                  <div className="flex gap-1 items-center w-full sm:w-auto animate-in fade-in slide-in-from-top-1">
+                                    <Input 
+                                      autoFocus
+                                      placeholder="Name..." 
+                                      className="h-8 text-xs rounded-lg bg-white w-24 sm:w-32"
+                                      value={newFamilyMemberName}
+                                      onChange={e => setNewFamilyMemberName(e.target.value)}
+                                      onKeyDown={e => e.key === 'Enter' && handleAddFamilyMember(p.id)}
+                                      onBlur={() => {
+                                        if (!newFamilyMemberName.trim()) setActiveFamilyMemberInput(null);
+                                      }}
+                                    />
+                                    <Button size="sm" className="h-8 px-3 rounded-lg bg-primary" onClick={() => handleAddFamilyMember(p.id)}>Add</Button>
+                                  </div>
+                                ) : (
+                                  <Button 
+                                    variant="ghost" 
+                                    size="sm" 
+                                    className="h-7 text-[10px] font-bold text-primary hover:bg-primary/20 hover:text-primary p-0 px-3 flex items-center gap-1 bg-primary/5 rounded-full transition-colors border border-primary/10"
+                                    onClick={() => setActiveFamilyMemberInput(p.id)}
+                                  >
+                                    <Plus className="h-3.5 w-3.5" /> Add family member
+                                  </Button>
+                                )}
+                              </div>
+                            </div>
+                          </CardContent>
+                        </Card>
+                      );
+                    })}
                   </div>
                 </div>
               </div>
@@ -663,4 +678,3 @@ export default function TripDetails() {
     </div>
   );
 }
-
