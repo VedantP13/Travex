@@ -203,8 +203,8 @@ export default function TripDetails() {
 
   return (
     <div className="max-w-md mx-auto min-h-screen bg-background flex flex-col">
-      {/* Hero Header - Slightly decreased height */}
-      <div className="relative h-[280px] w-full overflow-hidden shrink-0">
+      {/* Hero Header - Rounded bottom consistent with Home design */}
+      <div className="relative h-[280px] w-full overflow-hidden shrink-0 rounded-b-[2.5rem] shadow-xl shadow-black/10">
         <img 
           src={getTripImage(trip?.name || "", trip?.image, trip?.imageHint)} 
           className="h-full w-full object-cover transition-transform duration-700 hover:scale-105" 
@@ -281,7 +281,7 @@ export default function TripDetails() {
       </div>
 
       {/* Content Area */}
-      <div className="px-safe-pad pt-6 flex-1">
+      <div className="px-safe-pad pt-8 flex-1">
         <Tabs defaultValue="feed" className="w-full">
           <TabsList className="grid w-full grid-cols-2 h-14 bg-white/60 backdrop-blur-md p-1.5 rounded-2xl shadow-sm">
             <TabsTrigger value="feed" className="rounded-xl data-[state=active]:bg-primary data-[state=active]:text-white font-bold text-sm transition-all">Trip feed</TabsTrigger>
