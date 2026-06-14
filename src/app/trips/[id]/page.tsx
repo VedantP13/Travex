@@ -203,7 +203,7 @@ export default function TripDetails() {
 
   return (
     <div className="max-w-md mx-auto min-h-screen bg-background flex flex-col pb-32">
-      {/* Hero Header - Cinematic full width with scrim and rounded corners */}
+      {/* Hero Header */}
       <div className="relative h-[280px] w-full overflow-hidden shrink-0 rounded-b-[2.5rem] shadow-xl shadow-black/10">
         <img 
           src={getTripImage(trip?.name || "", trip?.image, trip?.imageHint)} 
@@ -211,16 +211,15 @@ export default function TripDetails() {
           alt={trip?.name}
           data-ai-hint={trip?.imageHint || "travel landscape"}
         />
-        {/* Scrim Overlay for Legibility */}
         <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
         
-        {/* Navigation Over Image - Balanced Controls */}
+        {/* Navigation Over Image */}
         <div className="absolute top-6 left-safe-pad right-safe-pad flex justify-between items-center z-10">
           <Button 
             variant="ghost" 
             size="icon" 
             onClick={() => router.push('/')} 
-            className="bg-white backdrop-blur-md text-primary hover:bg-primary hover:text-white rounded-2xl h-11 w-11 shadow-lg transition-all active:scale-95"
+            className="bg-white text-primary hover:bg-primary hover:text-white rounded-2xl h-11 w-11 shadow-lg transition-all active:scale-95"
           >
             <ArrowLeft className="h-6 w-6" strokeWidth={2.5} />
           </Button>
@@ -235,26 +234,26 @@ export default function TripDetails() {
                 <Settings className="h-5 w-5" strokeWidth={2.5} />
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="rounded-[1.5rem] min-w-[190px] p-2 shadow-[0_10px_40px_rgba(0,0,0,0.1)] border-none bg-white">
+            <DropdownMenuContent align="end" className="rounded-[2rem] min-w-[200px] p-2 shadow-[0_10px_40px_rgba(0,0,0,0.15)] border-none bg-white">
               <DropdownMenuLabel className="text-xs font-semibold text-muted-foreground/70 px-3 pt-3 pb-1">Trip options</DropdownMenuLabel>
               <DropdownMenuItem 
-                className="rounded-xl py-3 px-3 flex items-center gap-3 cursor-pointer focus:bg-primary/5 active:scale-[0.98] transition-all"
+                className="rounded-xl py-3 px-3 flex items-center gap-3 cursor-pointer text-primary focus:bg-primary/5 active:scale-[0.98] transition-all"
                 onClick={() => setIsEditDialogOpen(true)}
               >
-                <div className="h-8 w-8 rounded-lg bg-primary/5 flex items-center justify-center text-primary/70 group-hover:bg-primary group-hover:text-white transition-colors">
+                <div className="h-9 w-9 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
                   <Pencil className="h-4 w-4" />
                 </div>
-                <span className="font-medium text-sm text-foreground">Edit details</span>
+                <span className="font-bold text-sm">Edit details</span>
               </DropdownMenuItem>
-              <DropdownMenuSeparator className="my-1 mx-2 bg-muted/50" />
+              <DropdownMenuSeparator className="my-1 mx-2 bg-muted/30" />
               <DropdownMenuItem 
                 className="rounded-xl py-3 px-3 flex items-center gap-3 cursor-pointer text-destructive focus:bg-destructive/5 active:scale-[0.98] transition-all"
                 onClick={() => setIsDeleteDialogOpen(true)}
               >
-                <div className="h-8 w-8 rounded-lg bg-destructive/5 flex items-center justify-center">
+                <div className="h-9 w-9 rounded-full bg-destructive/10 flex items-center justify-center shrink-0">
                   <Trash2 className="h-4 w-4" />
                 </div>
-                <span className="font-medium text-sm">Delete trip</span>
+                <span className="font-bold text-sm">Delete trip</span>
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
@@ -309,6 +308,7 @@ export default function TripDetails() {
           </TabsList>
           
           <TabsContent value="feed" className="mt-6">
+            {/* Integrated Search & Filter */}
             <div className="relative mb-6">
               <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground/50" />
               <input 
@@ -369,7 +369,7 @@ export default function TripDetails() {
                 );
               }) : (
                 <div 
-                  className="text-center py-16 bg-white/50 rounded-[2.5rem] border-2 border-dashed border-muted/30 px-10 cursor-pointer hover:bg-white transition-colors"
+                  className="text-center py-20 bg-white/50 rounded-[2.5rem] border-2 border-dashed border-muted/30 px-10 cursor-pointer hover:bg-white transition-colors"
                   onClick={() => router.push(`/trips/${id}/add`)}
                 >
                   <div className="h-16 w-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-6 shadow-sm group-hover:scale-110 transition-transform">
@@ -427,7 +427,7 @@ export default function TripDetails() {
         </Tabs>
       </div>
       
-      {/* Floating Action Button */}
+      {/* FAB */}
       <div className="fixed bottom-10 right-8 z-30">
         <Button 
           size="lg" 
