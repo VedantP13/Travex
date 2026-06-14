@@ -235,7 +235,6 @@ export default function TripDetails() {
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="rounded-2xl min-w-[160px] p-1 shadow-[0_10px_40px_rgba(0,0,0,0.15)] border-none bg-white">
-              <DropdownMenuLabel className="text-[11px] font-medium text-muted-foreground/60 px-3.5 pt-2 pb-1">Trip options</DropdownMenuLabel>
               <DropdownMenuItem 
                 className="group rounded-xl py-2 px-3 flex items-center gap-3 cursor-pointer text-primary focus:bg-primary focus:text-white active:scale-[0.98] transition-all"
                 onClick={() => setIsEditDialogOpen(true)}
@@ -526,4 +525,3 @@ export default function TripDetails() {
     </div>
   );
 }
-
