@@ -270,17 +270,17 @@ export default function TripDetails() {
           
           <h1 className="text-2xl font-bold text-white tracking-tight leading-tight drop-shadow-sm">{trip?.name}</h1>
           
-          <div className="flex items-center gap-2">
-            <div className="flex -space-x-2">
+          <div className="flex items-center gap-3">
+            <div className="flex -space-x-1.5">
               {trip?.participants?.slice(0, 4).map((p: any, idx: number) => (
-                <Avatar key={idx} className="h-6 w-6 border-2 border-white shadow-lg ring-1 ring-black/5">
+                <Avatar key={idx} className="h-6 w-6 border-2 border-white shadow-lg">
                   <AvatarImage src={p.avatar} />
                   <AvatarFallback className="text-[8px] font-bold bg-white/10 text-white">{p.name?.[0]}</AvatarFallback>
                 </Avatar>
               ))}
             </div>
-            <span className="text-[10px] font-bold text-white/70">
-              {trip?.participants?.length} {trip?.participants?.length === 1 ? 'participant' : 'participants'}
+            <span className="text-[10px] font-bold text-white/80">
+              {trip?.participants?.length} participants
             </span>
           </div>
         </div>
@@ -289,16 +289,16 @@ export default function TripDetails() {
       {/* Content Area */}
       <div className="px-safe-pad pt-8 flex-1">
         <Tabs defaultValue="feed" className="w-full">
-          <TabsList className="grid w-full grid-cols-2 h-14 bg-muted/30 p-1.5 rounded-2xl shadow-inner">
+          <TabsList className="grid w-full grid-cols-2 h-14 bg-white p-1.5 rounded-2xl shadow-inner">
             <TabsTrigger 
               value="feed" 
-              className="rounded-xl data-[state=active]:bg-primary data-[state=active]:text-white data-[state=inactive]:bg-white/40 font-bold text-sm transition-all"
+              className="rounded-xl data-[state=active]:bg-primary data-[state=active]:text-white data-[state=inactive]:bg-muted/50 font-bold text-sm transition-all"
             >
               Trip feed
             </TabsTrigger>
             <TabsTrigger 
               value="balances" 
-              className="rounded-xl data-[state=active]:bg-primary data-[state=active]:text-white data-[state=inactive]:bg-white/40 font-bold text-sm transition-all"
+              className="rounded-xl data-[state=active]:bg-primary data-[state=active]:text-white data-[state=inactive]:bg-muted/50 font-bold text-sm transition-all"
             >
               Balances
             </TabsTrigger>
@@ -371,8 +371,7 @@ export default function TripDetails() {
                   <div className="h-16 w-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-6 shadow-sm group hover:scale-110 transition-transform">
                     <Plus className="h-7 w-7 text-primary animate-in zoom-in-50 duration-300" />
                   </div>
-                  <p className="text-base font-bold text-foreground">No expenses yet</p>
-                  <p className="text-xs text-muted-foreground/70 mt-1 leading-relaxed px-4 font-medium">Add your first one to start splitting</p>
+                  <p className="text-base font-bold text-foreground">No expenses yet · Add your first one</p>
                 </div>
               )}
             </div>
