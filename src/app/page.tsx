@@ -2,7 +2,7 @@
 "use client";
 
 import Link from "next/link";
-import { Plus, ChevronRight, Compass, MapPinPlus, Users, Wifi, ShieldAlert, Calendar } from "lucide-react";
+import { Plus, ChevronRight, Compass, MapPinPlus, Users, Calendar } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -63,35 +63,16 @@ export default function Home() {
               <Compass className="h-7 w-7 text-foreground" />
             </div>
             <div>
-              <div className="flex items-center gap-2">
-                <h1 className="text-2xl font-bold tracking-tight text-background">Travex</h1>
-                {!loading && !error && (
-                  <div className="flex items-center gap-1 px-1.5 py-0.5 bg-green-500/20 text-green-400 rounded-md border border-green-500/30">
-                    <Wifi className="h-2 w-2 animate-pulse" />
-                    <span className="text-[7px] font-bold uppercase tracking-tighter">Live</span>
-                  </div>
-                )}
-              </div>
-              <div className="flex items-center gap-2 mt-0.5">
-                <p className="text-sm opacity-70 text-background font-medium">
-                  {greeting}
-                </p>
-                {isAnonymous && (
-                  <Link 
-                    href="/login" 
-                    className="flex items-center gap-1.5 px-2.5 py-1 bg-accent/10 hover:bg-accent/20 border border-accent/15 rounded-full transition-all group animate-in fade-in slide-in-from-left-2 duration-700"
-                  >
-                    <ShieldAlert className="h-2.5 w-2.5 text-accent" />
-                    <span className="text-[8px] font-bold text-accent tracking-tight text-nowrap">Link account</span>
-                  </Link>
-                )}
-              </div>
+              <h1 className="text-2xl font-bold tracking-tight text-background">Travex</h1>
+              <p className="text-sm opacity-70 text-background font-medium mt-0.5">
+                {greeting}
+              </p>
             </div>
           </div>
           <Link href="/profile" className="relative group">
             <Avatar className="h-14 w-14 border-2 border-accent/30 hover:border-accent hover:scale-110 transition-all duration-300 shadow-xl shadow-black/40 ring-4 ring-white/5">
               <AvatarImage src={displayPhoto} className="object-cover" />
-              <AvatarFallback className="bg-accent text-foreground font-bold">
+              <AvatarFallback className="bg-primary/20 text-accent font-bold">
                 {displayNameForFallback[0]}
               </AvatarFallback>
             </Avatar>
@@ -113,15 +94,15 @@ export default function Home() {
           <div className="grid grid-cols-2 gap-4 animate-in fade-in slide-in-from-bottom-2 duration-500">
             <div className="bg-white/5 backdrop-blur-md p-6 rounded-3xl border border-white/10 shadow-inner">
               <p className="text-[10px] font-bold opacity-60 mb-2 uppercase tracking-widest">You owe</p>
-              <div className="flex items-baseline">
-                <span className="text-2xl font-bold">₹0.00</span>
+              <div className="flex items-baseline font-bold text-2xl">
+                <span>₹0.00</span>
               </div>
               <p className="text-[9px] opacity-40 mt-1 font-medium italic">All settled up!</p>
             </div>
             <div className="bg-accent/10 backdrop-blur-md p-6 rounded-3xl border border-accent/20 shadow-inner">
               <p className="text-[10px] font-bold text-accent mb-2 uppercase tracking-widest">Owed to you</p>
-              <div className="flex items-baseline">
-                <span className="text-2xl font-bold text-accent">₹0.00</span>
+              <div className="flex items-baseline font-bold text-2xl text-accent">
+                <span>₹0.00</span>
               </div>
               <p className="text-[9px] text-accent/50 mt-1 font-medium italic">No pending dues</p>
             </div>
@@ -136,52 +117,50 @@ export default function Home() {
       </header>
 
       {/* Dynamic Trip Spotlight */}
-      <section className="px-safe-pad -mt-6">
+      <section className="px-safe-pad mt-8">
         <div className="grid grid-cols-12 gap-4 items-stretch">
           {activeTrip ? (
             <>
-              <Card className="col-span-8 border-none shadow-2xl bg-primary text-primary-foreground rounded-[2.5rem] p-5 flex flex-col justify-between relative overflow-hidden transition-all hover:translate-y-[-2px]">
+              <Card className="col-span-8 border-none shadow-2xl bg-primary text-primary-foreground rounded-[2.5rem] p-5 flex flex-col justify-between relative overflow-hidden transition-all hover:translate-y-[-1px]">
                 <div className="space-y-3 relative z-10">
                   <div className="flex justify-between items-start">
                     <div className="space-y-1 flex-1 min-w-0">
-                      <Badge variant="outline" className="bg-white/10 text-white/90 border-white/20 text-[8px] font-bold rounded-lg px-2 py-0.5">
+                      <Badge variant="outline" className="bg-white/10 text-white/90 border-white/20 text-[9px] font-medium rounded-lg px-2.5 py-1 mb-1">
                         Ongoing trip
                       </Badge>
                       <h3 className="text-lg font-bold tracking-tight truncate leading-tight text-white">{activeTrip.name}</h3>
-                      <div className="flex items-center gap-2">
-                        <p className="text-[9px] font-bold text-white/50 flex items-center gap-1">
-                          <Calendar className="h-2.5 w-2.5" />
-                          {activeTrip.date || "Ready"}
-                        </p>
-                      </div>
+                      <p className="text-[10px] font-bold text-white/50 flex items-center gap-1.5">
+                        <Calendar className="h-2.5 w-2.5" />
+                        {activeTrip.date || "Ready"}
+                      </p>
                     </div>
-                    <div className="flex -space-x-1.5 ml-2 mt-7">
+                    <div className="flex -space-x-1.5">
                       {activeTrip.participants?.slice(0, 3).map((p: any, idx: number) => (
-                        <Avatar key={idx} className="h-5 w-5 border border-primary ring-1 ring-white/10 shadow-sm">
+                        <Avatar key={idx} className="h-6 w-6 border-2 border-primary ring-1 ring-white/10 shadow-sm">
                           <AvatarImage src={p.avatar} />
-                          <AvatarFallback className="text-[7px] bg-accent text-foreground font-bold">{p.name?.[0]}</AvatarFallback>
+                          <AvatarFallback className="text-[8px] bg-accent text-foreground font-bold">{p.name?.[0]}</AvatarFallback>
                         </Avatar>
                       ))}
                       {activeTrip.participants?.length > 3 && (
-                        <div className="h-5 w-5 rounded-full bg-white/10 border border-primary flex items-center justify-center text-[6px] font-bold text-white backdrop-blur-sm">
+                        <div className="h-6 w-6 rounded-full bg-white/10 border-2 border-primary flex items-center justify-center text-[7px] font-bold text-white backdrop-blur-sm">
                           +{activeTrip.participants.length - 3}
                         </div>
                       )}
                     </div>
                   </div>
                   
-                  <div className="space-y-0.5">
+                  <div className="space-y-1 mt-2">
                     <p className="text-[9px] font-bold text-white/40 uppercase tracking-widest mb-0.5">Total Spent</p>
-                    <div className="flex items-baseline">
-                      <span className="text-2xl font-bold tracking-tight text-white leading-none">₹{(activeTrip.totalSpent || 0).toFixed(2)}</span>
+                    <div className="flex items-baseline font-bold text-2xl tracking-tight text-white leading-none">
+                      <span>₹{(activeTrip.totalSpent || 0).toFixed(2)}</span>
                     </div>
                   </div>
                 </div>
 
-                <div className="mt-4 relative z-10">
+                <div className="mt-5 relative z-10">
                   <Link 
                     href={`/trips/${activeTrip.id}/add`} 
-                    className="inline-flex items-center justify-between w-full h-10 px-4 bg-white/10 hover:bg-white/20 rounded-xl text-xs font-bold text-white transition-all backdrop-blur-sm shadow-sm"
+                    className="inline-flex items-center justify-between w-full h-11 px-5 bg-white/10 hover:bg-white/20 rounded-2xl text-xs font-bold text-white transition-all backdrop-blur-sm shadow-sm"
                   >
                     Add expense <ChevronRight className="h-4 w-4 text-accent" />
                   </Link>
@@ -190,12 +169,12 @@ export default function Home() {
 
               <Link 
                 href="/trips/new" 
-                className="col-span-4 bg-white shadow-xl rounded-[2.5rem] flex flex-col items-center justify-center p-4 transition-all duration-300 transform hover:-translate-y-1 active:scale-95 border border-accent/10 group hover:bg-accent hover:border-accent"
+                className="col-span-4 bg-white shadow-xl rounded-[2.5rem] flex flex-col items-center justify-center p-4 transition-all duration-300 transform hover:-translate-y-1 active:scale-95 border-2 border-accent/10 group hover:bg-accent hover:border-accent"
               >
-                <div className="h-20 w-20 rounded-2xl bg-primary/5 flex items-center justify-center text-primary group-hover:bg-white/20 group-hover:text-white transition-all shadow-sm shrink-0 mb-2">
+                <div className="h-20 w-20 rounded-2xl bg-primary/5 flex items-center justify-center text-primary group-hover:bg-white/20 group-hover:text-white transition-all shadow-sm shrink-0 mb-3">
                   <MapPinPlus className="h-10 w-10" />
                 </div>
-                <span className="text-[10px] font-bold tracking-tight text-foreground group-hover:text-white transition-colors text-center leading-tight">
+                <span className="text-xs font-bold tracking-tight text-foreground group-hover:text-white transition-colors text-center leading-tight px-1">
                   New trip
                 </span>
               </Link>
@@ -203,14 +182,14 @@ export default function Home() {
           ) : (
             <Link 
               href="/trips/new" 
-              className="col-span-12 bg-white shadow-md hover:shadow-xl rounded-[2.5rem] flex items-center p-4 gap-4 transition-all duration-300 transform hover:-translate-y-1 active:scale-95 border border-primary/5 group hover:bg-accent hover:border-accent"
+              className="col-span-12 bg-white shadow-md hover:shadow-xl rounded-[2.5rem] flex items-center p-5 gap-5 transition-all duration-300 transform hover:-translate-y-1 active:scale-95 border-2 border-primary/5 group hover:bg-accent hover:border-accent"
             >
               <div className="h-16 w-16 rounded-2xl bg-primary/5 flex items-center justify-center text-primary shrink-0 transition-all group-hover:bg-white/20 group-hover:text-white">
                 <MapPinPlus className="h-8 w-8" />
               </div>
               <div className="flex-1 min-w-0">
                 <h3 className="text-lg font-bold text-foreground tracking-tight leading-tight group-hover:text-white">Create New Trip</h3>
-                <p className="text-xs text-muted-foreground font-medium mt-0.5 line-clamp-2 group-hover:text-white/70">
+                <p className="text-xs text-muted-foreground font-medium mt-1 line-clamp-2 group-hover:text-white/70">
                   Plan journeys and split expenses effortlessly
                 </p>
               </div>
