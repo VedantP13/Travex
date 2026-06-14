@@ -151,29 +151,39 @@ export default function Home() {
       </header>
 
       {/* Dynamic Trip Spotlight */}
-      <section className="px-safe-pad -mt-8">
+      <section className="px-safe-pad -mt-10">
         <div className="grid grid-cols-12 gap-4 items-stretch">
           {activeTrip ? (
             <>
-              <Card className="col-span-8 border-none shadow-2xl bg-primary text-primary-foreground rounded-[2rem] p-6 flex flex-col justify-between group transition-all hover:translate-y-[-2px]">
-                <div>
-                  <div className="flex items-center gap-2 mb-3">
-                    <span className="h-2 w-2 rounded-full bg-accent animate-pulse" />
-                    <span className="text-[10px] font-extrabold opacity-80 uppercase tracking-wider truncate">Active: {activeTrip.name}</span>
+              <Card className="col-span-8 border-none shadow-2xl bg-primary text-primary-foreground rounded-[2.5rem] p-7 flex flex-col justify-between group transition-all hover:translate-y-[-2px] hover:shadow-primary/20">
+                <div className="space-y-6">
+                  <div className="space-y-1">
+                    <p className="text-[10px] font-bold text-accent/90 uppercase tracking-widest">Ongoing Trip</p>
+                    <h3 className="text-2xl font-bold tracking-tight truncate leading-tight">{activeTrip.name}</h3>
                   </div>
-                  <p className="text-2xl font-bold">₹{(activeTrip.totalSpent || 0).toFixed(2)} spent</p>
-                  <p className="text-[11px] opacity-70 mt-1 font-semibold">{(activeTrip.participants?.length || 0)} friends splitting</p>
+                  
+                  <div className="space-y-1">
+                    <div className="flex items-baseline gap-1">
+                      <span className="text-sm font-bold opacity-60">₹</span>
+                      <span className="text-3xl font-extrabold tracking-tighter">{(activeTrip.totalSpent || 0).toFixed(2)}</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                       <span className="h-1.5 w-1.5 rounded-full bg-accent" />
+                       <p className="text-[11px] opacity-70 font-semibold tracking-tight">{(activeTrip.participants?.length || 0)} friends splitting</p>
+                    </div>
+                  </div>
                 </div>
+
                 <Link 
                   href={`/trips/${activeTrip.id}/add`} 
-                  className="mt-8 flex items-center gap-2 text-xs font-bold text-accent hover:opacity-80 transition-opacity"
+                  className="mt-6 inline-flex items-center gap-2 text-sm font-bold text-accent hover:opacity-80 transition-opacity"
                 >
                   Add expense <ChevronRight className="h-4 w-4" />
                 </Link>
               </Card>
               <Link 
                 href="/trips/new" 
-                className="col-span-4 bg-white shadow-2xl rounded-[2rem] flex flex-col items-center justify-center p-6 transition-all duration-300 transform hover:-translate-y-1 active:scale-95 border-2 border-accent/10 group hover:bg-accent hover:border-accent"
+                className="col-span-4 bg-white shadow-2xl rounded-[2.5rem] flex flex-col items-center justify-center p-6 transition-all duration-300 transform hover:-translate-y-1 active:scale-95 border-2 border-accent/10 group hover:bg-accent hover:border-accent"
               >
                 <div className="h-14 w-14 rounded-2xl bg-primary/5 flex items-center justify-center text-primary group-hover:bg-white/20 group-hover:text-white transition-all shadow-sm shrink-0 mb-3">
                   <CustomMapPinPlus className="h-7 w-7" />
@@ -186,7 +196,7 @@ export default function Home() {
           ) : (
             <Link 
               href="/trips/new" 
-              className="col-span-12 bg-white shadow-md hover:shadow-xl rounded-[2rem] flex items-center p-4 gap-4 transition-all duration-300 transform hover:-translate-y-1 active:scale-95 border border-primary/5 group hover:bg-accent hover:border-accent"
+              className="col-span-12 bg-white shadow-md hover:shadow-xl rounded-[2.5rem] flex items-center p-4 gap-4 transition-all duration-300 transform hover:-translate-y-1 active:scale-95 border border-primary/5 group hover:bg-accent hover:border-accent"
             >
               <div className="h-16 w-16 rounded-2xl bg-primary/5 flex items-center justify-center text-primary shrink-0 transition-all group-hover:bg-white/20 group-hover:text-white">
                 <CustomMapPinPlus className="h-8 w-8" />
@@ -206,7 +216,7 @@ export default function Home() {
       </section>
 
       {/* Recent Trips Section */}
-      <main className="px-safe-pad pt-6 space-y-6 flex-1">
+      <main className="px-safe-pad pt-10 space-y-6 flex-1">
         <div className="flex justify-between items-center mb-4">
           <h2 className="text-xl font-bold text-foreground tracking-tight">
             Recent trips
