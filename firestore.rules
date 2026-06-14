@@ -7,13 +7,6 @@ service cloud.firestore {
       return request.auth != null;
     }
 
-    // Helper to check if a user is a participant in a trip
-    function isTripParticipant(tripData) {
-      return isAuthenticated() && tripData != null && 
-        'participantIds' in tripData && 
-        request.auth.uid in tripData.participantIds;
-    }
-
     // Users can read any profile (to find friends) but only write their own
     match /users/{userId} {
       allow read: if isAuthenticated();
@@ -28,16 +21,26 @@ service cloud.firestore {
     }
 
     // Trips rules
+    // Triggering deployment with this comment update.
     match /trips/{tripId} {
-      // Allow create if authenticated. Creator MUST include themselves in participantIds (checked in app logic)
+      // Allow create if authenticated
       allow create: if isAuthenticated();
       
-      // Allow read/update/delete if user is a participant
-      allow read, update, delete: if isTripParticipant(resource.data) || (request.resource != null && isTripParticipant(request.resource.data));
+      // Allow read/delete if user is a participant
+      allow read, delete: if isAuthenticated() && 
+        resource.data != null && 
+        request.auth.uid in resource.data.participantIds;
+
+      // Allow update if user was a participant or is becoming one
+      allow update: if isAuthenticated() && 
+        ((resource.data != null && request.auth.uid in resource.data.participantIds) || 
+         (request.resource.data != null && request.auth.uid in request.resource.data.participantIds));
       
       // Expenses subcollection
       match /expenses/{expenseId} {
-        allow read, write: if isTripParticipant(get(/databases/$(database)/documents/trips/$(tripId)).data);
+        // We use get() to check the parent trip's participants
+        allow read, write: if isAuthenticated() && 
+          request.auth.uid in get(/databases/$(database)/documents/trips/$(tripId)).data.participantIds;
       }
     }
   }
