@@ -3,7 +3,7 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { ArrowLeft, Plus, X, UserPlus, Lightbulb, Loader2, Calendar, ShieldAlert, LogIn, MapPin, User, Users, Home } from "lucide-react";
+import { ArrowLeft, Plus, X, UserPlus, Lightbulb, Loader2, Calendar, User, Users, Home } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
@@ -20,7 +20,7 @@ import {
   DialogClose,
 } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
-import { useFirestore, useUser } from "@/firebase";
+import { useFirestore, useUser, useAuth } from "@/firebase";
 import { collection, addDoc, serverTimestamp } from "firebase/firestore";
 import { errorEmitter } from "@/firebase/error-emitter";
 import { FirestorePermissionError } from "@/firebase/errors";
@@ -41,6 +41,7 @@ export default function CreateTrip() {
   const router = useRouter();
   const { toast } = useToast();
   const firestore = useFirestore();
+  const auth = useAuth();
   const { user } = useUser();
   
   const [travelMode, setTravelMode] = useState<'solo' | 'family' | 'group'>('group');
@@ -76,7 +77,6 @@ export default function CreateTrip() {
   }, [user]);
 
   // Prompt guest users immediately when they enter the flow
-  // As requested: "Only when new trip button is selected and not create trip group"
   useEffect(() => {
     if (user?.isAnonymous && !guestPromptDismissed) {
       const timer = setTimeout(() => setShowGuestPrompt(true), 300);
@@ -125,7 +125,9 @@ export default function CreateTrip() {
   };
 
   const handleSaveTrip = async () => {
-    if (!user?.uid) {
+    // Check direct auth state to ensure we have a fresh session
+    const currentUser = auth.currentUser;
+    if (!currentUser) {
        toast({ title: "Session expired", description: "Please log in again.", variant: "destructive" });
        router.push('/login');
        return;
@@ -156,13 +158,13 @@ export default function CreateTrip() {
       const { hint } = await getDestinationHint({ tripName: name.trim() });
       const tripRef = collection(firestore, "trips");
       
-      // Ensure current user's UID is in the participantIds array for security rules
-      const participantIdsSet = new Set(
-        participants
-          .filter(p => p.isUser && p.userId)
-          .map(p => p.userId as string)
-      );
-      participantIdsSet.add(user.uid);
+      // Construct the exact participant list including the creator
+      const participantIdsSet = new Set<string>();
+      participants.forEach(p => {
+        if (p.isUser && p.userId) participantIdsSet.add(p.userId);
+      });
+      participantIdsSet.add(currentUser.uid); // Safety: ensure creator is always there
+      
       const participantIds = Array.from(participantIdsSet);
 
       const tripData = {
@@ -175,7 +177,7 @@ export default function CreateTrip() {
         status: "Active",
         totalSpent: 0,
         yourBalance: 0,
-        createdBy: user.uid,
+        createdBy: currentUser.uid,
         imageHint: hint || "travel",
         image: `https://picsum.photos/seed/${Math.random()}/600/400`
       };
@@ -188,9 +190,15 @@ export default function CreateTrip() {
       });
       router.push(`/trips/${docRef.id}`);
     } catch (error: any) {
+      console.error("Trip creation error:", error);
       errorEmitter.emit('permission-error', new FirestorePermissionError({
         path: '/trips',
         operation: 'create',
+        requestResourceData: { 
+          name: name.trim(),
+          createdBy: currentUser.uid,
+          participantIdsCount: participants.length
+        }
       }));
       setIsCreating(false);
     }
