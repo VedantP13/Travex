@@ -24,7 +24,8 @@ import {
   AlertTriangle,
   UserPlus,
   ImageIcon,
-  Upload
+  Upload,
+  Camera
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -181,7 +182,6 @@ export default function TripDetails() {
       reader.onloadend = async () => {
         const base64 = reader.result as string;
         try {
-          // Resize for trip cover (approx 600x400)
           const resized = await resizeImage(base64, 600, 400);
           handleUpdateImage(resized);
         } catch (e) {
@@ -342,9 +342,9 @@ export default function TripDetails() {
                 <Settings className="h-5 w-5" strokeWidth={2.5} />
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="rounded-2xl min-w-[160px] p-1 shadow-[0_10px_40px_rgba(0,0,0,0.15)] border-none bg-white">
+            <DropdownMenuContent align="end" className="rounded-2xl min-w-[160px] p-1.5 shadow-[0_10px_40px_rgba(0,0,0,0.15)] border-none bg-white">
               <DropdownMenuItem 
-                className="group rounded-xl py-2 px-3 flex items-center gap-3 cursor-pointer text-primary focus:bg-primary focus:text-white active:scale-[0.98] transition-all"
+                className="group rounded-xl py-2.5 px-3.5 flex items-center gap-3 cursor-pointer text-primary focus:bg-primary focus:text-white active:scale-[0.98] transition-all"
                 onClick={() => setIsEditDialogOpen(true)}
               >
                 <div className="h-8 w-8 rounded-full bg-primary/10 group-focus:bg-white/20 flex items-center justify-center shrink-0">
@@ -354,7 +354,7 @@ export default function TripDetails() {
               </DropdownMenuItem>
               <DropdownMenuSeparator className="my-1 mx-3 bg-muted/30" />
               <DropdownMenuItem 
-                className="group rounded-xl py-2 px-3 flex items-center gap-3 cursor-pointer text-destructive focus:bg-destructive focus:text-destructive-foreground active:scale-[0.98] transition-all"
+                className="group rounded-xl py-2.5 px-3.5 flex items-center gap-3 cursor-pointer text-destructive focus:bg-destructive focus:text-destructive-foreground active:scale-[0.98] transition-all"
                 onClick={() => setIsDeleteDialogOpen(true)}
               >
                 <div className="h-8 w-8 rounded-full bg-destructive/10 group-focus:bg-white/20 flex items-center justify-center shrink-0">
@@ -366,15 +366,15 @@ export default function TripDetails() {
           </DropdownMenu>
         </div>
 
-        {/* Change Cover Button */}
+        {/* Change Cover Button - Subtler pill style */}
         <Button 
           variant="ghost" 
-          size="sm" 
+          size="icon" 
           onClick={() => setIsImagePickerOpen(true)}
-          className="absolute bottom-6 right-safe-pad bg-white/20 backdrop-blur-md text-white hover:bg-white/30 rounded-xl h-9 px-3 border border-white/10 shadow-lg z-10 font-bold text-[10px]"
+          className="absolute bottom-4 right-4 bg-black/30 backdrop-blur-md text-white hover:bg-black/50 rounded-full h-8 w-8 border border-white/10 shadow-lg z-10 transition-all active:scale-95"
+          title="Change cover"
         >
-          <ImageIcon className="h-3.5 w-3.5 mr-1.5" />
-          Change cover
+          <Camera className="h-4 w-4" strokeWidth={2.5} />
         </Button>
 
         {/* Trip Information Over Image */}
@@ -631,7 +631,7 @@ export default function TripDetails() {
             <div className="p-8 space-y-6">
               <div className="space-y-4">
                 <div className="space-y-2">
-                  <Label htmlFor="trip-name" className="text-sm font-bold text-muted-foreground/70 ml-1">Trip name</Label>
+                  <Label htmlFor="trip-name" className="text-sm font-bold text-muted-foreground ml-1">Trip name</Label>
                   <Input 
                     id="trip-name"
                     placeholder="e.g. Goa 2024"
@@ -641,7 +641,7 @@ export default function TripDetails() {
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="trip-date" className="text-sm font-bold text-muted-foreground/70 ml-1">Dates (optional)</Label>
+                  <Label htmlFor="trip-date" className="text-sm font-bold text-muted-foreground ml-1">Dates (optional)</Label>
                   <div className="relative">
                     <Calendar className={cn(
                       "absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 transition-colors",
@@ -659,7 +659,7 @@ export default function TripDetails() {
 
                 <div className="space-y-4 pt-2">
                   <div className="flex justify-between items-end">
-                    <Label className="text-sm font-bold text-muted-foreground/70 ml-1">Friends & families</Label>
+                    <Label className="text-sm font-bold text-muted-foreground ml-1">Friends & families</Label>
                     <span className="text-[10px] font-bold text-primary">{editParticipants.length} groups added</span>
                   </div>
 
