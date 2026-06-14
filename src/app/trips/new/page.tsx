@@ -76,6 +76,7 @@ export default function CreateTrip() {
   }, [user]);
 
   // Prompt guest users immediately when they enter the flow
+  // As requested: "Only when new trip button is selected and not create trip group"
   useEffect(() => {
     if (user?.isAnonymous && !guestPromptDismissed) {
       const timer = setTimeout(() => setShowGuestPrompt(true), 300);
@@ -151,10 +152,11 @@ export default function CreateTrip() {
     setIsCreating(true);
     
     try {
+      // Get a semantic hint for the destination from AI
       const { hint } = await getDestinationHint({ tripName: name.trim() });
       const tripRef = collection(firestore, "trips");
       
-      // Ensure current user's UID is in the participantIds array
+      // Ensure current user's UID is in the participantIds array for security rules
       const participantIdsSet = new Set(
         participants
           .filter(p => p.isUser && p.userId)
@@ -174,7 +176,7 @@ export default function CreateTrip() {
         totalSpent: 0,
         yourBalance: 0,
         createdBy: user.uid,
-        imageHint: hint,
+        imageHint: hint || "travel",
         image: `https://picsum.photos/seed/${Math.random()}/600/400`
       };
 

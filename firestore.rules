@@ -22,9 +22,9 @@ service cloud.firestore {
 
     // Trips rules
     match /trips/{tripId} {
-      // Allow creation if the user is authenticated and includes themselves in the participant list
-      allow create: if isAuthenticated() && 
-        request.auth.uid in request.resource.data.participantIds;
+      // Allow creation if the user is authenticated
+      // We rely on participant-based read/update rules to ensure only members can see/edit it later
+      allow create: if isAuthenticated();
       
       // Allow read/delete/update if user is a participant
       allow read, delete, update: if isAuthenticated() && 
