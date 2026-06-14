@@ -219,7 +219,7 @@ export default function TripDetails() {
             variant="ghost" 
             size="icon" 
             onClick={() => router.push('/')} 
-            className="bg-white text-primary hover:bg-primary hover:text-white rounded-2xl h-11 w-11 shadow-lg transition-all active:scale-95"
+            className="bg-white/20 backdrop-blur-md text-white hover:bg-white/30 rounded-2xl h-11 w-11 border border-white/10 shadow-lg transition-all active:scale-95"
           >
             <ArrowLeft className="h-6 w-6" strokeWidth={2.5} />
           </Button>
@@ -234,26 +234,26 @@ export default function TripDetails() {
                 <Settings className="h-5 w-5" strokeWidth={2.5} />
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="rounded-[2rem] min-w-[200px] p-2 shadow-[0_10px_40px_rgba(0,0,0,0.15)] border-none bg-white">
-              <DropdownMenuLabel className="text-xs font-semibold text-muted-foreground/70 px-3 pt-3 pb-1">Trip options</DropdownMenuLabel>
+            <DropdownMenuContent align="end" className="rounded-[1.5rem] min-w-[180px] p-1.5 shadow-[0_10px_40px_rgba(0,0,0,0.15)] border-none bg-white">
+              <DropdownMenuLabel className="text-[11px] font-medium text-muted-foreground/60 px-2.5 pt-2 pb-1">Trip options</DropdownMenuLabel>
               <DropdownMenuItem 
-                className="rounded-xl py-3 px-3 flex items-center gap-3 cursor-pointer text-primary focus:bg-primary/5 active:scale-[0.98] transition-all"
+                className="rounded-xl py-2 px-2.5 flex items-center gap-3 cursor-pointer text-primary focus:bg-primary/5 active:scale-[0.98] transition-all"
                 onClick={() => setIsEditDialogOpen(true)}
               >
-                <div className="h-9 w-9 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
+                <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
                   <Pencil className="h-4 w-4" />
                 </div>
-                <span className="font-bold text-sm">Edit details</span>
+                <span className="font-semibold text-sm">Edit details</span>
               </DropdownMenuItem>
               <DropdownMenuSeparator className="my-1 mx-2 bg-muted/30" />
               <DropdownMenuItem 
-                className="rounded-xl py-3 px-3 flex items-center gap-3 cursor-pointer text-destructive focus:bg-destructive/5 active:scale-[0.98] transition-all"
+                className="rounded-xl py-2 px-2.5 flex items-center gap-3 cursor-pointer text-destructive focus:bg-destructive/5 active:scale-[0.98] transition-all"
                 onClick={() => setIsDeleteDialogOpen(true)}
               >
-                <div className="h-9 w-9 rounded-full bg-destructive/10 flex items-center justify-center shrink-0">
+                <div className="h-8 w-8 rounded-full bg-destructive/10 flex items-center justify-center shrink-0">
                   <Trash2 className="h-4 w-4" />
                 </div>
-                <span className="font-bold text-sm">Delete trip</span>
+                <span className="font-semibold text-sm">Delete trip</span>
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
@@ -375,7 +375,7 @@ export default function TripDetails() {
                   <div className="h-16 w-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-6 shadow-sm group-hover:scale-110 transition-transform">
                     <Plus className="h-7 w-7 text-primary" />
                   </div>
-                  <div className="space-y-2">
+                  <div className="space-y-2 text-center">
                     <h3 className="text-lg font-bold text-primary">No expenses yet</h3>
                     <p className="text-sm text-muted-foreground px-6 leading-relaxed">Add your first one to start tracking your journey costs.</p>
                   </div>
@@ -509,7 +509,7 @@ export default function TripDetails() {
                 onClick={handleDeleteTrip}
                 disabled={isDeleting}
               >
-                {isDeleting ? <Loader2 className="h-5 w-5 animate-spin" /> : <Trash2 className="h-5 w-5" />}
+                {isDeleting ? <Loader2 className="h-5 w-5 animate-spin" /> : <Trash2 className="h-4 w-4" />}
                 Delete Permanently
               </Button>
               <Button 
