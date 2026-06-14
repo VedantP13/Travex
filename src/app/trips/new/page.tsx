@@ -24,6 +24,7 @@ import { useFirestore, useUser } from "@/firebase";
 import { collection, addDoc, serverTimestamp } from "firebase/firestore";
 import { errorEmitter } from "@/firebase/error-emitter";
 import { FirestorePermissionError } from "@/firebase/errors";
+import { getDestinationHint } from "@/ai/flows/get-destination-hint";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
 
@@ -112,7 +113,7 @@ export default function CreateTrip() {
     }));
   };
 
-  const handleSaveTrip = () => {
+  const handleSaveTrip = async () => {
     if (!name.trim()) {
       toast({
         title: "Missing trip name",
@@ -133,44 +134,44 @@ export default function CreateTrip() {
 
     setIsCreating(true);
     
-    const tripRef = collection(firestore, "trips");
-    
-    // Create an array of all registered user IDs for efficient filtering
-    const participantIds = participants
-      .filter(p => p.isUser && p.userId)
-      .map(p => p.userId as string);
+    try {
+      // Get a specific image hint for this destination
+      const { hint } = await getDestinationHint({ tripName: name.trim() });
+      
+      const tripRef = collection(firestore, "trips");
+      const participantIds = participants
+        .filter(p => p.isUser && p.userId)
+        .map(p => p.userId as string);
 
-    const tripData = {
-      name: name.trim(),
-      date: date.trim() || null,
-      travelMode,
-      participants: participants,
-      participantIds: participantIds,
-      createdAt: serverTimestamp(),
-      status: "Active",
-      totalSpent: 0,
-      yourBalance: 0,
-      createdBy: user?.uid,
-      image: `https://picsum.photos/seed/${Math.random()}/600/400`
-    };
+      const tripData = {
+        name: name.trim(),
+        date: date.trim() || null,
+        travelMode,
+        participants: participants,
+        participantIds: participantIds,
+        createdAt: serverTimestamp(),
+        status: "Active",
+        totalSpent: 0,
+        yourBalance: 0,
+        createdBy: user?.uid,
+        imageHint: hint,
+        image: `https://picsum.photos/seed/${Math.random()}/600/400`
+      };
 
-    addDoc(tripRef, tripData)
-      .then((docRef) => {
-        toast({
-          title: "Trip created!",
-          description: `${name} has been set up successfully.`,
-        });
-        router.push(`/trips/${docRef.id}`);
-      })
-      .catch(async (error) => {
-        const permissionError = new FirestorePermissionError({
-          path: tripRef.path,
-          operation: 'create',
-          requestResourceData: tripData,
-        });
-        errorEmitter.emit('permission-error', permissionError);
-        setIsCreating(false);
+      const docRef = await addDoc(tripRef, tripData);
+      
+      toast({
+        title: "Trip created!",
+        description: `${name} has been set up successfully.`,
       });
+      router.push(`/trips/${docRef.id}`);
+    } catch (error: any) {
+      errorEmitter.emit('permission-error', new FirestorePermissionError({
+        path: 'trips',
+        operation: 'create',
+      }));
+      setIsCreating(false);
+    }
   };
 
   return (

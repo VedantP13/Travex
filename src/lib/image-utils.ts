@@ -4,25 +4,33 @@
 import { PlaceHolderImages } from "@/lib/placeholder-images";
 
 /**
- * Utility to find the best matching image for a trip based on its name.
- * Scans for keywords in the trip name and maps them to curated high-quality placeholders.
+ * Utility to find the best matching image for a trip.
+ * Uses a combination of curated matches, custom hints, and fallback logic.
  */
-export const getTripImage = (tripName: string, fallbackImage?: string) => {
+export const getTripImage = (tripName: string, fallbackImage?: string, imageHint?: string) => {
   const lowerName = tripName.toLowerCase();
   
-  // Try to find a match in our placeholder library based on hints or ID
+  // 1. If we have a curated placeholder for this specific hint or name, use it
   const match = PlaceHolderImages.find(img => {
     const idKeyword = img.id.replace('trip-', '').toLowerCase();
     const hints = img.imageHint.split(' ').map(h => h.toLowerCase());
     
-    return lowerName.includes(idKeyword) || hints.some(hint => lowerName.includes(hint));
+    return (
+      (imageHint && hints.includes(imageHint.toLowerCase())) ||
+      lowerName.includes(idKeyword) || 
+      hints.some(hint => lowerName.includes(hint))
+    );
   });
 
   if (match) return match.imageUrl;
   
-  // If no match found and we have a specific image already, use it (unless it's a generic seed)
-  if (fallbackImage && !fallbackImage.includes('seed')) return fallbackImage;
+  // 2. If it's a specific custom image URL, use it
+  if (fallbackImage && !fallbackImage.includes('seed') && !fallbackImage.includes('picsum')) {
+    return fallbackImage;
+  }
   
-  // Final fallback to a generic travel hero
-  return fallbackImage || PlaceHolderImages.find(img => img.id === "hero-travel")?.imageUrl;
+  // 3. Fallback to a seeded picsum image if no specific hint is available
+  // This ensures unique (though random) images for unknown destinations
+  const seed = imageHint || tripName;
+  return `https://picsum.photos/seed/${encodeURIComponent(seed)}/600/400`;
 };
