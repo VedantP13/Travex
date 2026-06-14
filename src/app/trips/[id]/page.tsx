@@ -202,77 +202,86 @@ export default function TripDetails() {
   }
 
   return (
-    <div className="max-w-md mx-auto min-h-screen bg-white flex flex-col">
-      {/* Header */}
-      <header className="sticky top-0 z-10 bg-white px-safe-pad py-4 border-b flex items-center justify-between">
-        <Button variant="ghost" size="icon" onClick={() => router.push('/')}>
-          <ArrowLeft className="h-6 w-6" />
-        </Button>
-        <h1 className="text-lg font-bold truncate max-w-[200px]">{trip?.name || "Trip details"}</h1>
+    <div className="max-w-md mx-auto min-h-screen bg-background flex flex-col">
+      {/* Hero Header */}
+      <div className="relative h-[360px] w-full overflow-hidden shrink-0">
+        <img 
+          src={getTripImage(trip?.name || "", trip?.image, trip?.imageHint)} 
+          className="h-full w-full object-cover transition-transform duration-700 hover:scale-105" 
+          alt={trip?.name}
+          data-ai-hint={trip?.imageHint || "travel landscape"}
+        />
+        <div className="absolute inset-0 bg-gradient-to-t from-black via-black/20 to-transparent" />
         
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="ghost" size="icon" className="rounded-xl">
-              <Settings className="h-5 w-5" />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className="rounded-2xl min-w-[180px] p-2">
-            <DropdownMenuLabel className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest px-3 py-2">Trip Options</DropdownMenuLabel>
-            <DropdownMenuItem 
-              className="rounded-xl py-3 px-3 flex items-center gap-3 cursor-pointer focus:bg-primary/10"
-              onClick={() => setIsEditDialogOpen(true)}
-            >
-              <Pencil className="h-4 w-4" />
-              <span className="font-bold text-sm">Edit details</span>
-            </DropdownMenuItem>
-            <DropdownMenuSeparator className="my-1 mx-2" />
-            <DropdownMenuItem 
-              className="rounded-xl py-3 px-3 flex items-center gap-3 cursor-pointer text-destructive focus:bg-destructive/10 focus:text-destructive"
-              onClick={() => setIsDeleteDialogOpen(true)}
-            >
-              <Trash2 className="h-4 w-4" />
-              <span className="font-bold text-sm">Delete trip</span>
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
-      </header>
-
-      {/* Quick Summary */}
-      <div className="px-safe-pad py-6 bg-background flex-1">
-        <div className="flex gap-5 items-center mb-8 animate-in fade-in slide-in-from-top-2 duration-500">
-          <div className="relative">
-            <Avatar className="h-20 w-20 rounded-[2rem] border-4 border-white shadow-xl">
-              <AvatarImage 
-                src={getTripImage(trip?.name || "", trip?.image, trip?.imageHint)} 
-                className="object-cover" 
-              />
-              <AvatarFallback className="bg-primary/10 text-primary text-2xl font-bold">
-                {trip?.name?.[0] || "T"}
-              </AvatarFallback>
-            </Avatar>
-          </div>
-          <div className="min-w-0">
-            <div className="flex items-center gap-2 mb-1.5">
-              <Badge variant="outline" className="bg-white/80 border-none text-[10px] font-bold px-2.5 py-0.5 rounded-lg shadow-sm">
-                {trip?.status || "Active"}
-              </Badge>
-              <span className="text-[10px] font-bold text-muted-foreground flex items-center gap-1">
-                <Calendar className="h-2.5 w-2.5" />
-                {trip?.date || "Flexible dates"}
-              </span>
-            </div>
-            <h2 className="text-2xl font-bold tracking-tight truncate leading-tight mb-2">{trip?.name}</h2>
-            <div className="flex -space-x-1.5 p-1 bg-white/40 backdrop-blur-sm rounded-full inline-flex">
-              {trip?.participants?.map((p: any, idx: number) => (
-                <Avatar key={idx} className="h-5 w-5 border border-white shadow-sm">
-                  <AvatarImage src={p.avatar} />
-                  <AvatarFallback className="text-[6px] font-bold bg-muted">{p.name?.[0]}</AvatarFallback>
-                </Avatar>
-              ))}
-            </div>
-          </div>
+        {/* Navigation Over Image */}
+        <div className="absolute top-6 left-safe-pad right-safe-pad flex justify-between items-center z-10">
+          <Button 
+            variant="ghost" 
+            size="icon" 
+            onClick={() => router.push('/')} 
+            className="bg-black/20 backdrop-blur-md text-white hover:bg-black/40 rounded-2xl h-11 w-11 transition-all"
+          >
+            <ArrowLeft className="h-6 w-6" />
+          </Button>
+          
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button 
+                variant="ghost" 
+                size="icon" 
+                className="bg-black/20 backdrop-blur-md text-white hover:bg-black/40 rounded-2xl h-11 w-11 transition-all"
+              >
+                <Settings className="h-5 w-5" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="rounded-2xl min-w-[180px] p-2 shadow-2xl border-none">
+              <DropdownMenuLabel className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest px-3 py-2">Trip Options</DropdownMenuLabel>
+              <DropdownMenuItem 
+                className="rounded-xl py-3 px-3 flex items-center gap-3 cursor-pointer focus:bg-primary/10"
+                onClick={() => setIsEditDialogOpen(true)}
+              >
+                <Pencil className="h-4 w-4" />
+                <span className="font-bold text-sm">Edit details</span>
+              </DropdownMenuItem>
+              <DropdownMenuSeparator className="my-1 mx-2" />
+              <DropdownMenuItem 
+                className="rounded-xl py-3 px-3 flex items-center gap-3 cursor-pointer text-destructive focus:bg-destructive/10 focus:text-destructive"
+                onClick={() => setIsDeleteDialogOpen(true)}
+              >
+                <Trash2 className="h-4 w-4" />
+                <span className="font-bold text-sm">Delete trip</span>
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
 
+        {/* Trip Information Over Image */}
+        <div className="absolute bottom-8 left-safe-pad right-safe-pad space-y-4 animate-in fade-in slide-in-from-bottom-4 duration-700">
+          <div className="flex items-center gap-3">
+            <Badge className="bg-white/20 backdrop-blur-md text-white border-none text-[10px] font-bold px-3 py-1 rounded-lg">
+              {trip?.status || "Active"}
+            </Badge>
+            <span className="text-[10px] font-bold text-white/70 flex items-center gap-1.5">
+              <Calendar className="h-3 w-3" />
+              {trip?.date || "Flexible dates"}
+            </span>
+          </div>
+          
+          <h1 className="text-3xl font-bold text-white tracking-tight leading-tight">{trip?.name}</h1>
+          
+          <div className="flex -space-x-2 bg-white/10 backdrop-blur-sm p-1.5 rounded-full inline-flex border border-white/10">
+            {trip?.participants?.map((p: any, idx: number) => (
+              <Avatar key={idx} className="h-6 w-6 border-2 border-black/20 shadow-md">
+                <AvatarImage src={p.avatar} />
+                <AvatarFallback className="text-[8px] font-bold bg-muted/20 text-white">{p.name?.[0]}</AvatarFallback>
+              </Avatar>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {/* Content Area */}
+      <div className="px-safe-pad pt-8 flex-1">
         <Tabs defaultValue="feed" className="w-full">
           <TabsList className="grid w-full grid-cols-2 h-14 bg-white/60 backdrop-blur-md p-1.5 rounded-2xl shadow-sm">
             <TabsTrigger value="feed" className="rounded-xl data-[state=active]:bg-primary data-[state=active]:text-white font-bold text-sm transition-all">Trip feed</TabsTrigger>
