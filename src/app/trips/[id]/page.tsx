@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState, useEffect, useRef } from "react";
@@ -32,7 +31,7 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/tabs";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Card, CardContent } from "@/components/ui/card";
 import { useFirestore, useUser } from "@/firebase";
@@ -362,7 +361,7 @@ export default function TripDetails() {
         <div className="absolute bottom-6 left-safe-pad right-safe-pad space-y-3 animate-in fade-in slide-in-from-bottom-4 duration-700">
           <div className="flex items-center gap-3">
             <Badge className={cn(
-              "backdrop-blur-md text-white border border-white/10 text-[10px] font-bold px-3 py-1 rounded-lg",
+              "backdrop-blur-md text-white border border-white/10 text-[10px] font-medium px-3 py-1 rounded-lg",
               trip?.status === 'Active' ? 'bg-primary/40' : trip?.status === 'Completed' ? 'bg-green-500/40' : 'bg-white/20'
             )}>
               {trip?.status || "Active"}
@@ -641,7 +640,6 @@ export default function TripDetails() {
                   <Label className="text-sm font-bold text-muted-foreground ml-1">Trip status</Label>
                   <Select value={editStatus} onValueChange={setEditStatus}>
                     <SelectTrigger className="h-14 rounded-2xl border-none bg-white shadow-inner font-bold flex items-center gap-3">
-                      <StatusIcon className="h-5 w-5" />
                       <SelectValue placeholder="Select status" />
                     </SelectTrigger>
                     <SelectContent className="rounded-xl border-none shadow-xl">

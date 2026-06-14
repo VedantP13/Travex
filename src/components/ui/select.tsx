@@ -1,4 +1,3 @@
-
 "use client"
 
 import * as React from "react"
@@ -120,8 +119,8 @@ const SelectItem = React.forwardRef<
     ref={ref}
     className={cn(
       "relative flex w-full cursor-default select-none items-center rounded-xl py-2.5 px-3 text-sm outline-none transition-all font-bold data-[disabled]:pointer-events-none data-[disabled]:opacity-50",
-      "focus:bg-primary/10 focus:text-primary",
-      "data-[state=checked]:bg-primary/10 data-[state=checked]:text-primary",
+      "focus:bg-accent/10 focus:text-accent",
+      "data-[state=checked]:bg-accent/10 data-[state=checked]:text-accent",
       className
     )}
     {...props}
