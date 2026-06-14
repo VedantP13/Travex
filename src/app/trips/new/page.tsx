@@ -220,7 +220,7 @@ export default function CreateTrip() {
 
       <main className="flex-1 px-safe-pad py-8 space-y-8 overflow-y-auto">
         <div className="space-y-4">
-          <Label className="text-sm font-bold text-muted-foreground/70 ml-1">Who's traveling?</Label>
+          <Label className="text-sm font-semibold text-muted-foreground/70 ml-1">Who's traveling?</Label>
           <div className="grid grid-cols-3 gap-3">
             {[
               { id: 'solo', label: 'Solo', icon: User, desc: 'Just me' },
@@ -247,7 +247,7 @@ export default function CreateTrip() {
                   <mode.icon className="h-5 w-5" />
                 </div>
                 <div className="space-y-0.5">
-                  <p className={cn("text-xs font-bold", travelMode === mode.id ? "text-primary" : "text-foreground")}>{mode.label}</p>
+                  <p className={cn("text-xs font-semibold", travelMode === mode.id ? "text-primary" : "text-foreground")}>{mode.label}</p>
                   <p className="text-[8px] text-muted-foreground font-medium uppercase tracking-tighter">{mode.desc}</p>
                 </div>
               </Card>
@@ -256,29 +256,29 @@ export default function CreateTrip() {
         </div>
 
         <div className="space-y-4">
-          <Label className="text-sm font-bold text-muted-foreground/70 ml-1">Trip name</Label>
+          <Label className="text-sm font-semibold text-muted-foreground/70 ml-1">Trip name</Label>
           <Input 
             placeholder="e.g. Goa 2024, Europe tour" 
-            className="h-14 text-lg font-bold rounded-2xl focus-visible:ring-primary shadow-sm bg-white"
+            className="h-14 text-lg font-semibold rounded-2xl focus-visible:ring-primary shadow-sm bg-white"
             value={name}
             onChange={e => setName(e.target.value)}
           />
         </div>
 
         <div className="space-y-4">
-          <Label className="text-sm font-bold text-muted-foreground/70 ml-1">Dates (optional)</Label>
+          <Label className="text-sm font-semibold text-muted-foreground/70 ml-1">Dates (optional)</Label>
           <Popover open={isCalendarOpen} onOpenChange={setIsCalendarOpen}>
             <PopoverTrigger asChild>
               <Button
                 variant="outline"
                 className={cn(
-                  "w-full h-14 justify-start text-left font-bold text-lg rounded-2xl px-4 border-none shadow-sm bg-white hover:bg-muted/50 transition-all",
+                  "w-full h-14 justify-start text-left font-semibold text-lg rounded-2xl px-4 border-none shadow-sm bg-white hover:bg-muted/50 transition-all",
                   !dateRange && "text-muted-foreground/60 font-medium"
                 )}
               >
                 <CalendarIcon className={cn(
                   "mr-4 h-5 w-5 transition-all",
-                  dateRange ? "text-foreground stroke-[2.5px]" : "text-muted-foreground/60"
+                  dateRange ? "text-foreground stroke-[2px]" : "text-muted-foreground/60"
                 )} />
                 {dateRange?.from ? (
                   dateRange.to ? (
@@ -305,7 +305,7 @@ export default function CreateTrip() {
               <div className="p-4 pt-0 border-t border-muted/10 flex justify-end">
                 <Button 
                   size="sm" 
-                  className="rounded-xl px-6 font-bold h-9 bg-primary text-white shadow-lg shadow-primary/20"
+                  className="rounded-xl px-6 font-semibold h-9 bg-primary text-white shadow-lg shadow-primary/20"
                   onClick={() => setIsCalendarOpen(false)}
                 >
                   OK
@@ -318,15 +318,15 @@ export default function CreateTrip() {
         {travelMode !== 'solo' && (
           <div className="space-y-4">
             <div className="flex justify-between items-end">
-              <Label className="text-sm font-bold text-muted-foreground/70 ml-1">Friends & families</Label>
-              <span className="text-[10px] text-primary font-bold">{participants.length} groups added</span>
+              <Label className="text-sm font-semibold text-muted-foreground/70 ml-1">Friends & families</Label>
+              <span className="text-[10px] text-primary font-semibold">{participants.length} groups added</span>
             </div>
             
             {travelMode === 'group' && (
               <div className="flex gap-2">
                 <Input 
                   placeholder="Who's coming with you?" 
-                  className="h-12 rounded-xl shadow-sm bg-white"
+                  className="h-12 rounded-xl shadow-sm bg-white font-semibold"
                   value={newParticipantName}
                   onChange={e => setNewParticipantName(e.target.value)}
                   onKeyDown={e => e.key === 'Enter' && addParticipant()}
@@ -360,7 +360,7 @@ export default function CreateTrip() {
                             <AvatarImage src={p.avatar} />
                             <AvatarFallback>{headName[0]}</AvatarFallback>
                           </Avatar>
-                          <span className="font-bold text-sm tracking-tight">{familyDisplayName}</span>
+                          <span className="font-semibold text-sm tracking-tight">{familyDisplayName}</span>
                         </div>
                         {p.id !== "me" && (
                           <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive" onClick={() => removeParticipant(p.id)}>
@@ -373,18 +373,18 @@ export default function CreateTrip() {
                         <div className="flex flex-wrap gap-2 items-center">
                           <Badge 
                             variant="outline" 
-                            className="px-3 py-1.5 rounded-full flex items-center gap-2 bg-primary/5 border-primary/30 text-primary font-bold shadow-sm"
+                            className="px-3 py-1.5 rounded-full flex items-center gap-2 bg-primary/5 border-primary/30 text-primary font-semibold shadow-sm"
                           >
-                            <span className="text-[10px] font-bold">{headName}</span>
+                            <span className="text-[10px] font-semibold">{headName}</span>
                           </Badge>
 
                           {p.familyMembers.map((fm) => (
                             <Badge 
                               key={fm} 
                               variant="outline" 
-                              className="pl-3 pr-2 py-1.5 rounded-full flex items-center gap-2 bg-white border-primary/30 text-primary font-bold shadow-sm group animate-in zoom-in-95 duration-200"
+                              className="pl-3 pr-2 py-1.5 rounded-full flex items-center gap-2 bg-white border-primary/30 text-primary font-semibold shadow-sm group animate-in zoom-in-95 duration-200"
                             >
-                              <span className="text-[10px] font-bold">{fm}</span>
+                              <span className="text-[10px] font-semibold">{fm}</span>
                               <X 
                                 className="h-3.5 w-3.5 cursor-pointer text-muted-foreground hover:text-destructive transition-colors" 
                                 onClick={() => removeFamilyMember(p.id, fm)} 
@@ -397,7 +397,7 @@ export default function CreateTrip() {
                               <Input 
                                 autoFocus
                                 placeholder="Name..." 
-                                className="h-8 text-xs rounded-lg bg-white w-24 sm:w-32"
+                                className="h-8 text-xs rounded-lg bg-white w-24 sm:w-32 font-medium"
                                 value={newFamilyMemberName}
                                 onChange={e => setNewFamilyMemberName(e.target.value)}
                                 onKeyDown={e => e.key === 'Enter' && addFamilyMember(p.id)}
@@ -405,13 +405,13 @@ export default function CreateTrip() {
                                   if (!newFamilyMemberName.trim()) setActiveFamilyMemberInput(null);
                                 }}
                               />
-                              <Button size="sm" className="h-8 px-3 rounded-lg bg-primary" onClick={() => addFamilyMember(p.id)}>Add</Button>
+                              <Button size="sm" className="h-8 px-3 rounded-lg bg-primary font-semibold" onClick={() => addFamilyMember(p.id)}>Add</Button>
                             </div>
                           ) : (
                             <Button 
                               variant="ghost" 
                               size="sm" 
-                              className="h-7 text-[10px] font-bold text-primary hover:bg-primary/20 hover:text-primary p-0 px-3 flex items-center gap-1 bg-primary/5 rounded-full transition-colors border border-primary/10"
+                              className="h-7 text-[10px] font-semibold text-primary hover:bg-primary/20 hover:text-primary p-0 px-3 flex items-center gap-1 bg-primary/5 rounded-full transition-colors border border-primary/10"
                               onClick={() => setActiveFamilyMemberInput(p.id)}
                             >
                               <Plus className="h-3.5 w-3.5" /> Add family member

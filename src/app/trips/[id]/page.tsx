@@ -215,50 +215,6 @@ export default function TripDetails() {
       .finally(() => setIsSaving(false));
   };
 
-  const handleAddParticipant = () => {
-    if (!newParticipantName.trim()) return;
-    const newP = {
-      id: Math.random().toString(36).substr(2, 9),
-      name: newParticipantName.trim(),
-      isUser: false,
-      avatar: `https://picsum.photos/seed/${Math.random()}/50/50`,
-      familyMembers: []
-    };
-    setEditParticipants([...editParticipants, newP]);
-    setNewParticipantName("");
-  };
-
-  const handleRemoveParticipant = (pid: string) => {
-    const p = editParticipants.find(part => part.id === pid);
-    if (p?.isUser) {
-      toast({ title: "Cannot remove yourself", variant: "destructive" });
-      return;
-    }
-    setEditParticipants(editParticipants.filter(part => part.id !== pid));
-  };
-
-  const handleAddFamilyMember = (pid: string) => {
-    if (!newFamilyMemberName.trim()) return;
-    setEditParticipants(editParticipants.map(p => {
-      if (p.id === pid) {
-        if (p.familyMembers.includes(newFamilyMemberName.trim())) return p;
-        return { ...p, familyMembers: [...p.familyMembers, newFamilyMemberName.trim()] };
-      }
-      return p;
-    }));
-    setNewFamilyMemberName("");
-    setActiveFamilyMemberInput(null);
-  };
-
-  const handleRemoveFamilyMember = (pid: string, memberName: string) => {
-    setEditParticipants(editParticipants.map(p => {
-      if (p.id === pid) {
-        return { ...p, familyMembers: p.familyMembers.filter((m: string) => m !== memberName) };
-      }
-      return p;
-    }));
-  };
-
   const handleDeleteTrip = async () => {
     if (!id || !firestore) return;
     setIsDeleting(true);
@@ -469,7 +425,7 @@ export default function TripDetails() {
           </div>
           <div className="p-6 space-y-6">
             <div className="space-y-3">
-              <Label className="text-sm font-bold text-muted-foreground ml-1">Upload custom image</Label>
+              <Label className="text-sm font-semibold text-muted-foreground ml-1">Upload custom image</Label>
               <div 
                 onClick={() => imageInputRef.current?.click()}
                 className="h-28 w-full rounded-2xl border-2 border-dashed border-primary/20 bg-white flex flex-col items-center justify-center text-primary cursor-pointer hover:bg-primary/5 transition-all shadow-sm group"
@@ -481,7 +437,7 @@ export default function TripDetails() {
                     <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center mb-2 group-hover:scale-110 transition-transform">
                       <Upload className="h-5 w-5" />
                     </div>
-                    <span className="text-xs font-bold">Pick from device</span>
+                    <span className="text-xs font-semibold">Pick from device</span>
                   </>
                 )}
                 <input 
@@ -495,7 +451,7 @@ export default function TripDetails() {
             </div>
 
             <div className="space-y-3">
-              <Label className="text-sm font-bold text-muted-foreground ml-1">Predefined styles</Label>
+              <Label className="text-sm font-semibold text-muted-foreground ml-1">Predefined styles</Label>
               <div className="grid grid-cols-2 gap-3 max-h-[300px] overflow-y-auto pr-1 scrollbar-thin">
                  {PlaceHolderImages.filter(img => img.id.startsWith('trip-')).map((img) => (
                    <div 
@@ -526,29 +482,29 @@ export default function TripDetails() {
             <div className="p-8 space-y-6">
               <div className="space-y-4">
                 <div className="space-y-2">
-                  <Label htmlFor="trip-name" className="text-sm font-bold text-muted-foreground ml-1">Trip name</Label>
+                  <Label htmlFor="trip-name" className="text-sm font-semibold text-muted-foreground ml-1">Trip name</Label>
                   <Input 
                     id="trip-name"
                     placeholder="e.g. Goa 2024"
-                    className="h-14 rounded-2xl shadow-inner border-none bg-white font-bold text-lg"
+                    className="h-14 rounded-2xl shadow-inner border-none bg-white font-semibold text-lg"
                     value={editName}
                     onChange={(e) => setEditName(e.target.value)}
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label className="text-sm font-bold text-muted-foreground ml-1">Dates (optional)</Label>
+                  <Label className="text-sm font-semibold text-muted-foreground ml-1">Dates (optional)</Label>
                   <Popover open={isCalendarOpen} onOpenChange={setIsCalendarOpen}>
                     <PopoverTrigger asChild>
                       <Button
                         variant="outline"
                         className={cn(
-                          "w-full h-14 justify-start text-left font-bold text-lg rounded-2xl px-4 border-none shadow-sm bg-white hover:bg-muted/50 transition-all",
+                          "w-full h-14 justify-start text-left font-semibold text-lg rounded-2xl px-4 border-none shadow-sm bg-white hover:bg-muted/50 transition-all",
                           !editDateRange && "text-muted-foreground/60 font-medium"
                         )}
                       >
                         <CalendarIcon className={cn(
                           "mr-4 h-5 w-5 transition-all",
-                          editDateRange ? "text-foreground stroke-[2.5px]" : "text-muted-foreground/60"
+                          editDateRange ? "text-foreground stroke-[2px]" : "text-muted-foreground/60"
                         )} />
                         {editDateRange?.from ? (
                           editDateRange.to ? (
@@ -575,7 +531,7 @@ export default function TripDetails() {
                       <div className="p-4 pt-0 border-t border-muted/10 flex justify-end">
                         <Button 
                           size="sm" 
-                          className="rounded-xl px-6 font-bold h-9 bg-primary text-white shadow-lg shadow-primary/20"
+                          className="rounded-xl px-6 font-semibold h-9 bg-primary text-white shadow-lg shadow-primary/20"
                           onClick={() => setIsCalendarOpen(false)}
                         >
                           OK
@@ -586,9 +542,9 @@ export default function TripDetails() {
                 </div>
 
                 <div className="space-y-2">
-                  <Label className="text-sm font-bold text-muted-foreground ml-1">Trip status</Label>
+                  <Label className="text-sm font-semibold text-muted-foreground ml-1">Trip status</Label>
                   <Select value={editStatus} onValueChange={setEditStatus}>
-                    <SelectTrigger className="h-14 rounded-2xl border-none bg-white shadow-inner font-bold">
+                    <SelectTrigger className="h-14 rounded-2xl border-none bg-white shadow-inner font-semibold">
                       <SelectValue placeholder="Select status" />
                     </SelectTrigger>
                     <SelectContent className="rounded-xl border-none shadow-xl">
@@ -603,9 +559,6 @@ export default function TripDetails() {
                       </SelectItem>
                     </SelectContent>
                   </Select>
-                </div>
-
-                <div className="space-y-4 pt-2">
                 </div>
               </div>
               <Button 
