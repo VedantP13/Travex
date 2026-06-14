@@ -75,10 +75,10 @@ export default function CreateTrip() {
     });
   }, [user]);
 
-  // Prompt guest users as soon as they start the New Trip flow
+  // Prompt guest users immediately when they enter the flow
   useEffect(() => {
     if (user?.isAnonymous && !guestPromptDismissed) {
-      const timer = setTimeout(() => setShowGuestPrompt(true), 500);
+      const timer = setTimeout(() => setShowGuestPrompt(true), 300);
       return () => clearTimeout(timer);
     }
   }, [user?.isAnonymous, guestPromptDismissed]);
@@ -154,13 +154,14 @@ export default function CreateTrip() {
       const { hint } = await getDestinationHint({ tripName: name.trim() });
       const tripRef = collection(firestore, "trips");
       
-      const participantIds = participants
-        .filter(p => p.isUser && p.userId)
-        .map(p => p.userId as string);
-      
-      if (!participantIds.includes(user.uid)) {
-        participantIds.push(user.uid);
-      }
+      // Ensure current user's UID is in the participantIds array
+      const participantIdsSet = new Set(
+        participants
+          .filter(p => p.isUser && p.userId)
+          .map(p => p.userId as string)
+      );
+      participantIdsSet.add(user.uid);
+      const participantIds = Array.from(participantIdsSet);
 
       const tripData = {
         name: name.trim(),
