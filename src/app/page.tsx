@@ -167,8 +167,8 @@ export default function Home() {
                   <div className="space-y-0.5">
                     <p className="text-[9px] font-bold text-white/40 uppercase tracking-widest mb-0.5">Total Spent</p>
                     <div className="flex items-baseline gap-1">
-                      <span className="text-lg font-bold text-white">₹</span>
-                      <span className="text-2xl font-bold tracking-tight text-white">{(activeTrip.totalSpent || 0).toFixed(2)}</span>
+                      <span className="text-lg font-bold text-white leading-none">₹</span>
+                      <span className="text-2xl font-bold tracking-tight text-white leading-none">{(activeTrip.totalSpent || 0).toFixed(2)}</span>
                     </div>
                   </div>
                 </div>
@@ -187,8 +187,8 @@ export default function Home() {
                 href="/trips/new" 
                 className="col-span-4 bg-white shadow-2xl rounded-[2.5rem] flex flex-col items-center justify-center p-4 transition-all duration-300 transform hover:-translate-y-1 active:scale-95 border border-accent/10 group hover:bg-accent hover:border-accent"
               >
-                <div className="h-12 w-12 rounded-2xl bg-primary/5 flex items-center justify-center text-primary group-hover:bg-white/20 group-hover:text-white transition-all shadow-sm shrink-0 mb-2">
-                  <MapPinPlus className="h-6 w-6" />
+                <div className="h-16 w-16 rounded-2xl bg-primary/5 flex items-center justify-center text-primary group-hover:bg-white/20 group-hover:text-white transition-all shadow-sm shrink-0 mb-2">
+                  <MapPinPlus className="h-8 w-8" />
                 </div>
                 <span className="text-[10px] font-bold tracking-tight text-foreground group-hover:text-white transition-colors text-center leading-tight">
                   New trip
