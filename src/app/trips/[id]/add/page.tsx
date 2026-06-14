@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState, useEffect, useMemo, useRef } from "react";
@@ -284,6 +283,24 @@ export default function AddExpenseWizard() {
 
   const prevStep = () => {
     setStep(prev => Math.max(prev - 1, 1));
+  };
+
+  const toggleTripDefaultSplit = (modeId: string) => {
+    if (!firestore || !selectedTripId) return;
+    
+    const isCurrentlyDefault = currentTrip?.defaultSplitType === modeId;
+    const newDefault = isCurrentlyDefault ? null : modeId;
+    
+    updateDoc(doc(firestore, "trips", selectedTripId), {
+      defaultSplitType: newDefault
+    }).then(() => {
+      toast({
+        title: newDefault ? "Preference saved" : "Preference removed",
+        description: newDefault 
+          ? `${modeId.replace('_', ' ')} will now be pre-selected for this trip.`
+          : "Default split mode has been cleared."
+      });
+    }).catch(err => console.error("Failed to save default:", err));
   };
 
   const handlePostExpense = (overrideSplitType?: string) => {
