@@ -155,6 +155,50 @@ export default function TripDetails() {
     };
   }, [id, firestore, router]);
 
+  const handleAddParticipant = () => {
+    if (!newParticipantName.trim()) return;
+    const newP = {
+      id: Math.random().toString(36).substr(2, 9),
+      name: newParticipantName.trim(),
+      isUser: false,
+      avatar: `https://picsum.photos/seed/${Math.random()}/50/50`,
+      familyMembers: []
+    };
+    setEditParticipants([...editParticipants, newP]);
+    setNewParticipantName("");
+  };
+
+  const handleRemoveParticipant = (pid: string) => {
+    const p = editParticipants.find(part => part.id === pid);
+    if (p?.isUser) {
+      toast({ title: "Cannot remove yourself", variant: "destructive" });
+      return;
+    }
+    setEditParticipants(editParticipants.filter(part => part.id !== pid));
+  };
+
+  const handleAddFamilyMember = (pid: string) => {
+    if (!newFamilyMemberName.trim()) return;
+    setEditParticipants(editParticipants.map(p => {
+      if (p.id === pid) {
+        if (p.familyMembers.includes(newFamilyMemberName.trim())) return p;
+        return { ...p, familyMembers: [...p.familyMembers, newFamilyMemberName.trim()] };
+      }
+      return p;
+    }));
+    setNewFamilyMemberName("");
+    setActiveFamilyMemberInput(null);
+  };
+
+  const handleRemoveFamilyMember = (pid: string, memberName: string) => {
+    setEditParticipants(editParticipants.map(p => {
+      if (p.id === pid) {
+        return { ...p, familyMembers: p.familyMembers.filter((m: string) => m !== memberName) };
+      }
+      return p;
+    }));
+  };
+
   const handleUpdateImage = async (imageUrl: string) => {
     if (!id || !firestore) return;
     setIsUploading(true);
@@ -473,13 +517,13 @@ export default function TripDetails() {
         <DialogContent className="max-w-[calc(100vw-40px)] w-full rounded-[2.5rem] p-0 border-none shadow-2xl bg-background overflow-hidden animate-in fade-in zoom-in-95 duration-300">
           <div className="h-24 bg-foreground relative flex items-center justify-center">
             <DialogTitle className="text-xl font-bold text-white relative z-10">Edit trip</DialogTitle>
-            <DialogDescription className="sr-only">Update your trip details.</DialogDescription>
+            <DialogDescription className="sr-only">Update your trip details and participants.</DialogDescription>
             <DialogClose className="absolute right-4 top-4 h-8 w-8 rounded-full flex items-center justify-center bg-white/10 text-white/70 hover:bg-white/20 hover:text-white transition-all z-20">
               <X className="h-5 w-5" />
             </DialogClose>
           </div>
           <ScrollArea className="max-h-[70vh]">
-            <div className="p-8 space-y-6">
+            <div className="p-8 space-y-8">
               <div className="space-y-4">
                 <div className="space-y-2">
                   <Label htmlFor="trip-name" className="text-sm font-semibold text-muted-foreground ml-1">Trip name</Label>
@@ -561,6 +605,106 @@ export default function TripDetails() {
                   </Select>
                 </div>
               </div>
+
+              <div className="space-y-4">
+                <div className="flex justify-between items-end">
+                  <Label className="text-sm font-semibold text-muted-foreground/70 ml-1">Friends & families</Label>
+                  <span className="text-[10px] text-primary font-semibold">{editParticipants.length} groups</span>
+                </div>
+                
+                <div className="flex gap-2">
+                  <Input 
+                    placeholder="Add friend..." 
+                    className="h-12 rounded-xl shadow-sm bg-white font-semibold"
+                    value={newParticipantName}
+                    onChange={e => setNewParticipantName(e.target.value)}
+                    onKeyDown={e => e.key === 'Enter' && handleAddParticipant()}
+                  />
+                  <Button size="icon" className="h-12 w-12 rounded-xl shrink-0 bg-primary" onClick={handleAddParticipant}>
+                    <UserPlus className="h-5 w-5" />
+                  </Button>
+                </div>
+
+                <div className="space-y-4 pt-2">
+                  {editParticipants.map((p) => {
+                    const headName = p.name.replace(" (You)", "");
+                    const familyDisplayName = p.isUser ? "Your family" : `${headName}'s family`;
+
+                    return (
+                      <Card key={p.id} className="rounded-2xl border-none shadow-sm overflow-hidden bg-white/50">
+                        <CardContent className="p-4 space-y-4">
+                          <div className="flex justify-between items-center">
+                            <div className="flex items-center gap-3">
+                              <Avatar className="h-8 w-8">
+                                <AvatarImage src={p.avatar} />
+                                <AvatarFallback>{headName[0]}</AvatarFallback>
+                              </Avatar>
+                              <span className="font-semibold text-sm tracking-tight">{familyDisplayName}</span>
+                            </div>
+                            {!p.isUser && (
+                              <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive" onClick={() => handleRemoveParticipant(p.id)}>
+                                <X className="h-4 w-4" />
+                              </Button>
+                            )}
+                          </div>
+
+                          <div className="space-y-3">
+                            <div className="flex flex-wrap gap-2 items-center">
+                              <Badge 
+                                variant="outline" 
+                                className="px-3 py-1.5 rounded-full flex items-center gap-2 bg-primary/5 border-primary/30 text-primary font-semibold shadow-sm"
+                              >
+                                <span className="text-[10px] font-semibold">{headName}</span>
+                              </Badge>
+
+                              {(p.familyMembers || []).map((fm: string) => (
+                                <Badge 
+                                  key={fm} 
+                                  variant="outline" 
+                                  className="pl-3 pr-2 py-1.5 rounded-full flex items-center gap-2 bg-white border-primary/30 text-primary font-semibold shadow-sm group animate-in zoom-in-95 duration-200"
+                                >
+                                  <span className="text-[10px] font-semibold">{fm}</span>
+                                  <X 
+                                    className="h-3.5 w-3.5 cursor-pointer text-muted-foreground hover:text-destructive transition-colors" 
+                                    onClick={() => handleRemoveFamilyMember(p.id, fm)} 
+                                  />
+                                </Badge>
+                              ))}
+                              
+                              {activeFamilyMemberInput === p.id ? (
+                                <div className="flex gap-1 items-center w-full sm:w-auto animate-in fade-in slide-in-from-top-1">
+                                  <Input 
+                                    autoFocus
+                                    placeholder="Name..." 
+                                    className="h-8 text-xs rounded-lg bg-white w-24 sm:w-32 font-medium"
+                                    value={newFamilyMemberName}
+                                    onChange={e => setNewFamilyMemberName(e.target.value)}
+                                    onKeyDown={e => e.key === 'Enter' && handleAddFamilyMember(p.id)}
+                                    onBlur={() => {
+                                      if (!newFamilyMemberName.trim()) setActiveFamilyMemberInput(null);
+                                    }}
+                                  />
+                                  <Button size="sm" className="h-8 px-3 rounded-lg bg-primary font-semibold" onClick={() => handleAddFamilyMember(p.id)}>Add</Button>
+                                </div>
+                              ) : (
+                                <Button 
+                                  variant="ghost" 
+                                  size="sm" 
+                                  className="h-7 text-[10px] font-semibold text-primary hover:bg-primary/20 hover:text-primary p-0 px-3 flex items-center gap-1 bg-primary/5 rounded-full transition-colors border border-primary/10"
+                                  onClick={() => setActiveFamilyMemberInput(p.id)}
+                                >
+                                  <Plus className="h-3.5 w-3.5" /> Add member
+                                </Button>
+                              )}
+                            </div>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    );
+                  })}
+                </div>
+              </div>
+
               <Button 
                 className="w-full h-14 rounded-2xl bg-accent text-accent-foreground hover:bg-accent/90 font-bold text-base shadow-lg shadow-accent/20 transition-all active:scale-95"
                 onClick={handleUpdateTrip}
