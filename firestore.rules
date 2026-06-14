@@ -22,11 +22,10 @@ service cloud.firestore {
 
     // Trips rules
     match /trips/{tripId} {
-      // Robust creation rule: User must be authenticated, must be the creator, 
-      // and must be included in the participant list to avoid locking themselves out.
+      // Creation rule: User must be authenticated and must be the creator.
+      // We rely on the participantIds list for subsequent access.
       allow create: if isAuthenticated() && 
-                    request.resource.data.createdBy == request.auth.uid &&
-                    request.auth.uid in request.resource.data.participantIds;
+                    request.resource.data.createdBy == request.auth.uid;
       
       // Allow read/delete/update if user is a participant
       allow read, delete, update: if isAuthenticated() && 

@@ -21,7 +21,7 @@ import {
 } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
 import { useFirestore, useUser, useAuth } from "@/firebase";
-import { collection, addDoc, serverTimestamp } from "firebase/firestore";
+import { collection, doc, setDoc, serverTimestamp } from "firebase/firestore";
 import { errorEmitter } from "@/firebase/error-emitter";
 import { FirestorePermissionError } from "@/firebase/errors";
 import { getDestinationHint } from "@/ai/flows/get-destination-hint";
@@ -125,7 +125,6 @@ export default function CreateTrip() {
   };
 
   const handleSaveTrip = async () => {
-    // Check direct auth state to ensure we have a fresh session
     const currentUser = auth.currentUser;
     if (!currentUser) {
        toast({ title: "Session expired", description: "Please log in again.", variant: "destructive" });
@@ -154,25 +153,25 @@ export default function CreateTrip() {
     setIsCreating(true);
     
     try {
-      // Get a semantic hint for the destination from AI
       const { hint } = await getDestinationHint({ tripName: name.trim() });
-      const tripRef = collection(firestore, "trips");
       
-      // Construct the exact participant list including the creator
+      // Generate ID first to allow non-blocking redirect
+      const newTripRef = doc(collection(firestore, "trips"));
+      const tripId = newTripRef.id;
+
+      // Construct participant IDs for indexing/querying
       const participantIdsSet = new Set<string>();
       participants.forEach(p => {
         if (p.isUser && p.userId) participantIdsSet.add(p.userId);
       });
-      participantIdsSet.add(currentUser.uid); // Safety: ensure creator is always there
+      participantIdsSet.add(currentUser.uid);
       
-      const participantIds = Array.from(participantIdsSet);
-
       const tripData = {
         name: name.trim(),
         date: date.trim() || null,
         travelMode,
         participants: participants,
-        participantIds: participantIds,
+        participantIds: Array.from(participantIdsSet),
         createdAt: serverTimestamp(),
         status: "Active",
         totalSpent: 0,
@@ -182,25 +181,31 @@ export default function CreateTrip() {
         image: `https://picsum.photos/seed/${Math.random()}/600/400`
       };
 
-      const docRef = await addDoc(tripRef, tripData);
+      // Non-blocking write
+      setDoc(newTripRef, tripData)
+        .catch(async (error) => {
+          errorEmitter.emit('permission-error', new FirestorePermissionError({
+            path: `/trips/${tripId}`,
+            operation: 'create',
+            requestResourceData: tripData
+          }));
+        });
       
       toast({
         title: "Trip created!",
         description: `${name} has been set up successfully.`,
       });
-      router.push(`/trips/${docRef.id}`);
+      
+      // Instant redirect
+      router.push(`/trips/${tripId}`);
     } catch (error: any) {
-      console.error("Trip creation error:", error);
-      errorEmitter.emit('permission-error', new FirestorePermissionError({
-        path: '/trips',
-        operation: 'create',
-        requestResourceData: { 
-          name: name.trim(),
-          createdBy: currentUser.uid,
-          participantIdsCount: participants.length
-        }
-      }));
+      console.error("Trip initialization failed:", error);
       setIsCreating(false);
+      toast({
+        variant: "destructive",
+        title: "Creation failed",
+        description: "Could not initialize trip. Please try again."
+      });
     }
   };
 
