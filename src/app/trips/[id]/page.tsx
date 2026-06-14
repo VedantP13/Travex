@@ -344,7 +344,7 @@ export default function TripDetails() {
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="rounded-2xl min-w-[160px] p-1.5 shadow-[0_10px_40px_rgba(0,0,0,0.15)] border-none bg-white">
               <DropdownMenuItem 
-                className="group rounded-xl py-2.5 px-3.5 flex items-center gap-3 cursor-pointer text-primary focus:bg-primary focus:text-white active:scale-[0.98] transition-all"
+                className="group rounded-xl py-2 px-3 flex items-center gap-3 cursor-pointer text-primary focus:bg-primary focus:text-white active:scale-[0.98] transition-all"
                 onClick={() => setIsEditDialogOpen(true)}
               >
                 <div className="h-8 w-8 rounded-full bg-primary/10 group-focus:bg-white/20 flex items-center justify-center shrink-0">
@@ -354,7 +354,7 @@ export default function TripDetails() {
               </DropdownMenuItem>
               <DropdownMenuSeparator className="my-1 mx-3 bg-muted/30" />
               <DropdownMenuItem 
-                className="group rounded-xl py-2.5 px-3.5 flex items-center gap-3 cursor-pointer text-destructive focus:bg-destructive focus:text-destructive-foreground active:scale-[0.98] transition-all"
+                className="group rounded-xl py-2 px-3 flex items-center gap-3 cursor-pointer text-destructive focus:bg-destructive focus:text-destructive-foreground active:scale-[0.98] transition-all"
                 onClick={() => setIsDeleteDialogOpen(true)}
               >
                 <div className="h-8 w-8 rounded-full bg-destructive/10 group-focus:bg-white/20 flex items-center justify-center shrink-0">
@@ -366,7 +366,7 @@ export default function TripDetails() {
           </DropdownMenu>
         </div>
 
-        {/* Change Cover Button - Subtler pill style */}
+        {/* Change Cover Button - Icon-only subtler pill style */}
         <Button 
           variant="ghost" 
           size="icon" 
@@ -383,8 +383,11 @@ export default function TripDetails() {
             <Badge className="bg-white/20 backdrop-blur-md text-white border border-white/10 text-[10px] font-bold px-3 py-1 rounded-lg">
               {trip?.status || "Active"}
             </Badge>
-            <span className="text-[10px] font-bold text-white/90 flex items-center gap-1.5">
-              <Calendar className="h-3 w-3" />
+            <span className={cn(
+              "text-[10px] font-bold flex items-center gap-1.5",
+              trip?.date ? "text-white" : "text-white/60"
+            )}>
+              <Calendar className={cn("h-3 w-3", trip?.date && "stroke-[3px]")} />
               {trip?.date || "Flexible dates"}
             </span>
           </div>
@@ -568,7 +571,7 @@ export default function TripDetails() {
           </div>
           <div className="p-6 space-y-6">
             <div className="space-y-3">
-              <Label className="text-sm font-bold text-muted-foreground/70 ml-1">Upload custom image</Label>
+              <Label className="text-sm font-bold text-muted-foreground ml-1">Upload custom image</Label>
               <div 
                 onClick={() => imageInputRef.current?.click()}
                 className="h-28 w-full rounded-2xl border-2 border-dashed border-primary/20 bg-white flex flex-col items-center justify-center text-primary cursor-pointer hover:bg-primary/5 transition-all shadow-sm group"
@@ -594,7 +597,7 @@ export default function TripDetails() {
             </div>
 
             <div className="space-y-3">
-              <Label className="text-sm font-bold text-muted-foreground/70 ml-1">Predefined styles</Label>
+              <Label className="text-sm font-bold text-muted-foreground ml-1">Predefined styles</Label>
               <div className="grid grid-cols-2 gap-3 max-h-[300px] overflow-y-auto pr-1 scrollbar-thin">
                  {PlaceHolderImages.filter(img => img.id.startsWith('trip-')).map((img) => (
                    <div 
@@ -604,11 +607,6 @@ export default function TripDetails() {
                    >
                      <img src={img.imageUrl} className="h-full w-full object-cover group-hover:scale-110 transition-transform duration-500" />
                      <div className="absolute inset-0 bg-black/20 group-hover:bg-black/0 transition-colors" />
-                     <div className="absolute bottom-2 left-2 right-2 flex justify-between items-center">
-                       <span className="text-[9px] font-bold text-white bg-black/40 px-2 py-0.5 rounded-lg backdrop-blur-sm truncate">
-                         {img.id.replace('trip-', '').charAt(0).toUpperCase() + img.id.replace('trip-', '').slice(1)}
-                       </span>
-                     </div>
                    </div>
                  ))}
               </div>
@@ -644,13 +642,16 @@ export default function TripDetails() {
                   <Label htmlFor="trip-date" className="text-sm font-bold text-muted-foreground ml-1">Dates (optional)</Label>
                   <div className="relative">
                     <Calendar className={cn(
-                      "absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 transition-colors",
-                      editDate ? "text-foreground" : "text-muted-foreground/40"
+                      "absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 transition-colors z-10",
+                      editDate ? "text-foreground stroke-[3px]" : "text-muted-foreground/40"
                     )} />
                     <Input 
                       id="trip-date"
                       placeholder="e.g. 12-15 Aug"
-                      className="h-14 rounded-2xl pl-12 shadow-inner border-none bg-white font-bold"
+                      className={cn(
+                        "h-14 rounded-2xl pl-12 shadow-inner border-none bg-white font-bold transition-colors",
+                        editDate ? "text-foreground" : "text-muted-foreground/40"
+                      )}
                       value={editDate}
                       onChange={(e) => setEditDate(e.target.value)}
                     />
