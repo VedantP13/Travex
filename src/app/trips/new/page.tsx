@@ -152,61 +152,61 @@ export default function CreateTrip() {
 
     setIsCreating(true);
     
+    // 1. ISOLATE THE AI CALL - Use a fallback if it fails or hits rate limits
+    let finalHint = "travel"; 
     try {
       const { hint } = await getDestinationHint({ tripName: name.trim() });
-      
-      // Generate ID first to allow non-blocking redirect
-      const newTripRef = doc(collection(firestore, "trips"));
-      const tripId = newTripRef.id;
-
-      // Construct participant IDs for indexing/querying
-      const participantIdsSet = new Set<string>();
-      participants.forEach(p => {
-        if (p.isUser && p.userId) participantIdsSet.add(p.userId);
-      });
-      participantIdsSet.add(currentUser.uid);
-      
-      const tripData = {
-        name: name.trim(),
-        date: date.trim() || null,
-        travelMode,
-        participants: participants,
-        participantIds: Array.from(participantIdsSet),
-        createdAt: serverTimestamp(),
-        status: "Active",
-        totalSpent: 0,
-        yourBalance: 0,
-        createdBy: currentUser.uid,
-        imageHint: hint || "travel",
-        image: `https://picsum.photos/seed/${Math.random()}/600/400`
-      };
-
-      // Non-blocking write
-      setDoc(newTripRef, tripData)
-        .catch(async (error) => {
-          errorEmitter.emit('permission-error', new FirestorePermissionError({
-            path: `/trips/${tripId}`,
-            operation: 'create',
-            requestResourceData: tripData
-          }));
-        });
-      
-      toast({
-        title: "Trip created!",
-        description: `${name} has been set up successfully.`,
-      });
-      
-      // Instant redirect
-      router.push(`/trips/${tripId}`);
-    } catch (error: any) {
-      console.error("Trip initialization failed:", error);
-      setIsCreating(false);
-      toast({
-        variant: "destructive",
-        title: "Creation failed",
-        description: "Could not initialize trip. Please try again."
-      });
+      if (hint) finalHint = hint;
+    } catch (aiError) {
+      console.warn("AI destination hint failed (likely quota). Using default.", aiError);
     }
+
+    // 2. ISOLATE THE FIRESTORE WRITE
+    const newTripRef = doc(collection(firestore, "trips"));
+    const tripId = newTripRef.id;
+
+    // Construct participant IDs for indexing/querying
+    const participantIdsSet = new Set<string>();
+    participants.forEach(p => {
+      if (p.isUser && p.userId) participantIdsSet.add(p.userId);
+    });
+    // Ensure the current user is ALWAYS in the participant list for security rules
+    participantIdsSet.add(currentUser.uid);
+    
+    const tripData = {
+      name: name.trim(),
+      date: date.trim() || null,
+      travelMode,
+      participants: participants,
+      participantIds: Array.from(participantIdsSet),
+      createdAt: serverTimestamp(),
+      status: "Active",
+      totalSpent: 0,
+      yourBalance: 0,
+      createdBy: currentUser.uid,
+      imageHint: finalHint,
+      image: `https://picsum.photos/seed/${Math.random()}/600/400`
+    };
+
+    // Non-blocking write to leverage local cache and redirect immediately
+    setDoc(newTripRef, tripData)
+      .then(() => {
+        toast({
+          title: "Trip created!",
+          description: `${name} has been set up successfully.`,
+        });
+      })
+      .catch(async (serverError) => {
+        const permissionError = new FirestorePermissionError({
+          path: `/trips/${tripId}`,
+          operation: 'create',
+          requestResourceData: tripData
+        });
+        errorEmitter.emit('permission-error', permissionError);
+      });
+    
+    // Instant redirect
+    router.push(`/trips/${tripId}`);
   };
 
   return (
