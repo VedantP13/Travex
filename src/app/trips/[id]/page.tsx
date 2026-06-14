@@ -93,6 +93,7 @@ export default function TripDetails() {
   const [loading, setLoading] = useState(true);
   
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const [isCalendarOpen, setIsCalendarOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [isImagePickerOpen, setIsImagePickerOpen] = useState(false);
   
@@ -536,7 +537,7 @@ export default function TripDetails() {
                 </div>
                 <div className="space-y-2">
                   <Label className="text-sm font-bold text-muted-foreground ml-1">Dates (optional)</Label>
-                  <Popover>
+                  <Popover open={isCalendarOpen} onOpenChange={setIsCalendarOpen}>
                     <PopoverTrigger asChild>
                       <Button
                         variant="outline"
@@ -562,7 +563,7 @@ export default function TripDetails() {
                         )}
                       </Button>
                     </PopoverTrigger>
-                    <PopoverContent className="w-auto p-0 rounded-[2rem] border-none shadow-2xl overflow-hidden" align="start">
+                    <PopoverContent className="w-auto p-0 rounded-[2rem] border-none shadow-2xl overflow-hidden max-w-[calc(100vw-40px)]" align="start">
                       <Calendar
                         initialFocus
                         mode="range"
@@ -571,6 +572,15 @@ export default function TripDetails() {
                         onSelect={setEditDateRange}
                         numberOfMonths={1}
                       />
+                      <div className="p-4 pt-0 border-t border-muted/10 flex justify-end">
+                        <Button 
+                          size="sm" 
+                          className="rounded-xl px-6 font-bold h-9 bg-primary text-white shadow-lg shadow-primary/20"
+                          onClick={() => setIsCalendarOpen(false)}
+                        >
+                          OK
+                        </Button>
+                      </div>
                     </PopoverContent>
                   </Popover>
                 </div>

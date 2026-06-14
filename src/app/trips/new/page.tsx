@@ -55,6 +55,7 @@ export default function CreateTrip() {
   const [travelMode, setTravelMode] = useState<'solo' | 'family' | 'group'>('group');
   const [name, setName] = useState("");
   const [dateRange, setDateRange] = useState<DateRange | undefined>();
+  const [isCalendarOpen, setIsCalendarOpen] = useState(false);
   const [isCreating, setIsCreating] = useState(false);
   const [participants, setParticipants] = useState<Participant[]>([]);
   const [newParticipantName, setNewParticipantName] = useState("");
@@ -266,7 +267,7 @@ export default function CreateTrip() {
 
         <div className="space-y-4">
           <Label className="text-sm font-bold text-muted-foreground/70 ml-1">Dates (optional)</Label>
-          <Popover>
+          <Popover open={isCalendarOpen} onOpenChange={setIsCalendarOpen}>
             <PopoverTrigger asChild>
               <Button
                 variant="outline"
@@ -292,7 +293,7 @@ export default function CreateTrip() {
                 )}
               </Button>
             </PopoverTrigger>
-            <PopoverContent className="w-auto p-0 rounded-[2rem] border-none shadow-2xl overflow-hidden" align="start">
+            <PopoverContent className="w-auto p-0 rounded-[2rem] border-none shadow-2xl overflow-hidden max-w-[calc(100vw-40px)]" align="start">
               <Calendar
                 initialFocus
                 mode="range"
@@ -301,6 +302,15 @@ export default function CreateTrip() {
                 onSelect={setDateRange}
                 numberOfMonths={1}
               />
+              <div className="p-4 pt-0 border-t border-muted/10 flex justify-end">
+                <Button 
+                  size="sm" 
+                  className="rounded-xl px-6 font-bold h-9 bg-primary text-white shadow-lg shadow-primary/20"
+                  onClick={() => setIsCalendarOpen(false)}
+                >
+                  OK
+                </Button>
+              </div>
             </PopoverContent>
           </Popover>
         </div>
