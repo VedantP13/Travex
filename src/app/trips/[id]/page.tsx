@@ -203,8 +203,8 @@ export default function TripDetails() {
 
   return (
     <div className="max-w-md mx-auto min-h-screen bg-background flex flex-col">
-      {/* Hero Header */}
-      <div className="relative h-[360px] w-full overflow-hidden shrink-0">
+      {/* Hero Header - Slightly decreased height */}
+      <div className="relative h-[280px] w-full overflow-hidden shrink-0">
         <img 
           src={getTripImage(trip?.name || "", trip?.image, trip?.imageHint)} 
           className="h-full w-full object-cover transition-transform duration-700 hover:scale-105" 
@@ -256,7 +256,7 @@ export default function TripDetails() {
         </div>
 
         {/* Trip Information Over Image */}
-        <div className="absolute bottom-8 left-safe-pad right-safe-pad space-y-4 animate-in fade-in slide-in-from-bottom-4 duration-700">
+        <div className="absolute bottom-6 left-safe-pad right-safe-pad space-y-3 animate-in fade-in slide-in-from-bottom-4 duration-700">
           <div className="flex items-center gap-3">
             <Badge className="bg-white/20 backdrop-blur-md text-white border-none text-[10px] font-bold px-3 py-1 rounded-lg">
               {trip?.status || "Active"}
@@ -267,7 +267,7 @@ export default function TripDetails() {
             </span>
           </div>
           
-          <h1 className="text-3xl font-bold text-white tracking-tight leading-tight">{trip?.name}</h1>
+          <h1 className="text-2xl font-bold text-white tracking-tight leading-tight">{trip?.name}</h1>
           
           <div className="flex -space-x-2 bg-white/10 backdrop-blur-sm p-1.5 rounded-full inline-flex border border-white/10">
             {trip?.participants?.map((p: any, idx: number) => (
@@ -281,14 +281,14 @@ export default function TripDetails() {
       </div>
 
       {/* Content Area */}
-      <div className="px-safe-pad pt-8 flex-1">
+      <div className="px-safe-pad pt-6 flex-1">
         <Tabs defaultValue="feed" className="w-full">
           <TabsList className="grid w-full grid-cols-2 h-14 bg-white/60 backdrop-blur-md p-1.5 rounded-2xl shadow-sm">
             <TabsTrigger value="feed" className="rounded-xl data-[state=active]:bg-primary data-[state=active]:text-white font-bold text-sm transition-all">Trip feed</TabsTrigger>
             <TabsTrigger value="balances" className="rounded-xl data-[state=active]:bg-primary data-[state=active]:text-white font-bold text-sm transition-all">Balances</TabsTrigger>
           </TabsList>
           
-          <TabsContent value="feed" className="mt-8">
+          <TabsContent value="feed" className="mt-6">
             <div className="flex justify-between items-center mb-6">
               <div className="relative flex-1 mr-4">
                 <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground/50" />
@@ -357,7 +357,7 @@ export default function TripDetails() {
             </div>
           </TabsContent>
 
-          <TabsContent value="balances" className="mt-8 space-y-6">
+          <TabsContent value="balances" className="mt-6 space-y-6">
             <div className="bg-foreground text-background p-8 rounded-[2.5rem] mb-8 shadow-2xl shadow-black/10 relative overflow-hidden group">
               <div className="absolute top-0 right-0 h-32 w-32 bg-primary/20 rounded-full -translate-y-16 translate-x-16 blur-3xl group-hover:bg-primary/30 transition-all duration-700" />
               <div className="relative z-10">
