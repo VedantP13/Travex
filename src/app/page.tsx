@@ -101,7 +101,7 @@ export default function Home() {
         ) : trips.length > 0 ? (
           <div className="grid grid-cols-2 gap-4 animate-in fade-in slide-in-from-bottom-2 duration-500">
             <div className="bg-white/5 backdrop-blur-md p-6 rounded-3xl border border-white/10 shadow-inner">
-              <p className="text-[10px] font-bold opacity-60 mb-2 uppercase tracking-widest">You owe</p>
+              <p className="text-[10px] font-bold opacity-60 mb-2">You owe</p>
               <div className="flex items-baseline font-bold text-2xl">
                 <span className="text-2xl font-bold">₹</span>
                 <span>0.00</span>
@@ -109,7 +109,7 @@ export default function Home() {
               <p className="text-[9px] opacity-40 mt-1 font-medium italic">All settled up!</p>
             </div>
             <div className="bg-accent/10 backdrop-blur-md p-6 rounded-3xl border border-accent/20 shadow-inner">
-              <p className="text-[10px] font-bold text-accent mb-2 uppercase tracking-widest">Owed to you</p>
+              <p className="text-[10px] font-bold text-accent mb-2">Owed to you</p>
               <div className="flex items-baseline font-bold text-2xl text-accent">
                 <span className="text-2xl font-bold">₹</span>
                 <span>0.00</span>
@@ -162,7 +162,7 @@ export default function Home() {
                   </div>
                   
                   <div className="space-y-0.5 mt-2">
-                    <p className="text-[9px] font-bold text-white/40 uppercase tracking-widest">Total Spent</p>
+                    <p className="text-[9px] font-bold text-white/40">Total spent</p>
                     <div className="flex items-baseline font-bold text-2xl tracking-tight text-white leading-none">
                       <span className="text-2xl font-bold">₹</span>
                       <span>{(activeTrip.totalSpent || 0).toFixed(2)}</span>
@@ -269,14 +269,14 @@ export default function Home() {
                   </CardHeader>
                   <div className="px-6 pb-6 pt-0 flex justify-between items-center">
                     <div>
-                      <p className="text-[10px] text-muted-foreground font-bold mb-1 uppercase tracking-wider">Total</p>
+                      <p className="text-[10px] text-muted-foreground font-bold mb-1 tracking-wider">Total</p>
                       <p className="text-base font-bold text-foreground">
                         <span className="font-bold">₹</span>
                         <span>{(trip.totalSpent || 0).toFixed(2)}</span>
                       </p>
                     </div>
                     <div className="text-right">
-                      <p className="text-[10px] text-muted-foreground font-bold mb-1 uppercase tracking-wider">Your Balance</p>
+                      <p className="text-[10px] text-muted-foreground font-bold mb-1 tracking-wider">Your balance</p>
                       <p className={cn(
                         "text-base font-bold",
                         (trip.yourBalance || 0) < 0 ? "text-destructive" : "text-primary"
