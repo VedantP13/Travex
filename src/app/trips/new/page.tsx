@@ -221,7 +221,7 @@ export default function CreateTrip() {
 
       <main className="flex-1 px-safe-pad py-8 space-y-8 overflow-y-auto">
         <div className="space-y-4">
-          <Label className="text-sm font-bold text-muted-foreground ml-1">Who's traveling?</Label>
+          <Label className="text-sm font-bold text-muted-foreground/70 ml-1">Who's traveling?</Label>
           <div className="grid grid-cols-3 gap-3">
             {[
               { id: 'solo', label: 'Solo', icon: User, desc: 'Just me' },
@@ -257,7 +257,7 @@ export default function CreateTrip() {
         </div>
 
         <div className="space-y-4">
-          <Label className="text-sm font-bold text-muted-foreground ml-1">Trip name</Label>
+          <Label className="text-sm font-bold text-muted-foreground/70 ml-1">Trip name</Label>
           <Input 
             placeholder="e.g. Goa 2024, Europe tour" 
             className="h-14 text-lg rounded-2xl focus-visible:ring-primary shadow-sm bg-white"
@@ -267,9 +267,12 @@ export default function CreateTrip() {
         </div>
 
         <div className="space-y-4">
-          <Label className="text-sm font-bold text-muted-foreground ml-1">Trip date (Optional)</Label>
+          <Label className="text-sm font-bold text-muted-foreground/70 ml-1">Trip date (optional)</Label>
           <div className="relative">
-            <Calendar className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground/50" />
+            <Calendar className={cn(
+              "absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 transition-colors",
+              date ? "text-foreground" : "text-muted-foreground/40"
+            )} />
             <Input 
               type="text"
               placeholder="e.g. July 2024 or 12-15 Aug" 
@@ -283,7 +286,7 @@ export default function CreateTrip() {
         {travelMode !== 'solo' && (
           <div className="space-y-4">
             <div className="flex justify-between items-end">
-              <Label className="text-sm font-bold text-muted-foreground ml-1">Friends & families</Label>
+              <Label className="text-sm font-bold text-muted-foreground/70 ml-1">Friends & families</Label>
               <span className="text-[10px] text-primary font-bold">{participants.length} groups added</span>
             </div>
             

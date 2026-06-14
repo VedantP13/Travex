@@ -493,7 +493,7 @@ export default function TripDetails() {
       <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
         <DialogContent className="max-w-[calc(100vw-40px)] w-full rounded-[2.5rem] p-0 border-none shadow-2xl bg-background overflow-hidden animate-in fade-in zoom-in-95 duration-300">
           <div className="h-24 bg-foreground relative flex items-center justify-center">
-            <DialogTitle className="text-xl font-bold text-white relative z-10">Edit Trip</DialogTitle>
+            <DialogTitle className="text-xl font-bold text-white relative z-10">Edit trip</DialogTitle>
             <DialogDescription className="sr-only">Update your trip name, dates, and participants.</DialogDescription>
             <DialogClose className="absolute right-4 top-4 h-8 w-8 rounded-full flex items-center justify-center bg-white/10 text-white/70 hover:bg-white/20 hover:text-white transition-all z-20">
               <X className="h-5 w-5" />
@@ -503,7 +503,7 @@ export default function TripDetails() {
             <div className="p-8 space-y-6">
               <div className="space-y-4">
                 <div className="space-y-2">
-                  <Label htmlFor="trip-name" className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest ml-1">Trip Name</Label>
+                  <Label htmlFor="trip-name" className="text-sm font-bold text-muted-foreground/70 ml-1">Trip name</Label>
                   <Input 
                     id="trip-name"
                     placeholder="e.g. Goa 2024"
@@ -513,9 +513,12 @@ export default function TripDetails() {
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="trip-date" className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest ml-1">Dates (Optional)</Label>
+                  <Label htmlFor="trip-date" className="text-sm font-bold text-muted-foreground/70 ml-1">Dates (optional)</Label>
                   <div className="relative">
-                    <Calendar className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground/40" />
+                    <Calendar className={cn(
+                      "absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 transition-colors",
+                      editDate ? "text-foreground" : "text-muted-foreground/40"
+                    )} />
                     <Input 
                       id="trip-date"
                       placeholder="e.g. 12-15 Aug"
@@ -528,7 +531,7 @@ export default function TripDetails() {
 
                 <div className="space-y-4 pt-2">
                   <div className="flex justify-between items-end">
-                    <Label className="text-sm font-bold text-muted-foreground ml-1">Friends & families</Label>
+                    <Label className="text-sm font-bold text-muted-foreground/70 ml-1">Friends & families</Label>
                     <span className="text-[10px] font-bold text-primary">{editParticipants.length} groups added</span>
                   </div>
 
@@ -630,7 +633,7 @@ export default function TripDetails() {
                 onClick={handleUpdateTrip}
                 disabled={isSaving || !editName.trim()}
               >
-                {isSaving ? <Loader2 className="h-5 w-5 animate-spin" /> : "Save Changes"}
+                {isSaving ? <Loader2 className="h-5 w-5 animate-spin" /> : "Save changes"}
               </Button>
             </div>
           </ScrollArea>
@@ -648,7 +651,7 @@ export default function TripDetails() {
           <div className="p-8 text-center space-y-6">
             <div className="space-y-2">
               <AlertDialogTitle className="text-2xl font-bold tracking-tight text-foreground">
-                Delete Trip?
+                Delete trip?
               </AlertDialogTitle>
               <AlertDialogDescription className="text-sm font-medium leading-relaxed text-muted-foreground px-4">
                 This will permanently remove <span className="text-destructive font-bold">{trip?.name}</span> and all associated expenses. This action cannot be undone.
@@ -662,14 +665,14 @@ export default function TripDetails() {
                 disabled={isDeleting}
               >
                 {isDeleting ? <Loader2 className="h-5 w-5 animate-spin" /> : <Trash2 className="h-4 w-4" />}
-                Delete Permanently
+                Delete permanently
               </Button>
               <Button 
                 variant="ghost"
                 className="w-full h-12 rounded-2xl font-bold text-foreground hover:bg-muted"
                 onClick={() => setIsDeleteDialogOpen(false)}
               >
-                Keep Trip
+                Keep trip
               </Button>
             </div>
           </div>

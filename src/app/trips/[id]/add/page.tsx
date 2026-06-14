@@ -184,7 +184,7 @@ export default function AddExpenseWizard() {
       return {
         ...p,
         scheme: FAMILY_SCHEMES[index % FAMILY_SCHEMES.length],
-        familyName: isMe || headName === "You" ? "Your Family" : `${headName}'s Family`,
+        familyName: isMe || headName === "You" ? "Your family" : `${headName}'s family`,
         type: 'family-group'
       };
     });
@@ -679,7 +679,7 @@ export default function AddExpenseWizard() {
                   disabled={formData.isItemized}
                 />
                 <div className="absolute right-6 bottom-4 flex items-center gap-2">
-                   <Label htmlFor="itemized-split" className="text-[10px] font-bold text-muted-foreground/60 uppercase tracking-wider">Itemized Split</Label>
+                   <Label htmlFor="itemized-split" className="text-xs font-bold text-muted-foreground/60">Itemized split</Label>
                    <Switch 
                      id="itemized-split" 
                      checked={formData.isItemized} 
@@ -700,7 +700,7 @@ export default function AddExpenseWizard() {
                     <div className="flex items-center gap-4">
                       <p className="text-xs font-bold text-primary">Member split</p>
                       <div className="flex items-center gap-2">
-                        <Label htmlFor="select-all-step1" className="text-[10px] font-bold text-muted-foreground/60 uppercase tracking-wider">Select All</Label>
+                        <Label htmlFor="select-all-step1" className="text-xs font-bold text-muted-foreground/60">Select all</Label>
                         <Switch 
                           id="select-all-step1" 
                           checked={isAllSelected}
@@ -783,7 +783,7 @@ export default function AddExpenseWizard() {
                 {/* Category Selection */}
                 <div className="space-y-3">
                   <div className="flex items-center justify-between px-1">
-                    <Label className="text-base font-bold text-foreground">
+                    <Label className="text-sm font-bold text-muted-foreground/70">
                       Category
                     </Label>
                     <Dialog open={isManagingCategories} onOpenChange={setIsManagingCategories}>
@@ -795,12 +795,12 @@ export default function AddExpenseWizard() {
                       </DialogTrigger>
                       <DialogContent className="max-w-[calc(100vw-40px)] w-full rounded-[2.5rem] p-6 border-none shadow-2xl bg-white overflow-hidden animate-in fade-in zoom-in-95 duration-300">
                         <DialogHeader className="mb-6">
-                          <DialogTitle className="text-xl font-bold text-center">Manage Categories</DialogTitle>
+                          <DialogTitle className="text-xl font-bold text-center">Manage categories</DialogTitle>
                           <DialogDescription className="sr-only">Add or remove custom categories for your trip expenses.</DialogDescription>
                         </DialogHeader>
                         <div className="space-y-6">
                           <div className="max-h-[300px] overflow-y-auto space-y-2 pr-1 scrollbar-thin">
-                            <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest mb-3">Custom Categories</p>
+                            <p className="text-xs font-bold text-muted-foreground/70 mb-3">Custom categories</p>
                             {(currentTrip?.customCategories || []).length > 0 ? currentTrip.customCategories.map((cat: string) => (
                               <div key={cat} className="flex items-center justify-between p-4 bg-muted/30 rounded-2xl border border-transparent hover:border-primary/20 transition-all">
                                 <span className="text-sm font-bold text-foreground">{cat}</span>
@@ -819,7 +819,7 @@ export default function AddExpenseWizard() {
                           </div>
                           
                           <div className="pt-6 border-t space-y-3">
-                            <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Add New</p>
+                            <p className="text-xs font-bold text-muted-foreground/70">Add new</p>
                             <div className="flex gap-3">
                               <Input 
                                 placeholder="e.g. Safari, Diving" 
@@ -878,7 +878,7 @@ export default function AddExpenseWizard() {
 
               {/* Payer Selection */}
               <div className="space-y-3">
-                <Label className="text-base font-bold text-foreground">Who paid?</Label>
+                <Label className="text-sm font-bold text-muted-foreground/70">Who paid?</Label>
                 <div className="grid grid-cols-2 gap-3">
                   {currentTrip?.participants?.map((p: any) => {
                     const isMe = p.isUser && p.userId === user?.uid;
@@ -998,7 +998,7 @@ export default function AddExpenseWizard() {
                 <div className="flex justify-between items-center">
                   <p className="text-xs font-bold text-primary">Member selection</p>
                   <div className="flex items-center gap-2">
-                    <Label htmlFor="select-all-step2" className="text-[10px] font-bold text-muted-foreground/60 uppercase tracking-widest">Select All</Label>
+                    <Label htmlFor="select-all-step2" className="text-xs font-bold text-muted-foreground/60">Select all</Label>
                     <Switch 
                       id="select-all-step2" 
                       checked={isAllSelected}
@@ -1044,7 +1044,7 @@ export default function AddExpenseWizard() {
               </>
             ) : (
               <>
-                {step === 1 ? "Choose Splitting" : "Post Expense"}
+                {step === 1 ? "Choose splitting" : "Post expense"}
                 {step === 1 && <ChevronRight className="h-5 w-5" />}
               </>
             )}
