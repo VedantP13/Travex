@@ -133,7 +133,7 @@ export default function Home() {
                   <div className="space-y-2">
                     <div className="flex">
                       <Badge variant="outline" className={cn(
-                        "text-white border-none text-[10px] font-bold rounded-lg px-2.5 py-1 mb-1 shadow-sm backdrop-blur-md",
+                        "text-white border-none text-[10px] font-medium rounded-lg px-2.5 py-1 mb-1 shadow-sm backdrop-blur-md",
                         activeTrip.status === 'Active' ? 'bg-white/20' : 'bg-white/10'
                       )}>
                         {activeTrip.status === 'Active' ? 'Ongoing Trip' : 'Featured Trip'}
@@ -264,7 +264,7 @@ export default function Home() {
                   </CardHeader>
                   <div className="px-5 pb-5 pt-0 flex justify-between items-center">
                     <div>
-                      <p className="text-[9px] text-muted-foreground font-bold uppercase tracking-widest mb-0.5">Total</p>
+                      <p className="text-[9px] text-muted-foreground font-bold uppercase tracking-widest mb-0.5">Total spent</p>
                       <p className="text-base font-bold text-foreground">
                         <span className="font-bold">₹</span>
                         <span className="font-bold">{(trip.totalSpent || 0).toFixed(2)}</span>
