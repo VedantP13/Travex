@@ -47,9 +47,7 @@ export default function Home() {
 
   const displayPhoto = firestoreProfile?.photoURL || user?.photoURL || "";
   const welcomeName = firestoreProfile?.displayName || user?.displayName;
-  const greeting = welcomeName 
-    ? `Hi, ${welcomeName.split(' ')[0]}` 
-    : (isAnonymous ? 'Guest' : 'Explorer');
+  const greetingName = welcomeName?.split(' ')[0] || (isAnonymous ? 'Guest' : 'Explorer');
   
   const displayNameForFallback = welcomeName || (isAnonymous ? "Guest" : "User");
 
@@ -63,9 +61,9 @@ export default function Home() {
               <Compass className="h-7 w-7 text-foreground" />
             </div>
             <div>
-              <h1 className="text-2xl font-bold tracking-tight text-background">Travex</h1>
-              <p className="text-sm opacity-70 text-background font-medium mt-0.5">
-                {greeting}
+              <h1 className="text-2xl font-bold tracking-tight text-background leading-none">Travex</h1>
+              <p className="text-sm opacity-70 text-background font-medium mt-1">
+                Hi, <span className="font-bold text-white">{greetingName}</span>
               </p>
             </div>
           </div>
@@ -76,11 +74,6 @@ export default function Home() {
                 {displayNameForFallback[0]}
               </AvatarFallback>
             </Avatar>
-            {!isAnonymous && (
-              <div className="absolute -bottom-1 -right-1 h-5 w-5 bg-accent rounded-full border-2 border-foreground flex items-center justify-center shadow-lg">
-                <Plus className="h-3 w-3 text-foreground" strokeWidth={3} />
-              </div>
-            )}
           </Link>
         </div>
 
@@ -117,42 +110,43 @@ export default function Home() {
       </header>
 
       {/* Dynamic Trip Spotlight */}
-      <section className="px-safe-pad mt-8">
+      <section className="px-safe-pad mt-10">
         <div className="grid grid-cols-12 gap-4 items-stretch">
           {activeTrip ? (
             <>
               <Card className="col-span-8 border-none shadow-2xl bg-primary text-primary-foreground rounded-[2.5rem] p-5 flex flex-col justify-between relative overflow-hidden transition-all hover:translate-y-[-1px]">
                 <div className="space-y-3 relative z-10">
-                  <div className="flex justify-between items-start">
-                    <div className="space-y-1 flex-1 min-w-0">
-                      <Badge variant="outline" className="bg-white/10 text-white/90 border-white/20 text-[9px] font-medium rounded-lg px-2.5 py-1 mb-1">
-                        Ongoing trip
-                      </Badge>
-                      <h3 className="text-lg font-bold tracking-tight truncate leading-tight text-white">{activeTrip.name}</h3>
+                  <div className="space-y-1.5">
+                    <Badge variant="outline" className="bg-white/10 text-white/90 border-white/20 text-[9px] font-medium rounded-lg px-2.5 py-1 mb-1 lowercase first-letter:uppercase">
+                      Ongoing trip
+                    </Badge>
+                    <h3 className="text-lg font-bold tracking-tight truncate leading-tight text-white">{activeTrip.name}</h3>
+                    <div className="flex items-center gap-3">
                       <p className="text-[10px] font-bold text-white/50 flex items-center gap-1.5">
                         <Calendar className="h-2.5 w-2.5" />
                         {activeTrip.date || "Ready"}
                       </p>
-                    </div>
-                    <div className="flex -space-x-1.5">
-                      {activeTrip.participants?.slice(0, 3).map((p: any, idx: number) => (
-                        <Avatar key={idx} className="h-6 w-6 border-2 border-primary ring-1 ring-white/10 shadow-sm">
-                          <AvatarImage src={p.avatar} />
-                          <AvatarFallback className="text-[8px] bg-accent text-foreground font-bold">{p.name?.[0]}</AvatarFallback>
-                        </Avatar>
-                      ))}
-                      {activeTrip.participants?.length > 3 && (
-                        <div className="h-6 w-6 rounded-full bg-white/10 border-2 border-primary flex items-center justify-center text-[7px] font-bold text-white backdrop-blur-sm">
-                          +{activeTrip.participants.length - 3}
-                        </div>
-                      )}
+                      <div className="flex -space-x-1.5">
+                        {activeTrip.participants?.slice(0, 3).map((p: any, idx: number) => (
+                          <Avatar key={idx} className="h-5 w-5 border-2 border-primary ring-1 ring-white/10 shadow-sm">
+                            <AvatarImage src={p.avatar} />
+                            <AvatarFallback className="text-[7px] bg-accent text-foreground font-bold">{p.name?.[0]}</AvatarFallback>
+                          </Avatar>
+                        ))}
+                        {activeTrip.participants?.length > 3 && (
+                          <div className="h-5 w-5 rounded-full bg-white/10 border-2 border-primary flex items-center justify-center text-[6px] font-bold text-white backdrop-blur-sm">
+                            +{activeTrip.participants.length - 3}
+                          </div>
+                        )}
+                      </div>
                     </div>
                   </div>
                   
-                  <div className="space-y-1 mt-2">
-                    <p className="text-[9px] font-bold text-white/40 uppercase tracking-widest mb-0.5">Total Spent</p>
+                  <div className="space-y-0.5 mt-2">
+                    <p className="text-[9px] font-bold text-white/40 uppercase tracking-widest">Total Spent</p>
                     <div className="flex items-baseline font-bold text-2xl tracking-tight text-white leading-none">
-                      <span>₹{(activeTrip.totalSpent || 0).toFixed(2)}</span>
+                      <span className="text-xl mr-0.5">₹</span>
+                      <span>{(activeTrip.totalSpent || 0).toFixed(2)}</span>
                     </div>
                   </div>
                 </div>
@@ -160,7 +154,7 @@ export default function Home() {
                 <div className="mt-5 relative z-10">
                   <Link 
                     href={`/trips/${activeTrip.id}/add`} 
-                    className="inline-flex items-center justify-between w-full h-11 px-5 bg-white/10 hover:bg-white/20 rounded-2xl text-xs font-bold text-white transition-all backdrop-blur-sm shadow-sm"
+                    className="inline-flex items-center justify-center gap-2 w-full h-11 px-5 bg-white/10 hover:bg-white/20 rounded-2xl text-xs font-bold text-white transition-all backdrop-blur-sm shadow-sm"
                   >
                     Add expense <ChevronRight className="h-4 w-4 text-accent" />
                   </Link>
@@ -171,8 +165,8 @@ export default function Home() {
                 href="/trips/new" 
                 className="col-span-4 bg-white shadow-xl rounded-[2.5rem] flex flex-col items-center justify-center p-4 transition-all duration-300 transform hover:-translate-y-1 active:scale-95 border-2 border-accent/10 group hover:bg-accent hover:border-accent"
               >
-                <div className="h-20 w-20 rounded-2xl bg-primary/5 flex items-center justify-center text-primary group-hover:bg-white/20 group-hover:text-white transition-all shadow-sm shrink-0 mb-3">
-                  <MapPinPlus className="h-10 w-10" />
+                <div className="h-16 w-16 rounded-3xl bg-primary/5 flex items-center justify-center text-primary group-hover:bg-white/20 group-hover:text-white transition-all shadow-sm shrink-0 mb-3">
+                  <MapPinPlus className="h-9 w-9" />
                 </div>
                 <span className="text-xs font-bold tracking-tight text-foreground group-hover:text-white transition-colors text-center leading-tight px-1">
                   New trip
@@ -257,7 +251,7 @@ export default function Home() {
                   <div className="px-6 pb-6 pt-0 flex justify-between items-center">
                     <div>
                       <p className="text-[10px] text-muted-foreground font-bold mb-1 uppercase tracking-wider">Total</p>
-                      <p className="text-base font-bold">₹{(trip.totalSpent || 0).toFixed(2)}</p>
+                      <p className="text-base font-bold text-foreground">₹{(trip.totalSpent || 0).toFixed(2)}</p>
                     </div>
                     <div className="text-right">
                       <p className="text-[10px] text-muted-foreground font-bold mb-1 uppercase tracking-wider">Your Balance</p>

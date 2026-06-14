@@ -1,3 +1,4 @@
+
 "use client";
 
 import Link from "next/link";
@@ -49,8 +50,8 @@ export function BottomNav() {
   };
 
   return (
-    <nav className="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-md bg-white border-t h-[76px] flex items-center z-50 shadow-[0_-4px_25px_rgba(0,0,0,0.06)] px-2">
-      <div className="flex w-full items-center justify-between">
+    <nav className="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-md bg-white border-t h-[84px] flex items-center z-50 shadow-[0_-4px_30px_rgba(0,0,0,0.08)] px-2">
+      <div className="flex w-full items-center justify-between h-full relative">
         {/* Left Side Navigation */}
         <div className="flex flex-1 items-center justify-evenly">
           {leftItems.map(item => (
@@ -58,21 +59,21 @@ export function BottomNav() {
           ))}
         </div>
 
-        {/* Central Action Button (FAB) */}
-        <div className="relative w-16 flex flex-col items-center justify-center">
-          <div className="absolute -top-10">
+        {/* Central Action Button (FAB) Container */}
+        <div className="w-20 h-full flex flex-col items-center justify-center relative">
+          <div className="absolute -top-10 left-1/2 -translate-x-1/2">
             <Link href={fabLink}>
-              <Button 
-                size="icon" 
-                className="h-14 w-14 rounded-full shadow-[0_12px_24px_-8px_rgba(0,0,0,0.3)] bg-accent hover:bg-accent transition-all duration-300 hover:scale-110 active:scale-95 border-[5px] border-white text-white"
-                title={activeTrip ? "Add expense" : "Create trip"}
-              >
-                <Plus className="h-8 w-8" strokeWidth={3} />
-              </Button>
+              <div className="h-16 w-16 rounded-full bg-white flex items-center justify-center shadow-[0_8px_20px_-6px_rgba(0,0,0,0.15)] ring-1 ring-black/5">
+                <Button 
+                  size="icon" 
+                  className="h-14 w-14 rounded-full shadow-xl shadow-accent/40 bg-accent hover:bg-accent transition-all duration-300 hover:scale-110 active:scale-95 text-white"
+                  title={activeTrip ? "Add expense" : "Create trip"}
+                >
+                  <Plus className="h-8 w-8" strokeWidth={3} />
+                </Button>
+              </div>
             </Link>
           </div>
-          {/* Spacer to keep vertical balance if needed, though labels are on the links */}
-          <div className="h-6" /> 
         </div>
 
         {/* Right Side Navigation */}
