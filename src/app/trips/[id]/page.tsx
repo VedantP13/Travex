@@ -211,7 +211,8 @@ export default function TripDetails() {
           alt={trip?.name}
           data-ai-hint={trip?.imageHint || "travel landscape"}
         />
-        <div className="absolute inset-0 bg-gradient-to-t from-black via-black/20 to-transparent" />
+        {/* Scrim Overlay for Legibility */}
+        <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
         
         {/* Navigation Over Image */}
         <div className="absolute top-6 left-safe-pad right-safe-pad flex justify-between items-center z-10">
@@ -261,13 +262,13 @@ export default function TripDetails() {
             <Badge className="bg-white/20 backdrop-blur-md text-white border-none text-[10px] font-bold px-3 py-1 rounded-lg">
               {trip?.status || "Active"}
             </Badge>
-            <span className="text-[10px] font-bold text-white/70 flex items-center gap-1.5">
+            <span className="text-[10px] font-bold text-white/90 flex items-center gap-1.5">
               <Calendar className="h-3 w-3" />
               {trip?.date || "Flexible dates"}
             </span>
           </div>
           
-          <h1 className="text-2xl font-bold text-white tracking-tight leading-tight">{trip?.name}</h1>
+          <h1 className="text-2xl font-bold text-white tracking-tight leading-tight drop-shadow-sm">{trip?.name}</h1>
           
           <div className="flex -space-x-2 bg-white/10 backdrop-blur-sm p-1.5 rounded-full inline-flex border border-white/10">
             {trip?.participants?.map((p: any, idx: number) => (
@@ -347,8 +348,8 @@ export default function TripDetails() {
                 );
               }) : (
                 <div className="text-center py-20 bg-white/50 rounded-[2.5rem] border-2 border-dashed border-muted/30 px-10">
-                  <div className="h-16 w-16 bg-muted/20 rounded-full flex items-center justify-center mx-auto mb-6 shadow-sm">
-                    <Plus className="h-7 w-7 text-muted-foreground/40" />
+                  <div className="h-16 w-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-6 shadow-sm group hover:scale-110 transition-transform cursor-pointer">
+                    <Plus className="h-7 w-7 text-primary animate-in zoom-in-50 duration-300" />
                   </div>
                   <p className="text-base font-bold text-foreground">No expenses yet</p>
                   <p className="text-xs text-muted-foreground/70 mt-1 leading-relaxed px-4">Tap the floating button below to add your first expense!</p>
