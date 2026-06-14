@@ -21,21 +21,16 @@ service cloud.firestore {
     }
 
     // Trips rules
-    // Triggering deployment with this comment update.
     match /trips/{tripId} {
-      // Allow create if authenticated
+      // Allow create if authenticated. 
+      // Simplified to ensure anonymous users can create trips without complex resource checks.
       allow create: if isAuthenticated();
       
-      // Allow read/delete if user is a participant
-      allow read, delete: if isAuthenticated() && 
+      // Allow read/delete/update if user is a participant
+      allow read, delete, update: if isAuthenticated() && 
         resource.data != null && 
         request.auth.uid in resource.data.participantIds;
 
-      // Allow update if user was a participant or is becoming one
-      allow update: if isAuthenticated() && 
-        ((resource.data != null && request.auth.uid in resource.data.participantIds) || 
-         (request.resource.data != null && request.auth.uid in request.resource.data.participantIds));
-      
       // Expenses subcollection
       match /expenses/{expenseId} {
         // We use get() to check the parent trip's participants

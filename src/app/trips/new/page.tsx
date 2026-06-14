@@ -75,6 +75,14 @@ export default function CreateTrip() {
     });
   }, [user]);
 
+  // Prompt guest users as soon as they start the New Trip flow
+  useEffect(() => {
+    if (user?.isAnonymous && !guestPromptDismissed) {
+      const timer = setTimeout(() => setShowGuestPrompt(true), 500);
+      return () => clearTimeout(timer);
+    }
+  }, [user?.isAnonymous, guestPromptDismissed]);
+
   const addParticipant = () => {
     if (!newParticipantName.trim()) return;
     const newP: Participant = {
@@ -137,12 +145,6 @@ export default function CreateTrip() {
         description: "Add at least one friend to split expenses with.",
         variant: "destructive"
       });
-      return;
-    }
-
-    // Prompt guest users before they finalize
-    if (user.isAnonymous && !guestPromptDismissed) {
-      setShowGuestPrompt(true);
       return;
     }
 
@@ -390,7 +392,10 @@ export default function CreateTrip() {
         </Button>
       </footer>
 
-      <Dialog open={showGuestPrompt} onOpenChange={setShowGuestPrompt}>
+      <Dialog open={showGuestPrompt} onOpenChange={(open) => {
+        setShowGuestPrompt(open);
+        if (!open) setGuestPromptDismissed(true);
+      }}>
         <DialogContent className="max-w-[calc(100vw-40px)] w-full rounded-[2.5rem] p-0 border-none shadow-2xl bg-white overflow-hidden animate-in fade-in zoom-in-95 duration-300">
           <div className="h-52 sm:h-60 bg-foreground relative flex flex-col items-center justify-center overflow-hidden">
              <div className="relative z-10 flex items-center justify-center w-full h-full p-4">
