@@ -55,17 +55,22 @@ export default function CreateTrip() {
 
   // Initialize participants with current user
   useEffect(() => {
-    if (user && participants.length === 0) {
-      setParticipants([
-        { 
-          id: "me", 
-          name: `${user.displayName?.split(' ')[0] || "You"} (You)`, 
-          isUser: true, 
-          userId: user.uid,
-          avatar: user.photoURL || `https://picsum.photos/seed/${user.uid}/50/50`, 
-          familyMembers: [] 
-        }
-      ]);
+    if (user && (participants.length === 0 || !participants.some(p => p.isUser && p.userId === user.uid))) {
+      const me: Participant = { 
+        id: "me", 
+        name: `${user.displayName?.split(' ')[0] || "You"} (You)`, 
+        isUser: true, 
+        userId: user.uid,
+        avatar: user.photoURL || `https://picsum.photos/seed/${user.uid}/50/50`, 
+        familyMembers: [] 
+      };
+      
+      // If we already have participants but "me" is missing, prepend it
+      if (participants.length > 0) {
+        setParticipants([me, ...participants.filter(p => p.id !== "me")]);
+      } else {
+        setParticipants([me]);
+      }
     }
 
     if (user?.isAnonymous) {
@@ -114,6 +119,12 @@ export default function CreateTrip() {
   };
 
   const handleSaveTrip = async () => {
+    if (!user?.uid) {
+       toast({ title: "Session expired", description: "Please log in again.", variant: "destructive" });
+       router.push('/login');
+       return;
+    }
+
     if (!name.trim()) {
       toast({
         title: "Missing trip name",
@@ -139,9 +150,15 @@ export default function CreateTrip() {
       const { hint } = await getDestinationHint({ tripName: name.trim() });
       
       const tripRef = collection(firestore, "trips");
+      
+      // Ensure current user is always in participantIds for security rules
       const participantIds = participants
         .filter(p => p.isUser && p.userId)
         .map(p => p.userId as string);
+      
+      if (!participantIds.includes(user.uid)) {
+        participantIds.push(user.uid);
+      }
 
       const tripData = {
         name: name.trim(),
@@ -153,7 +170,7 @@ export default function CreateTrip() {
         status: "Active",
         totalSpent: 0,
         yourBalance: 0,
-        createdBy: user?.uid,
+        createdBy: user.uid,
         imageHint: hint,
         image: `https://picsum.photos/seed/${Math.random()}/600/400`
       };
@@ -167,7 +184,7 @@ export default function CreateTrip() {
       router.push(`/trips/${docRef.id}`);
     } catch (error: any) {
       errorEmitter.emit('permission-error', new FirestorePermissionError({
-        path: 'trips',
+        path: '/trips',
         operation: 'create',
       }));
       setIsCreating(false);
@@ -187,7 +204,7 @@ export default function CreateTrip() {
       <main className="flex-1 px-safe-pad py-8 space-y-8 overflow-y-auto">
         {/* Travel Mode Selector */}
         <div className="space-y-4">
-          <Label className="text-sm font-bold text-muted-foreground ml-1">Who&apos;s traveling?</Label>
+          <Label className="text-sm font-bold text-muted-foreground ml-1">Who's traveling?</Label>
           <div className="grid grid-cols-3 gap-3">
             {[
               { id: 'solo', label: 'Solo', icon: User, desc: 'Just me' },
@@ -395,7 +412,7 @@ export default function CreateTrip() {
                 Secure your adventure
               </DialogTitle>
               <DialogDescription className="text-sm font-medium leading-relaxed text-muted-foreground px-2 sm:px-4">
-                You&apos;re in <span className="text-accent font-extrabold tracking-tight">Guest Mode</span>. Link your account to sync your trips across all devices and prevent data loss.
+                You're in <span className="text-accent font-extrabold tracking-tight">Guest Mode</span>. Link your account to sync your trips across all devices and prevent data loss.
               </DialogDescription>
             </div>
 

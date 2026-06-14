@@ -9,8 +9,9 @@ service cloud.firestore {
 
     // Helper to check if a user is a participant in a trip
     function isTripParticipant(tripData) {
-      return isAuthenticated() && 
-        (request.auth.uid in tripData.participantIds || tripData.participants.any(p, p.userId == request.auth.uid));
+      return isAuthenticated() && tripData != null && 
+        'participantIds' in tripData && 
+        request.auth.uid in tripData.participantIds;
     }
 
     // Users can read any profile (to find friends) but only write their own
@@ -28,7 +29,10 @@ service cloud.firestore {
 
     // Trips rules
     match /trips/{tripId} {
+      // Allow create if authenticated. Creator MUST include themselves in participantIds (checked in app logic)
       allow create: if isAuthenticated();
+      
+      // Allow read/update/delete if user is a participant
       allow read, update, delete: if isTripParticipant(resource.data) || (request.resource != null && isTripParticipant(request.resource.data));
       
       // Expenses subcollection
