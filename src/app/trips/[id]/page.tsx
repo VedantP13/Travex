@@ -36,7 +36,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Card, CardContent } from "@/components/ui/card";
 import { useFirestore, useUser } from "@/firebase";
-import { doc, onSnapshot, collection, query, orderBy, updateDoc, deleteDoc } from "firebase/firestore";
+import { doc, onSnapshot, collection, query, orderBy, updateDoc, deleteDoc, serverTimestamp } from "firebase/firestore";
 import { errorEmitter } from "@/firebase/error-emitter";
 import { FirestorePermissionError } from "@/firebase/errors";
 import { cn } from "@/lib/utils";
@@ -182,7 +182,8 @@ export default function TripDetails() {
       name: editName.trim(),
       date: editDate.trim() || null,
       status: editStatus,
-      participants: editParticipants
+      participants: editParticipants,
+      updatedAt: serverTimestamp()
     };
 
     updateDoc(tripRef, updateData)
@@ -282,6 +283,8 @@ export default function TripDetails() {
       default: return 'bg-teal-100 text-teal-600';
     }
   };
+
+  const StatusIcon = editStatus === 'Upcoming' ? Timer : editStatus === 'Active' ? Activity : CheckCircle2;
 
   if (loading && !trip) {
     return (
@@ -637,13 +640,29 @@ export default function TripDetails() {
                 <div className="space-y-2">
                   <Label className="text-sm font-bold text-muted-foreground ml-1">Trip status</Label>
                   <Select value={editStatus} onValueChange={setEditStatus}>
-                    <SelectTrigger className="h-14 rounded-2xl border-none bg-white shadow-inner font-bold">
+                    <SelectTrigger className="h-14 rounded-2xl border-none bg-white shadow-inner font-bold flex items-center gap-3">
+                      <StatusIcon className="h-5 w-5" />
                       <SelectValue placeholder="Select status" />
                     </SelectTrigger>
                     <SelectContent className="rounded-xl border-none shadow-xl">
-                      <SelectItem value="Upcoming" className="font-bold py-3"><div className="flex items-center gap-2"><Timer className="h-4 w-4 text-muted-foreground" /> Upcoming</div></SelectItem>
-                      <SelectItem value="Active" className="font-bold py-3"><div className="flex items-center gap-2"><Activity className="h-4 w-4 text-primary" /> Active</div></SelectItem>
-                      <SelectItem value="Completed" className="font-bold py-3"><div className="flex items-center gap-2"><CheckCircle2 className="h-4 w-4 text-green-500" /> Completed</div></SelectItem>
+                      <SelectItem value="Upcoming" className="font-bold py-3 transition-colors data-[state=checked]:text-accent">
+                        <div className="flex items-center gap-3">
+                          <Timer className="h-4 w-4" /> 
+                          <span>Upcoming</span>
+                        </div>
+                      </SelectItem>
+                      <SelectItem value="Active" className="font-bold py-3 transition-colors data-[state=checked]:text-accent">
+                        <div className="flex items-center gap-3">
+                          <Activity className="h-4 w-4" /> 
+                          <span>Active</span>
+                        </div>
+                      </SelectItem>
+                      <SelectItem value="Completed" className="font-bold py-3 transition-colors data-[state=checked]:text-accent">
+                        <div className="flex items-center gap-3">
+                          <CheckCircle2 className="h-4 w-4" /> 
+                          <span>Completed</span>
+                        </div>
+                      </SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
@@ -799,4 +818,3 @@ export default function TripDetails() {
     </div>
   );
 }
-
