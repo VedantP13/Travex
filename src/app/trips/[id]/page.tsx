@@ -214,13 +214,13 @@ export default function TripDetails() {
         {/* Scrim Overlay for Legibility */}
         <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
         
-        {/* Navigation Over Image - Balanced Glass Buttons */}
+        {/* Navigation Over Image - Balanced Controls */}
         <div className="absolute top-6 left-safe-pad right-safe-pad flex justify-between items-center z-10">
           <Button 
             variant="ghost" 
             size="icon" 
             onClick={() => router.push('/')} 
-            className="bg-black/20 backdrop-blur-md text-white hover:bg-black/30 rounded-2xl h-11 w-11 border border-white/10 transition-all"
+            className="bg-white backdrop-blur-md text-foreground hover:bg-slate-50 rounded-2xl h-11 w-11 shadow-lg transition-all active:scale-95"
           >
             <ArrowLeft className="h-6 w-6" />
           </Button>
@@ -230,7 +230,7 @@ export default function TripDetails() {
               <Button 
                 variant="ghost" 
                 size="icon" 
-                className="bg-black/20 backdrop-blur-md text-white hover:bg-black/30 rounded-2xl h-11 w-11 border border-white/10 transition-all"
+                className="bg-white/90 backdrop-blur-md text-primary hover:bg-primary hover:text-white rounded-2xl h-11 w-11 shadow-lg shadow-black/5 transition-all active:scale-95"
               >
                 <Settings className="h-5 w-5" />
               </Button>
@@ -371,8 +371,10 @@ export default function TripDetails() {
                   <div className="h-16 w-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4 shadow-sm group-hover:scale-110 transition-transform">
                     <Plus className="h-7 w-7 text-primary" />
                   </div>
-                  <h3 className="text-lg font-bold text-primary">No expenses yet</h3>
-                  <p className="text-sm text-muted-foreground mt-1">Add your first one to start tracking costs.</p>
+                  <div className="space-y-1">
+                    <h3 className="text-lg font-bold text-primary">No expenses yet</h3>
+                    <p className="text-sm text-muted-foreground">Add your first one to start tracking costs</p>
+                  </div>
                 </div>
               )}
             </div>
@@ -425,10 +427,10 @@ export default function TripDetails() {
       <div className="fixed bottom-10 right-8 z-30">
         <Button 
           size="lg" 
-          className="rounded-full h-16 w-16 shadow-2xl shadow-primary/40 bg-primary hover:bg-primary/90 p-0 transition-transform hover:scale-110 active:scale-95 group"
+          className="rounded-full h-16 w-16 shadow-2xl shadow-accent/40 bg-accent hover:bg-accent/90 p-0 transition-transform hover:scale-110 active:scale-95 group"
           onClick={() => router.push(`/trips/${id}/add`)}
         >
-          <Plus className="h-8 w-8 transition-transform group-hover:rotate-90 duration-300" />
+          <Plus className="h-8 w-8 transition-transform group-hover:rotate-90 duration-300" strokeWidth={3} />
         </Button>
       </div>
 
