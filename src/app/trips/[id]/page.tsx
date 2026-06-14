@@ -21,7 +21,8 @@ import {
   Pencil,
   Calendar,
   X,
-  AlertTriangle
+  AlertTriangle,
+  UserPlus
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -37,8 +38,6 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import {
@@ -55,13 +54,13 @@ import {
   AlertDialogCancel,
   AlertDialogContent,
   AlertDialogDescription,
-  AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
+import { ScrollArea } from "@/components/ui/scroll-area";
 
 export default function TripDetails() {
   const router = useRouter();
@@ -79,6 +78,11 @@ export default function TripDetails() {
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [editName, setEditName] = useState("");
   const [editDate, setEditDate] = useState("");
+  const [editParticipants, setEditParticipants] = useState<any[]>([]);
+  const [newParticipantName, setNewParticipantName] = useState("");
+  const [activeFamilyMemberInput, setActiveFamilyMemberInput] = useState<string | null>(null);
+  const [newFamilyMemberName, setNewFamilyMemberName] = useState("");
+  
   const [isSaving, setIsSaving] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
 
@@ -92,6 +96,7 @@ export default function TripDetails() {
         setTrip({ id: snapshot.id, ...data });
         setEditName(data.name || "");
         setEditDate(data.date || "");
+        setEditParticipants(data.participants || []);
       } else {
         router.push('/');
       }
@@ -136,7 +141,8 @@ export default function TripDetails() {
     const tripRef = doc(firestore, "trips", id as string);
     const updateData = {
       name: editName.trim(),
-      date: editDate.trim() || null
+      date: editDate.trim() || null,
+      participants: editParticipants
     };
 
     updateDoc(tripRef, updateData)
@@ -152,6 +158,50 @@ export default function TripDetails() {
         }));
       })
       .finally(() => setIsSaving(false));
+  };
+
+  const handleAddParticipant = () => {
+    if (!newParticipantName.trim()) return;
+    const newP = {
+      id: Math.random().toString(36).substr(2, 9),
+      name: newParticipantName.trim(),
+      isUser: false,
+      avatar: `https://picsum.photos/seed/${Math.random()}/50/50`,
+      familyMembers: []
+    };
+    setEditParticipants([...editParticipants, newP]);
+    setNewParticipantName("");
+  };
+
+  const handleRemoveParticipant = (pid: string) => {
+    const p = editParticipants.find(part => part.id === pid);
+    if (p?.isUser) {
+      toast({ title: "Cannot remove yourself", variant: "destructive" });
+      return;
+    }
+    setEditParticipants(editParticipants.filter(part => part.id !== pid));
+  };
+
+  const handleAddFamilyMember = (pid: string) => {
+    if (!newFamilyMemberName.trim()) return;
+    setEditParticipants(editParticipants.map(p => {
+      if (p.id === pid) {
+        if (p.familyMembers.includes(newFamilyMemberName.trim())) return p;
+        return { ...p, familyMembers: [...p.familyMembers, newFamilyMemberName.trim()] };
+      }
+      return p;
+    }));
+    setNewFamilyMemberName("");
+    setActiveFamilyMemberInput(null);
+  };
+
+  const handleRemoveFamilyMember = (pid: string, memberName: string) => {
+    setEditParticipants(editParticipants.map(p => {
+      if (p.id === pid) {
+        return { ...p, familyMembers: p.familyMembers.filter((m: string) => m !== memberName) };
+      }
+      return p;
+    }));
   };
 
   const handleDeleteTrip = async () => {
@@ -371,7 +421,7 @@ export default function TripDetails() {
                   className="text-center py-20 bg-white/50 rounded-[2.5rem] border-2 border-dashed border-muted/30 px-10 cursor-pointer hover:bg-white transition-colors"
                   onClick={() => router.push(`/trips/${id}/add`)}
                 >
-                  <div className="h-16 w-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-6 shadow-sm group-hover:scale-110 transition-transform">
+                  <div className="h-16 w-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-6 shadow-sm transition-transform">
                     <Plus className="h-7 w-7 text-primary" />
                   </div>
                   <div className="space-y-2 text-center">
@@ -440,47 +490,134 @@ export default function TripDetails() {
       {/* Edit Dialog */}
       <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
         <DialogContent className="max-w-[calc(100vw-40px)] w-full rounded-[2.5rem] p-0 border-none shadow-2xl bg-white overflow-hidden animate-in fade-in zoom-in-95 duration-300">
-          <div className="h-32 bg-foreground relative flex items-center justify-center">
+          <div className="h-24 bg-foreground relative flex items-center justify-center">
             <DialogTitle className="text-xl font-bold text-white relative z-10">Edit Trip</DialogTitle>
-            <DialogDescription className="sr-only">Update your trip name and travel dates.</DialogDescription>
+            <DialogDescription className="sr-only">Update your trip name, dates, and participants.</DialogDescription>
             <DialogClose className="absolute right-4 top-4 h-8 w-8 rounded-full flex items-center justify-center bg-white/10 text-white/70 hover:bg-white/20 hover:text-white transition-all z-20">
               <X className="h-5 w-5" />
             </DialogClose>
           </div>
-          <div className="p-8 space-y-6">
-            <div className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="trip-name" className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest ml-1">Trip Name</Label>
-                <Input 
-                  id="trip-name"
-                  placeholder="e.g. Goa 2024"
-                  className="h-14 rounded-2xl shadow-inner border-none bg-muted/40 font-bold text-lg"
-                  value={editName}
-                  onChange={(e) => setEditName(e.target.value)}
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="trip-date" className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest ml-1">Dates (Optional)</Label>
-                <div className="relative">
-                  <Calendar className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground/40" />
+          <ScrollArea className="max-h-[70vh]">
+            <div className="p-8 space-y-6">
+              <div className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="trip-name" className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest ml-1">Trip Name</Label>
                   <Input 
-                    id="trip-date"
-                    placeholder="e.g. 12-15 Aug"
-                    className="h-14 rounded-2xl pl-12 shadow-inner border-none bg-muted/40 font-bold"
-                    value={editDate}
-                    onChange={(e) => setEditDate(e.target.value)}
+                    id="trip-name"
+                    placeholder="e.g. Goa 2024"
+                    className="h-14 rounded-2xl shadow-inner border-none bg-muted/40 font-bold text-lg"
+                    value={editName}
+                    onChange={(e) => setEditName(e.target.value)}
                   />
                 </div>
+                <div className="space-y-2">
+                  <Label htmlFor="trip-date" className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest ml-1">Dates (Optional)</Label>
+                  <div className="relative">
+                    <Calendar className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground/40" />
+                    <Input 
+                      id="trip-date"
+                      placeholder="e.g. 12-15 Aug"
+                      className="h-14 rounded-2xl pl-12 shadow-inner border-none bg-muted/40 font-bold"
+                      value={editDate}
+                      onChange={(e) => setEditDate(e.target.value)}
+                    />
+                  </div>
+                </div>
+
+                <div className="space-y-4 pt-2">
+                  <div className="flex justify-between items-center">
+                    <Label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest ml-1">Participants</Label>
+                    <span className="text-[10px] font-bold text-primary">{editParticipants.length} groups</span>
+                  </div>
+
+                  <div className="flex gap-2">
+                    <Input 
+                      placeholder="Add guest..." 
+                      className="h-12 rounded-xl bg-muted/20 border-none shadow-inner"
+                      value={newParticipantName}
+                      onChange={e => setNewParticipantName(e.target.value)}
+                      onKeyDown={e => e.key === 'Enter' && handleAddParticipant()}
+                    />
+                    <Button size="icon" className="h-12 w-12 rounded-xl shrink-0 bg-primary" onClick={handleAddParticipant}>
+                      <UserPlus className="h-5 w-5" />
+                    </Button>
+                  </div>
+
+                  <div className="space-y-3">
+                    {editParticipants.map((p) => (
+                      <div key={p.id} className="p-4 bg-muted/10 rounded-2xl border border-muted/20 space-y-3">
+                        <div className="flex justify-between items-center">
+                          <div className="flex items-center gap-3">
+                            <Avatar className="h-7 w-7 border">
+                              <AvatarImage src={p.avatar} />
+                              <AvatarFallback>{p.name[0]}</AvatarFallback>
+                            </Avatar>
+                            <span className="text-xs font-bold truncate max-w-[120px]">{p.name}</span>
+                          </div>
+                          {!p.isUser && (
+                            <Button 
+                              variant="ghost" 
+                              size="icon" 
+                              className="h-7 w-7 text-destructive hover:bg-destructive/10 rounded-lg"
+                              onClick={() => handleRemoveParticipant(p.id)}
+                            >
+                              <Trash2 className="h-3.5 w-3.5" />
+                            </Button>
+                          )}
+                        </div>
+
+                        <div className="flex flex-wrap gap-2">
+                          {p.familyMembers.map((fm: string) => (
+                            <Badge 
+                              key={fm} 
+                              variant="outline" 
+                              className="bg-white border-primary/20 text-primary font-bold text-[9px] py-1 pl-2 pr-1 rounded-lg flex items-center gap-1"
+                            >
+                              {fm}
+                              <X 
+                                className="h-3 w-3 cursor-pointer text-muted-foreground hover:text-destructive" 
+                                onClick={() => handleRemoveFamilyMember(p.id, fm)} 
+                              />
+                            </Badge>
+                          ))}
+                          
+                          {activeFamilyMemberInput === p.id ? (
+                            <div className="flex gap-1 items-center animate-in fade-in">
+                              <Input 
+                                autoFocus
+                                placeholder="..." 
+                                className="h-7 text-[10px] rounded-lg bg-white w-20 px-2"
+                                value={newFamilyMemberName}
+                                onChange={e => setNewFamilyMemberName(e.target.value)}
+                                onKeyDown={e => e.key === 'Enter' && handleAddFamilyMember(p.id)}
+                                onBlur={() => { if (!newFamilyMemberName) setActiveFamilyMemberInput(null); }}
+                              />
+                            </div>
+                          ) : (
+                            <Button 
+                              variant="ghost" 
+                              size="sm" 
+                              className="h-6 text-[9px] font-bold text-primary hover:bg-primary/5 p-0 px-2 border border-primary/10 rounded-lg"
+                              onClick={() => setActiveFamilyMemberInput(p.id)}
+                            >
+                              <Plus className="h-3 w-3 mr-1" /> Family
+                            </Button>
+                          )}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
               </div>
+              <Button 
+                className="w-full h-14 rounded-2xl bg-accent text-accent-foreground font-bold text-base shadow-lg shadow-accent/20 transition-all active:scale-95"
+                onClick={handleUpdateTrip}
+                disabled={isSaving || !editName.trim()}
+              >
+                {isSaving ? <Loader2 className="h-5 w-5 animate-spin" /> : "Save Changes"}
+              </Button>
             </div>
-            <Button 
-              className="w-full h-14 rounded-2xl bg-primary text-white font-bold text-base shadow-lg shadow-primary/20 transition-all active:scale-95"
-              onClick={handleUpdateTrip}
-              disabled={isSaving || !editName.trim()}
-            >
-              {isSaving ? <Loader2 className="h-5 w-5 animate-spin" /> : "Save Changes"}
-            </Button>
-          </div>
+          </ScrollArea>
         </DialogContent>
       </Dialog>
 
