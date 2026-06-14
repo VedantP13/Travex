@@ -92,7 +92,6 @@ export default function TripDetails() {
   const [expenses, setExpenses] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   
-  // Settings States
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [isImagePickerOpen, setIsImagePickerOpen] = useState(false);
@@ -119,7 +118,6 @@ export default function TripDetails() {
         setEditName(data.name || "");
         setEditStatus(data.status || "Active");
         setEditParticipants(data.participants || []);
-        // We don't parse the string date back to a range for simplicity in this MVP
       } else {
         router.push('/');
       }
@@ -191,7 +189,7 @@ export default function TripDetails() {
       editDateRange.to 
         ? `${format(editDateRange.from, "d MMM")} - ${format(editDateRange.to, "d MMM")}` 
         : format(editDateRange.from, "d MMM")
-    ) : trip.date; // Fallback to existing if no new range picked
+    ) : trip.date;
 
     const updateData = {
       name: editName.trim(),
@@ -425,7 +423,6 @@ export default function TripDetails() {
           </TabsList>
           
           <TabsContent value="feed" className="mt-6">
-            {/* Expense search and list logic here */}
             <div className="space-y-4 pb-24">
               {expenses.map(item => {
                 const Icon = getCategoryIcon(item.category);
@@ -446,7 +443,6 @@ export default function TripDetails() {
           </TabsContent>
 
           <TabsContent value="balances" className="mt-6 space-y-6">
-            {/* Balances logic here */}
           </TabsContent>
         </Tabs>
       </div>
@@ -545,13 +541,13 @@ export default function TripDetails() {
                       <Button
                         variant="outline"
                         className={cn(
-                          "w-full h-14 justify-start text-left font-bold text-lg rounded-2xl px-4 border-none shadow-sm bg-white hover:bg-white/90 transition-all",
-                          !editDateRange && "text-muted-foreground/40 font-medium"
+                          "w-full h-14 justify-start text-left font-bold text-lg rounded-2xl px-4 border-none shadow-sm bg-white hover:bg-muted/50 transition-all",
+                          !editDateRange && "text-muted-foreground/60 font-medium"
                         )}
                       >
                         <CalendarIcon className={cn(
                           "mr-4 h-5 w-5 transition-all",
-                          editDateRange ? "text-foreground stroke-[2.5px]" : "text-muted-foreground/40"
+                          editDateRange ? "text-foreground stroke-[2.5px]" : "text-muted-foreground/60"
                         )} />
                         {editDateRange?.from ? (
                           editDateRange.to ? (
@@ -600,7 +596,6 @@ export default function TripDetails() {
                 </div>
 
                 <div className="space-y-4 pt-2">
-                  {/* Participants management logic here */}
                 </div>
               </div>
               <Button 

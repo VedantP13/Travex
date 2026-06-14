@@ -61,9 +61,8 @@ export default function CreateTrip() {
   const [activeFamilyMemberInput, setActiveFamilyMemberInput] = useState<string | null>(null);
   const [newFamilyMemberName, setNewFamilyMemberName] = useState("");
   const [showGuestPrompt, setShowGuestPrompt] = useState(false);
-  const [guestPromptDismissed, setGuestPromptDismissed] = useState(true); // Default to dismissed to avoid annoyance
+  const [guestPromptDismissed, setGuestPromptDismissed] = useState(true);
 
-  // Initialize participants with current user
   useEffect(() => {
     if (!user) return;
 
@@ -168,7 +167,6 @@ export default function CreateTrip() {
     });
     participantIdsSet.add(currentUser.uid);
 
-    // Format the date range into a displayable string
     const formattedDate = dateRange?.from ? (
       dateRange.to 
         ? `${format(dateRange.from, "d MMM")} - ${format(dateRange.to, "d MMM")}` 
@@ -273,13 +271,13 @@ export default function CreateTrip() {
               <Button
                 variant="outline"
                 className={cn(
-                  "w-full h-14 justify-start text-left font-bold text-lg rounded-2xl px-4 border-none shadow-sm bg-white hover:bg-white/90 transition-all",
-                  !dateRange && "text-muted-foreground/40 font-medium"
+                  "w-full h-14 justify-start text-left font-bold text-lg rounded-2xl px-4 border-none shadow-sm bg-white hover:bg-muted/50 transition-all",
+                  !dateRange && "text-muted-foreground/60 font-medium"
                 )}
               >
                 <CalendarIcon className={cn(
                   "mr-4 h-5 w-5 transition-all",
-                  dateRange ? "text-foreground stroke-[2.5px]" : "text-muted-foreground/40"
+                  dateRange ? "text-foreground stroke-[2.5px]" : "text-muted-foreground/60"
                 )} />
                 {dateRange?.from ? (
                   dateRange.to ? (
@@ -442,7 +440,6 @@ export default function CreateTrip() {
         <DialogContent className="max-w-[calc(100vw-40px)] w-full rounded-[2.5rem] p-0 border-none shadow-2xl bg-white overflow-hidden animate-in fade-in zoom-in-95 duration-300">
           <div className="h-52 sm:h-60 bg-foreground relative flex flex-col items-center justify-center overflow-hidden">
              <div className="relative z-10 flex items-center justify-center w-full h-full p-4">
-               {/* Custom SVG omitted for brevity as per user instructions */}
              </div>
 
              <DialogClose className="absolute right-4 top-4 sm:right-6 sm:top-6 h-8 w-8 rounded-full flex items-center justify-center bg-white/10 text-white/70 hover:bg-white/20 hover:text-white transition-all z-20">
@@ -463,7 +460,6 @@ export default function CreateTrip() {
             <div className="space-y-4 sm:space-y-5 pt-2 sm:pt-4 flex flex-col items-center">
               <Link href="/login" className="w-full max-w-[280px]">
                 <Button className="w-full h-14 rounded-2xl bg-accent text-accent-foreground hover:bg-accent/90 font-bold text-base gap-3 shadow-[0_12px_24px_-8px_rgba(245,166,35,0.3)] transition-all active:scale-95 group">
-                  {/* Google SVG omitted */}
                   Link my account now
                 </Button>
               </Link>
