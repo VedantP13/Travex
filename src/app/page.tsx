@@ -52,7 +52,7 @@ export default function Home() {
   const displayNameForFallback = welcomeName || (isAnonymous ? "Guest" : "User");
 
   return (
-    <div className="max-w-md mx-auto min-h-screen flex flex-col bg-background pb-40">
+    <div className="max-w-md mx-auto min-h-screen flex flex-col bg-background pb-52">
       {/* Header */}
       <header className="px-safe-pad pt-10 pb-10 bg-foreground text-background rounded-b-[2.5rem] shadow-2xl shadow-black/10">
         <div className="flex justify-between items-center mb-10">
@@ -61,16 +61,16 @@ export default function Home() {
               <Compass className="h-7 w-7 text-foreground" />
             </div>
             <div>
-              <h1 className="text-2xl font-bold tracking-tight text-background leading-none">Travex</h1>
-              <p className="text-sm opacity-70 text-background font-medium mt-1">
-                Hi, <span className="font-bold text-white text-base">{greetingName}</span>
-              </p>
+              <p className="text-xs opacity-70 text-background font-medium">Hi,</p>
+              <h1 className="text-2xl font-bold tracking-tight text-background leading-none mt-0.5">
+                {greetingName}
+              </h1>
             </div>
           </div>
           <Link href="/profile" className="relative group">
             <Avatar className="h-14 w-14 border-2 border-accent/30 hover:border-accent hover:scale-110 transition-all duration-300 shadow-xl shadow-black/40 ring-4 ring-white/5">
               <AvatarImage src={displayPhoto} className="object-cover" />
-              <AvatarFallback className="bg-primary/20 text-accent font-bold">
+              <AvatarFallback className="bg-white/10 text-accent font-bold">
                 {displayNameForFallback[0]}
               </AvatarFallback>
             </Avatar>
@@ -110,7 +110,7 @@ export default function Home() {
       </header>
 
       {/* Dynamic Trip Spotlight */}
-      <section className="px-safe-pad mt-10">
+      <section className="px-safe-pad mt-12">
         <div className="grid grid-cols-12 gap-4 items-stretch">
           {activeTrip ? (
             <>
@@ -118,12 +118,12 @@ export default function Home() {
                 <div className="space-y-3 relative z-10">
                   <div className="space-y-2">
                     <div className="flex">
-                      <Badge variant="outline" className="bg-white/10 text-white/90 border-white/20 text-[9px] font-bold rounded-lg px-2.5 py-1 mb-1">
+                      <Badge variant="outline" className="bg-white/10 text-white/90 border-white/20 text-[9px] font-bold rounded-lg px-2.5 py-1 mb-1 border-none shadow-sm">
                         Ongoing Trip
                       </Badge>
                     </div>
                     <h3 className="text-lg font-bold tracking-tight truncate leading-tight text-white">{activeTrip.name}</h3>
-                    <div className="flex items-center gap-3">
+                    <div className="flex items-center justify-between gap-2">
                       <p className="text-[10px] font-bold text-white/50 flex items-center gap-1.5">
                         <Calendar className="h-2.5 w-2.5" />
                         {activeTrip.date || "Ready"}
@@ -165,10 +165,10 @@ export default function Home() {
 
               <Link 
                 href="/trips/new" 
-                className="col-span-4 bg-white shadow-xl rounded-[2.5rem] flex flex-col items-center justify-center p-4 transition-all duration-300 transform hover:-translate-y-1 active:scale-95 border border-primary/5 group hover:bg-accent hover:border-accent"
+                className="col-span-4 bg-white shadow-xl rounded-[2.5rem] flex flex-col items-center justify-center p-4 transition-all duration-300 transform hover:-translate-y-1 active:scale-95 border-2 border-primary/5 group hover:bg-accent hover:border-accent"
               >
-                <div className="h-16 w-16 rounded-3xl bg-primary/5 flex items-center justify-center text-primary group-hover:bg-white/20 group-hover:text-white transition-all shadow-sm shrink-0 mb-3">
-                  <MapPinPlus className="h-9 w-9" />
+                <div className="h-20 w-20 rounded-3xl bg-primary/5 flex items-center justify-center text-primary group-hover:bg-white/20 group-hover:text-white transition-all shadow-sm shrink-0 mb-3">
+                  <MapPinPlus className="h-10 w-10" />
                 </div>
                 <span className="text-xs font-bold tracking-tight text-foreground group-hover:text-white transition-colors text-center leading-tight px-1">
                   New trip
