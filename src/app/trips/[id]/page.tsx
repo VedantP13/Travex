@@ -220,9 +220,9 @@ export default function TripDetails() {
             variant="ghost" 
             size="icon" 
             onClick={() => router.push('/')} 
-            className="bg-white backdrop-blur-md text-foreground hover:bg-slate-50 rounded-2xl h-11 w-11 shadow-lg transition-all active:scale-95"
+            className="bg-white/90 backdrop-blur-md text-primary hover:bg-primary hover:text-white rounded-2xl h-11 w-11 shadow-lg shadow-black/5 transition-all active:scale-95"
           >
-            <ArrowLeft className="h-6 w-6" />
+            <ArrowLeft className="h-6 w-6" strokeWidth={2.5} />
           </Button>
           
           <DropdownMenu>
@@ -232,7 +232,7 @@ export default function TripDetails() {
                 size="icon" 
                 className="bg-white/90 backdrop-blur-md text-primary hover:bg-primary hover:text-white rounded-2xl h-11 w-11 shadow-lg shadow-black/5 transition-all active:scale-95"
               >
-                <Settings className="h-5 w-5" />
+                <Settings className="h-5 w-5" strokeWidth={2.5} />
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="rounded-2xl min-w-[180px] p-2 shadow-2xl border-none">
