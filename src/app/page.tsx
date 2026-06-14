@@ -133,7 +133,7 @@ export default function Home() {
                   <div className="space-y-2">
                     <div className="flex">
                       <Badge variant="outline" className={cn(
-                        "text-white border-none text-[10px] font-medium rounded-lg px-2.5 py-1 mb-1 shadow-sm backdrop-blur-md",
+                        "text-white/80 border-none text-[10px] font-medium rounded-lg px-2.5 py-1 mb-1 shadow-sm backdrop-blur-md",
                         activeTrip.status === 'Active' ? 'bg-white/10' : 'bg-white/5'
                       )}>
                         {activeTrip.status === 'Active' ? 'Ongoing Trip' : 'Featured Trip'}
