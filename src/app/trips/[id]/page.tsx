@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useEffect, useRef } from "react";
@@ -529,7 +530,7 @@ export default function TripDetails() {
                   <Input 
                     id="trip-name"
                     placeholder="e.g. Goa 2024"
-                    className="h-14 rounded-2xl shadow-inner border-none bg-white font-semibold text-lg"
+                    className="h-14 rounded-2xl shadow-inner border-none bg-white font-medium text-base"
                     value={editName}
                     onChange={(e) => setEditName(e.target.value)}
                   />
@@ -541,8 +542,8 @@ export default function TripDetails() {
                       <Button
                         variant="outline"
                         className={cn(
-                          "w-full h-14 justify-start text-left font-semibold text-lg rounded-2xl px-4 border-none shadow-sm bg-white hover:bg-muted/50 transition-all",
-                          !editDateRange && "text-muted-foreground/60 font-medium"
+                          "w-full h-14 justify-start text-left font-medium text-base rounded-2xl px-4 border-none shadow-sm bg-white hover:bg-muted/50 transition-all",
+                          !editDateRange && "text-muted-foreground/60"
                         )}
                       >
                         <CalendarIcon className={cn(

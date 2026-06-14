@@ -259,7 +259,7 @@ export default function CreateTrip() {
           <Label className="text-sm font-semibold text-muted-foreground/70 ml-1">Trip name</Label>
           <Input 
             placeholder="e.g. Goa 2024, Europe tour" 
-            className="h-14 text-lg font-semibold rounded-2xl focus-visible:ring-primary shadow-sm bg-white"
+            className="h-14 text-base font-medium rounded-2xl focus-visible:ring-primary shadow-sm bg-white"
             value={name}
             onChange={e => setName(e.target.value)}
           />
@@ -272,8 +272,8 @@ export default function CreateTrip() {
               <Button
                 variant="outline"
                 className={cn(
-                  "w-full h-14 justify-start text-left font-semibold text-lg rounded-2xl px-4 border-none shadow-sm bg-white hover:bg-muted/50 transition-all",
-                  !dateRange && "text-muted-foreground/60 font-medium"
+                  "w-full h-14 justify-start text-left font-medium text-base rounded-2xl px-4 border-none shadow-sm bg-white hover:bg-muted/50 transition-all",
+                  !dateRange && "text-muted-foreground/60"
                 )}
               >
                 <CalendarIcon className={cn(

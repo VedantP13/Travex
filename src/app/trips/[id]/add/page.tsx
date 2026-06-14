@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useEffect, useMemo, useRef } from "react";
@@ -8,7 +9,7 @@ import {
   ChevronDown,
   X,
   Loader2,
-  Calendar,
+  Calendar as CalendarIcon,
   CreditCard,
   Tag,
   Users,
@@ -50,6 +51,13 @@ import { errorEmitter } from "@/firebase/error-emitter";
 import { FirestorePermissionError } from "@/firebase/errors";
 import { cn } from "@/lib/utils";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { Calendar } from "@/components/ui/calendar";
+import { format } from "date-fns";
 
 const FAMILY_SCHEMES = [
   { border: "border-primary", bg: "bg-primary/5", text: "text-primary", badge: "bg-primary/10 text-primary", darkBg: "bg-primary/10", focus: "focus-visible:ring-primary" },
@@ -96,6 +104,7 @@ export default function AddExpenseWizard() {
   
   const [newCategoryName, setNewCategoryName] = useState("");
   const [isManagingCategories, setIsManagingCategories] = useState(false);
+  const [isCalendarOpen, setIsCalendarOpen] = useState(false);
 
   const [formData, setFormData] = useState({
     description: "",
@@ -669,14 +678,14 @@ export default function AddExpenseWizard() {
             <div className="space-y-6">
               <div className="relative">
                 <span className={cn(
-                  "absolute left-6 top-1/2 -translate-y-1/2 text-3xl font-semibold transition-colors",
+                  "absolute left-6 top-1/2 -translate-y-1/2 text-3xl font-medium transition-colors",
                   formData.amount ? "text-foreground" : "text-muted-foreground/40"
                 )}>₹</span>
                 <Input 
                   type="number"
                   placeholder={formData.isItemized ? "Total calculated" : "0.00"}
                   className={cn(
-                    "h-24 text-4xl font-semibold rounded-3xl pl-14 focus-visible:ring-primary shadow-sm bg-white border-none placeholder:text-muted-foreground/40 placeholder:font-medium",
+                    "h-24 text-4xl font-medium rounded-3xl pl-14 focus-visible:ring-primary shadow-sm bg-white border-none placeholder:text-muted-foreground/40 placeholder:font-medium",
                     formData.isItemized && "bg-muted/50 text-muted-foreground/60 cursor-not-allowed"
                   )}
                   value={formData.amount}
@@ -733,7 +742,7 @@ export default function AddExpenseWizard() {
                   )} />
                   <Input 
                     placeholder="What was it for?"
-                    className="h-16 text-lg font-semibold rounded-2xl pl-12 pr-4 focus-visible:ring-primary shadow-sm bg-white border-none placeholder:text-muted-foreground/40 placeholder:font-medium"
+                    className="h-16 text-base font-medium rounded-2xl pl-12 pr-4 focus-visible:ring-primary shadow-sm bg-white border-none placeholder:text-muted-foreground/40 placeholder:font-medium"
                     value={formData.description}
                     onChange={e => setFormData(prev => ({ ...prev, description: e.target.value }))}
                   />
@@ -742,32 +751,49 @@ export default function AddExpenseWizard() {
 
                 <div className="grid grid-cols-2 gap-4">
                   <div className="relative">
-                    <Calendar className={cn(
-                      "absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 pointer-events-none transition-colors z-10",
-                      formData.date ? "text-foreground stroke-[2px]" : "text-muted-foreground/40"
-                    )} />
-                    <Input 
-                      type="date"
-                      className={cn(
-                        "h-14 rounded-2xl pl-10 focus-visible:ring-primary shadow-sm text-sm font-semibold bg-white border-none relative",
-                        formData.date ? "text-foreground/80" : "text-muted-foreground/40"
-                      )}
-                      value={formData.date}
-                      onChange={e => setFormData(prev => ({ ...prev, date: e.target.value }))}
-                    />
+                    <Popover open={isCalendarOpen} onOpenChange={setIsCalendarOpen}>
+                      <PopoverTrigger asChild>
+                        <Button
+                          variant="outline"
+                          className={cn(
+                            "w-full h-14 justify-start text-left font-medium text-base rounded-2xl px-4 border-none shadow-sm bg-white hover:bg-muted/50 transition-all",
+                            !formData.date && "text-muted-foreground/60"
+                          )}
+                        >
+                          <CalendarIcon className={cn(
+                            "mr-4 h-4 w-4 transition-all",
+                            formData.date ? "text-foreground stroke-[2px]" : "text-muted-foreground/60"
+                          )} />
+                          {formData.date ? format(new Date(formData.date), "d MMM yyyy") : "Date"}
+                        </Button>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-auto p-0 rounded-[2rem] border-none shadow-2xl overflow-hidden max-w-[calc(100vw-40px)]" align="start">
+                        <Calendar
+                          mode="single"
+                          selected={formData.date ? new Date(formData.date) : undefined}
+                          onSelect={(d) => {
+                            if (d) {
+                              setFormData(prev => ({ ...prev, date: d.toISOString().split('T')[0] }));
+                              setIsCalendarOpen(false);
+                            }
+                          }}
+                          initialFocus
+                        />
+                      </PopoverContent>
+                    </Popover>
                   </div>
                   <Select 
                     value={formData.paymentType} 
                     onValueChange={val => setFormData(prev => ({ ...prev, paymentType: val }))}
                   >
                     <SelectTrigger className={cn(
-                      "h-14 rounded-2xl shadow-sm focus:ring-primary text-sm font-semibold bg-white border-none",
-                      formData.paymentType ? "text-foreground/80" : "text-muted-foreground/40"
+                      "h-14 rounded-2xl shadow-sm focus:ring-primary text-base font-medium bg-white border-none",
+                      formData.paymentType ? "text-foreground" : "text-muted-foreground/60"
                     )}>
                       <SelectValue placeholder={
                         <div className="flex items-center gap-2 font-medium">
                           <CreditCard className="h-4 w-4" />
-                          <span>How did you pay?</span>
+                          <span>Method</span>
                         </div>
                       } />
                     </SelectTrigger>
