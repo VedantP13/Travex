@@ -451,8 +451,10 @@ export default function TripDetails() {
                               <Icon className="h-6 w-6" />
                             </div>
                             <div>
-                              <h3 className="font-semibold text-sm text-foreground">{item.description}</h3>
-                              <p className="text-[10px] font-medium text-muted-foreground">₹{parseFloat(item.amount || 0).toFixed(2)} • Unsplit</p>
+                              <h3 className="font-bold text-base text-foreground leading-none mb-1">₹{parseFloat(item.amount || 0).toFixed(2)}</h3>
+                              <p className="text-[10px] font-medium text-muted-foreground truncate max-w-[140px]">
+                                {item.description} • {item.date}
+                              </p>
                             </div>
                           </div>
                           <Button 
