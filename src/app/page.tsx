@@ -79,19 +79,21 @@ export default function Home() {
                 {isAnonymous && (
                   <Link 
                     href="/login" 
-                    className="flex items-center gap-1.5 px-2.5 py-1 bg-accent/15 hover:bg-accent/25 border border-accent/20 rounded-full transition-all group animate-in fade-in slide-in-from-left-2 duration-700"
+                    className="flex items-center gap-1.5 px-2.5 py-1 bg-accent/10 hover:bg-accent/20 border border-accent/15 rounded-full transition-all group animate-in fade-in slide-in-from-left-2 duration-700"
                   >
                     <ShieldAlert className="h-2.5 w-2.5 text-accent" />
-                    <span className="text-[8px] font-extrabold text-accent uppercase tracking-widest text-nowrap">Link Account</span>
+                    <span className="text-[8px] font-bold text-accent tracking-tight text-nowrap">Link account</span>
                   </Link>
                 )}
               </div>
             </div>
           </div>
           <Link href="/profile" className="relative group">
-            <Avatar className="h-14 w-14 border-2 border-accent/50 hover:border-accent hover:scale-110 transition-all duration-300 shadow-xl shadow-black/40 ring-4 ring-white/5">
+            <Avatar className="h-14 w-14 border-2 border-accent/30 hover:border-accent hover:scale-110 transition-all duration-300 shadow-xl shadow-black/40 ring-4 ring-white/5">
               <AvatarImage src={displayPhoto} className="object-cover" />
-              <AvatarFallback>{displayNameForFallback[0]}</AvatarFallback>
+              <AvatarFallback className="bg-accent text-foreground font-bold">
+                {displayNameForFallback[0]}
+              </AvatarFallback>
             </Avatar>
             {!isAnonymous && (
               <div className="absolute -bottom-1 -right-1 h-5 w-5 bg-accent rounded-full border-2 border-foreground flex items-center justify-center shadow-lg">
@@ -111,12 +113,16 @@ export default function Home() {
           <div className="grid grid-cols-2 gap-4 animate-in fade-in slide-in-from-bottom-2 duration-500">
             <div className="bg-white/5 backdrop-blur-md p-6 rounded-3xl border border-white/10 shadow-inner">
               <p className="text-[10px] font-bold opacity-60 mb-2 uppercase tracking-widest">You owe</p>
-              <p className="text-2xl font-bold">₹0.00</p>
+              <div className="flex items-baseline">
+                <span className="text-2xl font-bold">₹0.00</span>
+              </div>
               <p className="text-[9px] opacity-40 mt-1 font-medium italic">All settled up!</p>
             </div>
             <div className="bg-accent/10 backdrop-blur-md p-6 rounded-3xl border border-accent/20 shadow-inner">
               <p className="text-[10px] font-bold text-accent mb-2 uppercase tracking-widest">Owed to you</p>
-              <p className="text-2xl font-bold text-accent">₹0.00</p>
+              <div className="flex items-baseline">
+                <span className="text-2xl font-bold text-accent">₹0.00</span>
+              </div>
               <p className="text-[9px] text-accent/50 mt-1 font-medium italic">No pending dues</p>
             </div>
           </div>
@@ -130,45 +136,44 @@ export default function Home() {
       </header>
 
       {/* Dynamic Trip Spotlight */}
-      <section className="px-safe-pad -mt-10">
+      <section className="px-safe-pad -mt-6">
         <div className="grid grid-cols-12 gap-4 items-stretch">
           {activeTrip ? (
             <>
               <Card className="col-span-8 border-none shadow-2xl bg-primary text-primary-foreground rounded-[2.5rem] p-5 flex flex-col justify-between relative overflow-hidden transition-all hover:translate-y-[-2px]">
                 <div className="space-y-3 relative z-10">
                   <div className="flex justify-between items-start">
-                    <div className="space-y-1">
+                    <div className="space-y-1 flex-1 min-w-0">
                       <Badge variant="outline" className="bg-white/10 text-white/90 border-white/20 text-[8px] font-bold rounded-lg px-2 py-0.5">
                         Ongoing trip
                       </Badge>
                       <h3 className="text-lg font-bold tracking-tight truncate leading-tight text-white">{activeTrip.name}</h3>
-                      <div className="flex items-center gap-3">
+                      <div className="flex items-center gap-2">
                         <p className="text-[9px] font-bold text-white/50 flex items-center gap-1">
                           <Calendar className="h-2.5 w-2.5" />
                           {activeTrip.date || "Ready"}
                         </p>
-                        <div className="flex -space-x-1.5">
-                          {activeTrip.participants?.slice(0, 3).map((p: any, idx: number) => (
-                            <Avatar key={idx} className="h-4 w-4 border border-primary ring-1 ring-white/10 shadow-sm">
-                              <AvatarImage src={p.avatar} />
-                              <AvatarFallback className="text-[6px] bg-accent text-foreground font-bold">{p.name?.[0]}</AvatarFallback>
-                            </Avatar>
-                          ))}
-                          {activeTrip.participants?.length > 3 && (
-                            <div className="h-4 w-4 rounded-full bg-white/10 border border-primary flex items-center justify-center text-[5px] font-bold text-white backdrop-blur-sm">
-                              +{activeTrip.participants.length - 3}
-                            </div>
-                          )}
-                        </div>
                       </div>
+                    </div>
+                    <div className="flex -space-x-1.5 ml-2 mt-7">
+                      {activeTrip.participants?.slice(0, 3).map((p: any, idx: number) => (
+                        <Avatar key={idx} className="h-5 w-5 border border-primary ring-1 ring-white/10 shadow-sm">
+                          <AvatarImage src={p.avatar} />
+                          <AvatarFallback className="text-[7px] bg-accent text-foreground font-bold">{p.name?.[0]}</AvatarFallback>
+                        </Avatar>
+                      ))}
+                      {activeTrip.participants?.length > 3 && (
+                        <div className="h-5 w-5 rounded-full bg-white/10 border border-primary flex items-center justify-center text-[6px] font-bold text-white backdrop-blur-sm">
+                          +{activeTrip.participants.length - 3}
+                        </div>
+                      )}
                     </div>
                   </div>
                   
                   <div className="space-y-0.5">
                     <p className="text-[9px] font-bold text-white/40 uppercase tracking-widest mb-0.5">Total Spent</p>
-                    <div className="flex items-baseline gap-1">
-                      <span className="text-lg font-bold text-white leading-none">₹</span>
-                      <span className="text-2xl font-bold tracking-tight text-white leading-none">{(activeTrip.totalSpent || 0).toFixed(2)}</span>
+                    <div className="flex items-baseline">
+                      <span className="text-2xl font-bold tracking-tight text-white leading-none">₹{(activeTrip.totalSpent || 0).toFixed(2)}</span>
                     </div>
                   </div>
                 </div>
@@ -185,10 +190,10 @@ export default function Home() {
 
               <Link 
                 href="/trips/new" 
-                className="col-span-4 bg-white shadow-2xl rounded-[2.5rem] flex flex-col items-center justify-center p-4 transition-all duration-300 transform hover:-translate-y-1 active:scale-95 border border-accent/10 group hover:bg-accent hover:border-accent"
+                className="col-span-4 bg-white shadow-xl rounded-[2.5rem] flex flex-col items-center justify-center p-4 transition-all duration-300 transform hover:-translate-y-1 active:scale-95 border border-accent/10 group hover:bg-accent hover:border-accent"
               >
-                <div className="h-16 w-16 rounded-2xl bg-primary/5 flex items-center justify-center text-primary group-hover:bg-white/20 group-hover:text-white transition-all shadow-sm shrink-0 mb-2">
-                  <MapPinPlus className="h-8 w-8" />
+                <div className="h-20 w-20 rounded-2xl bg-primary/5 flex items-center justify-center text-primary group-hover:bg-white/20 group-hover:text-white transition-all shadow-sm shrink-0 mb-2">
+                  <MapPinPlus className="h-10 w-10" />
                 </div>
                 <span className="text-[10px] font-bold tracking-tight text-foreground group-hover:text-white transition-colors text-center leading-tight">
                   New trip
