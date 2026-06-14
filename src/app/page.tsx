@@ -21,6 +21,21 @@ export default function Home() {
   const { user } = useUser();
   const firestore = useFirestore();
   const [firestoreProfile, setFirestoreProfile] = useState<any>(null);
+  const [greetingPrefix, setGreetingPrefix] = useState("Hi,");
+
+  useEffect(() => {
+    const updateGreeting = () => {
+      const hour = new Date().getHours();
+      if (hour < 12) setGreetingPrefix("Good morning,");
+      else if (hour < 17) setGreetingPrefix("Good afternoon,");
+      else setGreetingPrefix("Good evening,");
+    };
+
+    updateGreeting();
+    // Update every minute to catch transitions
+    const interval = setInterval(updateGreeting, 60000);
+    return () => clearInterval(interval);
+  }, []);
 
   useEffect(() => {
     if (!user?.uid || !firestore) return;
@@ -52,8 +67,8 @@ export default function Home() {
   const displayNameForFallback = welcomeName || (isAnonymous ? "Guest" : "User");
 
   return (
-    <div className="max-w-md mx-auto min-h-screen flex flex-col bg-background pb-32">
-      {/* Header - Compressed pt/pb */}
+    <div className="max-w-md mx-auto min-h-screen flex flex-col bg-background pb-52">
+      {/* Header - Compressed */}
       <header className="px-safe-pad pt-8 pb-8 bg-foreground text-background rounded-b-[2.5rem] shadow-2xl shadow-black/10">
         <div className="flex justify-between items-center mb-6">
           <div className="flex items-center gap-4">
@@ -61,7 +76,7 @@ export default function Home() {
               <Compass className="h-7 w-7 text-foreground" />
             </div>
             <div>
-              <p className="text-xs opacity-70 text-background font-medium">Hi,</p>
+              <p className="text-[10px] opacity-70 text-background font-bold uppercase tracking-wider">{greetingPrefix}</p>
               <h1 className="text-2xl font-bold tracking-tight text-background leading-none mt-0.5">
                 {greetingName}
               </h1>
@@ -111,7 +126,7 @@ export default function Home() {
         )}
       </header>
 
-      {/* Dynamic Trip Spotlight - Tighter margin top */}
+      {/* Dynamic Trip Spotlight */}
       <section className="px-safe-pad mt-6">
         <div className="grid grid-cols-12 gap-4 items-stretch">
           {activeTrip ? (
@@ -199,7 +214,7 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Recent Trips Section - Tighter margin top */}
+      {/* Recent Trips Section */}
       <main className="px-safe-pad pt-6 space-y-6 flex-1">
         <div className="flex justify-between items-center mb-4">
           <h2 className="text-xl font-bold text-foreground tracking-tight">
