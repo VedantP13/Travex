@@ -67,7 +67,7 @@ export default function Home() {
   const displayNameForFallback = welcomeName || (isAnonymous ? "Guest" : "User");
 
   return (
-    <div className="max-w-md mx-auto min-h-screen flex flex-col bg-background pb-52">
+    <div className="max-w-md mx-auto min-h-screen flex flex-col bg-background pb-56">
       {/* Header - Compressed */}
       <header className="px-safe-pad pt-8 pb-8 bg-foreground text-background rounded-b-[2.5rem] shadow-2xl shadow-black/10">
         <div className="flex justify-between items-center mb-6">
@@ -140,7 +140,7 @@ export default function Home() {
                       </Badge>
                     </div>
                     <h3 className="text-lg font-bold tracking-tight truncate leading-tight text-white">{activeTrip.name}</h3>
-                    <div className="flex items-center justify-between gap-2">
+                    <div className="flex items-center gap-3">
                       <p className="text-[10px] font-bold text-white/50 flex items-center gap-1.5">
                         <Calendar className="h-2.5 w-2.5" />
                         {activeTrip.date || "Ready"}
