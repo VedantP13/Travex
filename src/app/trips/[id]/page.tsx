@@ -490,7 +490,7 @@ export default function TripDetails() {
 
       {/* Edit Dialog */}
       <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
-        <DialogContent className="max-w-[calc(100vw-40px)] w-full rounded-[2.5rem] p-0 border-none shadow-2xl bg-white overflow-hidden animate-in fade-in zoom-in-95 duration-300">
+        <DialogContent className="max-w-[calc(100vw-40px)] w-full rounded-[2.5rem] p-0 border-none shadow-2xl bg-background overflow-hidden animate-in fade-in zoom-in-95 duration-300">
           <div className="h-24 bg-foreground relative flex items-center justify-center">
             <DialogTitle className="text-xl font-bold text-white relative z-10">Edit Trip</DialogTitle>
             <DialogDescription className="sr-only">Update your trip name, dates, and participants.</DialogDescription>
@@ -506,7 +506,7 @@ export default function TripDetails() {
                   <Input 
                     id="trip-name"
                     placeholder="e.g. Goa 2024"
-                    className="h-14 rounded-2xl shadow-inner border-none bg-muted/40 font-bold text-lg"
+                    className="h-14 rounded-2xl shadow-inner border-none bg-white font-bold text-lg"
                     value={editName}
                     onChange={(e) => setEditName(e.target.value)}
                   />
@@ -518,7 +518,7 @@ export default function TripDetails() {
                     <Input 
                       id="trip-date"
                       placeholder="e.g. 12-15 Aug"
-                      className="h-14 rounded-2xl pl-12 shadow-inner border-none bg-muted/40 font-bold"
+                      className="h-14 rounded-2xl pl-12 shadow-inner border-none bg-white font-bold"
                       value={editDate}
                       onChange={(e) => setEditDate(e.target.value)}
                     />
@@ -534,7 +534,7 @@ export default function TripDetails() {
                   <div className="flex gap-2">
                     <Input 
                       placeholder="Add guest..." 
-                      className="h-12 rounded-xl bg-muted/20 border-none shadow-inner"
+                      className="h-12 rounded-xl bg-white border-none shadow-inner"
                       value={newParticipantName}
                       onChange={e => setNewParticipantName(e.target.value)}
                       onKeyDown={e => e.key === 'Enter' && handleAddParticipant()}
@@ -546,7 +546,7 @@ export default function TripDetails() {
 
                   <div className="space-y-3">
                     {editParticipants.map((p) => (
-                      <div key={p.id} className="p-4 bg-muted/10 rounded-2xl border border-muted/20 space-y-3">
+                      <div key={p.id} className="p-4 bg-white/50 rounded-2xl border border-muted/20 space-y-3">
                         <div className="flex justify-between items-center">
                           <div className="flex items-center gap-3">
                             <Avatar className="h-7 w-7 border">
@@ -611,7 +611,7 @@ export default function TripDetails() {
                 </div>
               </div>
               <Button 
-                className="w-full h-14 rounded-2xl bg-accent text-accent-foreground font-bold text-base shadow-lg shadow-accent/20 transition-all active:scale-95"
+                className="w-full h-14 rounded-2xl bg-accent text-accent-foreground hover:bg-accent/90 font-bold text-base shadow-lg shadow-accent/20 transition-all active:scale-95"
                 onClick={handleUpdateTrip}
                 disabled={isSaving || !editName.trim()}
               >
@@ -663,3 +663,4 @@ export default function TripDetails() {
     </div>
   );
 }
+
