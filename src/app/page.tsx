@@ -2,7 +2,7 @@
 "use client";
 
 import Link from "next/link";
-import { Plus, ChevronRight, Compass, MapPinPlus, Users, Wifi, ShieldAlert } from "lucide-react";
+import { Plus, ChevronRight, Compass, MapPinPlus, Users, Wifi, ShieldAlert, Calendar } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -155,32 +155,58 @@ export default function Home() {
         <div className="grid grid-cols-12 gap-4 items-stretch">
           {activeTrip ? (
             <>
-              <Card className="col-span-8 border-none shadow-2xl bg-primary text-primary-foreground rounded-[2.5rem] p-7 flex flex-col justify-between group transition-all hover:translate-y-[-2px] hover:shadow-primary/20">
-                <div className="space-y-6">
-                  <div className="space-y-1">
-                    <p className="text-[10px] font-bold text-accent/90 uppercase tracking-widest">Ongoing Trip</p>
-                    <h3 className="text-2xl font-bold tracking-tight truncate leading-tight">{activeTrip.name}</h3>
+              <Card className="col-span-8 border-none shadow-2xl bg-primary text-primary-foreground rounded-[2.5rem] p-6 flex flex-col justify-between relative overflow-hidden transition-all hover:translate-y-[-2px]">
+                {/* Subtle Background Graphic */}
+                <Compass className="absolute -right-6 -bottom-6 h-32 w-32 opacity-5 pointer-events-none" />
+                
+                <div className="space-y-4 relative z-10">
+                  <div className="flex justify-between items-start">
+                    <div className="space-y-1">
+                      <Badge variant="outline" className="bg-white/10 text-white/90 border-white/20 text-[8px] font-bold uppercase tracking-widest rounded-lg px-2 py-0.5">
+                        Ongoing Trip
+                      </Badge>
+                      <h3 className="text-xl font-bold tracking-tight truncate leading-tight text-white drop-shadow-sm">{activeTrip.name}</h3>
+                      <p className="text-[9px] font-bold text-white/50 flex items-center gap-1">
+                        <Calendar className="h-2.5 w-2.5" />
+                        {activeTrip.date || "Ready for departure"}
+                      </p>
+                    </div>
                   </div>
                   
-                  <div className="space-y-1">
+                  <div className="space-y-0.5">
+                    <p className="text-[9px] font-bold text-white/40 uppercase tracking-widest mb-0.5">Total Spent</p>
                     <div className="flex items-baseline gap-1">
-                      <span className="text-sm font-bold opacity-60">₹</span>
-                      <span className="text-3xl font-extrabold tracking-tighter">{(activeTrip.totalSpent || 0).toFixed(2)}</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                       <span className="h-1.5 w-1.5 rounded-full bg-accent" />
-                       <p className="text-[11px] opacity-70 font-semibold tracking-tight">{(activeTrip.participants?.length || 0)} friends splitting</p>
+                      <span className="text-lg font-bold opacity-60">₹</span>
+                      <span className="text-3xl font-extrabold tracking-tighter text-white">{(activeTrip.totalSpent || 0).toFixed(2)}</span>
                     </div>
                   </div>
                 </div>
 
-                <Link 
-                  href={`/trips/${activeTrip.id}/add`} 
-                  className="mt-6 inline-flex items-center gap-2 text-sm font-bold text-accent hover:opacity-80 transition-opacity"
-                >
-                  Add expense <ChevronRight className="h-4 w-4" />
-                </Link>
+                <div className="mt-6 flex items-center justify-between relative z-10">
+                  <Link 
+                    href={`/trips/${activeTrip.id}/add`} 
+                    className="inline-flex items-center gap-2 h-10 px-4 bg-white/10 hover:bg-white/20 rounded-xl text-xs font-bold text-white transition-all backdrop-blur-sm"
+                  >
+                    Add expense <ChevronRight className="h-3.5 w-3.5 text-accent" />
+                  </Link>
+                  
+                  {/* Participant Avatar Stack */}
+                  <div className="flex -space-x-2">
+                    {activeTrip.participants?.slice(0, 3).map((p: any, idx: number) => (
+                      <Avatar key={idx} className="h-6 w-6 border-2 border-primary ring-1 ring-white/10 shadow-lg">
+                        <AvatarImage src={p.avatar} />
+                        <AvatarFallback className="text-[8px] bg-accent text-foreground font-bold">{p.name?.[0]}</AvatarFallback>
+                      </Avatar>
+                    ))}
+                    {activeTrip.participants?.length > 3 && (
+                      <div className="h-6 w-6 rounded-full bg-white/10 border-2 border-primary flex items-center justify-center text-[8px] font-bold text-white backdrop-blur-sm">
+                        +{activeTrip.participants.length - 3}
+                      </div>
+                    )}
+                  </div>
+                </div>
               </Card>
+
               <Link 
                 href="/trips/new" 
                 className="col-span-4 bg-white shadow-2xl rounded-[2.5rem] flex flex-col items-center justify-center p-6 transition-all duration-300 transform hover:-translate-y-1 active:scale-95 border-2 border-accent/10 group hover:bg-accent hover:border-accent"
