@@ -50,7 +50,7 @@ import { AnimatedCompass } from "@/components/animated-compass";
 import { errorEmitter } from "@/firebase/error-emitter";
 import { FirestorePermissionError } from "@/firebase/errors";
 import { cn } from "@/lib/utils";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 
 const FAMILY_SCHEMES = [
   { border: "border-primary", bg: "bg-primary/5", text: "text-primary", badge: "bg-primary/10 text-primary", darkBg: "bg-primary/10", focus: "focus-visible:ring-primary" },
@@ -796,6 +796,7 @@ export default function AddExpenseWizard() {
                       <DialogContent className="max-w-[calc(100vw-40px)] w-full rounded-[2.5rem] p-6 border-none shadow-2xl bg-white overflow-hidden animate-in fade-in zoom-in-95 duration-300">
                         <DialogHeader className="mb-6">
                           <DialogTitle className="text-xl font-bold text-center">Manage Categories</DialogTitle>
+                          <DialogDescription className="sr-only">Add or remove custom categories for your trip expenses.</DialogDescription>
                         </DialogHeader>
                         <div className="space-y-6">
                           <div className="max-h-[300px] overflow-y-auto space-y-2 pr-1 scrollbar-thin">

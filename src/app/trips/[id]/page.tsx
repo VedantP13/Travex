@@ -409,7 +409,8 @@ export default function TripDetails() {
       <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
         <DialogContent className="max-w-[calc(100vw-40px)] w-full rounded-[2.5rem] p-0 border-none shadow-2xl bg-white overflow-hidden animate-in fade-in zoom-in-95 duration-300">
           <div className="h-32 bg-foreground relative flex items-center justify-center">
-            <h2 className="text-xl font-bold text-white relative z-10">Edit Trip</h2>
+            <DialogTitle className="text-xl font-bold text-white relative z-10">Edit Trip</DialogTitle>
+            <DialogDescription className="sr-only">Update your trip name and travel dates.</DialogDescription>
             <DialogClose className="absolute right-4 top-4 h-8 w-8 rounded-full flex items-center justify-center bg-white/10 text-white/70 hover:bg-white/20 hover:text-white transition-all z-20">
               <X className="h-5 w-5" />
             </DialogClose>
