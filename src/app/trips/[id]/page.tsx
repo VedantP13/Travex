@@ -220,7 +220,7 @@ export default function TripDetails() {
             variant="ghost" 
             size="icon" 
             onClick={() => router.push('/')} 
-            className="bg-white/20 backdrop-blur-md text-white hover:bg-white/30 rounded-2xl h-11 w-11 border border-white/10 shadow-lg transition-all active:scale-95"
+            className="bg-white backdrop-blur-md text-primary hover:bg-primary hover:text-white rounded-2xl h-11 w-11 shadow-lg transition-all active:scale-95"
           >
             <ArrowLeft className="h-6 w-6" strokeWidth={2.5} />
           </Button>
@@ -235,22 +235,26 @@ export default function TripDetails() {
                 <Settings className="h-5 w-5" strokeWidth={2.5} />
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="rounded-2xl min-w-[180px] p-2 shadow-2xl border-none">
-              <DropdownMenuLabel className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest px-3 py-2">Trip Options</DropdownMenuLabel>
+            <DropdownMenuContent align="end" className="rounded-[1.5rem] min-w-[190px] p-2 shadow-[0_10px_40px_rgba(0,0,0,0.1)] border-none bg-white">
+              <DropdownMenuLabel className="text-xs font-semibold text-muted-foreground/70 px-3 pt-3 pb-1">Trip options</DropdownMenuLabel>
               <DropdownMenuItem 
-                className="rounded-xl py-3 px-3 flex items-center gap-3 cursor-pointer focus:bg-primary/10"
+                className="rounded-xl py-3 px-3 flex items-center gap-3 cursor-pointer focus:bg-primary/5 active:scale-[0.98] transition-all"
                 onClick={() => setIsEditDialogOpen(true)}
               >
-                <Pencil className="h-4 w-4" />
-                <span className="font-bold text-sm">Edit details</span>
+                <div className="h-8 w-8 rounded-lg bg-primary/5 flex items-center justify-center text-primary/70 group-hover:bg-primary group-hover:text-white transition-colors">
+                  <Pencil className="h-4 w-4" />
+                </div>
+                <span className="font-medium text-sm text-foreground">Edit details</span>
               </DropdownMenuItem>
-              <DropdownMenuSeparator className="my-1 mx-2" />
+              <DropdownMenuSeparator className="my-1 mx-2 bg-muted/50" />
               <DropdownMenuItem 
-                className="rounded-xl py-3 px-3 flex items-center gap-3 cursor-pointer text-destructive focus:bg-destructive/10 focus:text-destructive"
+                className="rounded-xl py-3 px-3 flex items-center gap-3 cursor-pointer text-destructive focus:bg-destructive/5 active:scale-[0.98] transition-all"
                 onClick={() => setIsDeleteDialogOpen(true)}
               >
-                <Trash2 className="h-4 w-4" />
-                <span className="font-bold text-sm">Delete trip</span>
+                <div className="h-8 w-8 rounded-lg bg-destructive/5 flex items-center justify-center">
+                  <Trash2 className="h-4 w-4" />
+                </div>
+                <span className="font-medium text-sm">Delete trip</span>
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
@@ -368,12 +372,12 @@ export default function TripDetails() {
                   className="text-center py-16 bg-white/50 rounded-[2.5rem] border-2 border-dashed border-muted/30 px-10 cursor-pointer hover:bg-white transition-colors"
                   onClick={() => router.push(`/trips/${id}/add`)}
                 >
-                  <div className="h-16 w-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4 shadow-sm group-hover:scale-110 transition-transform">
+                  <div className="h-16 w-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-6 shadow-sm group-hover:scale-110 transition-transform">
                     <Plus className="h-7 w-7 text-primary" />
                   </div>
-                  <div className="space-y-1">
+                  <div className="space-y-2">
                     <h3 className="text-lg font-bold text-primary">No expenses yet</h3>
-                    <p className="text-sm text-muted-foreground">Add your first one to start tracking costs</p>
+                    <p className="text-sm text-muted-foreground px-6 leading-relaxed">Add your first one to start tracking your journey costs.</p>
                   </div>
                 </div>
               )}
