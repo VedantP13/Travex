@@ -342,7 +342,7 @@ export default function TripDetails() {
                 <Settings className="h-5 w-5" strokeWidth={2.5} />
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="rounded-2xl min-w-[160px] p-1.5 shadow-[0_10px_40px_rgba(0,0,0,0.15)] border-none bg-white">
+            <DropdownMenuContent align="end" className="rounded-xl min-w-[160px] p-1 shadow-[0_10px_40px_rgba(0,0,0,0.15)] border-none bg-white">
               <DropdownMenuItem 
                 className="group rounded-xl py-2 px-3 flex items-center gap-3 cursor-pointer text-primary focus:bg-primary focus:text-white active:scale-[0.98] transition-all"
                 onClick={() => setIsEditDialogOpen(true)}
@@ -352,7 +352,7 @@ export default function TripDetails() {
                 </div>
                 <span className="font-medium text-sm">Edit details</span>
               </DropdownMenuItem>
-              <DropdownMenuSeparator className="my-1 mx-3 bg-muted/30" />
+              <DropdownMenuSeparator className="my-1 mx-2 bg-muted/30" />
               <DropdownMenuItem 
                 className="group rounded-xl py-2 px-3 flex items-center gap-3 cursor-pointer text-destructive focus:bg-destructive focus:text-destructive-foreground active:scale-[0.98] transition-all"
                 onClick={() => setIsDeleteDialogOpen(true)}
@@ -366,15 +366,15 @@ export default function TripDetails() {
           </DropdownMenu>
         </div>
 
-        {/* Change Cover Button - Icon-only subtler pill style */}
+        {/* Change Cover Button - Icon-only subtler glassmorphic style */}
         <Button 
           variant="ghost" 
           size="icon" 
           onClick={() => setIsImagePickerOpen(true)}
-          className="absolute bottom-4 right-4 bg-black/30 backdrop-blur-md text-white hover:bg-black/50 rounded-full h-8 w-8 border border-white/10 shadow-lg z-10 transition-all active:scale-95"
+          className="absolute bottom-4 right-4 bg-white/20 backdrop-blur-md text-white hover:bg-white/30 rounded-xl h-9 w-9 border border-white/10 shadow-lg z-10 transition-all active:scale-95"
           title="Change cover"
         >
-          <Camera className="h-4 w-4" strokeWidth={2.5} />
+          <Camera className="h-5 w-5" strokeWidth={2.5} />
         </Button>
 
         {/* Trip Information Over Image */}
