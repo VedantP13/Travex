@@ -76,7 +76,7 @@ export default function Home() {
               <Compass className="h-7 w-7 text-foreground" />
             </div>
             <div>
-              <p className="text-[10px] opacity-70 text-background font-bold uppercase tracking-wider">{greetingPrefix}</p>
+              <p className="text-[10px] opacity-70 text-background font-bold tracking-wider">{greetingPrefix}</p>
               <h1 className="text-2xl font-bold tracking-tight text-background leading-none mt-0.5">
                 {greetingName}
               </h1>
