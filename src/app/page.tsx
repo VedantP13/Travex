@@ -52,7 +52,7 @@ export default function Home() {
   const displayNameForFallback = welcomeName || (isAnonymous ? "Guest" : "User");
 
   return (
-    <div className="max-w-md mx-auto min-h-screen flex flex-col bg-background pb-32">
+    <div className="max-w-md mx-auto min-h-screen flex flex-col bg-background pb-40">
       {/* Header */}
       <header className="px-safe-pad pt-10 pb-10 bg-foreground text-background rounded-b-[2.5rem] shadow-2xl shadow-black/10">
         <div className="flex justify-between items-center mb-10">
@@ -63,7 +63,7 @@ export default function Home() {
             <div>
               <h1 className="text-2xl font-bold tracking-tight text-background leading-none">Travex</h1>
               <p className="text-sm opacity-70 text-background font-medium mt-1">
-                Hi, <span className="font-bold text-white">{greetingName}</span>
+                Hi, <span className="font-bold text-white text-base">{greetingName}</span>
               </p>
             </div>
           </div>
@@ -116,10 +116,12 @@ export default function Home() {
             <>
               <Card className="col-span-8 border-none shadow-2xl bg-primary text-primary-foreground rounded-[2.5rem] p-5 flex flex-col justify-between relative overflow-hidden transition-all hover:translate-y-[-1px]">
                 <div className="space-y-3 relative z-10">
-                  <div className="space-y-1.5">
-                    <Badge variant="outline" className="bg-white/10 text-white/90 border-white/20 text-[9px] font-medium rounded-lg px-2.5 py-1 mb-1 lowercase first-letter:uppercase">
-                      Ongoing trip
-                    </Badge>
+                  <div className="space-y-2">
+                    <div className="flex">
+                      <Badge variant="outline" className="bg-white/10 text-white/90 border-white/20 text-[9px] font-bold rounded-lg px-2.5 py-1 mb-1">
+                        Ongoing Trip
+                      </Badge>
+                    </div>
                     <h3 className="text-lg font-bold tracking-tight truncate leading-tight text-white">{activeTrip.name}</h3>
                     <div className="flex items-center gap-3">
                       <p className="text-[10px] font-bold text-white/50 flex items-center gap-1.5">
@@ -145,7 +147,7 @@ export default function Home() {
                   <div className="space-y-0.5 mt-2">
                     <p className="text-[9px] font-bold text-white/40 uppercase tracking-widest">Total Spent</p>
                     <div className="flex items-baseline font-bold text-2xl tracking-tight text-white leading-none">
-                      <span className="text-xl mr-0.5">₹</span>
+                      <span className="text-2xl font-bold">₹</span>
                       <span>{(activeTrip.totalSpent || 0).toFixed(2)}</span>
                     </div>
                   </div>
@@ -163,7 +165,7 @@ export default function Home() {
 
               <Link 
                 href="/trips/new" 
-                className="col-span-4 bg-white shadow-xl rounded-[2.5rem] flex flex-col items-center justify-center p-4 transition-all duration-300 transform hover:-translate-y-1 active:scale-95 border-2 border-accent/10 group hover:bg-accent hover:border-accent"
+                className="col-span-4 bg-white shadow-xl rounded-[2.5rem] flex flex-col items-center justify-center p-4 transition-all duration-300 transform hover:-translate-y-1 active:scale-95 border border-primary/5 group hover:bg-accent hover:border-accent"
               >
                 <div className="h-16 w-16 rounded-3xl bg-primary/5 flex items-center justify-center text-primary group-hover:bg-white/20 group-hover:text-white transition-all shadow-sm shrink-0 mb-3">
                   <MapPinPlus className="h-9 w-9" />
@@ -176,7 +178,7 @@ export default function Home() {
           ) : (
             <Link 
               href="/trips/new" 
-              className="col-span-12 bg-white shadow-md hover:shadow-xl rounded-[2.5rem] flex items-center p-5 gap-5 transition-all duration-300 transform hover:-translate-y-1 active:scale-95 border-2 border-primary/5 group hover:bg-accent hover:border-accent"
+              className="col-span-12 bg-white shadow-md hover:shadow-xl rounded-[2.5rem] flex items-center p-5 gap-5 transition-all duration-300 transform hover:-translate-y-1 active:scale-95 border border-primary/5 group hover:bg-accent hover:border-accent"
             >
               <div className="h-16 w-16 rounded-2xl bg-primary/5 flex items-center justify-center text-primary shrink-0 transition-all group-hover:bg-white/20 group-hover:text-white">
                 <MapPinPlus className="h-8 w-8" />
