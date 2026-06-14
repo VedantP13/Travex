@@ -220,7 +220,7 @@ export default function CreateTrip() {
 
       <main className="flex-1 px-safe-pad py-8 space-y-8 overflow-y-auto">
         <div className="space-y-4">
-          <Label className="text-sm font-semibold text-muted-foreground/70 ml-1">Who's traveling?</Label>
+          <Label className="text-sm font-semibold text-foreground/60 ml-1">Who's traveling?</Label>
           <div className="grid grid-cols-3 gap-3">
             {[
               { id: 'solo', label: 'Solo', icon: User, desc: 'Just me' },
@@ -231,7 +231,7 @@ export default function CreateTrip() {
                 key={mode.id}
                 className={cn(
                   "p-4 rounded-[2rem] border-2 transition-all cursor-pointer flex flex-col items-center gap-2 text-center",
-                  travelMode === mode.id ? "border-primary bg-primary/5" : "border-transparent shadow-sm bg-white"
+                  travelMode === mode.id ? "border-primary bg-primary/5" : "border-muted/20 shadow-sm bg-white"
                 )}
                 onClick={() => {
                   setTravelMode(mode.id as any);
@@ -256,23 +256,23 @@ export default function CreateTrip() {
         </div>
 
         <div className="space-y-4">
-          <Label className="text-sm font-semibold text-muted-foreground/70 ml-1">Trip name</Label>
+          <Label className="text-sm font-semibold text-foreground/60 ml-1">Trip name</Label>
           <Input 
             placeholder="e.g. Goa 2024, Europe tour" 
-            className="h-14 text-base font-medium rounded-2xl focus-visible:ring-primary shadow-sm bg-white"
+            className="h-14 text-base font-medium rounded-2xl focus-visible:ring-primary shadow-sm bg-white border-2 border-muted/20"
             value={name}
             onChange={e => setName(e.target.value)}
           />
         </div>
 
         <div className="space-y-4">
-          <Label className="text-sm font-semibold text-muted-foreground/70 ml-1">Dates (optional)</Label>
+          <Label className="text-sm font-semibold text-foreground/60 ml-1">Dates (optional)</Label>
           <Popover open={isCalendarOpen} onOpenChange={setIsCalendarOpen}>
             <PopoverTrigger asChild>
               <Button
                 variant="outline"
                 className={cn(
-                  "w-full h-14 justify-start text-left font-medium text-base rounded-2xl px-4 border-none shadow-sm bg-white hover:bg-muted/50 transition-all",
+                  "w-full h-14 justify-start text-left font-medium text-base rounded-2xl px-4 border-2 border-muted/20 shadow-sm bg-white hover:bg-muted/50 transition-all",
                   !dateRange && "text-muted-foreground/60"
                 )}
               >
@@ -318,15 +318,17 @@ export default function CreateTrip() {
         {travelMode !== 'solo' && (
           <div className="space-y-4">
             <div className="flex justify-between items-end">
-              <Label className="text-sm font-semibold text-muted-foreground/70 ml-1">Friends & families</Label>
-              <span className="text-[10px] text-primary font-semibold">{participants.length} groups added</span>
+              <Label className="text-sm font-semibold text-foreground/60 ml-1">Friends & families</Label>
+              <span className="text-[10px] text-primary font-semibold">
+                {participants.length} {participants.length === 1 ? 'group' : 'groups'} added
+              </span>
             </div>
             
             {travelMode === 'group' && (
               <div className="flex gap-2">
                 <Input 
                   placeholder="Who's coming with you?" 
-                  className="h-12 rounded-xl shadow-sm bg-white font-semibold"
+                  className="h-12 rounded-xl shadow-sm bg-white font-semibold border-2 border-muted/20"
                   value={newParticipantName}
                   onChange={e => setNewParticipantName(e.target.value)}
                   onKeyDown={e => e.key === 'Enter' && addParticipant()}

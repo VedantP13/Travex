@@ -469,7 +469,7 @@ export default function TripDetails() {
           </div>
           <div className="p-6 space-y-6">
             <div className="space-y-3">
-              <Label className="text-sm font-semibold text-muted-foreground ml-1">Upload custom image</Label>
+              <Label className="text-sm font-semibold text-foreground/60 ml-1">Upload custom image</Label>
               <div 
                 onClick={() => imageInputRef.current?.click()}
                 className="h-28 w-full rounded-2xl border-2 border-dashed border-primary/20 bg-white flex flex-col items-center justify-center text-primary cursor-pointer hover:bg-primary/5 transition-all shadow-sm group"
@@ -495,7 +495,7 @@ export default function TripDetails() {
             </div>
 
             <div className="space-y-3">
-              <Label className="text-sm font-semibold text-muted-foreground ml-1">Predefined styles</Label>
+              <Label className="text-sm font-semibold text-foreground/60 ml-1">Predefined styles</Label>
               <div className="grid grid-cols-2 gap-3 max-h-[300px] overflow-y-auto pr-1 scrollbar-thin">
                  {PlaceHolderImages.filter(img => img.id.startsWith('trip-')).map((img) => (
                    <div 
@@ -526,23 +526,23 @@ export default function TripDetails() {
             <div className="p-8 space-y-8">
               <div className="space-y-4">
                 <div className="space-y-2">
-                  <Label htmlFor="trip-name" className="text-sm font-semibold text-muted-foreground ml-1">Trip name</Label>
+                  <Label htmlFor="trip-name" className="text-sm font-semibold text-foreground/60 ml-1">Trip name</Label>
                   <Input 
                     id="trip-name"
                     placeholder="e.g. Goa 2024"
-                    className="h-14 rounded-2xl shadow-inner border-none bg-white font-medium text-base"
+                    className="h-14 rounded-2xl shadow-sm border-2 border-muted/20 bg-white font-medium text-base"
                     value={editName}
                     onChange={(e) => setEditName(e.target.value)}
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label className="text-sm font-semibold text-muted-foreground ml-1">Dates (optional)</Label>
+                  <Label className="text-sm font-semibold text-foreground/60 ml-1">Dates (optional)</Label>
                   <Popover open={isCalendarOpen} onOpenChange={setIsCalendarOpen}>
                     <PopoverTrigger asChild>
                       <Button
                         variant="outline"
                         className={cn(
-                          "w-full h-14 justify-start text-left font-medium text-base rounded-2xl px-4 border-none shadow-sm bg-white hover:bg-muted/50 transition-all",
+                          "w-full h-14 justify-start text-left font-medium text-base rounded-2xl px-4 border-2 border-muted/20 shadow-sm bg-white hover:bg-muted/50 transition-all",
                           !editDateRange && "text-muted-foreground/60"
                         )}
                       >
@@ -586,9 +586,9 @@ export default function TripDetails() {
                 </div>
 
                 <div className="space-y-2">
-                  <Label className="text-sm font-semibold text-muted-foreground ml-1">Trip status</Label>
+                  <Label className="text-sm font-semibold text-foreground/60 ml-1">Trip status</Label>
                   <Select value={editStatus} onValueChange={setEditStatus}>
-                    <SelectTrigger className="h-14 rounded-2xl border-none bg-white shadow-inner font-semibold">
+                    <SelectTrigger className="h-14 rounded-2xl border-2 border-muted/20 bg-white shadow-sm font-semibold">
                       <SelectValue placeholder="Select status" />
                     </SelectTrigger>
                     <SelectContent className="rounded-xl border-none shadow-xl">
@@ -608,14 +608,16 @@ export default function TripDetails() {
 
               <div className="space-y-4">
                 <div className="flex justify-between items-end">
-                  <Label className="text-sm font-semibold text-muted-foreground/70 ml-1">Friends & families</Label>
-                  <span className="text-[10px] text-primary font-semibold">{editParticipants.length} groups</span>
+                  <Label className="text-sm font-semibold text-foreground/60 ml-1">Friends & families</Label>
+                  <span className="text-[10px] text-primary font-semibold">
+                    {editParticipants.length} {editParticipants.length === 1 ? 'group' : 'groups'}
+                  </span>
                 </div>
                 
                 <div className="flex gap-2">
                   <Input 
                     placeholder="Add friend..." 
-                    className="h-12 rounded-xl shadow-sm bg-white font-semibold"
+                    className="h-12 rounded-xl shadow-sm bg-white font-semibold border-2 border-muted/20"
                     value={newParticipantName}
                     onChange={e => setNewParticipantName(e.target.value)}
                     onKeyDown={e => e.key === 'Enter' && handleAddParticipant()}
