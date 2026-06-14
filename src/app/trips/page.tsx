@@ -14,6 +14,8 @@ import { cn } from "@/lib/utils";
 import { BottomNav } from "@/components/bottom-nav";
 import { AnimatedCompass } from "@/components/animated-compass";
 import { useTrips } from "@/context/trips-context";
+import { getTripImage } from "@/lib/image-utils";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 export default function AllTripsPage() {
   const router = useRouter();
@@ -63,27 +65,35 @@ export default function AllTripsPage() {
                 <Card className="overflow-hidden border-none shadow-sm hover:shadow-md transition-all bg-white rounded-[2rem] group">
                   <div className="h-36 w-full relative">
                     <img 
-                      src={trip.image || PlaceHolderImages.find(img => img.id === "trip-bali")?.imageUrl} 
+                      src={getTripImage(trip.name, trip.image)} 
                       alt={trip.name} 
                       className="h-full w-full object-cover group-hover:scale-105 transition-transform duration-500"
                     />
-                    <Badge className="absolute top-4 right-4 bg-white/90 text-foreground border-none backdrop-blur-md font-bold text-[10px]">
+                    <Badge className="absolute top-4 right-4 bg-white/90 text-foreground border-none backdrop-blur-md font-bold text-[10px] shadow-sm">
                       {trip.status || "Upcoming"}
                     </Badge>
                   </div>
                   <CardHeader className="p-5 space-y-1">
                     <div className="flex justify-between items-start">
                       <CardTitle className="text-lg font-bold">{trip.name}</CardTitle>
-                      <span className="text-[10px] font-bold px-3 py-1 bg-muted rounded-full flex items-center gap-1.5">
-                        <Users className="h-3 w-3" /> {trip.participants?.length || 0}
-                      </span>
+                      <div className="flex -space-x-1.5 bg-muted/40 p-1.5 rounded-full">
+                        {trip.participants?.slice(0, 3).map((p: any, idx: number) => (
+                          <Avatar key={idx} className="h-4 w-4 border border-white shadow-sm">
+                            <AvatarImage src={p.avatar} />
+                            <AvatarFallback className="text-[6px] bg-primary text-white font-bold">{p.name?.[0]}</AvatarFallback>
+                          </Avatar>
+                        ))}
+                      </div>
                     </div>
                     <CardDescription className="text-xs font-medium text-muted-foreground">{trip.date || "Just created"}</CardDescription>
                   </CardHeader>
                   <div className="px-5 pb-5 pt-0 flex justify-between items-center">
                     <div>
                       <p className="text-[10px] text-muted-foreground font-bold mb-1 uppercase tracking-wider">Total spent</p>
-                      <p className="text-base font-bold text-foreground">₹{(trip.totalSpent || 0).toFixed(2)}</p>
+                      <p className="text-base font-bold text-foreground">
+                        <span className="font-bold">₹</span>
+                        <span className="font-bold">{(trip.totalSpent || 0).toFixed(2)}</span>
+                      </p>
                     </div>
                     <div className="text-right">
                       <p className="text-[10px] text-muted-foreground font-bold mb-1 uppercase tracking-wider">Your share</p>
@@ -91,7 +101,9 @@ export default function AllTripsPage() {
                         "text-base font-bold",
                         (trip.yourBalance || 0) < 0 ? "text-destructive" : "text-primary"
                       )}>
-                        {(trip.yourBalance || 0) < 0 ? "-" : "+"}₹{Math.abs(trip.yourBalance || 0).toFixed(2)}
+                        {(trip.yourBalance || 0) < 0 ? "-" : "+"}
+                        <span className="font-bold">₹</span>
+                        <span className="font-bold">{Math.abs(trip.yourBalance || 0).toFixed(2)}</span>
                       </p>
                     </div>
                   </div>

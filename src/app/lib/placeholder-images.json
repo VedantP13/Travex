@@ -17,7 +17,7 @@
       "id": "trip-dandeli",
       "description": "Dense jungle and river landscape in Dandeli",
       "imageUrl": "https://picsum.photos/seed/dandeli/600/400",
-      "imageHint": "jungle river"
+      "imageHint": "jungle river forest"
     },
     {
       "id": "trip-paris",
@@ -36,6 +36,30 @@
       "description": "The Colosseum under a clear blue sky",
       "imageUrl": "https://picsum.photos/seed/rome/600/400",
       "imageHint": "rome colosseum"
+    },
+    {
+      "id": "trip-goa",
+      "description": "Palm-fringed beach at sunset in Goa",
+      "imageUrl": "https://picsum.photos/seed/goa/600/400",
+      "imageHint": "goa beach sea"
+    },
+    {
+      "id": "trip-london",
+      "description": "Big Ben and Westminster Bridge",
+      "imageUrl": "https://picsum.photos/seed/london/600/400",
+      "imageHint": "london bridge bigben"
+    },
+    {
+      "id": "trip-ny",
+      "description": "Manhattan skyline at dusk",
+      "imageUrl": "https://picsum.photos/seed/newyork/600/400",
+      "imageHint": "newyork skyline city"
+    },
+    {
+      "id": "trip-singapore",
+      "description": "Gardens by the Bay in Singapore",
+      "imageUrl": "https://picsum.photos/seed/singapore/600/400",
+      "imageHint": "singapore marina"
     },
     {
       "id": "avatar-1",

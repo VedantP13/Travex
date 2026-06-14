@@ -15,6 +15,7 @@ import { useTrips } from "@/context/trips-context";
 import { useUser, useFirestore } from "@/firebase";
 import { useEffect, useState } from "react";
 import { doc, onSnapshot, setDoc, serverTimestamp } from "firebase/firestore";
+import { getTripImage } from "@/lib/image-utils";
 
 export default function Home() {
   const { trips, loading, error } = useTrips();
@@ -65,18 +66,6 @@ export default function Home() {
   
   const displayNameForFallback = welcomeName || (isAnonymous ? "Guest" : "User");
 
-  // Helper to find themed image based on trip name
-  const getTripImage = (trip: any) => {
-    if (trip.image && !trip.image.includes('seed')) return trip.image;
-    const lowerName = trip.name.toLowerCase();
-    if (lowerName.includes('bali')) return PlaceHolderImages.find(img => img.id === "trip-bali")?.imageUrl;
-    if (lowerName.includes('dandeli')) return PlaceHolderImages.find(img => img.id === "trip-dandeli")?.imageUrl;
-    if (lowerName.includes('paris')) return PlaceHolderImages.find(img => img.id === "trip-paris")?.imageUrl;
-    if (lowerName.includes('tokyo')) return PlaceHolderImages.find(img => img.id === "trip-tokyo")?.imageUrl;
-    if (lowerName.includes('rome')) return PlaceHolderImages.find(img => img.id === "trip-rome")?.imageUrl;
-    return trip.image || PlaceHolderImages.find(img => img.id === "hero-travel")?.imageUrl;
-  };
-
   return (
     <div className="max-w-md mx-auto min-h-screen flex flex-col bg-background pb-56">
       {/* Header - Compressed */}
@@ -114,15 +103,15 @@ export default function Home() {
             <div className="bg-white/5 backdrop-blur-md p-5 rounded-3xl border border-white/10">
               <p className="text-[10px] font-medium text-white/40 mb-1">You owe</p>
               <div className="flex items-baseline font-bold text-xl tracking-tight text-white">
-                <span>₹</span>
-                <span>0.00</span>
+                <span className="font-bold">₹</span>
+                <span className="font-bold">0.00</span>
               </div>
             </div>
             <div className="bg-accent/10 backdrop-blur-md p-5 rounded-3xl border border-accent/20">
               <p className="text-[10px] font-medium text-accent/60 mb-1">Owed to you</p>
               <div className="flex items-baseline font-bold text-xl tracking-tight text-accent">
-                <span>₹</span>
-                <span>0.00</span>
+                <span className="font-bold">₹</span>
+                <span className="font-bold">0.00</span>
               </div>
             </div>
           </div>
@@ -154,7 +143,7 @@ export default function Home() {
                         <Calendar className="h-2.5 w-2.5" />
                         {activeTrip.date || "Ready"}
                       </p>
-                      <div className="flex -space-x-1.5 ml-1">
+                      <div className="flex -space-x-1.5">
                         {activeTrip.participants?.slice(0, 3).map((p: any, idx: number) => (
                           <Avatar key={idx} className="h-4 w-4 border border-primary ring-1 ring-white/10 shadow-sm">
                             <AvatarImage src={p.avatar} />
@@ -168,8 +157,8 @@ export default function Home() {
                   <div className="space-y-0.5 mt-1">
                     <p className="text-[9px] font-medium text-white/40 uppercase tracking-widest">Total spent</p>
                     <div className="flex items-baseline font-bold text-2xl tracking-tight text-white leading-none">
-                      <span>₹</span>
-                      <span>{(activeTrip.totalSpent || 0).toFixed(2)}</span>
+                      <span className="font-bold">₹</span>
+                      <span className="font-bold">{(activeTrip.totalSpent || 0).toFixed(2)}</span>
                     </div>
                   </div>
                 </div>
@@ -246,7 +235,7 @@ export default function Home() {
                 <Card className="overflow-hidden border-none shadow-sm hover:shadow-md transition-all bg-white rounded-[2rem] group">
                   <div className="h-36 w-full relative">
                     <img 
-                      src={getTripImage(trip)} 
+                      src={getTripImage(trip.name, trip.image)} 
                       alt={trip.name} 
                       className="h-full w-full object-cover group-hover:scale-105 transition-transform duration-500"
                     />
@@ -272,8 +261,8 @@ export default function Home() {
                     <div>
                       <p className="text-[9px] text-muted-foreground font-bold uppercase tracking-widest mb-0.5">Total</p>
                       <p className="text-base font-bold text-foreground">
-                        <span>₹</span>
-                        <span>{(trip.totalSpent || 0).toFixed(2)}</span>
+                        <span className="font-bold">₹</span>
+                        <span className="font-bold">{(trip.totalSpent || 0).toFixed(2)}</span>
                       </p>
                     </div>
                     <div className="text-right">
@@ -283,8 +272,8 @@ export default function Home() {
                         (trip.yourBalance || 0) < 0 ? "text-destructive" : "text-primary"
                       )}>
                         {(trip.yourBalance || 0) < 0 ? "-" : "+"}
-                        <span>₹</span>
-                        <span>{Math.abs(trip.yourBalance || 0).toFixed(2)}</span>
+                        <span className="font-bold">₹</span>
+                        <span className="font-bold">{Math.abs(trip.yourBalance || 0).toFixed(2)}</span>
                       </p>
                     </div>
                   </div>

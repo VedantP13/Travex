@@ -27,6 +27,7 @@ import { doc, onSnapshot, collection, query, orderBy } from "firebase/firestore"
 import { errorEmitter } from "@/firebase/error-emitter";
 import { FirestorePermissionError } from "@/firebase/errors";
 import { cn } from "@/lib/utils";
+import { getTripImage } from "@/lib/image-utils";
 
 export default function TripDetails() {
   const router = useRouter();
@@ -122,7 +123,7 @@ export default function TripDetails() {
       <div className="px-safe-pad py-6 bg-background flex-1">
         <div className="flex gap-4 items-center mb-6">
           <Avatar className="h-16 w-16 rounded-2xl border-4 border-white shadow-sm">
-            <AvatarImage src={trip?.image || `https://picsum.photos/seed/${id}/150/150`} />
+            <AvatarImage src={getTripImage(trip?.name || "", trip?.image)} className="object-cover" />
             <AvatarFallback>{trip?.name?.[0] || "T"}</AvatarFallback>
           </Avatar>
           <div>
@@ -134,7 +135,7 @@ export default function TripDetails() {
             <div className="flex -space-x-2 mt-2">
               {trip?.participants?.map((p: any, idx: number) => (
                 <Avatar key={idx} className="h-6 w-6 border-2 border-white">
-                  <AvatarImage src={p.avatar || `https://picsum.photos/seed/user${idx}/50/50`} />
+                  <AvatarImage src={p.avatar} />
                   <AvatarFallback>{p.name?.[0]}</AvatarFallback>
                 </Avatar>
               ))}
@@ -225,7 +226,7 @@ export default function TripDetails() {
               <div key={idx} className="bg-white p-4 rounded-2xl shadow-sm flex items-center justify-between">
                 <div className="flex items-center gap-3">
                   <Avatar className="h-10 w-10">
-                    <AvatarImage src={member.avatar || `https://picsum.photos/seed/user${idx+2}/50/50`} />
+                    <AvatarImage src={member.avatar} />
                     <AvatarFallback>{member.name?.[0]}</AvatarFallback>
                   </Avatar>
                   <div>
