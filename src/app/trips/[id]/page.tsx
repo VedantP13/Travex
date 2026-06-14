@@ -162,6 +162,17 @@ export default function TripDetails() {
       .finally(() => setIsUploading(false));
   };
 
+  const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        handleUpdateImage(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
   const handleUpdateTrip = async () => {
     if (!id || !firestore || !editName.trim()) return;
     setIsSaving(true);
@@ -788,3 +799,4 @@ export default function TripDetails() {
     </div>
   );
 }
+
