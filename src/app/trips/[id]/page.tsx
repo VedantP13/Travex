@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState, useEffect, useRef } from "react";
@@ -530,7 +529,7 @@ export default function TripDetails() {
                   <Input 
                     id="trip-name"
                     placeholder="e.g. Goa 2024"
-                    className="h-14 rounded-2xl shadow-sm border-2 border-muted/20 bg-white font-medium text-base"
+                    className="h-14 rounded-2xl shadow-sm border-2 border-muted/20 bg-white font-semibold text-sm"
                     value={editName}
                     onChange={(e) => setEditName(e.target.value)}
                   />
@@ -542,7 +541,7 @@ export default function TripDetails() {
                       <Button
                         variant="outline"
                         className={cn(
-                          "w-full h-14 justify-start text-left font-medium text-base rounded-2xl px-4 border-2 border-muted/20 shadow-sm bg-white hover:bg-muted/50 transition-all",
+                          "w-full h-14 justify-start text-left font-semibold text-sm rounded-2xl px-4 border-2 border-muted/20 shadow-sm bg-white hover:bg-muted/50 transition-all",
                           !editDateRange && "text-muted-foreground/60"
                         )}
                       >
@@ -588,7 +587,7 @@ export default function TripDetails() {
                 <div className="space-y-2">
                   <Label className="text-sm font-semibold text-foreground/60 ml-1">Trip status</Label>
                   <Select value={editStatus} onValueChange={setEditStatus}>
-                    <SelectTrigger className="h-14 rounded-2xl border-2 border-muted/20 bg-white shadow-sm font-semibold">
+                    <SelectTrigger className="h-14 rounded-2xl border-2 border-muted/20 bg-white shadow-sm font-semibold text-sm">
                       <SelectValue placeholder="Select status" />
                     </SelectTrigger>
                     <SelectContent className="rounded-xl border-none shadow-xl">
@@ -617,7 +616,7 @@ export default function TripDetails() {
                 <div className="flex gap-2">
                   <Input 
                     placeholder="Add friend..." 
-                    className="h-12 rounded-xl shadow-sm bg-white font-semibold border-2 border-muted/20"
+                    className="h-12 rounded-xl shadow-sm bg-white font-semibold text-sm border-2 border-muted/20"
                     value={newParticipantName}
                     onChange={e => setNewParticipantName(e.target.value)}
                     onKeyDown={e => e.key === 'Enter' && handleAddParticipant()}
