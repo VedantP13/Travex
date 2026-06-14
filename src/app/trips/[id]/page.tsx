@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useEffect, useRef } from "react";
@@ -31,7 +32,7 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/tabs";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Card, CardContent } from "@/components/ui/card";
 import { useFirestore, useUser } from "@/firebase";
@@ -282,8 +283,6 @@ export default function TripDetails() {
       default: return 'bg-teal-100 text-teal-600';
     }
   };
-
-  const StatusIcon = editStatus === 'Upcoming' ? Timer : editStatus === 'Active' ? Activity : CheckCircle2;
 
   if (loading && !trip) {
     return (
