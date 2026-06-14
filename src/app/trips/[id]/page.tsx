@@ -438,8 +438,8 @@ export default function TripDetails() {
               {unsplitExpenses.length > 0 && (
                 <div className="space-y-3 animate-in fade-in slide-in-from-top-2 duration-500">
                   <div className="flex items-center gap-2 px-1">
-                    <AlertCircle className="h-4 w-4 text-accent" />
-                    <h2 className="text-xs font-semibold text-muted-foreground tracking-widest">Pending tasks</h2>
+                    <Timer className="h-4 w-4 text-accent" />
+                    <h2 className="text-xs font-semibold text-accent tracking-widest uppercase">Pending tasks</h2>
                   </div>
                   {unsplitExpenses.map(item => {
                     const Icon = getCategoryIcon(item.category);
@@ -472,7 +472,7 @@ export default function TripDetails() {
 
               {finalizedExpenses.length > 0 && (
                 <div className="space-y-4">
-                  <h2 className="text-xs font-semibold text-muted-foreground tracking-widest px-1">Expenses</h2>
+                  <h2 className="text-xs font-semibold text-foreground/60 tracking-widest px-1 uppercase">Expenses</h2>
                   {finalizedExpenses.map(item => {
                     const Icon = getCategoryIcon(item.category);
                     return (
