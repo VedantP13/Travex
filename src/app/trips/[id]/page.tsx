@@ -250,9 +250,6 @@ export default function TripDetails() {
                 {trip?.name?.[0] || "T"}
               </AvatarFallback>
             </Avatar>
-            <div className="absolute -bottom-1 -right-1 h-7 w-7 bg-accent rounded-xl flex items-center justify-center shadow-lg border-2 border-white">
-              <Settings className="h-3 w-3 text-foreground" />
-            </div>
           </div>
           <div className="min-w-0">
             <div className="flex items-center gap-2 mb-1.5">
