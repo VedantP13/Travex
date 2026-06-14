@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { 
   ArrowLeft, 
@@ -22,7 +22,9 @@ import {
   Calendar,
   X,
   AlertTriangle,
-  UserPlus
+  UserPlus,
+  ImageIcon,
+  Upload
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -35,6 +37,7 @@ import { errorEmitter } from "@/firebase/error-emitter";
 import { FirestorePermissionError } from "@/firebase/errors";
 import { cn } from "@/lib/utils";
 import { getTripImage } from "@/lib/image-utils";
+import { PlaceHolderImages } from "@/lib/placeholder-images";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -70,6 +73,7 @@ export default function TripDetails() {
   const firestore = useFirestore();
   const { user } = useUser();
   const { toast } = useToast();
+  const imageInputRef = useRef<HTMLInputElement>(null);
   
   const [trip, setTrip] = useState<any>(null);
   const [expenses, setExpenses] = useState<any[]>([]);
@@ -78,6 +82,8 @@ export default function TripDetails() {
   // Settings States
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [isImagePickerOpen, setIsImagePickerOpen] = useState(false);
+  
   const [editName, setEditName] = useState("");
   const [editDate, setEditDate] = useState("");
   const [editParticipants, setEditParticipants] = useState<any[]>([]);
@@ -87,6 +93,7 @@ export default function TripDetails() {
   
   const [isSaving, setIsSaving] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [isUploading, setIsUploading] = useState(false);
 
   useEffect(() => {
     if (!id || !firestore) return;
@@ -135,6 +142,55 @@ export default function TripDetails() {
       expensesUnsubscribe();
     };
   }, [id, firestore, router]);
+
+  const resizeImage = (dataUrl: string, width: number, height: number): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      const img = new Image();
+      img.src = dataUrl;
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext('2d');
+        if (!ctx) return reject("Canvas error");
+        ctx.drawImage(img, 0, 0, width, height);
+        resolve(canvas.toDataURL('image/jpeg', 0.8));
+      };
+      img.onerror = () => reject("Image load error");
+    });
+  };
+
+  const handleUpdateImage = async (imageUrl: string) => {
+    if (!id || !firestore) return;
+    setIsUploading(true);
+    
+    const tripRef = doc(firestore, "trips", id as string);
+    updateDoc(tripRef, { image: imageUrl })
+      .then(() => {
+        toast({ title: "Cover updated" });
+        setIsImagePickerOpen(false);
+      })
+      .catch(err => console.error(err))
+      .finally(() => setIsUploading(false));
+  };
+
+  const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = async () => {
+        const base64 = reader.result as string;
+        try {
+          // Resize for trip cover (approx 600x400)
+          const resized = await resizeImage(base64, 600, 400);
+          handleUpdateImage(resized);
+        } catch (e) {
+          handleUpdateImage(base64);
+        }
+      };
+      reader.readAsDataURL(file);
+    }
+  };
 
   const handleUpdateTrip = async () => {
     if (!id || !firestore || !editName.trim()) return;
@@ -309,6 +365,17 @@ export default function TripDetails() {
             </DropdownMenuContent>
           </DropdownMenu>
         </div>
+
+        {/* Change Cover Button */}
+        <Button 
+          variant="ghost" 
+          size="sm" 
+          onClick={() => setIsImagePickerOpen(true)}
+          className="absolute bottom-6 right-safe-pad bg-white/20 backdrop-blur-md text-white hover:bg-white/30 rounded-xl h-9 px-3 border border-white/10 shadow-lg z-10 font-bold text-[10px]"
+        >
+          <ImageIcon className="h-3.5 w-3.5 mr-1.5" />
+          Change cover
+        </Button>
 
         {/* Trip Information Over Image */}
         <div className="absolute bottom-6 left-safe-pad right-safe-pad space-y-3 animate-in fade-in slide-in-from-bottom-4 duration-700">
@@ -488,6 +555,67 @@ export default function TripDetails() {
           <Plus className="h-10 w-10 transition-transform group-hover:rotate-90 duration-300" strokeWidth={3} />
         </Button>
       </div>
+
+      {/* Image Picker Dialog */}
+      <Dialog open={isImagePickerOpen} onOpenChange={setIsImagePickerOpen}>
+        <DialogContent className="max-w-[calc(100vw-40px)] w-full rounded-[2.5rem] p-0 border-none shadow-2xl bg-background overflow-hidden animate-in fade-in zoom-in-95 duration-300">
+          <div className="h-24 bg-foreground relative flex items-center justify-center">
+            <DialogTitle className="text-xl font-bold text-white relative z-10">Change cover</DialogTitle>
+            <DialogDescription className="sr-only">Choose a predefined image or upload your own.</DialogDescription>
+            <DialogClose className="absolute right-4 top-4 h-8 w-8 rounded-full flex items-center justify-center bg-white/10 text-white/70 hover:bg-white/20 hover:text-white transition-all z-20">
+              <X className="h-5 w-5" />
+            </DialogClose>
+          </div>
+          <div className="p-6 space-y-6">
+            <div className="space-y-3">
+              <Label className="text-sm font-bold text-muted-foreground/70 ml-1">Upload custom image</Label>
+              <div 
+                onClick={() => imageInputRef.current?.click()}
+                className="h-28 w-full rounded-2xl border-2 border-dashed border-primary/20 bg-white flex flex-col items-center justify-center text-primary cursor-pointer hover:bg-primary/5 transition-all shadow-sm group"
+              >
+                {isUploading ? (
+                  <Loader2 className="h-8 w-8 animate-spin" />
+                ) : (
+                  <>
+                    <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center mb-2 group-hover:scale-110 transition-transform">
+                      <Upload className="h-5 w-5" />
+                    </div>
+                    <span className="text-xs font-bold">Pick from device</span>
+                  </>
+                )}
+                <input 
+                  type="file" 
+                  ref={imageInputRef} 
+                  className="hidden" 
+                  accept="image/*" 
+                  onChange={handleImageUpload} 
+                />
+              </div>
+            </div>
+
+            <div className="space-y-3">
+              <Label className="text-sm font-bold text-muted-foreground/70 ml-1">Predefined styles</Label>
+              <div className="grid grid-cols-2 gap-3 max-h-[300px] overflow-y-auto pr-1 scrollbar-thin">
+                 {PlaceHolderImages.filter(img => img.id.startsWith('trip-')).map((img) => (
+                   <div 
+                     key={img.id}
+                     className="relative aspect-video rounded-2xl overflow-hidden cursor-pointer group shadow-sm"
+                     onClick={() => handleUpdateImage(img.imageUrl)}
+                   >
+                     <img src={img.imageUrl} className="h-full w-full object-cover group-hover:scale-110 transition-transform duration-500" />
+                     <div className="absolute inset-0 bg-black/20 group-hover:bg-black/0 transition-colors" />
+                     <div className="absolute bottom-2 left-2 right-2 flex justify-between items-center">
+                       <span className="text-[9px] font-bold text-white bg-black/40 px-2 py-0.5 rounded-lg backdrop-blur-sm truncate">
+                         {img.id.replace('trip-', '').charAt(0).toUpperCase() + img.id.replace('trip-', '').slice(1)}
+                       </span>
+                     </div>
+                   </div>
+                 ))}
+              </div>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
 
       {/* Edit Dialog */}
       <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
