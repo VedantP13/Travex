@@ -737,7 +737,7 @@ export default function AddExpenseWizard() {
                   )} />
                   <Input 
                     placeholder="What was it for?"
-                    className="h-16 text-lg rounded-2xl pl-12 pr-4 focus-visible:ring-primary shadow-sm bg-white border-none placeholder:text-muted-foreground/40 placeholder:font-medium"
+                    className="h-16 text-lg font-bold rounded-2xl pl-12 pr-4 focus-visible:ring-primary shadow-sm bg-white border-none placeholder:text-muted-foreground/40 placeholder:font-medium"
                     value={formData.description}
                     onChange={e => setFormData(prev => ({ ...prev, description: e.target.value }))}
                   />

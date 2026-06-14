@@ -259,7 +259,7 @@ export default function CreateTrip() {
           <Label className="text-sm font-bold text-muted-foreground/70 ml-1">Trip name</Label>
           <Input 
             placeholder="e.g. Goa 2024, Europe tour" 
-            className="h-14 text-lg rounded-2xl focus-visible:ring-primary shadow-sm bg-white"
+            className="h-14 text-lg font-bold rounded-2xl focus-visible:ring-primary shadow-sm bg-white"
             value={name}
             onChange={e => setName(e.target.value)}
           />
