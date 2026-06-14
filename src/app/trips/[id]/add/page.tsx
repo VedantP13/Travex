@@ -120,7 +120,8 @@ export default function AddExpenseWizard() {
 
   useEffect(() => {
     if (!selectedTripId && trips.length > 0) {
-      setSelectedTripId(trips[0].id);
+      const active = trips.find(t => t.status === 'Active');
+      setSelectedTripId(active ? active.id : trips[0].id);
     }
   }, [selectedTripId, trips]);
 
@@ -149,7 +150,6 @@ export default function AddExpenseWizard() {
     return () => unsubscribe();
   }, [selectedTripId, user, firestore]);
 
-  // AI Auto-categorization with Debounce
   useEffect(() => {
     const trimmedDesc = formData.description.trim();
     if (trimmedDesc.length < 3 || trimmedDesc === lastAnalyzedDescription.current) return;
@@ -321,6 +321,14 @@ export default function AddExpenseWizard() {
             ? "Expense saved. You can split it later from the trip dashboard."
             : `Successfully added ₹${amount.toFixed(2)} to ${currentTrip?.name}.`
         });
+        
+        // Auto-transition to Active if trip is Upcoming
+        if (currentTrip?.status === 'Upcoming') {
+          updateDoc(doc(firestore, "trips", selectedTripId), {
+            status: 'Active'
+          }).catch(() => {});
+        }
+
         router.push(`/trips/${selectedTripId}`);
       })
       .catch(async (error) => {
@@ -574,6 +582,8 @@ export default function AddExpenseWizard() {
                                       family.scheme.focus
                                     )}
                                     value={formData.customAmounts[member.id] || ""}
+                                    onChange={updateCustomAmount.bind(null, member.id)}
+                                    value={formData.customAmounts[member.id] || ""}
                                     onChange={e => updateCustomAmount(member.id, e.target.value)}
                                   />
                                 </div>
@@ -661,7 +671,6 @@ export default function AddExpenseWizard() {
             </div>
 
             <div className="space-y-6">
-              {/* Amount Input */}
               <div className="relative">
                 <span className={cn(
                   "absolute left-6 top-1/2 -translate-y-1/2 text-3xl font-bold transition-colors",
@@ -720,7 +729,6 @@ export default function AddExpenseWizard() {
                 </div>
               )}
 
-              {/* Description & Metadata */}
               <div className="space-y-4">
                 <div className="relative">
                   <AlignLeft className={cn(
@@ -740,7 +748,7 @@ export default function AddExpenseWizard() {
                   <div className="relative">
                     <Calendar className={cn(
                       "absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 pointer-events-none transition-colors z-10",
-                      formData.date ? "text-foreground" : "text-muted-foreground/40"
+                      formData.date ? "text-foreground stroke-[2px]" : "text-muted-foreground/40"
                     )} />
                     <Input 
                       type="date"
@@ -780,7 +788,6 @@ export default function AddExpenseWizard() {
                   </Select>
                 </div>
 
-                {/* Category Selection */}
                 <div className="space-y-3">
                   <div className="flex items-center justify-between px-1">
                     <Label className="text-sm font-bold text-muted-foreground/70">
@@ -876,7 +883,6 @@ export default function AddExpenseWizard() {
                 </div>
               </div>
 
-              {/* Payer Selection */}
               <div className="space-y-3">
                 <Label className="text-sm font-bold text-muted-foreground/70">Who paid?</Label>
                 <div className="grid grid-cols-2 gap-3">

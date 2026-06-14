@@ -25,7 +25,10 @@ import {
   UserPlus,
   ImageIcon,
   Upload,
-  Camera
+  Camera,
+  CheckCircle2,
+  Activity,
+  Timer
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -67,6 +70,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 export default function TripDetails() {
   const router = useRouter();
@@ -87,6 +91,7 @@ export default function TripDetails() {
   
   const [editName, setEditName] = useState("");
   const [editDate, setEditDate] = useState("");
+  const [editStatus, setEditStatus] = useState("Active");
   const [editParticipants, setEditParticipants] = useState<any[]>([]);
   const [newParticipantName, setNewParticipantName] = useState("");
   const [activeFamilyMemberInput, setActiveFamilyMemberInput] = useState<string | null>(null);
@@ -99,13 +104,13 @@ export default function TripDetails() {
   useEffect(() => {
     if (!id || !firestore) return;
 
-    // Listen to trip document
     const tripUnsubscribe = onSnapshot(doc(firestore, "trips", id as string), (snapshot) => {
       if (snapshot.exists()) {
         const data = snapshot.data();
         setTrip({ id: snapshot.id, ...data });
         setEditName(data.name || "");
         setEditDate(data.date || "");
+        setEditStatus(data.status || "Active");
         setEditParticipants(data.participants || []);
       } else {
         router.push('/');
@@ -118,7 +123,6 @@ export default function TripDetails() {
       errorEmitter.emit('permission-error', permissionError);
     });
 
-    // Listen to expenses subcollection
     const expensesQuery = query(
       collection(firestore, "trips", id as string, "expenses"),
       orderBy("createdAt", "desc")
@@ -144,23 +148,6 @@ export default function TripDetails() {
     };
   }, [id, firestore, router]);
 
-  const resizeImage = (dataUrl: string, width: number, height: number): Promise<string> => {
-    return new Promise((resolve, reject) => {
-      const img = new Image();
-      img.src = dataUrl;
-      img.onload = () => {
-        const canvas = document.createElement('canvas');
-        canvas.width = width;
-        canvas.height = height;
-        const ctx = canvas.getContext('2d');
-        if (!ctx) return reject("Canvas error");
-        ctx.drawImage(img, 0, 0, width, height);
-        resolve(canvas.toDataURL('image/jpeg', 0.8));
-      };
-      img.onerror = () => reject("Image load error");
-    });
-  };
-
   const handleUpdateImage = async (imageUrl: string) => {
     if (!id || !firestore) return;
     setIsUploading(true);
@@ -175,23 +162,6 @@ export default function TripDetails() {
       .finally(() => setIsUploading(false));
   };
 
-  const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onloadend = async () => {
-        const base64 = reader.result as string;
-        try {
-          const resized = await resizeImage(base64, 600, 400);
-          handleUpdateImage(resized);
-        } catch (e) {
-          handleUpdateImage(base64);
-        }
-      };
-      reader.readAsDataURL(file);
-    }
-  };
-
   const handleUpdateTrip = async () => {
     if (!id || !firestore || !editName.trim()) return;
     setIsSaving(true);
@@ -200,6 +170,7 @@ export default function TripDetails() {
     const updateData = {
       name: editName.trim(),
       date: editDate.trim() || null,
+      status: editStatus,
       participants: editParticipants
     };
 
@@ -311,7 +282,6 @@ export default function TripDetails() {
 
   return (
     <div className="max-w-md mx-auto min-h-screen bg-background flex flex-col pb-32">
-      {/* Hero Header */}
       <div className="relative h-[280px] w-full overflow-hidden shrink-0 rounded-b-[2.5rem] shadow-xl shadow-black/10">
         <img 
           src={getTripImage(trip?.name || "", trip?.image, trip?.imageHint)} 
@@ -321,7 +291,6 @@ export default function TripDetails() {
         />
         <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
         
-        {/* Navigation Over Image */}
         <div className="absolute top-6 left-safe-pad right-safe-pad flex justify-between items-center z-10">
           <Button 
             variant="ghost" 
@@ -342,7 +311,7 @@ export default function TripDetails() {
                 <Settings className="h-5 w-5" strokeWidth={2.5} />
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="rounded-xl min-w-[160px] p-1 shadow-[0_10px_40px_rgba(0,0,0,0.15)] border-none bg-white">
+            <DropdownMenuContent align="end" className="rounded-2xl min-w-[160px] p-1 shadow-[0_10px_40px_rgba(0,0,0,0.15)] border-none bg-white">
               <DropdownMenuItem 
                 className="group rounded-xl py-2 px-3 flex items-center gap-3 cursor-pointer text-primary focus:bg-primary focus:text-white active:scale-[0.98] transition-all"
                 onClick={() => setIsEditDialogOpen(true)}
@@ -352,7 +321,7 @@ export default function TripDetails() {
                 </div>
                 <span className="font-medium text-sm">Edit details</span>
               </DropdownMenuItem>
-              <DropdownMenuSeparator className="my-1 mx-2 bg-muted/30" />
+              <DropdownMenuSeparator className="my-1 mx-3 bg-muted/30" />
               <DropdownMenuItem 
                 className="group rounded-xl py-2 px-3 flex items-center gap-3 cursor-pointer text-destructive focus:bg-destructive focus:text-destructive-foreground active:scale-[0.98] transition-all"
                 onClick={() => setIsDeleteDialogOpen(true)}
@@ -366,7 +335,6 @@ export default function TripDetails() {
           </DropdownMenu>
         </div>
 
-        {/* Change Cover Button - Icon-only subtler glassmorphic style */}
         <Button 
           variant="ghost" 
           size="icon" 
@@ -377,10 +345,12 @@ export default function TripDetails() {
           <Camera className="h-5 w-5" strokeWidth={2.5} />
         </Button>
 
-        {/* Trip Information Over Image */}
         <div className="absolute bottom-6 left-safe-pad right-safe-pad space-y-3 animate-in fade-in slide-in-from-bottom-4 duration-700">
           <div className="flex items-center gap-3">
-            <Badge className="bg-white/20 backdrop-blur-md text-white border border-white/10 text-[10px] font-bold px-3 py-1 rounded-lg">
+            <Badge className={cn(
+              "backdrop-blur-md text-white border border-white/10 text-[10px] font-bold px-3 py-1 rounded-lg",
+              trip?.status === 'Active' ? 'bg-primary/40' : trip?.status === 'Completed' ? 'bg-green-500/40' : 'bg-white/20'
+            )}>
               {trip?.status || "Active"}
             </Badge>
             <span className={cn(
@@ -410,7 +380,6 @@ export default function TripDetails() {
         </div>
       </div>
 
-      {/* Content Area */}
       <div className="px-safe-pad pt-8 flex-1">
         <Tabs defaultValue="feed" className="w-full">
           <TabsList className="grid w-full grid-cols-2 h-14 bg-white p-1.5 rounded-2xl shadow-inner border border-muted/20">
@@ -429,7 +398,6 @@ export default function TripDetails() {
           </TabsList>
           
           <TabsContent value="feed" className="mt-6">
-            {/* Integrated Search & Filter */}
             <div className="relative mb-6">
               <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground/50" />
               <input 
@@ -548,7 +516,6 @@ export default function TripDetails() {
         </Tabs>
       </div>
       
-      {/* FAB */}
       <div className="fixed bottom-10 right-8 z-30">
         <Button 
           size="lg" 
@@ -559,7 +526,6 @@ export default function TripDetails() {
         </Button>
       </div>
 
-      {/* Image Picker Dialog */}
       <Dialog open={isImagePickerOpen} onOpenChange={setIsImagePickerOpen}>
         <DialogContent className="max-w-[calc(100vw-40px)] w-full rounded-[2.5rem] p-0 border-none shadow-2xl bg-background overflow-hidden animate-in fade-in zoom-in-95 duration-300">
           <div className="h-24 bg-foreground relative flex items-center justify-center">
@@ -615,12 +581,11 @@ export default function TripDetails() {
         </DialogContent>
       </Dialog>
 
-      {/* Edit Dialog */}
       <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
-        <DialogContent className="max-w-[calc(100vw-40px)] w-full rounded-[2.5rem] p-0 border-none shadow-2xl bg-background overflow-hidden animate-in fade-in zoom-in-95 duration-300">
+        <DialogContent className="max-w-[calc(100vw-40px)] w-full rounded-2xl p-0 border-none shadow-2xl bg-background overflow-hidden animate-in fade-in zoom-in-95 duration-300">
           <div className="h-24 bg-foreground relative flex items-center justify-center">
             <DialogTitle className="text-xl font-bold text-white relative z-10">Edit trip</DialogTitle>
-            <DialogDescription className="sr-only">Update your trip name, dates, and participants.</DialogDescription>
+            <DialogDescription className="sr-only">Update your trip name, dates, status and participants.</DialogDescription>
             <DialogClose className="absolute right-4 top-4 h-8 w-8 rounded-full flex items-center justify-center bg-white/10 text-white/70 hover:bg-white/20 hover:text-white transition-all z-20">
               <X className="h-5 w-5" />
             </DialogClose>
@@ -643,7 +608,7 @@ export default function TripDetails() {
                   <div className="relative">
                     <Calendar className={cn(
                       "absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 transition-colors z-10",
-                      editDate ? "text-foreground stroke-[3px]" : "text-muted-foreground/40"
+                      editDate ? "text-foreground stroke-[2px]" : "text-muted-foreground/40"
                     )} />
                     <Input 
                       id="trip-date"
@@ -656,6 +621,20 @@ export default function TripDetails() {
                       onChange={(e) => setEditDate(e.target.value)}
                     />
                   </div>
+                </div>
+
+                <div className="space-y-2">
+                  <Label className="text-sm font-bold text-muted-foreground ml-1">Trip status</Label>
+                  <Select value={editStatus} onValueChange={setEditStatus}>
+                    <SelectTrigger className="h-14 rounded-2xl border-none bg-white shadow-inner font-bold">
+                      <SelectValue placeholder="Select status" />
+                    </SelectTrigger>
+                    <SelectContent className="rounded-xl border-none shadow-xl">
+                      <SelectItem value="Upcoming" className="font-bold py-3"><div className="flex items-center gap-2"><Timer className="h-4 w-4 text-muted-foreground" /> Upcoming</div></SelectItem>
+                      <SelectItem value="Active" className="font-bold py-3"><div className="flex items-center gap-2"><Activity className="h-4 w-4 text-primary" /> Active</div></SelectItem>
+                      <SelectItem value="Completed" className="font-bold py-3"><div className="flex items-center gap-2"><CheckCircle2 className="h-4 w-4 text-green-500" /> Completed</div></SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
 
                 <div className="space-y-4 pt-2">
@@ -769,7 +748,6 @@ export default function TripDetails() {
         </DialogContent>
       </Dialog>
 
-      {/* Delete Confirmation */}
       <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
         <AlertDialogContent className="max-w-[calc(100vw-40px)] w-full rounded-[2.5rem] p-0 border-none shadow-2xl bg-white overflow-hidden animate-in fade-in zoom-in-95 duration-300">
           <div className="h-52 bg-destructive/10 relative flex flex-col items-center justify-center">

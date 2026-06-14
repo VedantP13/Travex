@@ -12,7 +12,7 @@ export function BottomNav() {
   const pathname = usePathname();
   const { trips } = useTrips();
 
-  // Dynamically find an active trip or fallback to the most recent one
+  // Dynamically route to the active trip or fallback to creating a new one
   const activeTrip = trips.find(t => t.status === "Active") || trips[0];
   const fabLink = activeTrip ? `/trips/${activeTrip.id}/add` : "/trips/new";
 
@@ -52,14 +52,12 @@ export function BottomNav() {
   return (
     <nav className="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-md bg-white border-t h-[84px] flex items-center z-50 shadow-[0_-4px_30px_rgba(0,0,0,0.08)] px-2">
       <div className="flex w-full items-center justify-between h-full relative">
-        {/* Left Side Navigation */}
         <div className="flex flex-1 items-center justify-evenly">
           {leftItems.map(item => (
             <NavItem key={item.label} item={item} />
           ))}
         </div>
 
-        {/* Central Action Button (FAB) Container */}
         <div className="w-20 h-full flex flex-col items-center justify-center relative">
           <div className="absolute -top-10 left-1/2 -translate-x-1/2">
             <Link href={fabLink}>
@@ -67,7 +65,7 @@ export function BottomNav() {
                 <Button 
                   size="icon" 
                   className="h-14 w-14 rounded-full shadow-xl shadow-accent/40 bg-accent hover:bg-accent transition-all duration-300 hover:scale-110 active:scale-95 text-white"
-                  title={activeTrip ? "Add expense" : "Create trip"}
+                  title={activeTrip ? "Add expense to current trip" : "Create new trip"}
                 >
                   <Plus className="h-8 w-8" strokeWidth={3} />
                 </Button>
@@ -76,7 +74,6 @@ export function BottomNav() {
           </div>
         </div>
 
-        {/* Right Side Navigation */}
         <div className="flex flex-1 items-center justify-evenly">
           {rightItems.map(item => (
             <NavItem key={item.label} item={item} />

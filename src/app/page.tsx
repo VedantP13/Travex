@@ -57,6 +57,7 @@ export default function Home() {
     return () => unsub();
   }, [user?.uid, firestore, user?.displayName, user?.photoURL, user?.email, user?.isAnonymous]);
 
+  // Logic: Prioritize Active trip for the spotlight, fallback to most recent
   const activeTrip = trips.find(t => t.status === "Active") || trips[0];
   const isAnonymous = user?.isAnonymous;
 
@@ -68,7 +69,6 @@ export default function Home() {
 
   return (
     <div className="max-w-md mx-auto min-h-screen flex flex-col bg-background pb-56">
-      {/* Header - Compressed */}
       <header className="px-safe-pad pt-6 pb-6 bg-foreground text-background rounded-b-[2.5rem] shadow-2xl shadow-black/10">
         <div className="flex justify-between items-center mb-5">
           <div className="flex items-center gap-4">
@@ -124,7 +124,6 @@ export default function Home() {
         )}
       </header>
 
-      {/* Dynamic Trip Spotlight */}
       <section className="px-safe-pad mt-5">
         <div className="grid grid-cols-12 gap-3 items-stretch">
           {activeTrip ? (
@@ -133,8 +132,11 @@ export default function Home() {
                 <div className="space-y-3 relative z-10">
                   <div className="space-y-2">
                     <div className="flex">
-                      <Badge variant="outline" className="bg-white/10 text-white/90 border-none text-[10px] font-bold rounded-lg px-2.5 py-1 mb-1 shadow-sm">
-                        Ongoing Trip
+                      <Badge variant="outline" className={cn(
+                        "text-white/90 border-none text-[10px] font-bold rounded-lg px-2.5 py-1 mb-1 shadow-sm",
+                        activeTrip.status === 'Active' ? 'bg-accent/80 text-foreground' : 'bg-white/10'
+                      )}>
+                        {activeTrip.status === 'Active' ? 'Ongoing Trip' : 'Featured Trip'}
                       </Badge>
                     </div>
                     <h3 className="text-lg font-bold tracking-tight truncate leading-tight text-white">{activeTrip.name}</h3>
@@ -205,7 +207,6 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Recent Trips Section */}
       <main className="px-safe-pad pt-10 space-y-5 flex-1">
         <div className="flex justify-between items-center mb-1">
           <h2 className="text-xl font-bold text-foreground tracking-tight">
@@ -240,7 +241,10 @@ export default function Home() {
                       data-ai-hint={trip.imageHint || "travel landscape"}
                       className="h-full w-full object-cover group-hover:scale-105 transition-transform duration-500"
                     />
-                    <Badge className="absolute top-4 right-4 bg-white/90 text-foreground border-none backdrop-blur-md font-bold text-[10px] shadow-sm">
+                    <Badge className={cn(
+                      "absolute top-4 right-4 text-foreground border-none backdrop-blur-md font-bold text-[10px] shadow-sm px-3",
+                      trip.status === 'Active' ? 'bg-accent/90' : 'bg-white/90'
+                    )}>
                       {trip.status || "Upcoming"}
                     </Badge>
                   </div>
