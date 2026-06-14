@@ -52,10 +52,10 @@ export default function Home() {
   const displayNameForFallback = welcomeName || (isAnonymous ? "Guest" : "User");
 
   return (
-    <div className="max-w-md mx-auto min-h-screen flex flex-col bg-background pb-52">
-      {/* Header */}
-      <header className="px-safe-pad pt-10 pb-10 bg-foreground text-background rounded-b-[2.5rem] shadow-2xl shadow-black/10">
-        <div className="flex justify-between items-center mb-10">
+    <div className="max-w-md mx-auto min-h-screen flex flex-col bg-background pb-32">
+      {/* Header - Compressed pt/pb */}
+      <header className="px-safe-pad pt-8 pb-8 bg-foreground text-background rounded-b-[2.5rem] shadow-2xl shadow-black/10">
+        <div className="flex justify-between items-center mb-6">
           <div className="flex items-center gap-4">
             <div className="h-12 w-12 bg-accent rounded-2xl flex items-center justify-center shadow-xl shadow-accent/20 transition-transform hover:scale-105">
               <Compass className="h-7 w-7 text-foreground" />
@@ -88,14 +88,16 @@ export default function Home() {
             <div className="bg-white/5 backdrop-blur-md p-6 rounded-3xl border border-white/10 shadow-inner">
               <p className="text-[10px] font-bold opacity-60 mb-2 uppercase tracking-widest">You owe</p>
               <div className="flex items-baseline font-bold text-2xl">
-                <span>₹0.00</span>
+                <span className="text-2xl font-bold">₹</span>
+                <span>0.00</span>
               </div>
               <p className="text-[9px] opacity-40 mt-1 font-medium italic">All settled up!</p>
             </div>
             <div className="bg-accent/10 backdrop-blur-md p-6 rounded-3xl border border-accent/20 shadow-inner">
               <p className="text-[10px] font-bold text-accent mb-2 uppercase tracking-widest">Owed to you</p>
               <div className="flex items-baseline font-bold text-2xl text-accent">
-                <span>₹0.00</span>
+                <span className="text-2xl font-bold">₹</span>
+                <span>0.00</span>
               </div>
               <p className="text-[9px] text-accent/50 mt-1 font-medium italic">No pending dues</p>
             </div>
@@ -109,8 +111,8 @@ export default function Home() {
         )}
       </header>
 
-      {/* Dynamic Trip Spotlight */}
-      <section className="px-safe-pad mt-12">
+      {/* Dynamic Trip Spotlight - Tighter margin top */}
+      <section className="px-safe-pad mt-6">
         <div className="grid grid-cols-12 gap-4 items-stretch">
           {activeTrip ? (
             <>
@@ -118,7 +120,7 @@ export default function Home() {
                 <div className="space-y-3 relative z-10">
                   <div className="space-y-2">
                     <div className="flex">
-                      <Badge variant="outline" className="bg-white/10 text-white/90 border-white/20 text-[9px] font-bold rounded-lg px-2.5 py-1 mb-1 border-none shadow-sm">
+                      <Badge variant="outline" className="bg-white/10 text-white/90 border-white/20 text-[10px] font-extrabold rounded-lg px-2.5 py-1 mb-1 border-none shadow-sm">
                         Ongoing Trip
                       </Badge>
                     </div>
@@ -197,8 +199,8 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Recent Trips Section */}
-      <main className="px-safe-pad pt-10 space-y-6 flex-1">
+      {/* Recent Trips Section - Tighter margin top */}
+      <main className="px-safe-pad pt-6 space-y-6 flex-1">
         <div className="flex justify-between items-center mb-4">
           <h2 className="text-xl font-bold text-foreground tracking-tight">
             Recent trips
@@ -253,7 +255,10 @@ export default function Home() {
                   <div className="px-6 pb-6 pt-0 flex justify-between items-center">
                     <div>
                       <p className="text-[10px] text-muted-foreground font-bold mb-1 uppercase tracking-wider">Total</p>
-                      <p className="text-base font-bold text-foreground">₹{(trip.totalSpent || 0).toFixed(2)}</p>
+                      <p className="text-base font-bold text-foreground">
+                        <span className="font-bold">₹</span>
+                        <span>{(trip.totalSpent || 0).toFixed(2)}</span>
+                      </p>
                     </div>
                     <div className="text-right">
                       <p className="text-[10px] text-muted-foreground font-bold mb-1 uppercase tracking-wider">Your Balance</p>
@@ -261,7 +266,9 @@ export default function Home() {
                         "text-base font-bold",
                         (trip.yourBalance || 0) < 0 ? "text-destructive" : "text-primary"
                       )}>
-                        {(trip.yourBalance || 0) < 0 ? "-" : "+"}₹{Math.abs(trip.yourBalance || 0).toFixed(2)}
+                        {(trip.yourBalance || 0) < 0 ? "-" : "+"}
+                        <span className="font-bold">₹</span>
+                        <span>{Math.abs(trip.yourBalance || 0).toFixed(2)}</span>
                       </p>
                     </div>
                   </div>
