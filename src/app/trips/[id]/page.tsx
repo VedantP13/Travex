@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useEffect, useRef } from "react";
@@ -27,7 +28,8 @@ import {
   Camera,
   CheckCircle2,
   Activity,
-  Timer
+  Timer,
+  AlertCircle
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -297,6 +299,8 @@ export default function TripDetails() {
     }
   };
 
+  const unsplitExpenses = expenses.filter(e => e.splitType === 'unsplit');
+
   if (loading && !trip) {
     return (
       <div className="max-w-md mx-auto min-h-screen flex items-center justify-center bg-white">
@@ -424,10 +428,42 @@ export default function TripDetails() {
           
           <TabsContent value="feed" className="mt-6">
             <div className="space-y-4 pb-24">
-              {expenses.map(item => {
+              {unsplitExpenses.length > 0 && (
+                <div className="space-y-3 animate-in fade-in slide-in-from-top-2 duration-500">
+                  <div className="flex items-center gap-2 px-1">
+                    <AlertCircle className="h-4 w-4 text-accent" />
+                    <h2 className="text-xs font-semibold text-muted-foreground uppercase tracking-widest">Pending tasks</h2>
+                  </div>
+                  {unsplitExpenses.map(item => (
+                    <Card key={item.id} className="border-none shadow-lg bg-white rounded-[2rem] overflow-hidden">
+                      <CardContent className="p-5 flex items-center justify-between">
+                        <div className="flex items-center gap-4">
+                          <div className="h-12 w-12 rounded-2xl bg-accent/10 flex items-center justify-center text-accent">
+                            <AlertCircle className="h-6 w-6" />
+                          </div>
+                          <div>
+                            <h3 className="font-semibold text-sm text-foreground">{item.description}</h3>
+                            <p className="text-[10px] font-medium text-muted-foreground">₹{parseFloat(item.amount || 0).toFixed(2)} • Unsplit</p>
+                          </div>
+                        </div>
+                        <Button 
+                          size="sm" 
+                          className="rounded-full bg-accent text-accent-foreground font-bold text-xs h-9 px-4 hover:scale-105 transition-all shadow-md shadow-accent/20"
+                          onClick={() => router.push(`/trips/${id}/expenses/${item.id}/split`)}
+                        >
+                          Split Now
+                        </Button>
+                      </CardContent>
+                    </Card>
+                  ))}
+                  <div className="h-px bg-muted/30 mx-2 my-4" />
+                </div>
+              )}
+
+              {expenses.filter(e => e.splitType !== 'unsplit').map(item => {
                 const Icon = getCategoryIcon(item.category);
                 return (
-                  <div key={item.id} className="bg-white p-5 rounded-[2rem] shadow-sm flex items-center gap-5">
+                  <div key={item.id} className="bg-white p-5 rounded-[2rem] shadow-sm flex items-center gap-5 group hover:shadow-md transition-shadow">
                     <div className={cn("h-14 w-14 rounded-2xl flex items-center justify-center shrink-0", getCategoryColor(item.category))}>
                       <Icon className="h-7 w-7" />
                     </div>
@@ -443,6 +479,13 @@ export default function TripDetails() {
           </TabsContent>
 
           <TabsContent value="balances" className="mt-6 space-y-6">
+            <div className="text-center py-20 bg-white rounded-[2.5rem] border-2 border-dashed border-muted/50 px-10">
+               <div className="h-16 w-16 bg-primary/5 rounded-full flex items-center justify-center mx-auto mb-6">
+                 <Activity className="h-7 w-7 text-primary/40" />
+               </div>
+               <h3 className="text-lg font-bold text-foreground tracking-tight">Balance summaries</h3>
+               <p className="text-sm text-muted-foreground mt-1 leading-relaxed px-4">Detailed debt and settlement tracking will appear here as expenses are added.</p>
+            </div>
           </TabsContent>
         </Tabs>
       </div>
@@ -609,7 +652,7 @@ export default function TripDetails() {
                 <div className="flex justify-between items-end">
                   <Label className="text-sm font-semibold text-foreground/60 ml-1">Friends & families</Label>
                   <span className="text-[10px] text-primary font-semibold">
-                    {editParticipants.length} {editParticipants.length === 1 ? 'group' : 'groups'}
+                    {editParticipants.length} {editParticipants.length === 1 ? 'group' : 'groups'} added
                   </span>
                 </div>
                 
