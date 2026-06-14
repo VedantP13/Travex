@@ -52,10 +52,16 @@ export default function CreateTrip() {
   const [activeFamilyMemberInput, setActiveFamilyMemberInput] = useState<string | null>(null);
   const [newFamilyMemberName, setNewFamilyMemberName] = useState("");
   const [showGuestPrompt, setShowGuestPrompt] = useState(false);
+  const [guestPromptDismissed, setGuestPromptDismissed] = useState(false);
 
   // Initialize participants with current user
   useEffect(() => {
-    if (user && (participants.length === 0 || !participants.some(p => p.isUser && p.userId === user.uid))) {
+    if (!user) return;
+
+    setParticipants(prev => {
+      // If "me" is already in the list, don't re-add
+      if (prev.some(p => p.isUser && p.userId === user.uid)) return prev;
+
       const me: Participant = { 
         id: "me", 
         name: `${user.displayName?.split(' ')[0] || "You"} (You)`, 
@@ -64,19 +70,10 @@ export default function CreateTrip() {
         avatar: user.photoURL || `https://picsum.photos/seed/${user.uid}/50/50`, 
         familyMembers: [] 
       };
-      
-      // If we already have participants but "me" is missing, prepend it
-      if (participants.length > 0) {
-        setParticipants([me, ...participants.filter(p => p.id !== "me")]);
-      } else {
-        setParticipants([me]);
-      }
-    }
 
-    if (user?.isAnonymous) {
-      setShowGuestPrompt(true);
-    }
-  }, [user, participants.length]);
+      return [me, ...prev.filter(p => p.id !== "me")];
+    });
+  }, [user]);
 
   const addParticipant = () => {
     if (!newParticipantName.trim()) return;
@@ -143,15 +140,18 @@ export default function CreateTrip() {
       return;
     }
 
+    // Prompt guest users before they finalize
+    if (user.isAnonymous && !guestPromptDismissed) {
+      setShowGuestPrompt(true);
+      return;
+    }
+
     setIsCreating(true);
     
     try {
-      // Get a specific image hint for this destination
       const { hint } = await getDestinationHint({ tripName: name.trim() });
-      
       const tripRef = collection(firestore, "trips");
       
-      // Ensure current user is always in participantIds for security rules
       const participantIds = participants
         .filter(p => p.isUser && p.userId)
         .map(p => p.userId as string);
@@ -202,7 +202,6 @@ export default function CreateTrip() {
       </header>
 
       <main className="flex-1 px-safe-pad py-8 space-y-8 overflow-y-auto">
-        {/* Travel Mode Selector */}
         <div className="space-y-4">
           <Label className="text-sm font-bold text-muted-foreground ml-1">Who's traveling?</Label>
           <div className="grid grid-cols-3 gap-3">
@@ -432,7 +431,10 @@ export default function CreateTrip() {
               <Button 
                 variant="ghost" 
                 className="w-full max-w-[280px] h-12 rounded-2xl font-bold text-foreground hover:bg-muted hover:text-foreground transition-all text-sm px-8"
-                onClick={() => setShowGuestPrompt(false)}
+                onClick={() => {
+                  setShowGuestPrompt(false);
+                  setGuestPromptDismissed(true);
+                }}
               >
                 Continue as guest explorer
               </Button>
