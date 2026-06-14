@@ -133,8 +133,8 @@ export default function Home() {
                   <div className="space-y-2">
                     <div className="flex">
                       <Badge variant="outline" className={cn(
-                        "text-white/90 border-none text-[10px] font-bold rounded-lg px-2.5 py-1 mb-1 shadow-sm",
-                        activeTrip.status === 'Active' ? 'bg-accent/80 text-foreground' : 'bg-white/10'
+                        "text-white border-none text-[10px] font-bold rounded-lg px-2.5 py-1 mb-1 shadow-sm backdrop-blur-md",
+                        activeTrip.status === 'Active' ? 'bg-white/20' : 'bg-white/10'
                       )}>
                         {activeTrip.status === 'Active' ? 'Ongoing Trip' : 'Featured Trip'}
                       </Badge>
@@ -157,7 +157,7 @@ export default function Home() {
                   </div>
                   
                   <div className="space-y-0.5 mt-1">
-                    <p className="text-[9px] font-medium text-white/40 uppercase tracking-widest">Total spent</p>
+                    <p className="text-[9px] font-medium text-white/40">Total spent</p>
                     <div className="flex items-baseline font-bold text-2xl tracking-tight text-white leading-none">
                       <span className="font-bold">₹</span>
                       <span className="font-bold">{(activeTrip.totalSpent || 0).toFixed(2)}</span>
