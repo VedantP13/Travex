@@ -134,7 +134,7 @@ export default function Home() {
                     <div className="flex">
                       <Badge variant="outline" className={cn(
                         "text-white border-none text-[10px] font-medium rounded-lg px-2.5 py-1 mb-1 shadow-sm backdrop-blur-md",
-                        activeTrip.status === 'Active' ? 'bg-white/20' : 'bg-white/10'
+                        activeTrip.status === 'Active' ? 'bg-white/10' : 'bg-white/5'
                       )}>
                         {activeTrip.status === 'Active' ? 'Ongoing Trip' : 'Featured Trip'}
                       </Badge>
