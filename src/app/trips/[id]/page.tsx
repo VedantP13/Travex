@@ -365,13 +365,14 @@ export default function TripDetails() {
                 );
               }) : (
                 <div 
-                  className="text-center py-20 bg-white/50 rounded-[2.5rem] border-2 border-dashed border-muted/30 px-10 cursor-pointer hover:bg-white transition-colors"
+                  className="text-center py-16 bg-white/50 rounded-[2.5rem] border-2 border-dashed border-muted/30 px-10 cursor-pointer hover:bg-white transition-colors"
                   onClick={() => router.push(`/trips/${id}/add`)}
                 >
-                  <div className="h-16 w-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-6 shadow-sm group hover:scale-110 transition-transform">
-                    <Plus className="h-7 w-7 text-primary animate-in zoom-in-50 duration-300" />
+                  <div className="h-16 w-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4 shadow-sm group-hover:scale-110 transition-transform">
+                    <Plus className="h-7 w-7 text-primary" />
                   </div>
-                  <p className="text-base font-bold text-muted-foreground">No expenses yet · Add your first one</p>
+                  <h3 className="text-lg font-bold text-foreground">No expenses yet</h3>
+                  <p className="text-sm text-muted-foreground mt-1">Add your first one to start tracking costs.</p>
                 </div>
               )}
             </div>
@@ -461,7 +462,7 @@ export default function TripDetails() {
                     id="trip-date"
                     placeholder="e.g. 12-15 Aug"
                     className="h-14 rounded-2xl pl-12 shadow-inner border-none bg-muted/40 font-bold"
-                    value={editDate}
+                    value={editName}
                     onChange={(e) => setEditDate(e.target.value)}
                   />
                 </div>
