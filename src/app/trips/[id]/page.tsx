@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState, useEffect, useRef } from "react";
@@ -345,7 +344,7 @@ export default function TripDetails() {
                 <div className="h-8 w-8 rounded-full bg-primary/10 group-focus:bg-white/20 flex items-center justify-center shrink-0">
                   <Pencil className="h-4 w-4" />
                 </div>
-                <span className="font-medium text-sm">Edit details</span>
+                <span className="font-semibold text-sm">Edit details</span>
               </DropdownMenuItem>
               <DropdownMenuSeparator className="my-1 mx-3 bg-muted/30" />
               <DropdownMenuItem 
@@ -355,7 +354,7 @@ export default function TripDetails() {
                 <div className="h-8 w-8 rounded-full bg-destructive/10 group-focus:bg-white/20 flex items-center justify-center shrink-0">
                   <Trash2 className="h-4 w-4" />
                 </div>
-                <span className="font-medium text-sm">Delete trip</span>
+                <span className="font-semibold text-sm">Delete trip</span>
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
@@ -380,7 +379,7 @@ export default function TripDetails() {
               {trip?.status || "Active"}
             </Badge>
             <span className={cn(
-              "text-[10px] font-bold flex items-center gap-1.5",
+              "text-[10px] font-semibold flex items-center gap-1.5",
               trip?.date ? "text-white" : "text-white/60"
             )}>
               <CalendarIcon className={cn("h-3 w-3", trip?.date && "stroke-[3px]")} />
@@ -399,7 +398,7 @@ export default function TripDetails() {
                 </Avatar>
               ))}
             </div>
-            <span className="text-[10px] font-bold text-white/80">
+            <span className="text-[10px] font-semibold text-white/80">
               {trip?.participants?.length} participants
             </span>
           </div>
@@ -411,13 +410,13 @@ export default function TripDetails() {
           <TabsList className="grid w-full grid-cols-2 h-14 bg-white p-1.5 rounded-2xl shadow-inner border border-muted/20">
             <TabsTrigger 
               value="feed" 
-              className="rounded-xl data-[state=active]:bg-primary data-[state=active]:text-white data-[state=inactive]:bg-muted/50 font-bold text-sm transition-all"
+              className="rounded-xl data-[state=active]:bg-primary data-[state=active]:text-white data-[state=inactive]:bg-muted/50 font-semibold text-sm transition-all"
             >
               Trip feed
             </TabsTrigger>
             <TabsTrigger 
               value="balances" 
-              className="rounded-xl data-[state=active]:bg-primary data-[state=active]:text-white data-[state=inactive]:bg-muted/50 font-bold text-sm transition-all"
+              className="rounded-xl data-[state=active]:bg-primary data-[state=active]:text-white data-[state=inactive]:bg-muted/50 font-semibold text-sm transition-all"
             >
               Balances
             </TabsTrigger>
@@ -433,10 +432,10 @@ export default function TripDetails() {
                       <Icon className="h-7 w-7" />
                     </div>
                     <div className="flex-1 min-w-0">
-                      <h3 className="font-bold text-sm truncate text-foreground">{item.description}</h3>
+                      <h3 className="font-semibold text-sm truncate text-foreground">{item.description}</h3>
                       <p className="text-[10px] font-medium text-muted-foreground">Paid by {item.payerName?.split(' ')[0]} • {item.date}</p>
                     </div>
-                    <p className="font-bold text-base tracking-tight text-foreground">₹{parseFloat(item.amount || 0).toFixed(2)}</p>
+                    <p className="font-semibold text-base tracking-tight text-foreground">₹{parseFloat(item.amount || 0).toFixed(2)}</p>
                   </div>
                 );
               })}
@@ -729,7 +728,7 @@ export default function TripDetails() {
               <AlertDialogTitle className="text-2xl font-bold tracking-tight text-foreground">
                 Delete trip?
               </AlertDialogTitle>
-              <AlertDialogDescription className="text-sm font-medium leading-relaxed text-muted-foreground px-4">
+              <AlertDialogDescription className="text-sm font-semibold leading-relaxed text-muted-foreground px-4">
                 This will permanently remove <span className="text-destructive font-bold">{trip?.name}</span> and all associated expenses. This action cannot be undone.
               </AlertDialogDescription>
             </div>

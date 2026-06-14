@@ -1024,7 +1024,7 @@ export default function AddExpenseWizard() {
           {step === 1 && (
             <Button 
               variant="outline"
-              className="flex-1 h-14 rounded-2xl text-base font-bold border-2 border-primary/20 text-primary hover:bg-primary/5 transition-all"
+              className="flex-1 h-14 rounded-2xl text-base font-semibold border-2 border-primary/20 text-primary hover:bg-primary/5 transition-all"
               onClick={handleSplitLater}
               disabled={isPosting || !formData.amount || !formData.description}
             >
@@ -1033,7 +1033,7 @@ export default function AddExpenseWizard() {
           )}
           <Button 
             className={cn(
-              "h-14 rounded-2xl text-base font-bold shadow-lg shadow-primary/20 flex items-center justify-center gap-2 transition-all active:scale-95",
+              "h-14 rounded-2xl text-base font-semibold shadow-lg shadow-primary/20 flex items-center justify-center gap-2 transition-all active:scale-95",
               step === 1 ? "flex-1" : "w-full"
             )}
             onClick={step === 2 ? () => handlePostExpense() : nextStep}
