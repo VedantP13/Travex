@@ -220,7 +220,7 @@ export default function TripDetails() {
             variant="ghost" 
             size="icon" 
             onClick={() => router.push('/')} 
-            className="bg-white/90 backdrop-blur-md text-primary hover:bg-primary hover:text-white rounded-2xl h-11 w-11 shadow-lg shadow-black/5 transition-all active:scale-95"
+            className="bg-white/20 backdrop-blur-md text-white hover:bg-white/30 rounded-2xl h-11 w-11 border border-white/10 shadow-lg transition-all active:scale-95"
           >
             <ArrowLeft className="h-6 w-6" strokeWidth={2.5} />
           </Button>
@@ -230,7 +230,7 @@ export default function TripDetails() {
               <Button 
                 variant="ghost" 
                 size="icon" 
-                className="bg-white/90 backdrop-blur-md text-primary hover:bg-primary hover:text-white rounded-2xl h-11 w-11 shadow-lg shadow-black/5 transition-all active:scale-95"
+                className="bg-white/20 backdrop-blur-md text-white hover:bg-white/30 rounded-2xl h-11 w-11 border border-white/10 shadow-lg transition-all active:scale-95"
               >
                 <Settings className="h-5 w-5" strokeWidth={2.5} />
               </Button>
@@ -289,7 +289,7 @@ export default function TripDetails() {
       {/* Content Area */}
       <div className="px-safe-pad pt-8 flex-1">
         <Tabs defaultValue="feed" className="w-full">
-          <TabsList className="grid w-full grid-cols-2 h-14 bg-white p-1.5 rounded-2xl shadow-inner">
+          <TabsList className="grid w-full grid-cols-2 h-14 bg-white p-1.5 rounded-2xl shadow-inner border border-muted/20">
             <TabsTrigger 
               value="feed" 
               className="rounded-xl data-[state=active]:bg-primary data-[state=active]:text-white data-[state=inactive]:bg-muted/50 font-bold text-sm transition-all"
