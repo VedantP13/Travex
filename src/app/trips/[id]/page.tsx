@@ -371,7 +371,7 @@ export default function TripDetails() {
                   <div className="h-16 w-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-6 shadow-sm group hover:scale-110 transition-transform">
                     <Plus className="h-7 w-7 text-primary animate-in zoom-in-50 duration-300" />
                   </div>
-                  <p className="text-base font-bold text-foreground">No expenses yet · Add your first one</p>
+                  <p className="text-base font-bold text-muted-foreground">No expenses yet · Add your first one</p>
                 </div>
               )}
             </div>
