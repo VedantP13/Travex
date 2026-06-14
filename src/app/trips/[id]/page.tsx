@@ -327,7 +327,7 @@ export default function TripDetails() {
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="rounded-2xl min-w-[160px] p-1 shadow-[0_10px_40px_rgba(0,0,0,0.15)] border-none bg-white">
               <DropdownMenuItem 
-                className="group rounded-xl py-2 px-3 flex items-center gap-3 cursor-pointer text-primary focus:bg-primary focus:text-white active:scale-[0.98] transition-all"
+                className="group rounded-xl py-2 px-3 flex items-center gap-3 cursor-pointer text-primary focus:bg-primary/10 focus:text-primary active:scale-[0.98] transition-all"
                 onClick={() => setIsEditDialogOpen(true)}
               >
                 <div className="h-8 w-8 rounded-full bg-primary/10 group-focus:bg-white/20 flex items-center justify-center shrink-0">
@@ -596,7 +596,7 @@ export default function TripDetails() {
       </Dialog>
 
       <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
-        <DialogContent className="max-w-[calc(100vw-40px)] w-full rounded-2xl p-0 border-none shadow-2xl bg-background overflow-hidden animate-in fade-in zoom-in-95 duration-300">
+        <DialogContent className="max-w-[calc(100vw-40px)] w-full rounded-[2.5rem] p-0 border-none shadow-2xl bg-background overflow-hidden animate-in fade-in zoom-in-95 duration-300">
           <div className="h-24 bg-foreground relative flex items-center justify-center">
             <DialogTitle className="text-xl font-bold text-white relative z-10">Edit trip</DialogTitle>
             <DialogDescription className="sr-only">Update your trip name, dates, status and participants.</DialogDescription>
@@ -645,19 +645,19 @@ export default function TripDetails() {
                       <SelectValue placeholder="Select status" />
                     </SelectTrigger>
                     <SelectContent className="rounded-xl border-none shadow-xl">
-                      <SelectItem value="Upcoming" className="font-bold py-3 transition-colors data-[state=checked]:text-accent">
+                      <SelectItem value="Upcoming">
                         <div className="flex items-center gap-3">
                           <Timer className="h-4 w-4" /> 
                           <span>Upcoming</span>
                         </div>
                       </SelectItem>
-                      <SelectItem value="Active" className="font-bold py-3 transition-colors data-[state=checked]:text-accent">
+                      <SelectItem value="Active">
                         <div className="flex items-center gap-3">
                           <Activity className="h-4 w-4" /> 
                           <span>Active</span>
                         </div>
                       </SelectItem>
-                      <SelectItem value="Completed" className="font-bold py-3 transition-colors data-[state=checked]:text-accent">
+                      <SelectItem value="Completed">
                         <div className="flex items-center gap-3">
                           <CheckCircle2 className="h-4 w-4" /> 
                           <span>Completed</span>
