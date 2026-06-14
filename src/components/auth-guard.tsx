@@ -21,7 +21,7 @@ export function AuthGuard({ children }: { children: React.ReactNode }) {
     return (
       <div className="max-w-md mx-auto min-h-screen flex flex-col items-center justify-center bg-background gap-4">
         <AnimatedCompass className="h-12 w-12 text-primary" />
-        <p className="text-sm font-bold text-muted-foreground animate-pulse">Checking your passport...</p>
+        <p className="text-sm font-medium text-muted-foreground animate-pulse">Verifying session...</p>
       </div>
     );
   }
