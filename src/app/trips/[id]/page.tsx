@@ -203,7 +203,7 @@ export default function TripDetails() {
 
   return (
     <div className="max-w-md mx-auto min-h-screen bg-background flex flex-col">
-      {/* Hero Header - Rounded bottom consistent with Home design */}
+      {/* Hero Header - Cinematic full width with scrim */}
       <div className="relative h-[280px] w-full overflow-hidden shrink-0 rounded-b-[2.5rem] shadow-xl shadow-black/10">
         <img 
           src={getTripImage(trip?.name || "", trip?.image, trip?.imageHint)} 
@@ -270,11 +270,11 @@ export default function TripDetails() {
           
           <h1 className="text-2xl font-bold text-white tracking-tight leading-tight drop-shadow-sm">{trip?.name}</h1>
           
-          <div className="flex -space-x-2 bg-white/10 backdrop-blur-sm p-1.5 rounded-full inline-flex border border-white/10">
+          <div className="flex -space-x-2">
             {trip?.participants?.map((p: any, idx: number) => (
-              <Avatar key={idx} className="h-6 w-6 border-2 border-black/20 shadow-md">
+              <Avatar key={idx} className="h-6 w-6 border-2 border-white/20 shadow-lg ring-1 ring-black/5">
                 <AvatarImage src={p.avatar} />
-                <AvatarFallback className="text-[8px] font-bold bg-muted/20 text-white">{p.name?.[0]}</AvatarFallback>
+                <AvatarFallback className="text-[8px] font-bold bg-white/10 text-white">{p.name?.[0]}</AvatarFallback>
               </Avatar>
             ))}
           </div>
