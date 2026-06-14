@@ -430,7 +430,7 @@ export default function TripDetails() {
           className="rounded-full h-16 w-16 shadow-2xl shadow-accent/40 bg-accent hover:bg-accent/90 p-0 transition-transform hover:scale-110 active:scale-95 group"
           onClick={() => router.push(`/trips/${id}/add`)}
         >
-          <Plus className="h-8 w-8 transition-transform group-hover:rotate-90 duration-300" strokeWidth={3} />
+          <Plus className="h-10 w-10 transition-transform group-hover:rotate-90 duration-300" strokeWidth={3} />
         </Button>
       </div>
 
