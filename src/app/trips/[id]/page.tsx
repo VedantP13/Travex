@@ -202,8 +202,8 @@ export default function TripDetails() {
   }
 
   return (
-    <div className="max-w-md mx-auto min-h-screen bg-background flex flex-col">
-      {/* Hero Header - Cinematic full width with scrim */}
+    <div className="max-w-md mx-auto min-h-screen bg-background flex flex-col pb-32">
+      {/* Hero Header - Cinematic full width with scrim and rounded corners */}
       <div className="relative h-[280px] w-full overflow-hidden shrink-0 rounded-b-[2.5rem] shadow-xl shadow-black/10">
         <img 
           src={getTripImage(trip?.name || "", trip?.image, trip?.imageHint)} 
@@ -214,13 +214,13 @@ export default function TripDetails() {
         {/* Scrim Overlay for Legibility */}
         <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
         
-        {/* Navigation Over Image */}
+        {/* Navigation Over Image - Balanced Glass Buttons */}
         <div className="absolute top-6 left-safe-pad right-safe-pad flex justify-between items-center z-10">
           <Button 
             variant="ghost" 
             size="icon" 
             onClick={() => router.push('/')} 
-            className="bg-black/20 backdrop-blur-md text-white hover:bg-black/40 rounded-2xl h-11 w-11 transition-all"
+            className="bg-black/20 backdrop-blur-md text-white hover:bg-black/30 rounded-2xl h-11 w-11 border border-white/10 transition-all"
           >
             <ArrowLeft className="h-6 w-6" />
           </Button>
@@ -230,7 +230,7 @@ export default function TripDetails() {
               <Button 
                 variant="ghost" 
                 size="icon" 
-                className="bg-black/20 backdrop-blur-md text-white hover:bg-black/40 rounded-2xl h-11 w-11 transition-all"
+                className="bg-black/20 backdrop-blur-md text-white hover:bg-black/30 rounded-2xl h-11 w-11 border border-white/10 transition-all"
               >
                 <Settings className="h-5 w-5" />
               </Button>
@@ -259,7 +259,7 @@ export default function TripDetails() {
         {/* Trip Information Over Image */}
         <div className="absolute bottom-6 left-safe-pad right-safe-pad space-y-3 animate-in fade-in slide-in-from-bottom-4 duration-700">
           <div className="flex items-center gap-3">
-            <Badge className="bg-white/20 backdrop-blur-md text-white border-none text-[10px] font-bold px-3 py-1 rounded-lg">
+            <Badge className="bg-white/20 backdrop-blur-md text-white border border-white/10 text-[10px] font-bold px-3 py-1 rounded-lg">
               {trip?.status || "Active"}
             </Badge>
             <span className="text-[10px] font-bold text-white/90 flex items-center gap-1.5">
@@ -270,13 +270,18 @@ export default function TripDetails() {
           
           <h1 className="text-2xl font-bold text-white tracking-tight leading-tight drop-shadow-sm">{trip?.name}</h1>
           
-          <div className="flex -space-x-2">
-            {trip?.participants?.map((p: any, idx: number) => (
-              <Avatar key={idx} className="h-6 w-6 border-2 border-white/20 shadow-lg ring-1 ring-black/5">
-                <AvatarImage src={p.avatar} />
-                <AvatarFallback className="text-[8px] font-bold bg-white/10 text-white">{p.name?.[0]}</AvatarFallback>
-              </Avatar>
-            ))}
+          <div className="flex items-center gap-2">
+            <div className="flex -space-x-2">
+              {trip?.participants?.slice(0, 4).map((p: any, idx: number) => (
+                <Avatar key={idx} className="h-6 w-6 border-2 border-white shadow-lg ring-1 ring-black/5">
+                  <AvatarImage src={p.avatar} />
+                  <AvatarFallback className="text-[8px] font-bold bg-white/10 text-white">{p.name?.[0]}</AvatarFallback>
+                </Avatar>
+              ))}
+            </div>
+            <span className="text-[10px] font-bold text-white/70">
+              {trip?.participants?.length} {trip?.participants?.length === 1 ? 'participant' : 'participants'}
+            </span>
           </div>
         </div>
       </div>
@@ -284,22 +289,34 @@ export default function TripDetails() {
       {/* Content Area */}
       <div className="px-safe-pad pt-8 flex-1">
         <Tabs defaultValue="feed" className="w-full">
-          <TabsList className="grid w-full grid-cols-2 h-14 bg-white/60 backdrop-blur-md p-1.5 rounded-2xl shadow-sm">
-            <TabsTrigger value="feed" className="rounded-xl data-[state=active]:bg-primary data-[state=active]:text-white font-bold text-sm transition-all">Trip feed</TabsTrigger>
-            <TabsTrigger value="balances" className="rounded-xl data-[state=active]:bg-primary data-[state=active]:text-white font-bold text-sm transition-all">Balances</TabsTrigger>
+          <TabsList className="grid w-full grid-cols-2 h-14 bg-muted/30 p-1.5 rounded-2xl shadow-inner">
+            <TabsTrigger 
+              value="feed" 
+              className="rounded-xl data-[state=active]:bg-primary data-[state=active]:text-white data-[state=inactive]:bg-white/40 font-bold text-sm transition-all"
+            >
+              Trip feed
+            </TabsTrigger>
+            <TabsTrigger 
+              value="balances" 
+              className="rounded-xl data-[state=active]:bg-primary data-[state=active]:text-white data-[state=inactive]:bg-white/40 font-bold text-sm transition-all"
+            >
+              Balances
+            </TabsTrigger>
           </TabsList>
           
           <TabsContent value="feed" className="mt-6">
-            <div className="flex justify-between items-center mb-6">
-              <div className="relative flex-1 mr-4">
-                <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground/50" />
-                <input 
-                  type="text" 
-                  placeholder="Find an expense..." 
-                  className="w-full h-12 bg-white rounded-2xl pl-12 pr-4 text-sm font-medium border-none shadow-sm focus:ring-2 focus:ring-primary/20 outline-none placeholder:text-muted-foreground/40"
-                />
-              </div>
-              <Button size="icon" variant="outline" className="rounded-2xl h-12 w-12 border-none bg-white shadow-sm text-muted-foreground hover:bg-primary/5 hover:text-primary transition-all">
+            <div className="relative mb-6">
+              <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground/50" />
+              <input 
+                type="text" 
+                placeholder="Find an expense..." 
+                className="w-full h-14 bg-white rounded-2xl pl-12 pr-14 text-sm font-medium border-none shadow-sm focus:ring-2 focus:ring-primary/20 outline-none placeholder:text-muted-foreground/40"
+              />
+              <Button 
+                size="icon" 
+                variant="ghost" 
+                className="absolute right-2 top-1/2 -translate-y-1/2 rounded-xl h-10 w-10 text-muted-foreground hover:bg-primary/5 hover:text-primary transition-all"
+              >
                 <Filter className="h-5 w-5" />
               </Button>
             </div>
@@ -347,12 +364,15 @@ export default function TripDetails() {
                   </div>
                 );
               }) : (
-                <div className="text-center py-20 bg-white/50 rounded-[2.5rem] border-2 border-dashed border-muted/30 px-10">
-                  <div className="h-16 w-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-6 shadow-sm group hover:scale-110 transition-transform cursor-pointer">
+                <div 
+                  className="text-center py-20 bg-white/50 rounded-[2.5rem] border-2 border-dashed border-muted/30 px-10 cursor-pointer hover:bg-white transition-colors"
+                  onClick={() => router.push(`/trips/${id}/add`)}
+                >
+                  <div className="h-16 w-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-6 shadow-sm group hover:scale-110 transition-transform">
                     <Plus className="h-7 w-7 text-primary animate-in zoom-in-50 duration-300" />
                   </div>
                   <p className="text-base font-bold text-foreground">No expenses yet</p>
-                  <p className="text-xs text-muted-foreground/70 mt-1 leading-relaxed px-4">Tap the floating button below to add your first expense!</p>
+                  <p className="text-xs text-muted-foreground/70 mt-1 leading-relaxed px-4 font-medium">Add your first one to start splitting</p>
                 </div>
               )}
             </div>
