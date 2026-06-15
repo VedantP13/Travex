@@ -4,12 +4,13 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { GoogleAuthProvider, signInWithPopup, signInAnonymously, linkWithPopup, updateProfile } from 'firebase/auth';
-import { useAuth, useUser } from '@/firebase';
+import { useAuth, useUser, useFirestore } from '@/firebase';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Compass, Loader2 } from 'lucide-react';
 import { AnimatedCompass } from '@/components/animated-compass';
 import { useToast } from '@/hooks/use-toast';
+import { doc, setDoc, serverTimestamp } from 'firebase/firestore';
 
 const GUEST_ADJECTIVES = ["Brave", "Curious", "Vibrant", "Nomadic", "Infinite", "Wild", "Bold", "Swift", "Epic", "Hidden"];
 const GUEST_NOUNS = ["Wanderer", "Voyager", "Nomad", "Pathfinder", "Scout", "Roamer", "Adventurer", "Explorer", "Seeker", "Trekker"];
@@ -17,6 +18,7 @@ const GUEST_NOUNS = ["Wanderer", "Voyager", "Nomad", "Pathfinder", "Scout", "Roa
 export default function LoginPage() {
   const { user, loading } = useUser();
   const auth = useAuth();
+  const firestore = useFirestore();
   const router = useRouter();
   const { toast } = useToast();
   const [isLoggingIn, setIsLoggingIn] = useState(false);
@@ -32,6 +34,7 @@ export default function LoginPage() {
     const provider = new GoogleAuthProvider();
     try {
       let result;
+      // CRITICAL: linkWithPopup preserves the UID, so all guest trips stay with the user
       if (auth.currentUser?.isAnonymous) {
         result = await linkWithPopup(auth.currentUser, provider);
       } else {
@@ -42,14 +45,28 @@ export default function LoginPage() {
       const googleInfo = userInstance.providerData.find(p => p.providerId === 'google.com');
 
       if (googleInfo) {
+        // Update the Auth Profile
         await updateProfile(userInstance, {
           displayName: googleInfo.displayName,
           photoURL: googleInfo.photoURL
         });
+
+        // Sync to Firestore immediately so data is consistent across the app
+        if (firestore) {
+          const userDocRef = doc(firestore, "users", userInstance.uid);
+          await setDoc(userDocRef, {
+            displayName: googleInfo.displayName,
+            searchName: (googleInfo.displayName || "").toLowerCase(),
+            photoURL: googleInfo.photoURL,
+            email: (googleInfo.email || "").toLowerCase(),
+            isAnonymous: false, // Transitioned!
+            updatedAt: serverTimestamp(),
+          }, { merge: true });
+        }
         
         toast({
-          title: "Welcome to the crew!",
-          description: `Successfully linked your account as ${googleInfo.displayName}. Your guest data is now safe.`,
+          title: "Welcome aboard!",
+          description: `Successfully connected as ${googleInfo.displayName}. All your trips are safe and synced.`,
         });
       }
 
@@ -59,7 +76,7 @@ export default function LoginPage() {
         toast({
           variant: "destructive",
           title: "Account already exists",
-          description: "This Google account is already linked to another Travex profile. Sign in directly with Google to access your existing data.",
+          description: "This Google account is already linked to another Travex profile. Sign out and sign in directly with Google to access that data.",
         });
       } else if (error.code !== 'auth/popup-closed-by-user') {
         console.error('Login failed:', error);
@@ -78,7 +95,6 @@ export default function LoginPage() {
     try {
       const result = await signInAnonymously(auth);
       
-      // Assign a cool random travel name to the guest
       const adj = GUEST_ADJECTIVES[Math.floor(Math.random() * GUEST_ADJECTIVES.length)];
       const noun = GUEST_NOUNS[Math.floor(Math.random() * GUEST_NOUNS.length)];
       const randomName = `${adj} ${noun}`;
@@ -86,6 +102,16 @@ export default function LoginPage() {
       await updateProfile(result.user, {
         displayName: randomName
       });
+
+      // Initial sync for guest profile
+      if (firestore) {
+        await setDoc(doc(firestore, "users", result.user.uid), {
+          displayName: randomName,
+          searchName: randomName.toLowerCase(),
+          isAnonymous: true,
+          updatedAt: serverTimestamp(),
+        }, { merge: true });
+      }
 
       router.push('/');
     } catch (error: any) {
@@ -132,7 +158,7 @@ export default function LoginPage() {
               <Button 
                 onClick={handleGoogleLogin}
                 disabled={isLoggingIn}
-                className="w-full h-16 rounded-2xl bg-white text-foreground hover:bg-white/90 text-lg font-bold shadow-xl flex items-center justify-center gap-3 transition-transform active:scale-95"
+                className="w-full h-16 rounded-2xl bg-white text-foreground hover:bg-white/90 text-lg font-bold shadow-xl flex items-center justify-center gap-3 transition-all active:scale-95"
               >
                 {isLoggingIn ? (
                   <Loader2 className="h-6 w-6 animate-spin" />
