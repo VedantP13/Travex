@@ -41,9 +41,10 @@ export default function Home() {
     if (!user?.uid || !firestore) return;
 
     // Ensure user profile has search indexes for discoverability
+    // Use the assigned displayName (which might be a random Explorer name for guests)
     const profileData = {
-      displayName: user.displayName || "Explorer",
-      searchName: (user.displayName || "Explorer").toLowerCase(),
+      displayName: user.displayName || (user.isAnonymous ? "Guest Explorer" : "Explorer"),
+      searchName: (user.displayName || (user.isAnonymous ? "guest explorer" : "explorer")).toLowerCase(),
       photoURL: user.photoURL || "",
       email: (user.email || "").toLowerCase(),
       isAnonymous: user.isAnonymous,
@@ -59,7 +60,6 @@ export default function Home() {
     return () => unsub();
   }, [user?.uid, firestore, user?.displayName, user?.photoURL, user?.email, user?.isAnonymous]);
 
-  // Logic: Prioritize Active trip for the spotlight, fallback to most recent
   const activeTrip = trips.find(t => t.status === "Active") || trips[0];
   const isAnonymous = user?.isAnonymous;
 

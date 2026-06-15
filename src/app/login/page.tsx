@@ -11,6 +11,9 @@ import { Compass, Loader2 } from 'lucide-react';
 import { AnimatedCompass } from '@/components/animated-compass';
 import { useToast } from '@/hooks/use-toast';
 
+const GUEST_ADJECTIVES = ["Brave", "Curious", "Vibrant", "Nomadic", "Infinite", "Wild", "Bold", "Swift", "Epic", "Hidden"];
+const GUEST_NOUNS = ["Wanderer", "Voyager", "Nomad", "Pathfinder", "Scout", "Roamer", "Adventurer", "Explorer", "Seeker", "Trekker"];
+
 export default function LoginPage() {
   const { user, loading } = useUser();
   const auth = useAuth();
@@ -29,8 +32,6 @@ export default function LoginPage() {
     const provider = new GoogleAuthProvider();
     try {
       let result;
-      // If there is already an anonymous user, link the account instead of signing in fresh
-      // This ensures guest data (like trips) is preserved and attached to the Google account.
       if (auth.currentUser?.isAnonymous) {
         result = await linkWithPopup(auth.currentUser, provider);
       } else {
@@ -41,7 +42,6 @@ export default function LoginPage() {
       const googleInfo = userInstance.providerData.find(p => p.providerId === 'google.com');
 
       if (googleInfo) {
-        // Automatically update the main profile with Google's info
         await updateProfile(userInstance, {
           displayName: googleInfo.displayName,
           photoURL: googleInfo.photoURL
@@ -55,25 +55,18 @@ export default function LoginPage() {
 
       router.push('/');
     } catch (error: any) {
-      // Handle the case where the Google account is already linked to another user
       if (error.code === 'auth/credential-already-in-use') {
         toast({
           variant: "destructive",
           title: "Account already exists",
-          description: "This Google account is already linked to another Travex profile. Sign in directly with Google to access your existing data, but note that your current guest trips won't be merged automatically.",
+          description: "This Google account is already linked to another Travex profile. Sign in directly with Google to access your existing data.",
         });
       } else if (error.code !== 'auth/popup-closed-by-user') {
         console.error('Login failed:', error);
-        
-        let errorMessage = "Could not sign in with Google.";
-        if (error.code === 'auth/unauthorized-domain') {
-          errorMessage = "Domain not authorized. Please add authorized domains in Firebase Console.";
-        }
-
         toast({
           variant: "destructive",
           title: "Login failed",
-          description: errorMessage,
+          description: "Could not sign in with Google.",
         });
       }
       setIsLoggingIn(false);
@@ -83,7 +76,17 @@ export default function LoginPage() {
   const handleGuestLogin = async () => {
     setIsLoggingIn(true);
     try {
-      await signInAnonymously(auth);
+      const result = await signInAnonymously(auth);
+      
+      // Assign a cool random travel name to the guest
+      const adj = GUEST_ADJECTIVES[Math.floor(Math.random() * GUEST_ADJECTIVES.length)];
+      const noun = GUEST_NOUNS[Math.floor(Math.random() * GUEST_NOUNS.length)];
+      const randomName = `${adj} ${noun}`;
+      
+      await updateProfile(result.user, {
+        displayName: randomName
+      });
+
       router.push('/');
     } catch (error: any) {
       console.error('Guest login failed:', error);
