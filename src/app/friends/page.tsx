@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { Search, MoreVertical, User, UserX, UserPlus, Loader2, Mail, Users as UsersIcon } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -23,7 +23,6 @@ import {
   where, 
   getDocs, 
   doc, 
-  getDoc,
   setDoc, 
   deleteDoc, 
   serverTimestamp,
@@ -33,10 +32,12 @@ import {
 import { useToast } from "@/hooks/use-toast";
 import { errorEmitter } from "@/firebase/error-emitter";
 import { FirestorePermissionError } from "@/firebase/errors";
+import { useTrips } from "@/context/trips-context";
 
 export default function FriendsPage() {
   const { user } = useUser();
   const firestore = useFirestore();
+  const { trips } = useTrips();
   const { toast } = useToast();
   const [activeMenuName, setActiveMenuName] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
@@ -46,6 +47,17 @@ export default function FriendsPage() {
   const [friends, setFriends] = useState<any[]>([]);
   const [requests, setRequests] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+
+  // Calculate Companion IDs (users shared a trip with) for prioritization
+  const companionIds = useMemo(() => {
+    const ids = new Set<string>();
+    trips.forEach(trip => {
+      trip.participantIds?.forEach((id: string) => {
+        if (id !== user?.uid) ids.add(id);
+      });
+    });
+    return ids;
+  }, [trips, user?.uid]);
 
   // Listen for friends
   useEffect(() => {
@@ -70,7 +82,7 @@ export default function FriendsPage() {
     return () => unsub();
   }, [user?.uid, firestore]);
 
-  // Search users
+  // Optimized Search as you type with Prefix Matching and Companion Boosting
   useEffect(() => {
     const searchUsers = async () => {
       const qry = searchQuery.trim();
@@ -89,20 +101,29 @@ export default function FriendsPage() {
           );
           snap = await getDocs(emailQ);
         } else {
+          // Case-sensitive prefix match (Firestore limitation)
+          // We query for matches that start with the input string
           const nameQ = query(
             collection(firestore, "users"),
             where("displayName", ">=", qry),
             where("displayName", "<=", qry + "\uf8ff"),
-            limit(10)
+            limit(15)
           );
           snap = await getDocs(nameQ);
         }
 
         const initialResults = snap.docs
-          .map(d => ({ id: d.id, ...d.data(), mutualCount: 0 }))
-          .filter(u => u.id !== user?.uid && u.isAnonymous !== true && !!u.email);
+          .map(d => ({ id: d.id, ...d.data() }))
+          .filter(u => u.id !== user?.uid && u.isAnonymous !== true && !!(u as any).email);
         
-        setSearchResults(initialResults);
+        // Prioritize companions in search results
+        const rankedResults = initialResults.map(u => ({
+          ...u,
+          isCompanion: companionIds.has(u.id),
+          relevance: companionIds.has(u.id) ? 100 : 0
+        })).sort((a, b) => b.relevance - a.relevance);
+        
+        setSearchResults(rankedResults);
       } catch (err) {
         console.error("Search failed:", err);
       } finally {
@@ -112,7 +133,7 @@ export default function FriendsPage() {
 
     const timeoutId = setTimeout(searchUsers, 500);
     return () => clearTimeout(timeoutId);
-  }, [searchQuery, firestore, user?.uid]);
+  }, [searchQuery, firestore, user?.uid, companionIds]);
 
   const handleSendRequest = async (targetUser: any) => {
     if (!user?.uid || !firestore) return;
@@ -196,7 +217,7 @@ export default function FriendsPage() {
           <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-white/40" />
           <Input 
             placeholder="Search by name or email..." 
-            className="h-14 pl-12 rounded-2xl bg-white/10 border-white/10 shadow-inner focus-visible:ring-accent text-white placeholder:text-white/40"
+            className="h-14 pl-12 rounded-2xl bg-white/10 border-white/10 shadow-inner focus-visible:ring-accent text-white placeholder:text-white/40 font-semibold"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
           />
@@ -219,7 +240,12 @@ export default function FriendsPage() {
                       <AvatarFallback className="text-foreground">{result.displayName?.[0]}</AvatarFallback>
                     </Avatar>
                     <div className="min-w-0">
-                      <p className="font-bold text-sm truncate">{result.displayName}</p>
+                      <div className="flex items-center gap-2">
+                        <p className="font-bold text-sm truncate">{result.displayName}</p>
+                        {result.isCompanion && (
+                          <Badge className="bg-primary/10 text-primary text-[8px] font-bold px-1.5 h-4 border-none">Companion</Badge>
+                        )}
+                      </div>
                       <p className="text-[9px] text-muted-foreground font-medium flex items-center gap-1">
                         <Mail className="h-2 w-2" />
                         {result.email}
