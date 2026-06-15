@@ -2,7 +2,7 @@
 "use client";
 
 import { useState, useEffect, useMemo } from "react";
-import { Search, MoreVertical, User, UserX, UserPlus, Loader2, Mail, Users as UsersIcon, ArrowRight, Check, X as XIcon } from "lucide-react";
+import { Search, MoreVertical, User, UserX, UserPlus, Loader2, Mail, Users as UsersIcon, ArrowRight, Check, X as XIcon, Clock } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -210,7 +210,7 @@ export default function FriendsPage() {
     try {
       // Clean up both sides: the request in your inbox and the "pending" entry in the sender's list
       await deleteDoc(doc(firestore, "users", user.uid, "requests", request.senderId));
-      await deleteDoc(doc(firestore, "users", request.senderId, "friends", user.uid));
+      await deleteDoc(doc(firestore, "users", request.senderId, "friends", user.uid)).catch(() => {});
       toast({ title: "Request declined" });
     } catch (err) {
       console.error(err);
@@ -221,9 +221,14 @@ export default function FriendsPage() {
   const handleRemoveFriend = async (friendId: string) => {
     if (!user?.uid || !firestore) return;
     try {
+      // Remove friendship records from both users
       await deleteDoc(doc(firestore, "users", user.uid, "friends", friendId));
-      await deleteDoc(doc(firestore, "users", friendId, "friends", user.uid));
-      toast({ title: "Friend removed" });
+      await deleteDoc(doc(firestore, "users", friendId, "friends", user.uid)).catch(() => {});
+      
+      // Also attempt to remove any pending request record if this was a cancellation
+      await deleteDoc(doc(firestore, "users", friendId, "requests", user.uid)).catch(() => {});
+      
+      toast({ title: "Connection removed" });
     } catch (err) {
       console.error(err);
       toast({ variant: "destructive", title: "Action failed", description: "Could not remove friend." });
@@ -231,6 +236,7 @@ export default function FriendsPage() {
   };
 
   const acceptedFriends = friends.filter(f => f.status === "accepted");
+  const pendingInvitations = friends.filter(f => f.status === "pending");
 
   return (
     <div className="max-w-md mx-auto min-h-screen bg-background pb-24">
@@ -343,6 +349,41 @@ export default function FriendsPage() {
                         Decline
                       </Button>
                     </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          </section>
+        )}
+
+        {pendingInvitations.length > 0 && (
+          <section className="space-y-4">
+            <h2 className="text-xl font-bold text-foreground tracking-tight">Pending invitations</h2>
+            <div className="grid gap-3">
+              {pendingInvitations.map((invitation) => (
+                <Card key={invitation.id} className="border-none shadow-sm bg-white rounded-2xl overflow-hidden opacity-80">
+                  <CardContent className="p-4 flex items-center justify-between">
+                    <div className="flex items-center gap-4">
+                      <Avatar className="h-10 w-10 border">
+                        <AvatarImage src={invitation.friendPhoto} />
+                        <AvatarFallback>{invitation.friendName[0]}</AvatarFallback>
+                      </Avatar>
+                      <div>
+                        <h3 className="font-bold text-sm text-foreground">{invitation.friendName}</h3>
+                        <p className="text-[10px] text-muted-foreground font-bold flex items-center gap-1">
+                          <Clock className="h-2.5 w-2.5" />
+                          Waiting for response
+                        </p>
+                      </div>
+                    </div>
+                    <Button 
+                      size="sm" 
+                      variant="ghost" 
+                      className="h-8 rounded-lg px-3 text-destructive hover:bg-destructive/10"
+                      onClick={() => handleRemoveFriend(invitation.friendId)}
+                    >
+                      Cancel
+                    </Button>
                   </CardContent>
                 </Card>
               ))}
