@@ -11,11 +11,13 @@ import {
   Loader2,
   ChevronRight,
   Compass,
-  Calendar
+  Calendar,
+  Users
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Card, CardContent } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 import { useUser, useFirestore } from "@/firebase";
 import { doc, onSnapshot, deleteDoc } from "firebase/firestore";
 import { cn } from "@/lib/utils";
@@ -77,6 +79,8 @@ export default function UserProfilePage() {
   };
 
   const mutualTrips = trips.filter(t => t.participantIds?.includes(id));
+  const isFamilyPublic = targetUser?.isFamilyPublic !== false;
+  const familyMembers = targetUser?.familyMembers || [];
 
   if (loading || tripsLoading) {
     return (
@@ -129,6 +133,30 @@ export default function UserProfilePage() {
             </CardContent>
           </Card>
         </section>
+
+        {isFamilyPublic && familyMembers.length > 0 && (
+          <section className="space-y-4">
+            <div className="flex items-center gap-2 ml-1">
+              <Users className="h-3.5 w-3.5 text-muted-foreground" />
+              <h3 className="text-[11px] font-extrabold text-muted-foreground uppercase tracking-widest">Family Group</h3>
+            </div>
+            <Card className="border-none shadow-sm bg-white rounded-3xl overflow-hidden">
+              <CardContent className="p-5">
+                <div className="flex flex-wrap gap-2">
+                  {familyMembers.map((member: string) => (
+                    <Badge 
+                      key={member} 
+                      variant="outline" 
+                      className="px-4 py-1.5 rounded-full bg-primary/5 border-primary/20 text-primary font-semibold text-[10px] shadow-sm animate-in zoom-in-95 duration-200"
+                    >
+                      {member}
+                    </Badge>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          </section>
+        )}
 
         <section className="space-y-4">
           <div className="flex justify-between items-end ml-1">
