@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useEffect } from "react";
@@ -23,7 +24,6 @@ import { useTrips } from "@/context/trips-context";
 import { useToast } from "@/hooks/use-toast";
 import Link from "next/link";
 import { getTripImage } from "@/lib/image-utils";
-import { Badge } from "@/components/ui/badge";
 import { BottomNav } from "@/components/bottom-nav";
 
 export default function UserProfilePage() {
@@ -101,11 +101,6 @@ export default function UserProfilePage() {
             <h2 className="text-2xl font-bold tracking-tight text-foreground">
               {targetUser?.displayName}
             </h2>
-            <div className="flex items-center justify-center gap-2">
-              <Badge variant="outline" className="bg-primary/5 text-primary border-primary/20 font-bold px-3 py-1">
-                Explorer
-              </Badge>
-            </div>
           </div>
         </section>
 
