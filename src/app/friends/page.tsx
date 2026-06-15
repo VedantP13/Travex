@@ -2,7 +2,7 @@
 "use client";
 
 import { useState, useEffect, useMemo } from "react";
-import { Search, MoreVertical, User, UserX, UserPlus, Loader2, Mail, Users as UsersIcon, ArrowRight, Check, X as XIcon, Clock } from "lucide-react";
+import { Search, MoreVertical, User, UserX, UserPlus, Loader2, Mail, Users as UsersIcon, ArrowRight, Check, X as XIcon, Clock, ShieldAlert, Zap } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -35,6 +35,7 @@ import { errorEmitter } from "@/firebase/error-emitter";
 import { FirestorePermissionError } from "@/firebase/errors";
 import { useTrips } from "@/context/trips-context";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 
 export default function FriendsPage() {
   const router = useRouter();
@@ -51,6 +52,8 @@ export default function FriendsPage() {
   const [friends, setFriends] = useState<any[]>([]);
   const [requests, setRequests] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+
+  const isGuest = user?.isAnonymous;
 
   // Calculate Companion IDs (users shared a trip with) for prioritization
   const companionIds = useMemo(() => {
@@ -87,6 +90,7 @@ export default function FriendsPage() {
   }, [user?.uid, firestore]);
 
   const handleSearch = async () => {
+    if (isGuest) return;
     const qry = searchQuery.trim().toLowerCase();
     const originalQry = searchQuery.trim();
     if (qry.length < 2) return;
@@ -134,17 +138,17 @@ export default function FriendsPage() {
   };
 
   useEffect(() => {
-    if (searchQuery.trim().length < 2) {
+    if (isGuest || searchQuery.trim().length < 2) {
       setSearchResults([]);
       setHasSearched(false);
       return;
     }
     const timeoutId = setTimeout(handleSearch, 600);
     return () => clearTimeout(timeoutId);
-  }, [searchQuery]);
+  }, [searchQuery, isGuest]);
 
   const handleSendRequest = async (targetUser: any) => {
-    if (!user?.uid || !firestore) return;
+    if (isGuest || !user?.uid || !firestore) return;
     
     const requestData = {
       senderId: user.uid,
@@ -208,11 +212,8 @@ export default function FriendsPage() {
   const handleDeclineRequest = async (request: any) => {
     if (!user?.uid || !firestore) return;
     try {
-      // 1. Remove request from my inbox
       await deleteDoc(doc(firestore, "users", user.uid, "requests", request.senderId));
-      // 2. Clear pending status from sender's friends list (Handshake)
       await deleteDoc(doc(firestore, "users", request.senderId, "friends", user.uid)).catch(() => {});
-      
       toast({ title: "Request declined" });
     } catch (err) {
       console.error(err);
@@ -223,14 +224,10 @@ export default function FriendsPage() {
   const handleRemoveFriend = async (friendId: string) => {
     if (!user?.uid || !firestore) return;
     try {
-      // 1. Delete from my list
       await deleteDoc(doc(firestore, "users", user.uid, "friends", friendId));
-      // 2. Delete from their list (Handshake)
       await deleteDoc(doc(firestore, "users", friendId, "friends", user.uid)).catch(() => {});
-      // 3. Cleanup any potential requests in either direction
       await deleteDoc(doc(firestore, "users", friendId, "requests", user.uid)).catch(() => {});
       await deleteDoc(doc(firestore, "users", user.uid, "requests", friendId)).catch(() => {});
-      
       toast({ title: "Connection removed" });
     } catch (err) {
       console.error(err);
@@ -246,79 +243,96 @@ export default function FriendsPage() {
       <header className="px-safe-pad pt-12 pb-10 bg-foreground text-background rounded-b-[2.5rem] shadow-lg shadow-black/10">
         <h1 className="text-3xl font-bold text-background mb-6">Friends</h1>
         
-        <div className="relative">
-          <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-white/40" />
-          <Input 
-            placeholder="Search by name or email..." 
-            className="h-14 pl-12 pr-12 rounded-2xl bg-white/10 border-white/10 shadow-inner focus-visible:ring-accent text-white placeholder:text-white/40 font-semibold"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
-          />
-          <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-1">
-            {isSearching ? (
-              <Loader2 className="h-4 w-4 animate-spin text-accent mr-2" />
-            ) : searchQuery.trim().length >= 2 && (
-              <Button 
-                variant="ghost" 
-                size="icon" 
-                className="h-10 w-10 rounded-xl text-accent hover:bg-white/10"
-                onClick={handleSearch}
-              >
-                <ArrowRight className="h-5 w-5" />
-              </Button>
-            )}
-          </div>
-        </div>
-
-        {(searchResults.length > 0 || (hasSearched && !isSearching)) && (
-          <Card className="mt-4 border-none shadow-2xl bg-white rounded-3xl overflow-hidden divide-y animate-in fade-in slide-in-from-top-2 duration-300 text-foreground">
-            {searchResults.length > 0 ? (
-              searchResults.map(result => {
-                const friendship = friends.find(f => f.friendId === result.id);
-                const isAccepted = friendship?.status === "accepted";
-                const isPending = friendship?.status === "pending";
-
-                return (
-                  <div key={result.id} className="p-4 flex items-center justify-between hover:bg-muted/30 transition-colors">
-                    <div className="flex items-center gap-3">
-                      <Avatar className="h-11 w-11 border shadow-sm">
-                        <AvatarImage src={result.photoURL} className="object-cover" />
-                        <AvatarFallback className="text-foreground font-bold">{result.displayName?.[0]}</AvatarFallback>
-                      </Avatar>
-                      <div className="min-w-0">
-                        <div className="flex items-center gap-2">
-                          <p className="font-bold text-sm truncate">{result.displayName}</p>
-                          {result.isCompanion && (
-                            <Badge className="bg-primary/10 text-primary text-[8px] font-bold px-1.5 h-4 border-none">Companion</Badge>
-                          )}
-                        </div>
-                        <p className="text-[10px] text-muted-foreground font-medium flex items-center gap-1">
-                          <Mail className="h-2.5 w-2.5" />
-                          {result.email}
-                        </p>
-                      </div>
-                    </div>
-                    <Button 
-                      size="sm" 
-                      className={cn(
-                        "rounded-full h-9 px-4 font-bold text-xs shadow-sm active:scale-95 transition-all",
-                        (isAccepted || isPending) ? "bg-muted text-muted-foreground hover:bg-muted" : "bg-primary text-white hover:bg-primary/90"
-                      )} 
-                      onClick={() => !isAccepted && !isPending && handleSendRequest(result)}
-                      disabled={isAccepted || isPending}
-                    >
-                      {isAccepted ? "Connected" : isPending ? "Pending" : "Add Friend"}
-                    </Button>
-                  </div>
-                );
-              })
-            ) : (
-              <div className="p-8 text-center">
-                <p className="text-sm font-bold text-muted-foreground">No explorers found</p>
-                <p className="text-[10px] text-muted-foreground/60 mt-1">Try a different name or email</p>
+        {isGuest ? (
+          <Card className="bg-white/5 border-white/10 backdrop-blur-md rounded-3xl p-5 shadow-inner">
+            <div className="flex gap-4 items-start">
+              <div className="h-10 w-10 rounded-2xl bg-accent flex items-center justify-center shrink-0">
+                <ShieldAlert className="h-6 w-6 text-foreground" />
               </div>
-            )}
+              <div className="space-y-3">
+                <div className="space-y-1">
+                  <h3 className="text-sm font-bold text-white">Social features locked</h3>
+                  <p className="text-[10px] text-white/50 leading-relaxed font-medium">
+                    Guest accounts cannot send friend requests to protect privacy. Link your account to start finding travel buddies.
+                  </p>
+                </div>
+                <Link href="/profile">
+                  <Button size="sm" className="h-8 rounded-xl bg-accent text-accent-foreground font-bold text-[10px] gap-2 px-4 shadow-lg shadow-accent/20">
+                    <Zap className="h-3 w-3 fill-current" />
+                    Secure Account
+                  </Button>
+                </Link>
+              </div>
+            </div>
+          </Card>
+        ) : (
+          <div className="relative">
+            <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-white/40" />
+            <Input 
+              placeholder="Search by name or email..." 
+              className="h-14 pl-12 pr-12 rounded-2xl bg-white/10 border-white/10 shadow-inner focus-visible:ring-accent text-white placeholder:text-white/40 font-semibold"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
+            />
+            <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-1">
+              {isSearching ? (
+                <Loader2 className="h-4 w-4 animate-spin text-accent mr-2" />
+              ) : searchQuery.trim().length >= 2 && (
+                <Button 
+                  variant="ghost" 
+                  size="icon" 
+                  className="h-10 w-10 rounded-xl text-accent hover:bg-white/10"
+                  onClick={handleSearch}
+                >
+                  <ArrowRight className="h-5 w-5" />
+                </Button>
+              )}
+            </div>
+          </div>
+        )}
+
+        {searchResults.length > 0 && (
+          <Card className="mt-4 border-none shadow-2xl bg-white rounded-3xl overflow-hidden divide-y animate-in fade-in slide-in-from-top-2 duration-300 text-foreground">
+            {searchResults.map(result => {
+              const friendship = friends.find(f => f.friendId === result.id);
+              const isAccepted = friendship?.status === "accepted";
+              const isPending = friendship?.status === "pending";
+
+              return (
+                <div key={result.id} className="p-4 flex items-center justify-between hover:bg-muted/30 transition-colors">
+                  <div className="flex items-center gap-3">
+                    <Avatar className="h-11 w-11 border shadow-sm">
+                      <AvatarImage src={result.photoURL} className="object-cover" />
+                      <AvatarFallback className="text-foreground font-bold">{result.displayName?.[0]}</AvatarFallback>
+                    </Avatar>
+                    <div className="min-w-0">
+                      <div className="flex items-center gap-2">
+                        <p className="font-bold text-sm truncate">{result.displayName}</p>
+                        {result.isCompanion && (
+                          <Badge className="bg-primary/10 text-primary text-[8px] font-bold px-1.5 h-4 border-none">Companion</Badge>
+                        )}
+                      </div>
+                      <p className="text-[10px] text-muted-foreground font-medium flex items-center gap-1">
+                        <Mail className="h-2.5 w-2.5" />
+                        {result.email}
+                      </p>
+                    </div>
+                  </div>
+                  <Button 
+                    size="sm" 
+                    className={cn(
+                      "rounded-full h-9 px-4 font-bold text-xs shadow-sm active:scale-95 transition-all",
+                      (isAccepted || isPending) ? "bg-muted text-muted-foreground hover:bg-muted" : "bg-primary text-white hover:bg-primary/90"
+                    )} 
+                    onClick={() => !isAccepted && !isPending && handleSendRequest(result)}
+                    disabled={isAccepted || isPending}
+                  >
+                    {isAccepted ? "Connected" : isPending ? "Pending" : "Add Friend"}
+                  </Button>
+                </div>
+              );
+            })}
           </Card>
         )}
       </header>
@@ -451,17 +465,25 @@ export default function FriendsPage() {
           ) : (
             <div className="text-center py-16 bg-white rounded-3xl border-2 border-dashed border-muted/50 px-10">
                <div className="h-16 w-16 bg-muted/20 rounded-full flex items-center justify-center mx-auto mb-6">
-                 <UserPlus className="h-7 w-7 text-muted-foreground/40" />
+                 <UsersIcon className="h-7 w-7 text-muted-foreground/40" />
                </div>
                <h3 className="text-lg font-bold text-foreground">No friends yet</h3>
                <p className="text-sm text-muted-foreground mt-1 mb-8 leading-relaxed">Connect with your travel buddies to start splitting expenses.</p>
-               <Button 
-                variant="default" 
-                className="font-bold rounded-2xl px-10 h-14 shadow-xl shadow-primary/20 bg-primary hover:bg-primary/90 transition-transform hover:scale-105"
-                onClick={() => document.querySelector('input')?.focus()}
-              >
-                 Find a friend
-               </Button>
+               {isGuest ? (
+                 <Link href="/profile">
+                  <Button variant="default" className="font-bold rounded-2xl px-10 h-14 shadow-xl shadow-primary/20 bg-primary hover:bg-primary/90">
+                    Secure Account to Add Friends
+                  </Button>
+                 </Link>
+               ) : (
+                 <Button 
+                  variant="default" 
+                  className="font-bold rounded-2xl px-10 h-14 shadow-xl shadow-primary/20 bg-primary hover:bg-primary/90 transition-transform hover:scale-105"
+                  onClick={() => document.querySelector('input')?.focus()}
+                >
+                   Find a friend
+                 </Button>
+               )}
             </div>
           )}
         </section>
