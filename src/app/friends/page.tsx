@@ -244,14 +244,14 @@ export default function FriendsPage() {
         <h1 className="text-3xl font-bold text-background mb-6">Friends</h1>
         
         {isGuest ? (
-          <Card className="border-none shadow-2xl bg-white rounded-[2rem] overflow-hidden p-6 animate-in fade-in slide-in-from-top-2 duration-500">
+          <Card className="border-none shadow-2xl bg-accent rounded-[2rem] overflow-hidden p-6 animate-in fade-in slide-in-from-top-2 duration-500">
             <div className="flex flex-col items-center text-center space-y-4">
-              <div className="h-14 w-14 rounded-2xl bg-primary/5 flex items-center justify-center text-primary">
+              <div className="h-14 w-14 rounded-2xl bg-white/20 flex items-center justify-center text-white">
                 <UsersIcon className="h-7 w-7" />
               </div>
               <div className="space-y-1.5 px-2">
-                <h3 className="text-lg font-bold text-foreground tracking-tight leading-tight">Connect & Share trips</h3>
-                <p className="text-[11px] text-muted-foreground font-medium leading-relaxed">
+                <h3 className="text-lg font-bold text-white tracking-tight leading-tight">Connect & Share trips</h3>
+                <p className="text-[11px] text-white/80 font-medium leading-relaxed">
                   Sign in with Google to find your friends, share trips, and keep your travel history safe across all devices.
                 </p>
               </div>
