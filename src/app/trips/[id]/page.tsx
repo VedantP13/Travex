@@ -59,6 +59,7 @@ import {
   DialogHeader,
   DialogTitle,
   DialogClose,
+  DialogFooter
 } from "@/components/ui/dialog";
 import {
   Popover,
@@ -111,6 +112,7 @@ export default function TripDetails() {
   const [isSaving, setIsSaving] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
+  const [stagedCoverImage, setStagedCoverImage] = useState<string | null>(null);
 
   useEffect(() => {
     if (!id || !firestore) return;
@@ -202,17 +204,21 @@ export default function TripDetails() {
     }));
   };
 
-  const handleUpdateImage = async (imageUrl: string) => {
-    if (!id || !firestore) return;
+  const handleUpdateImage = async () => {
+    if (!id || !firestore || !stagedCoverImage) return;
     setIsUploading(true);
     
     const tripRef = doc(firestore, "trips", id as string);
-    updateDoc(tripRef, { image: imageUrl })
+    updateDoc(tripRef, { image: stagedCoverImage })
       .then(() => {
         toast({ title: "Cover updated" });
         setIsImagePickerOpen(false);
+        setStagedCoverImage(null);
       })
-      .catch(err => console.error(err))
+      .catch(err => {
+        console.error(err);
+        toast({ title: "Failed to update cover", variant: "destructive" });
+      })
       .finally(() => setIsUploading(false));
   };
 
@@ -221,7 +227,7 @@ export default function TripDetails() {
     if (file) {
       const reader = new FileReader();
       reader.onloadend = () => {
-        handleUpdateImage(reader.result as string);
+        setStagedCoverImage(reader.result as string);
       };
       reader.readAsDataURL(file);
     }
@@ -374,7 +380,10 @@ export default function TripDetails() {
         <Button 
           variant="ghost" 
           size="icon" 
-          onClick={() => setIsImagePickerOpen(true)}
+          onClick={() => {
+            setStagedCoverImage(trip?.image || null);
+            setIsImagePickerOpen(true);
+          }}
           className="absolute bottom-4 right-4 bg-white/20 backdrop-blur-md text-white hover:bg-white/30 rounded-xl h-9 w-9 border border-white/10 shadow-lg z-10 transition-all active:scale-95"
           title="Change cover"
         >
@@ -384,8 +393,8 @@ export default function TripDetails() {
         <div className="absolute bottom-6 left-safe-pad right-safe-pad space-y-3 animate-in fade-in slide-in-from-bottom-4 duration-700">
           <div className="flex items-center gap-3">
             <Badge className={cn(
-              "backdrop-blur-md text-white border border-white/10 text-[10px] font-medium px-3 py-1 rounded-lg",
-              trip?.status === 'Active' ? 'bg-primary/40' : trip?.status === 'Completed' ? 'bg-green-500/40' : 'bg-white/20'
+              "backdrop-blur-md text-white/80 border border-white/10 text-[10px] font-medium px-3 py-1 rounded-lg",
+              trip?.status === 'Active' ? 'bg-white/10' : trip?.status === 'Completed' ? 'bg-green-500/40' : 'bg-white/5'
             )}>
               {trip?.status || "Active"}
             </Badge>
@@ -527,22 +536,25 @@ export default function TripDetails() {
             </DialogClose>
           </div>
           <div className="p-6 space-y-6">
+            {stagedCoverImage && (
+              <div className="space-y-2">
+                <Label className="text-sm font-semibold text-foreground/60 ml-1">Preview</Label>
+                <div className="h-32 w-full rounded-2xl overflow-hidden shadow-md border-4 border-white">
+                  <img src={stagedCoverImage} className="h-full w-full object-cover" alt="Preview" />
+                </div>
+              </div>
+            )}
+
             <div className="space-y-3">
               <Label className="text-sm font-semibold text-foreground/60 ml-1">Upload custom image</Label>
               <div 
                 onClick={() => imageInputRef.current?.click()}
                 className="h-28 w-full rounded-2xl border-2 border-dashed border-primary/20 bg-white flex flex-col items-center justify-center text-primary cursor-pointer hover:bg-primary/5 transition-all shadow-sm group"
               >
-                {isUploading ? (
-                  <Loader2 className="h-8 w-8 animate-spin" />
-                ) : (
-                  <>
-                    <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center mb-2 group-hover:scale-110 transition-transform">
-                      <Upload className="h-5 w-5" />
-                    </div>
-                    <span className="text-xs font-semibold">Pick from device</span>
-                  </>
-                )}
+                <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center mb-2 group-hover:scale-110 transition-transform">
+                  <Upload className="h-5 w-5" />
+                </div>
+                <span className="text-xs font-semibold">Pick from device</span>
                 <input 
                   type="file" 
                   ref={imageInputRef} 
@@ -555,12 +567,15 @@ export default function TripDetails() {
 
             <div className="space-y-3">
               <Label className="text-sm font-semibold text-foreground/60 ml-1">Predefined styles</Label>
-              <div className="grid grid-cols-2 gap-3 max-h-[300px] overflow-y-auto pr-1 scrollbar-thin">
+              <div className="grid grid-cols-2 gap-3 max-h-[240px] overflow-y-auto pr-1 scrollbar-thin">
                  {PlaceHolderImages.filter(img => img.id.startsWith('trip-')).map((img) => (
                    <div 
                      key={img.id}
-                     className="relative aspect-video rounded-2xl overflow-hidden cursor-pointer group shadow-sm"
-                     onClick={() => handleUpdateImage(img.imageUrl)}
+                     className={cn(
+                       "relative aspect-video rounded-2xl overflow-hidden cursor-pointer group shadow-sm border-2 transition-all",
+                       stagedCoverImage === img.imageUrl ? "border-primary scale-[1.02] ring-2 ring-primary/20" : "border-transparent"
+                     )}
+                     onClick={() => setStagedCoverImage(img.imageUrl)}
                    >
                      <img src={img.imageUrl} className="h-full w-full object-cover group-hover:scale-110 transition-transform duration-500" />
                      <div className="absolute inset-0 bg-black/20 group-hover:bg-black/0 transition-colors" />
@@ -569,6 +584,20 @@ export default function TripDetails() {
               </div>
             </div>
           </div>
+          <DialogFooter className="p-6 bg-muted/30 border-t flex flex-col gap-2">
+            <Button 
+              className="w-full h-14 rounded-2xl bg-primary text-white font-bold text-base shadow-lg shadow-primary/20 transition-all active:scale-95"
+              onClick={handleUpdateImage}
+              disabled={isUploading || !stagedCoverImage}
+            >
+              {isUploading ? <Loader2 className="h-5 w-5 animate-spin" /> : "Save cover"}
+            </Button>
+            <DialogClose asChild>
+              <Button variant="ghost" className="w-full h-12 rounded-xl font-semibold text-muted-foreground">
+                Cancel
+              </Button>
+            </DialogClose>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
 
