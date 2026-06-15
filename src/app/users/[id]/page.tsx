@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState, useEffect } from "react";
@@ -25,6 +24,7 @@ import { useToast } from "@/hooks/use-toast";
 import Link from "next/link";
 import { getTripImage } from "@/lib/image-utils";
 import { Badge } from "@/components/ui/badge";
+import { BottomNav } from "@/components/bottom-nav";
 
 export default function UserProfilePage() {
   const router = useRouter();
