@@ -93,31 +93,51 @@ export default function FriendsPage() {
       }
       setIsSearching(true);
       try {
-        let snap;
+        let initialResults: any[] = [];
+        
         if (qry.includes('@')) {
           const emailQ = query(
             collection(firestore, "users"),
             where("email", "==", qry),
             limit(10)
           );
-          snap = await getDocs(emailQ);
+          const snap = await getDocs(emailQ);
+          initialResults = snap.docs.map(d => ({ id: d.id, ...d.data() }));
         } else {
-          // Use searchName (lowercase version of displayName) for case-insensitive prefix matching
-          const nameQ = query(
+          // Robust dual-query strategy to find users with and without searchName index
+          const originalQry = searchQuery.trim();
+          
+          // Query 1: Optimized lowercase index
+          const nameQ1 = query(
             collection(firestore, "users"),
             where("searchName", ">=", qry),
             where("searchName", "<=", qry + "\uf8ff"),
-            limit(15)
+            limit(10)
           );
-          snap = await getDocs(nameQ);
+          
+          // Query 2: Original display name (case-sensitive as typed)
+          const nameQ2 = query(
+            collection(firestore, "users"),
+            where("displayName", ">=", originalQry),
+            where("displayName", "<=", originalQry + "\uf8ff"),
+            limit(10)
+          );
+
+          const [snap1, snap2] = await Promise.all([getDocs(nameQ1), getDocs(nameQ2)]);
+          
+          const resultsMap = new Map();
+          [...snap1.docs, ...snap2.docs].forEach(d => {
+            resultsMap.set(d.id, { id: d.id, ...d.data() });
+          });
+          
+          initialResults = Array.from(resultsMap.values());
         }
 
-        const initialResults = snap.docs
-          .map(d => ({ id: d.id, ...d.data() }))
+        const filteredResults = initialResults
           .filter(u => u.id !== user?.uid && u.isAnonymous !== true);
         
         // Prioritize companions in search results
-        const rankedResults = initialResults.map(u => ({
+        const rankedResults = filteredResults.map(u => ({
           ...u,
           isCompanion: companionIds.has(u.id),
           relevance: companionIds.has(u.id) ? 100 : 0
