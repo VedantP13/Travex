@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState, useEffect, useRef } from "react";
@@ -471,7 +470,7 @@ export default function ProfilePage() {
             <CardContent className="p-5 space-y-6">
               <div className="space-y-4">
                 <p className="text-xs text-muted-foreground leading-relaxed font-medium">
-                  Add regular travel companions to speed up your trip setup. They'll be pre-filled when you create new family trips.
+                  Save your frequent travel companions here. We'll automatically add them whenever you start a new family or group trip.
                 </p>
                 
                 <div className="flex flex-wrap gap-2">
@@ -526,7 +525,7 @@ export default function ProfilePage() {
                 <div className="flex items-center justify-between">
                   <div className="space-y-0.5">
                     <Label className="text-xs font-bold text-foreground">Public visibility</Label>
-                    <p className="text-[10px] text-muted-foreground">Allow friends to see your group names</p>
+                    <p className="text-[10px] text-muted-foreground">Allow friends to see your group/family members</p>
                   </div>
                   <Switch 
                     checked={isFamilyPublic} 
