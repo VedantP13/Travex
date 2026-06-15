@@ -66,9 +66,12 @@ export default function FriendsPage() {
     return ids;
   }, [trips, user?.uid]);
 
-  // Listen for all friendships (pending and accepted)
+  // Listen for all friendships (pending and accepted) - Only for authenticated users
   useEffect(() => {
-    if (!user?.uid || !firestore) return;
+    if (!user?.uid || !firestore || isGuest) {
+      if (isGuest) setLoading(false);
+      return;
+    }
     const q = query(collection(firestore, "users", user.uid, "friends"));
     const unsub = onSnapshot(q, (snap) => {
       setFriends(snap.docs.map(d => ({ id: d.id, ...d.data() })));
@@ -77,20 +80,20 @@ export default function FriendsPage() {
       console.error(err);
     });
     return () => unsub();
-  }, [user?.uid, firestore]);
+  }, [user?.uid, firestore, isGuest]);
 
-  // Listen for incoming requests
+  // Listen for incoming requests - Only for authenticated users
   useEffect(() => {
-    if (!user?.uid || !firestore) return;
+    if (!user?.uid || !firestore || isGuest) return;
     const q = query(collection(firestore, "users", user.uid, "requests"), orderBy("createdAt", "desc"));
     const unsub = onSnapshot(q, (snap) => {
       setRequests(snap.docs.map(d => ({ id: d.id, ...d.data() })));
     });
     return () => unsub();
-  }, [user?.uid, firestore]);
+  }, [user?.uid, firestore, isGuest]);
 
   const handleSearch = async () => {
-    if (isGuest) return;
+    if (isGuest || !firestore) return;
     const qry = searchQuery.trim().toLowerCase();
     const originalQry = searchQuery.trim();
     if (qry.length < 2) return;
@@ -114,6 +117,7 @@ export default function FriendsPage() {
       snapshots.forEach(snap => {
         snap.forEach(d => {
           const data = d.data();
+          // Filter out anonymous users from search results to prevent "zombie" accounts
           if (d.id !== user?.uid && !data.isAnonymous) {
             resultsMap.set(d.id, { id: d.id, ...data });
           }
@@ -166,6 +170,7 @@ export default function FriendsPage() {
     };
 
     try {
+      // Create request in their box AND pending entry in mine
       await setDoc(doc(firestore, "users", targetUser.id, "requests", user.uid), requestData);
       await setDoc(doc(firestore, "users", user.uid, "friends", targetUser.id), friendEntry);
       
@@ -180,7 +185,7 @@ export default function FriendsPage() {
   };
 
   const handleAcceptRequest = async (request: any) => {
-    if (!user?.uid || !firestore) return;
+    if (!user?.uid || !firestore || isGuest) return;
 
     try {
       const myFriendDoc = {
@@ -191,6 +196,7 @@ export default function FriendsPage() {
         updatedAt: serverTimestamp()
       };
 
+      // Atomic handshake: Update both users' friend subcollections
       await setDoc(doc(firestore, "users", user.uid, "friends", request.senderId), myFriendDoc);
       await setDoc(doc(firestore, "users", request.senderId, "friends", user.uid), {
         friendId: user.uid,
@@ -200,6 +206,7 @@ export default function FriendsPage() {
         updatedAt: serverTimestamp()
       }, { merge: true });
       
+      // Cleanup the request
       await deleteDoc(doc(firestore, "users", user.uid, "requests", request.senderId));
 
       toast({ title: "Friends connected!", description: `You are now friends with ${request.senderName}` });
@@ -210,9 +217,11 @@ export default function FriendsPage() {
   };
 
   const handleDeclineRequest = async (request: any) => {
-    if (!user?.uid || !firestore) return;
+    if (!user?.uid || !firestore || isGuest) return;
     try {
+      // Remove the incoming request
       await deleteDoc(doc(firestore, "users", user.uid, "requests", request.senderId));
+      // Handshake: Remove the "pending" entry from the sender's collection so they can re-discover
       await deleteDoc(doc(firestore, "users", request.senderId, "friends", user.uid)).catch(() => {});
       toast({ title: "Request declined" });
     } catch (err) {
@@ -222,8 +231,9 @@ export default function FriendsPage() {
   };
 
   const handleRemoveFriend = async (friendId: string) => {
-    if (!user?.uid || !firestore) return;
+    if (!user?.uid || !firestore || isGuest) return;
     try {
+      // Comprehensive bi-directional cleanup
       await deleteDoc(doc(firestore, "users", user.uid, "friends", friendId));
       await deleteDoc(doc(firestore, "users", friendId, "friends", user.uid)).catch(() => {});
       await deleteDoc(doc(firestore, "users", friendId, "requests", user.uid)).catch(() => {});
@@ -336,7 +346,7 @@ export default function FriendsPage() {
       </header>
 
       <main className="px-safe-pad pt-6 space-y-8">
-        {requests.length > 0 && (
+        {!isGuest && requests.length > 0 && (
           <section className="space-y-4">
             <h2 className="text-xl font-bold text-foreground tracking-tight">Friend requests</h2>
             <div className="grid gap-3">
@@ -371,7 +381,7 @@ export default function FriendsPage() {
           </section>
         )}
 
-        {pendingInvitations.length > 0 && (
+        {!isGuest && pendingInvitations.length > 0 && (
           <section className="space-y-4">
             <h2 className="text-xl font-bold text-foreground tracking-tight">Pending invitations</h2>
             <div className="grid gap-3">

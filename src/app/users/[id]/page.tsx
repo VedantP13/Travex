@@ -37,6 +37,8 @@ export default function UserProfilePage() {
   const [loading, setLoading] = useState(true);
   const [isRemoving, setIsRemoving] = useState(false);
 
+  const isGuest = currentUser?.isAnonymous;
+
   useEffect(() => {
     if (!id || !firestore) return;
 
@@ -53,21 +55,15 @@ export default function UserProfilePage() {
   }, [id, firestore, router, toast]);
 
   const handleRemoveFriend = async () => {
-    if (!currentUser?.uid || !firestore || !id) return;
+    if (!currentUser?.uid || !firestore || !id || isGuest) return;
     setIsRemoving(true);
     try {
       const targetId = id as string;
       
-      // 1. Delete from my friends list
+      // Atomic bi-directional friendship cleanup
       await deleteDoc(doc(firestore, "users", currentUser.uid, "friends", targetId));
-      
-      // 2. Delete from their friends list (Handshake)
       await deleteDoc(doc(firestore, "users", targetId, "friends", currentUser.uid)).catch(() => {});
-      
-      // 3. Delete any pending requests I sent them
       await deleteDoc(doc(firestore, "users", targetId, "requests", currentUser.uid)).catch(() => {});
-      
-      // 4. Delete any incoming requests they sent me
       await deleteDoc(doc(firestore, "users", currentUser.uid, "requests", targetId)).catch(() => {});
 
       toast({ title: "Connection removed" });
@@ -175,16 +171,18 @@ export default function UserProfilePage() {
           </div>
         </section>
 
-        <div className="pt-6">
-          <Button 
-            className="w-full h-14 rounded-2xl gap-3 font-bold bg-destructive text-destructive-foreground hover:bg-destructive/90 transition-all shadow-lg shadow-destructive/20 text-base"
-            onClick={handleRemoveFriend}
-            disabled={isRemoving}
-          >
-            {isRemoving ? <Loader2 className="h-5 w-5 animate-spin" /> : <UserX className="h-5 w-5" />}
-            Remove from friends
-          </Button>
-        </div>
+        {!isGuest && (
+          <div className="pt-6">
+            <Button 
+              className="w-full h-14 rounded-2xl gap-3 font-bold bg-destructive text-destructive-foreground hover:bg-destructive/90 transition-all shadow-lg shadow-destructive/20 text-base"
+              onClick={handleRemoveFriend}
+              disabled={isRemoving}
+            >
+              {isRemoving ? <Loader2 className="h-5 w-5 animate-spin" /> : <UserX className="h-5 w-5" />}
+              Remove from friends
+            </Button>
+          </div>
+        )}
       </main>
 
       <BottomNav />
