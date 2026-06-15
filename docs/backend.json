@@ -88,6 +88,11 @@
         "photoURL": { "type": "string", "description": "High-quality profile image data (Base64) or URL." },
         "email": { "type": "string" },
         "isAnonymous": { "type": "boolean" },
+        "familyMembers": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "Persistent list of family members for easy trip setup."
+        },
         "updatedAt": { "type": "string", "format": "date-time" }
       }
     },

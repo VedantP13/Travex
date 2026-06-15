@@ -17,7 +17,10 @@ import {
   Trash2,
   AlertTriangle,
   X,
-  UserPlus
+  UserPlus,
+  Users,
+  Plus,
+  Heart
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -26,11 +29,12 @@ import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
 import { useUser, useAuth, useFirestore } from "@/firebase";
 import { signOut, updateProfile, GoogleAuthProvider, linkWithPopup, deleteUser } from "firebase/auth";
-import { doc, setDoc, onSnapshot, serverTimestamp, deleteDoc } from "firebase/firestore";
+import { doc, setDoc, onSnapshot, serverTimestamp, deleteDoc, updateDoc, arrayUnion, arrayRemove } from "firebase/firestore";
 import { cn } from "@/lib/utils";
 import { errorEmitter } from "@/firebase/error-emitter";
 import { FirestorePermissionError } from "@/firebase/errors";
 import { BottomNav } from "@/components/bottom-nav";
+import { Badge } from "@/components/ui/badge";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -67,6 +71,9 @@ export default function ProfilePage() {
   const [isDeleting, setIsDeleting] = useState(false);
   const [firestoreProfile, setFirestoreProfile] = useState<any>(null);
   const [showSignOutWarning, setShowSignOutWarning] = useState(false);
+  
+  const [newFamilyMember, setNewFamilyMember] = useState("");
+  const [isAddingFamily, setIsAddingFamily] = useState(false);
 
   useEffect(() => {
     if (!user?.uid || !firestore) return;
@@ -164,6 +171,39 @@ export default function ProfilePage() {
     }
   };
 
+  const handleAddFamilyMember = async () => {
+    if (!newFamilyMember.trim() || !user?.uid || !firestore) return;
+    
+    try {
+      const userRef = doc(firestore, "users", user.uid);
+      await updateDoc(userRef, {
+        familyMembers: arrayUnion(newFamilyMember.trim()),
+        updatedAt: serverTimestamp()
+      });
+      setNewFamilyMember("");
+      setIsAddingFamily(false);
+      toast({ title: "Family member added" });
+    } catch (e) {
+      console.error(e);
+      toast({ variant: "destructive", title: "Could not add member" });
+    }
+  };
+
+  const handleRemoveFamilyMember = async (name: string) => {
+    if (!user?.uid || !firestore) return;
+    
+    try {
+      const userRef = doc(firestore, "users", user.uid);
+      await updateDoc(userRef, {
+        familyMembers: arrayRemove(name),
+        updatedAt: serverTimestamp()
+      });
+      toast({ title: "Family member removed" });
+    } catch (e) {
+      console.error(e);
+    }
+  };
+
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) {
@@ -186,7 +226,6 @@ export default function ProfilePage() {
       const googleInfo = linkedUser.providerData.find(p => p.providerId === 'google.com');
       
       if (googleInfo) {
-        // Automatically sync profile with Google data
         await updateProfile(linkedUser, {
           displayName: googleInfo.displayName,
           photoURL: googleInfo.photoURL
@@ -217,9 +256,7 @@ export default function ProfilePage() {
         let errorMessage = "Could not link Google account.";
         
         if (error.code === 'auth/credential-already-in-use') {
-          errorMessage = "This Google account already has a Travex profile. You can't merge your current guest trips into it automatically. Sign out and sign in with Google to access that account.";
-        } else if (error.code === 'auth/unauthorized-domain') {
-          errorMessage = "Domain not authorized. Please check your Firebase Console settings.";
+          errorMessage = "This Google account already has a Travex profile. Sign out and sign in with Google to access that account.";
         }
 
         toast({
@@ -272,7 +309,7 @@ export default function ProfilePage() {
         toast({
           variant: "destructive",
           title: "Deletion failed",
-          description: error.message || "Could not delete account. Please try again.",
+          description: error.message || "Could not delete account.",
         });
       }
     } finally {
@@ -291,6 +328,7 @@ export default function ProfilePage() {
   const isGuest = user?.isAnonymous;
   const displayPhoto = isEditing ? editedPhotoURL : (firestoreProfile?.photoURL || user?.photoURL || "");
   const displayName = isEditing ? editedName : (firestoreProfile?.displayName || user?.displayName || (isGuest ? "Guest Explorer" : "Explorer"));
+  const familyMembers = firestoreProfile?.familyMembers || [];
 
   return (
     <div className="max-w-md mx-auto min-h-screen bg-background pb-32">
@@ -386,6 +424,67 @@ export default function ProfilePage() {
               </>
             )}
           </div>
+        </section>
+
+        {/* Persistent Travel Group Section */}
+        <section className="space-y-4">
+          <div className="flex justify-between items-end ml-1">
+            <h3 className="text-[11px] font-extrabold text-muted-foreground uppercase tracking-widest">My Travel Group</h3>
+            <span className="text-[10px] text-primary font-bold">{familyMembers.length} members</span>
+          </div>
+          
+          <Card className="border-none shadow-sm bg-white rounded-3xl overflow-hidden">
+            <CardContent className="p-5 space-y-6">
+              <div className="space-y-4">
+                <p className="text-xs text-muted-foreground leading-relaxed font-medium">
+                  Add regular travel companions to speed up your trip setup. They'll be pre-filled when you create new family trips.
+                </p>
+                
+                <div className="flex flex-wrap gap-2">
+                  {familyMembers.map((member: string) => (
+                    <Badge 
+                      key={member} 
+                      variant="secondary" 
+                      className="px-4 py-2 rounded-2xl flex items-center gap-2 bg-muted/50 border-none text-foreground font-bold group animate-in zoom-in-95 duration-200"
+                    >
+                      <Heart className="h-3 w-3 text-accent fill-accent" />
+                      <span className="text-[11px]">{member}</span>
+                      <X 
+                        className="h-3.5 w-3.5 cursor-pointer text-muted-foreground hover:text-destructive transition-colors" 
+                        onClick={() => handleRemoveFamilyMember(member)} 
+                      />
+                    </Badge>
+                  ))}
+                  
+                  {isAddingFamily ? (
+                    <div className="flex gap-1 items-center w-full animate-in fade-in slide-in-from-top-1">
+                      <Input 
+                        autoFocus
+                        placeholder="Name..." 
+                        className="h-10 text-xs rounded-xl bg-muted/30 font-medium"
+                        value={newFamilyMember}
+                        onChange={e => setNewFamilyMember(e.target.value)}
+                        onKeyDown={e => e.key === 'Enter' && handleAddFamilyMember()}
+                        onBlur={() => {
+                          if (!newFamilyMember.trim()) setIsAddingFamily(false);
+                        }}
+                      />
+                      <Button size="sm" className="h-10 px-4 rounded-xl bg-primary font-bold" onClick={handleAddFamilyMember}>Add</Button>
+                    </div>
+                  ) : (
+                    <Button 
+                      variant="ghost" 
+                      size="sm" 
+                      className="h-9 text-[10px] font-bold text-primary hover:bg-primary/10 p-0 px-4 flex items-center gap-1 bg-primary/5 rounded-2xl transition-all"
+                      onClick={() => setIsAddingFamily(true)}
+                    >
+                      <Plus className="h-3.5 w-3.5" /> Add family member
+                    </Button>
+                  )}
+                </div>
+              </div>
+            </CardContent>
+          </Card>
         </section>
 
         <section className="space-y-4">

@@ -27,7 +27,7 @@ import {
 import { Calendar } from "@/components/ui/calendar";
 import { useToast } from "@/hooks/use-toast";
 import { useFirestore, useUser, useAuth } from "@/firebase";
-import { collection, doc, setDoc, serverTimestamp } from "firebase/firestore";
+import { collection, doc, setDoc, serverTimestamp, onSnapshot } from "firebase/firestore";
 import { errorEmitter } from "@/firebase/error-emitter";
 import { FirestorePermissionError } from "@/firebase/errors";
 import { getDestinationHint } from "@/ai/flows/get-destination-hint";
@@ -61,27 +61,42 @@ export default function CreateTrip() {
   const [newParticipantName, setNewParticipantName] = useState("");
   const [activeFamilyMemberInput, setActiveFamilyMemberInput] = useState<string | null>(null);
   const [newFamilyMemberName, setNewFamilyMemberName] = useState("");
-  const [showGuestPrompt, setShowGuestPrompt] = useState(false);
-  const [guestPromptDismissed, setGuestPromptDismissed] = useState(true);
+  
+  const [firestoreProfile, setFirestoreProfile] = useState<any>(null);
 
+  // Listen for persistent family members from profile
   useEffect(() => {
-    if (!user) return;
+    if (!user?.uid || !firestore) return;
+    const unsub = onSnapshot(doc(firestore, "users", user.uid), (snap) => {
+      if (snap.exists()) setFirestoreProfile(snap.data());
+    });
+    return () => unsub();
+  }, [user?.uid, firestore]);
+
+  // Sync family members to "Your family" participant
+  useEffect(() => {
+    if (!user || !firestoreProfile) return;
+
+    const savedFamily = firestoreProfile.familyMembers || [];
 
     setParticipants(prev => {
-      if (prev.some(p => p.isUser && p.userId === user.uid)) return prev;
-
+      const meExists = prev.find(p => p.isUser && p.userId === user.uid);
+      
       const me: Participant = { 
         id: "me", 
         name: `${user.displayName?.split(' ')[0] || "You"} (You)`, 
         isUser: true, 
         userId: user.uid,
         avatar: user.photoURL || `https://picsum.photos/seed/${user.uid}/50/50`, 
-        familyMembers: [] 
+        // Auto-fill from profile if this is a fresh setup or me exists but has fewer members
+        familyMembers: meExists?.familyMembers?.length ? meExists.familyMembers : savedFamily
       };
 
-      return [me, ...prev.filter(p => p.id !== "me")];
+      if (!meExists) return [me, ...prev];
+      
+      return prev.map(p => p.id === "me" ? me : p);
     });
-  }, [user]);
+  }, [user, firestoreProfile]);
 
   const addParticipant = () => {
     if (!newParticipantName.trim()) return;
@@ -195,6 +210,36 @@ export default function CreateTrip() {
           title: "Trip created!",
           description: `${name} has been set up successfully.`,
         });
+        
+        // Check if we should prompt to save family members to profile
+        const myFamily = participants.find(p => p.id === "me")?.familyMembers || [];
+        const savedFamily = firestoreProfile?.familyMembers || [];
+        const hasNewMembers = myFamily.some(m => !savedFamily.includes(m));
+
+        if (hasNewMembers) {
+          toast({
+            title: "Save Travel Group?",
+            description: "Want to save these family members to your profile for next time?",
+            action: (
+              <Button 
+                variant="outline" 
+                size="sm" 
+                className="h-8 rounded-lg bg-primary text-white border-none font-bold"
+                onClick={async () => {
+                  try {
+                    const userRef = doc(firestore, "users", currentUser.uid);
+                    await setDoc(userRef, { familyMembers: myFamily }, { merge: true });
+                    toast({ title: "Travel group saved!" });
+                  } catch (e) {
+                    console.error(e);
+                  }
+                }}
+              >
+                Save
+              </Button>
+            ),
+          });
+        }
       })
       .catch(async (serverError) => {
         const permissionError = new FirestorePermissionError({
@@ -235,8 +280,8 @@ export default function CreateTrip() {
                 )}
                 onClick={() => {
                   setTravelMode(mode.id as any);
-                  if (mode.id === 'solo' || mode.id === 'family') {
-                    setParticipants(prev => prev.filter(p => p.id === 'me'));
+                  if (mode.id === 'solo') {
+                    setParticipants(prev => prev.filter(p => p.id === 'me').map(p => ({ ...p, familyMembers: [] })));
                   }
                 }}
               >
@@ -444,52 +489,6 @@ export default function CreateTrip() {
           ) : travelMode === 'solo' ? "Start solo trip" : "Create trip group"}
         </Button>
       </footer>
-
-      <Dialog open={showGuestPrompt} onOpenChange={(open) => {
-        setShowGuestPrompt(open);
-        if (!open) setGuestPromptDismissed(true);
-      }}>
-        <DialogContent className="max-w-[calc(100vw-40px)] w-full rounded-[2.5rem] p-0 border-none shadow-2xl bg-white overflow-hidden animate-in fade-in zoom-in-95 duration-300">
-          <div className="h-52 sm:h-60 bg-foreground relative flex flex-col items-center justify-center overflow-hidden">
-             <div className="relative z-10 flex items-center justify-center w-full h-full p-4">
-             </div>
-
-             <DialogClose className="absolute right-4 top-4 sm:right-6 sm:top-6 h-8 w-8 rounded-full flex items-center justify-center bg-white/10 text-white/70 hover:bg-white/20 hover:text-white transition-all z-20">
-                <X className="h-5 w-5" />
-             </DialogClose>
-          </div>
-
-          <div className="p-6 sm:p-8 pt-8 sm:pt-10 space-y-6 sm:space-y-7 text-center">
-            <div className="space-y-3 sm:space-y-4">
-              <DialogTitle className="text-2xl sm:text-3xl font-bold tracking-tight text-foreground">
-                Secure your adventure
-              </DialogTitle>
-              <DialogDescription className="text-sm font-medium leading-relaxed text-muted-foreground px-2 sm:px-4">
-                You're in <span className="text-accent font-extrabold tracking-tight">Guest Mode</span>. Link your account to sync your trips across all devices and prevent data loss.
-              </DialogDescription>
-            </div>
-
-            <div className="space-y-4 sm:space-y-5 pt-2 sm:pt-4 flex flex-col items-center">
-              <Link href="/login" className="w-full max-w-[280px]">
-                <Button className="w-full h-14 rounded-2xl bg-accent text-accent-foreground hover:bg-accent/90 font-bold text-base gap-3 shadow-[0_12px_24px_-8px_rgba(245,166,35,0.3)] transition-all active:scale-95 group">
-                  Link my account now
-                </Button>
-              </Link>
-              
-              <Button 
-                variant="ghost" 
-                className="w-full max-w-[280px] h-12 rounded-2xl font-bold text-foreground hover:bg-muted hover:text-foreground transition-all text-sm px-8"
-                onClick={() => {
-                  setShowGuestPrompt(false);
-                  setGuestPromptDismissed(true);
-                }}
-              >
-                Continue as guest explorer
-              </Button>
-            </div>
-          </div>
-        </DialogContent>
-      </Dialog>
     </div>
   );
 }
