@@ -19,8 +19,7 @@ import {
   X,
   UserPlus,
   Users,
-  Plus,
-  Heart
+  Plus
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -74,6 +73,7 @@ export default function ProfilePage() {
   
   const [newFamilyMember, setNewFamilyMember] = useState("");
   const [isAddingFamily, setIsAddingFamily] = useState(false);
+  const [isEditingGroup, setIsEditingGroup] = useState(false);
 
   useEffect(() => {
     if (!user?.uid || !firestore) return;
@@ -428,9 +428,22 @@ export default function ProfilePage() {
 
         {/* Persistent Travel Group Section */}
         <section className="space-y-4">
-          <div className="flex justify-between items-end ml-1">
+          <div className="flex justify-between items-center ml-1">
             <h3 className="text-[11px] font-extrabold text-muted-foreground uppercase tracking-widest">My Travel Group</h3>
-            <span className="text-[10px] text-primary font-bold">{familyMembers.length} members</span>
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              className="h-7 text-[10px] font-bold text-primary hover:bg-primary/5 flex items-center gap-1.5"
+              onClick={() => setIsEditingGroup(!isEditingGroup)}
+            >
+              {isEditingGroup ? (
+                <>Done</>
+              ) : (
+                <>
+                  <Pencil className="h-3 w-3" /> Edit group
+                </>
+              )}
+            </Button>
           </div>
           
           <Card className="border-none shadow-sm bg-white rounded-3xl overflow-hidden">
@@ -444,42 +457,45 @@ export default function ProfilePage() {
                   {familyMembers.map((member: string) => (
                     <Badge 
                       key={member} 
-                      variant="secondary" 
-                      className="px-4 py-2 rounded-2xl flex items-center gap-2 bg-muted/50 border-none text-foreground font-bold group animate-in zoom-in-95 duration-200"
+                      variant="outline" 
+                      className="pl-4 pr-3 py-1.5 rounded-full flex items-center gap-2 bg-white border-primary/30 text-primary font-semibold shadow-sm group animate-in zoom-in-95 duration-200"
                     >
-                      <Heart className="h-3 w-3 text-accent fill-accent" />
-                      <span className="text-[11px]">{member}</span>
-                      <X 
-                        className="h-3.5 w-3.5 cursor-pointer text-muted-foreground hover:text-destructive transition-colors" 
-                        onClick={() => handleRemoveFamilyMember(member)} 
-                      />
+                      <span className="text-[10px]">{member}</span>
+                      {isEditingGroup && (
+                        <X 
+                          className="h-3.5 w-3.5 cursor-pointer text-muted-foreground hover:text-destructive transition-colors" 
+                          onClick={() => handleRemoveFamilyMember(member)} 
+                        />
+                      )}
                     </Badge>
                   ))}
                   
-                  {isAddingFamily ? (
-                    <div className="flex gap-1 items-center w-full animate-in fade-in slide-in-from-top-1">
-                      <Input 
-                        autoFocus
-                        placeholder="Name..." 
-                        className="h-10 text-xs rounded-xl bg-muted/30 font-medium"
-                        value={newFamilyMember}
-                        onChange={e => setNewFamilyMember(e.target.value)}
-                        onKeyDown={e => e.key === 'Enter' && handleAddFamilyMember()}
-                        onBlur={() => {
-                          if (!newFamilyMember.trim()) setIsAddingFamily(false);
-                        }}
-                      />
-                      <Button size="sm" className="h-10 px-4 rounded-xl bg-primary font-bold" onClick={handleAddFamilyMember}>Add</Button>
-                    </div>
-                  ) : (
-                    <Button 
-                      variant="ghost" 
-                      size="sm" 
-                      className="h-9 text-[10px] font-bold text-primary hover:bg-primary/10 p-0 px-4 flex items-center gap-1 bg-primary/5 rounded-2xl transition-all"
-                      onClick={() => setIsAddingFamily(true)}
-                    >
-                      <Plus className="h-3.5 w-3.5" /> Add family member
-                    </Button>
+                  {isEditingGroup && (
+                    isAddingFamily ? (
+                      <div className="flex gap-1 items-center w-full animate-in fade-in slide-in-from-top-1">
+                        <Input 
+                          autoFocus
+                          placeholder="Name..." 
+                          className="h-8 text-xs rounded-lg bg-white w-24 sm:w-32 font-medium border-2 border-primary/20"
+                          value={newFamilyMember}
+                          onChange={e => setNewFamilyMember(e.target.value)}
+                          onKeyDown={e => e.key === 'Enter' && handleAddFamilyMember()}
+                          onBlur={() => {
+                            if (!newFamilyMember.trim()) setIsAddingFamily(false);
+                          }}
+                        />
+                        <Button size="sm" className="h-8 px-3 rounded-lg bg-primary font-bold text-xs" onClick={handleAddFamilyMember}>Add</Button>
+                      </div>
+                    ) : (
+                      <Button 
+                        variant="ghost" 
+                        size="sm" 
+                        className="h-7 text-[10px] font-semibold text-primary hover:bg-primary/20 hover:text-primary p-0 px-3 flex items-center gap-1 bg-primary/5 rounded-full transition-colors border border-primary/10"
+                        onClick={() => setIsAddingFamily(true)}
+                      >
+                        <Plus className="h-3.5 w-3.5" /> Add family member
+                      </Button>
+                    )
                   )}
                 </div>
               </div>
