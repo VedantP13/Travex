@@ -244,25 +244,23 @@ export default function FriendsPage() {
         <h1 className="text-3xl font-bold text-background mb-6">Friends</h1>
         
         {isGuest ? (
-          <Card className="bg-white/5 border-white/10 backdrop-blur-md rounded-3xl p-5 shadow-inner">
-            <div className="flex gap-4 items-start">
-              <div className="h-10 w-10 rounded-2xl bg-accent flex items-center justify-center shrink-0">
-                <ShieldAlert className="h-6 w-6 text-foreground" />
+          <Card className="border-none shadow-2xl bg-white rounded-[2rem] overflow-hidden p-6 animate-in fade-in slide-in-from-top-2 duration-500">
+            <div className="flex flex-col items-center text-center space-y-4">
+              <div className="h-14 w-14 rounded-2xl bg-primary/5 flex items-center justify-center text-primary">
+                <UsersIcon className="h-7 w-7" />
               </div>
-              <div className="space-y-3">
-                <div className="space-y-1">
-                  <h3 className="text-sm font-bold text-white">Social features locked</h3>
-                  <p className="text-[10px] text-white/50 leading-relaxed font-medium">
-                    Guest accounts cannot send friend requests to protect privacy. Link your account to start finding travel buddies.
-                  </p>
-                </div>
-                <Link href="/profile">
-                  <Button size="sm" className="h-8 rounded-xl bg-accent text-accent-foreground font-bold text-[10px] gap-2 px-4 shadow-lg shadow-accent/20">
-                    <Zap className="h-3 w-3 fill-current" />
-                    Secure Account
-                  </Button>
-                </Link>
+              <div className="space-y-1.5 px-2">
+                <h3 className="text-lg font-bold text-foreground tracking-tight leading-tight">Connect & Share trips</h3>
+                <p className="text-[11px] text-muted-foreground font-medium leading-relaxed">
+                  Sign in with Google to find your friends, share trips, and keep your travel history safe across all devices.
+                </p>
               </div>
+              <Link href="/profile" className="w-full pt-2">
+                <Button className="w-full h-12 rounded-2xl bg-white text-foreground hover:bg-slate-50 border border-slate-200 font-bold flex items-center justify-center gap-3 shadow-md active:scale-95 transition-all">
+                  <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" className="h-5 w-5" alt="Google" />
+                  Sign in with Google
+                </Button>
+              </Link>
             </div>
           </Card>
         ) : (
@@ -472,7 +470,7 @@ export default function FriendsPage() {
                {isGuest ? (
                  <Link href="/profile">
                   <Button variant="default" className="font-bold rounded-2xl px-10 h-14 shadow-xl shadow-primary/20 bg-primary hover:bg-primary/90">
-                    Secure Account to Add Friends
+                    Sign in to Add Friends
                   </Button>
                  </Link>
                ) : (
