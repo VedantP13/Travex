@@ -2,7 +2,7 @@
 "use client";
 
 import { useState, useEffect, useMemo } from "react";
-import { Search, MoreVertical, User, UserX, UserPlus, Loader2, Mail, Users as UsersIcon, ArrowRight } from "lucide-react";
+import { Search, MoreVertical, User, UserX, UserPlus, Loader2, Mail, Users as UsersIcon, ArrowRight, Check, X as XIcon } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -61,10 +61,10 @@ export default function FriendsPage() {
     return ids;
   }, [trips, user?.uid]);
 
-  // Listen for friends
+  // Listen for all friendships (pending and accepted)
   useEffect(() => {
     if (!user?.uid || !firestore) return;
-    const q = query(collection(firestore, "users", user.uid, "friends"), where("status", "==", "accepted"));
+    const q = query(collection(firestore, "users", user.uid, "friends"));
     const unsub = onSnapshot(q, (snap) => {
       setFriends(snap.docs.map(d => ({ id: d.id, ...d.data() })));
       setLoading(false);
@@ -95,15 +95,10 @@ export default function FriendsPage() {
     try {
       const usersCol = collection(firestore, "users");
       
-      // We run multiple queries in parallel to cover all discovery vectors
       const queries = [
-        // 1. Email exact match
         query(usersCol, where("email", "==", qry), limit(5)),
-        // 2. Email prefix match
         query(usersCol, where("email", ">=", qry), where("email", "<=", qry + "\uf8ff"), limit(10)),
-        // 3. Display name prefix (case sensitive)
         query(usersCol, where("displayName", ">=", originalQry), where("displayName", "<=", originalQry + "\uf8ff"), limit(10)),
-        // 4. Search index prefix (case insensitive)
         query(usersCol, where("searchName", ">=", qry), where("searchName", "<=", qry + "\uf8ff"), limit(10))
       ];
 
@@ -113,7 +108,6 @@ export default function FriendsPage() {
       snapshots.forEach(snap => {
         snap.forEach(d => {
           const data = d.data();
-          // Filter out current user and anonymous/guest accounts
           if (d.id !== user?.uid && !data.isAnonymous) {
             resultsMap.set(d.id, { id: d.id, ...data });
           }
@@ -124,7 +118,6 @@ export default function FriendsPage() {
         ...u,
         isCompanion: companionIds.has(u.id),
       })).sort((a, b) => {
-        // Boost companions to the top
         if (a.isCompanion && !b.isCompanion) return -1;
         if (!a.isCompanion && b.isCompanion) return 1;
         return (a.displayName || "").localeCompare(b.displayName || "");
@@ -138,7 +131,6 @@ export default function FriendsPage() {
     }
   };
 
-  // Debounced auto-search
   useEffect(() => {
     if (searchQuery.trim().length < 2) {
       setSearchResults([]);
@@ -168,13 +160,11 @@ export default function FriendsPage() {
     };
 
     try {
+      // Step A: Send request to recipient and add pending friend for sender
       await setDoc(doc(firestore, "users", targetUser.id, "requests", user.uid), requestData);
       await setDoc(doc(firestore, "users", user.uid, "friends", targetUser.id), friendEntry);
       
       toast({ title: "Request sent", description: `Friend request sent to ${targetUser.displayName}` });
-      setSearchQuery("");
-      setSearchResults([]);
-      setHasSearched(false);
     } catch (error: any) {
       errorEmitter.emit('permission-error', new FirestorePermissionError({
         path: `/users/${targetUser.id}/requests/${user.uid}`,
@@ -188,6 +178,7 @@ export default function FriendsPage() {
     if (!user?.uid || !firestore) return;
 
     try {
+      // Step B: Set both users to accepted and delete the request
       const myFriendDoc = {
         friendId: request.senderId,
         friendName: request.senderName,
@@ -203,12 +194,23 @@ export default function FriendsPage() {
         friendPhoto: user.photoURL || "",
         status: "accepted",
         updatedAt: serverTimestamp()
-      });
+      }, { merge: true });
+      
       await deleteDoc(doc(firestore, "users", user.uid, "requests", request.senderId));
 
       toast({ title: "Friends connected!", description: `You are now friends with ${request.senderName}` });
     } catch (error: any) {
        console.error(error);
+    }
+  };
+
+  const handleDeclineRequest = async (requestId: string) => {
+    if (!user?.uid || !firestore) return;
+    try {
+      await deleteDoc(doc(firestore, "users", user.uid, "requests", requestId));
+      toast({ title: "Request declined" });
+    } catch (err) {
+      console.error(err);
     }
   };
 
@@ -222,6 +224,8 @@ export default function FriendsPage() {
       console.error(err);
     }
   };
+
+  const acceptedFriends = friends.filter(f => f.status === "accepted");
 
   return (
     <div className="max-w-md mx-auto min-h-screen bg-background pb-24">
@@ -257,7 +261,10 @@ export default function FriendsPage() {
           <Card className="mt-4 border-none shadow-2xl bg-white rounded-3xl overflow-hidden divide-y animate-in fade-in slide-in-from-top-2 duration-300 text-foreground">
             {searchResults.length > 0 ? (
               searchResults.map(result => {
-                const isAlreadyFriend = friends.some(f => f.friendId === result.id);
+                const friendship = friends.find(f => f.friendId === result.id);
+                const isAccepted = friendship?.status === "accepted";
+                const isPending = friendship?.status === "pending";
+
                 return (
                   <div key={result.id} className="p-4 flex items-center justify-between hover:bg-muted/30 transition-colors">
                     <div className="flex items-center gap-3">
@@ -282,12 +289,12 @@ export default function FriendsPage() {
                       size="sm" 
                       className={cn(
                         "rounded-full h-9 px-4 font-bold text-xs shadow-sm active:scale-95 transition-all",
-                        isAlreadyFriend ? "bg-muted text-muted-foreground hover:bg-muted" : "bg-primary text-white hover:bg-primary/90"
+                        (isAccepted || isPending) ? "bg-muted text-muted-foreground hover:bg-muted" : "bg-primary text-white hover:bg-primary/90"
                       )} 
-                      onClick={() => handleSendRequest(result)}
-                      disabled={isAlreadyFriend}
+                      onClick={() => !isAccepted && !isPending && handleSendRequest(result)}
+                      disabled={isAccepted || isPending}
                     >
-                      {isAlreadyFriend ? "Connected" : "Add Friend"}
+                      {isAccepted ? "Connected" : isPending ? "Pending" : "Add Friend"}
                     </Button>
                   </div>
                 );
@@ -326,7 +333,7 @@ export default function FriendsPage() {
                         size="sm" 
                         variant="ghost" 
                         className="h-8 rounded-lg px-3 text-muted-foreground"
-                        onClick={() => deleteDoc(doc(firestore, "users", user!.uid, "requests", request.senderId))}
+                        onClick={() => handleDeclineRequest(request.id)}
                       >
                         Decline
                       </Button>
@@ -340,9 +347,9 @@ export default function FriendsPage() {
 
         <section className="space-y-4">
           <h2 className="text-xl font-bold text-foreground tracking-tight">Your friends</h2>
-          {friends.length > 0 ? (
+          {acceptedFriends.length > 0 ? (
             <div className="grid gap-3">
-              {friends.map((friend) => {
+              {acceptedFriends.map((friend) => {
                 const isDimmed = activeMenuName !== null && activeMenuName !== friend.friendName;
                 
                 return (
