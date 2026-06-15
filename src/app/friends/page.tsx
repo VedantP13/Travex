@@ -414,10 +414,6 @@ export default function FriendsPage() {
                         </Avatar>
                         <div>
                           <h3 className="font-bold text-base text-foreground">{friend.friendName}</h3>
-                          <p className="text-[10px] font-bold text-muted-foreground flex items-center gap-1.5 mt-0.5">
-                            <span className="h-2 w-2 rounded-full bg-green-500" />
-                            Connected
-                          </p>
                         </div>
                       </div>
                       
