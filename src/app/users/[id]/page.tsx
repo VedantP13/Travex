@@ -84,7 +84,9 @@ export default function UserProfilePage() {
         <Button variant="ghost" size="icon" onClick={() => router.back()} className="rounded-xl">
           <ArrowLeft className="h-6 w-6" />
         </Button>
-        <h1 className="text-xl font-bold tracking-tight text-foreground">Explorer Profile</h1>
+        <h1 className="text-xl font-bold tracking-tight text-foreground">
+          {targetUser?.displayName ? `${targetUser.displayName}'s Profile` : "Explorer Profile"}
+        </h1>
       </header>
 
       <main className="px-safe-pad pt-8 space-y-10">
@@ -104,7 +106,7 @@ export default function UserProfilePage() {
         </section>
 
         <section className="space-y-4">
-          <h3 className="text-[11px] font-extrabold text-muted-foreground uppercase tracking-widest ml-1">About Explorer</h3>
+          <h3 className="text-[11px] font-extrabold text-muted-foreground uppercase tracking-widest ml-1">Explorer</h3>
           <Card className="border-none shadow-sm bg-white rounded-3xl overflow-hidden">
             <CardContent className="p-5 space-y-4">
               <div className="flex items-center gap-4">
@@ -163,8 +165,7 @@ export default function UserProfilePage() {
 
         <div className="pt-6">
           <Button 
-            variant="destructive" 
-            className="w-full h-14 rounded-2xl gap-3 font-bold shadow-lg shadow-destructive/20 transition-all active:scale-95 text-base"
+            className="w-full h-14 rounded-2xl gap-3 font-bold bg-destructive text-destructive-foreground hover:bg-destructive/90 transition-all shadow-lg shadow-destructive/20 text-base"
             onClick={handleRemoveFriend}
             disabled={isRemoving}
           >
