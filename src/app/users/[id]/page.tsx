@@ -163,8 +163,8 @@ export default function UserProfilePage() {
 
         <div className="pt-6">
           <Button 
-            variant="ghost" 
-            className="w-full h-14 rounded-2xl gap-3 font-bold text-destructive hover:bg-destructive/10 transition-all"
+            variant="destructive" 
+            className="w-full h-14 rounded-2xl gap-3 font-bold shadow-lg shadow-destructive/20 transition-all active:scale-95 text-base"
             onClick={handleRemoveFriend}
             disabled={isRemoving}
           >
