@@ -446,10 +446,10 @@ export default function ProfilePage() {
           </div>
         </section>
 
-        {/* Persistent Travel Group Section */}
+        {/* Persistent Family Section */}
         <section className="space-y-4">
           <div className="flex justify-between items-center ml-1">
-            <h3 className="text-[11px] font-extrabold text-muted-foreground uppercase tracking-widest">My Travel Group</h3>
+            <h3 className="text-[11px] font-extrabold text-muted-foreground uppercase tracking-widest">My Family</h3>
             <Button 
               variant="ghost" 
               size="sm" 
@@ -460,7 +460,7 @@ export default function ProfilePage() {
                 <>Done</>
               ) : (
                 <>
-                  <Pencil className="h-3 w-3" /> Edit group
+                  <Pencil className="h-3 w-3" /> Edit family
                 </>
               )}
             </Button>
@@ -527,7 +527,7 @@ export default function ProfilePage() {
                     <Label className="text-xs font-bold text-foreground">Public visibility</Label>
                     <p className="text-[10px] text-muted-foreground">Allow friends to see your group/family members</p>
                   </div>
-                  <Switch 
+                  <switch 
                     checked={isFamilyPublic} 
                     onCheckedChange={handleToggleFamilyVisibility}
                   />
