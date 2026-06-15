@@ -470,7 +470,7 @@ export default function ProfilePage() {
             <CardContent className="p-5 space-y-6">
               <div className="space-y-4">
                 <p className="text-xs text-muted-foreground leading-relaxed font-medium">
-                  Save your frequent travel companions here. We'll automatically add them whenever you start a new family or group trip.
+                  Save your family members or frequent travel companions here. We'll automatically add them whenever you start a new group trip.
                 </p>
                 
                 <div className="flex flex-wrap gap-2">
