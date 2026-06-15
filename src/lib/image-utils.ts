@@ -1,36 +1,43 @@
-
 'use client';
 
 import { PlaceHolderImages } from "@/lib/placeholder-images";
 
 /**
  * Utility to find the best matching image for a trip.
- * Uses a combination of curated matches, custom hints, and fallback logic.
+ * Logic:
+ * 1. If user explicitly CHOSE an image (data URI or one from curated list), use it.
+ * 2. Otherwise, if trip name/hint matches a curated image, use that "smartly".
+ * 3. Fallback to the database value (e.g. initial random seed) or a final default.
  */
 export const getTripImage = (tripName: string, fallbackImage?: string, imageHint?: string) => {
+  // 1. Check for explicit choices first
+  if (fallbackImage) {
+    // Data URIs (uploaded) are explicit choices
+    if (fallbackImage.startsWith('data:')) return fallbackImage;
+    
+    // Images picked from our curated list are explicit choices
+    if (PlaceHolderImages.some(img => img.imageUrl === fallbackImage)) return fallbackImage;
+  }
+
+  // 2. Smart match based on name or hint
   const lowerName = tripName.toLowerCase();
-  
-  // 1. If we have a curated placeholder for this specific hint or name, use it
-  const match = PlaceHolderImages.find(img => {
-    const idKeyword = img.id.replace('trip-', '').toLowerCase();
+  const lowerHint = imageHint?.toLowerCase();
+
+  const smartMatch = PlaceHolderImages.find(img => {
     const hints = img.imageHint.split(' ').map(h => h.toLowerCase());
+    const idKeyword = img.id.replace('trip-', '').toLowerCase();
     
     return (
-      (imageHint && hints.includes(imageHint.toLowerCase())) ||
+      (lowerHint && hints.includes(lowerHint)) ||
       lowerName.includes(idKeyword) || 
       hints.some(hint => lowerName.includes(hint))
     );
   });
 
-  if (match) return match.imageUrl;
+  if (smartMatch) return smartMatch.imageUrl;
   
-  // 2. If it's a specific custom image URL, use it
-  if (fallbackImage && !fallbackImage.includes('seed') && !fallbackImage.includes('picsum')) {
-    return fallbackImage;
-  }
-  
-  // 3. Fallback to a seeded picsum image if no specific hint is available
-  // This ensures unique (though random) images for unknown destinations
-  const seed = imageHint || tripName;
-  return `https://picsum.photos/seed/${encodeURIComponent(seed)}/600/400`;
+  // 3. Final fallback
+  // If we have a fallbackImage (like the initial random seed), use it.
+  // Otherwise, generate a deterministic seed based on the trip name.
+  return fallbackImage || `https://picsum.photos/seed/${encodeURIComponent(tripName)}/600/400`;
 };
