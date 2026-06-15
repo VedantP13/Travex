@@ -88,6 +88,7 @@
         "photoURL": { "type": "string", "description": "High-quality profile image data (Base64) or URL." },
         "email": { "type": "string" },
         "isAnonymous": { "type": "boolean" },
+        "isFamilyPublic": { "type": "boolean", "default": true, "description": "Whether friends can see saved family members." },
         "familyMembers": {
           "type": "array",
           "items": { "type": "string" },

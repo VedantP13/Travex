@@ -34,6 +34,8 @@ import { errorEmitter } from "@/firebase/error-emitter";
 import { FirestorePermissionError } from "@/firebase/errors";
 import { BottomNav } from "@/components/bottom-nav";
 import { Badge } from "@/components/ui/badge";
+import { Switch } from "@/components/ui/switch";
+import { Label } from "@/components/ui/label";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -204,6 +206,24 @@ export default function ProfilePage() {
     }
   };
 
+  const handleToggleFamilyVisibility = async (checked: boolean) => {
+    if (!user?.uid || !firestore) return;
+    try {
+      const userRef = doc(firestore, "users", user.uid);
+      await updateDoc(userRef, {
+        isFamilyPublic: checked,
+        updatedAt: serverTimestamp()
+      });
+      toast({ 
+        title: checked ? "Group visibility: Public" : "Group visibility: Private",
+        description: checked ? "Friends can now see your travel companions." : "Only you can see your travel companions."
+      });
+    } catch (e) {
+      console.error(e);
+      toast({ variant: "destructive", title: "Update failed" });
+    }
+  };
+
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) {
@@ -329,6 +349,7 @@ export default function ProfilePage() {
   const displayPhoto = isEditing ? editedPhotoURL : (firestoreProfile?.photoURL || user?.photoURL || "");
   const displayName = isEditing ? editedName : (firestoreProfile?.displayName || user?.displayName || (isGuest ? "Guest Explorer" : "Explorer"));
   const familyMembers = firestoreProfile?.familyMembers || [];
+  const isFamilyPublic = firestoreProfile?.isFamilyPublic !== false;
 
   return (
     <div className="max-w-md mx-auto min-h-screen bg-background pb-32">
@@ -497,6 +518,20 @@ export default function ProfilePage() {
                       </Button>
                     )
                   )}
+                </div>
+              </div>
+
+              {/* Privacy Toggle */}
+              <div className="pt-5 border-t border-muted/30">
+                <div className="flex items-center justify-between">
+                  <div className="space-y-0.5">
+                    <Label className="text-xs font-bold text-foreground">Public visibility</Label>
+                    <p className="text-[10px] text-muted-foreground">Allow friends to see your group names</p>
+                  </div>
+                  <Switch 
+                    checked={isFamilyPublic} 
+                    onCheckedChange={handleToggleFamilyVisibility}
+                  />
                 </div>
               </div>
             </CardContent>

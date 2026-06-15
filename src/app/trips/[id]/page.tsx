@@ -219,7 +219,11 @@ export default function TripDetails() {
     try {
       const friendSnap = await getDoc(doc(firestore!, "users", friendId));
       if (friendSnap.exists()) {
-        familyFromProfile = friendSnap.data().familyMembers || [];
+        const friendData = friendSnap.data();
+        // Respect privacy setting
+        if (friendData.isFamilyPublic !== false) {
+          familyFromProfile = friendData.familyMembers || [];
+        }
       }
     } catch (e) {
       console.warn("Failed to fetch friend family members:", e);
@@ -692,7 +696,7 @@ export default function TripDetails() {
       <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
         <DialogContent className="max-w-[calc(100vw-40px)] w-full rounded-[2.5rem] p-0 border-none shadow-2xl bg-background overflow-hidden animate-in fade-in zoom-in-95 duration-300">
           <div className="h-24 bg-foreground relative flex items-center justify-center shrink-0">
-            <DialogTitle className="text-xl font-bold text-white relative z-10">Edit trip</DialogTitle>
+            <DialogTitle className="text-xl font-bold text-white relative z-10">Edit trip</DialogTitleEditor>
             <DialogDescription className="sr-only">Update your trip details and participants.</DialogDescription>
             <DialogClose className="absolute right-4 top-4 h-8 w-8 rounded-full flex items-center justify-center bg-white/10 text-white/70 hover:bg-white/20 hover:text-white transition-all z-20">
               <X className="h-5 w-5" />

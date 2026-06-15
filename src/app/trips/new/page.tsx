@@ -149,7 +149,11 @@ export default function CreateTrip() {
     try {
       const friendSnap = await getDoc(doc(firestore!, "users", friendId));
       if (friendSnap.exists()) {
-        familyFromProfile = friendSnap.data().familyMembers || [];
+        const friendData = friendSnap.data();
+        // Check visibility setting - default to true
+        if (friendData.isFamilyPublic !== false) {
+          familyFromProfile = friendData.familyMembers || [];
+        }
       }
     } catch (e) {
       console.warn("Failed to fetch friend family members:", e);
