@@ -40,11 +40,12 @@ export default function Home() {
   useEffect(() => {
     if (!user?.uid || !firestore) return;
 
+    // Ensure user profile has search indexes for discoverability
     const profileData = {
       displayName: user.displayName || "Explorer",
       searchName: (user.displayName || "Explorer").toLowerCase(),
       photoURL: user.photoURL || "",
-      email: user.email || "",
+      email: (user.email || "").toLowerCase(),
       isAnonymous: user.isAnonymous,
       updatedAt: serverTimestamp(),
     };

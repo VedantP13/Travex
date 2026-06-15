@@ -2,7 +2,7 @@
 "use client";
 
 import { useState, useEffect, useMemo } from "react";
-import { Search, MoreVertical, User, UserX, UserPlus, Loader2, Mail, Users as UsersIcon } from "lucide-react";
+import { Search, MoreVertical, User, UserX, UserPlus, Loader2, Mail, Users as UsersIcon, ArrowRight } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -44,6 +44,7 @@ export default function FriendsPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [searchResults, setSearchResults] = useState<any[]>([]);
   const [isSearching, setIsSearching] = useState(false);
+  const [hasSearched, setHasSearched] = useState(false);
   
   const [friends, setFriends] = useState<any[]>([]);
   const [requests, setRequests] = useState<any[]>([]);
@@ -83,77 +84,83 @@ export default function FriendsPage() {
     return () => unsub();
   }, [user?.uid, firestore]);
 
-  // Optimized Search as you type with Prefix Matching and Companion Boosting
+  const handleSearch = async () => {
+    const qry = searchQuery.trim().toLowerCase();
+    if (qry.length < 2) return;
+
+    setIsSearching(true);
+    setHasSearched(true);
+    
+    try {
+      let initialResults: any[] = [];
+      
+      if (qry.includes('@')) {
+        const emailQ = query(
+          collection(firestore, "users"),
+          where("email", "==", qry),
+          limit(10)
+        );
+        const snap = await getDocs(emailQ);
+        initialResults = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+      } else {
+        // Dual-query strategy to find users with and without searchName index
+        const originalQry = searchQuery.trim();
+        
+        const nameQ1 = query(
+          collection(firestore, "users"),
+          where("searchName", ">=", qry),
+          where("searchName", "<=", qry + "\uf8ff"),
+          limit(15)
+        );
+        
+        const nameQ2 = query(
+          collection(firestore, "users"),
+          where("displayName", ">=", originalQry),
+          where("displayName", "<=", originalQry + "\uf8ff"),
+          limit(15)
+        );
+
+        const [snap1, snap2] = await Promise.all([getDocs(nameQ1), getDocs(nameQ2)]);
+        
+        const resultsMap = new Map();
+        [...snap1.docs, ...snap2.docs].forEach(d => {
+          resultsMap.set(d.id, { id: d.id, ...d.data() });
+        });
+        
+        initialResults = Array.from(resultsMap.values());
+      }
+
+      const filteredResults = initialResults
+        .filter(u => u.id !== user?.uid && u.isAnonymous !== true);
+      
+      // Prioritize companions in search results
+      const rankedResults = filteredResults.map(u => ({
+        ...u,
+        isCompanion: companionIds.has(u.id),
+        relevance: companionIds.has(u.id) ? 100 : 0
+      })).sort((a, b) => {
+        if (b.relevance !== a.relevance) return b.relevance - a.relevance;
+        return (a.displayName || "").localeCompare(b.displayName || "");
+      });
+      
+      setSearchResults(rankedResults);
+    } catch (err) {
+      console.error("Search failed:", err);
+    } finally {
+      setIsSearching(false);
+    }
+  };
+
+  // Debounced auto-search
   useEffect(() => {
-    const searchUsers = async () => {
-      const qry = searchQuery.trim().toLowerCase();
-      if (qry.length < 2) {
-        setSearchResults([]);
-        return;
-      }
-      setIsSearching(true);
-      try {
-        let initialResults: any[] = [];
-        
-        if (qry.includes('@')) {
-          const emailQ = query(
-            collection(firestore, "users"),
-            where("email", "==", qry),
-            limit(10)
-          );
-          const snap = await getDocs(emailQ);
-          initialResults = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-        } else {
-          // Robust dual-query strategy to find users with and without searchName index
-          const originalQry = searchQuery.trim();
-          
-          // Query 1: Optimized lowercase index
-          const nameQ1 = query(
-            collection(firestore, "users"),
-            where("searchName", ">=", qry),
-            where("searchName", "<=", qry + "\uf8ff"),
-            limit(10)
-          );
-          
-          // Query 2: Original display name (case-sensitive as typed)
-          const nameQ2 = query(
-            collection(firestore, "users"),
-            where("displayName", ">=", originalQry),
-            where("displayName", "<=", originalQry + "\uf8ff"),
-            limit(10)
-          );
-
-          const [snap1, snap2] = await Promise.all([getDocs(nameQ1), getDocs(nameQ2)]);
-          
-          const resultsMap = new Map();
-          [...snap1.docs, ...snap2.docs].forEach(d => {
-            resultsMap.set(d.id, { id: d.id, ...d.data() });
-          });
-          
-          initialResults = Array.from(resultsMap.values());
-        }
-
-        const filteredResults = initialResults
-          .filter(u => u.id !== user?.uid && u.isAnonymous !== true);
-        
-        // Prioritize companions in search results
-        const rankedResults = filteredResults.map(u => ({
-          ...u,
-          isCompanion: companionIds.has(u.id),
-          relevance: companionIds.has(u.id) ? 100 : 0
-        })).sort((a, b) => b.relevance - a.relevance);
-        
-        setSearchResults(rankedResults);
-      } catch (err) {
-        console.error("Search failed:", err);
-      } finally {
-        setIsSearching(false);
-      }
-    };
-
-    const timeoutId = setTimeout(searchUsers, 500);
+    if (searchQuery.trim().length < 2) {
+      setSearchResults([]);
+      setHasSearched(false);
+      return;
+    }
+    const timeoutId = setTimeout(handleSearch, 600);
     return () => clearTimeout(timeoutId);
-  }, [searchQuery, firestore, user?.uid, companionIds]);
+  }, [searchQuery]);
 
   const handleSendRequest = async (targetUser: any) => {
     if (!user?.uid || !firestore) return;
@@ -180,6 +187,7 @@ export default function FriendsPage() {
       toast({ title: "Request sent", description: `Friend request sent to ${targetUser.displayName}` });
       setSearchQuery("");
       setSearchResults([]);
+      setHasSearched(false);
     } catch (error: any) {
       errorEmitter.emit('permission-error', new FirestorePermissionError({
         path: `/users/${targetUser.id}/requests/${user.uid}`,
@@ -237,55 +245,72 @@ export default function FriendsPage() {
           <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-white/40" />
           <Input 
             placeholder="Search by name or email..." 
-            className="h-14 pl-12 rounded-2xl bg-white/10 border-white/10 shadow-inner focus-visible:ring-accent text-white placeholder:text-white/40 font-semibold"
+            className="h-14 pl-12 pr-12 rounded-2xl bg-white/10 border-white/10 shadow-inner focus-visible:ring-accent text-white placeholder:text-white/40 font-semibold"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
+            onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
           />
-          {isSearching && (
-            <div className="absolute right-4 top-1/2 -translate-y-1/2">
-              <Loader2 className="h-4 w-4 animate-spin text-accent" />
-            </div>
-          )}
+          <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-1">
+            {isSearching ? (
+              <Loader2 className="h-4 w-4 animate-spin text-accent mr-2" />
+            ) : searchQuery.trim().length >= 2 && (
+              <Button 
+                variant="ghost" 
+                size="icon" 
+                className="h-10 w-10 rounded-xl text-accent hover:bg-white/10"
+                onClick={handleSearch}
+              >
+                <ArrowRight className="h-5 w-5" />
+              </Button>
+            )}
+          </div>
         </div>
 
-        {searchResults.length > 0 && (
-          <Card className="mt-4 border-none shadow-xl bg-white rounded-2xl overflow-hidden divide-y animate-in fade-in slide-in-from-top-2 duration-300 text-foreground">
-            {searchResults.map(result => {
-              const isAlreadyFriend = friends.some(f => f.friendId === result.id);
-              return (
-                <div key={result.id} className="p-4 flex items-center justify-between hover:bg-muted/50 transition-colors">
-                  <div className="flex items-center gap-3">
-                    <Avatar className="h-10 w-10 border shadow-sm">
-                      <AvatarImage src={result.photoURL} />
-                      <AvatarFallback className="text-foreground">{result.displayName?.[0]}</AvatarFallback>
-                    </Avatar>
-                    <div className="min-w-0">
-                      <div className="flex items-center gap-2">
-                        <p className="font-bold text-sm truncate">{result.displayName}</p>
-                        {result.isCompanion && (
-                          <Badge className="bg-primary/10 text-primary text-[8px] font-bold px-1.5 h-4 border-none">Companion</Badge>
-                        )}
+        {(searchResults.length > 0 || (hasSearched && !isSearching)) && (
+          <Card className="mt-4 border-none shadow-2xl bg-white rounded-3xl overflow-hidden divide-y animate-in fade-in slide-in-from-top-2 duration-300 text-foreground">
+            {searchResults.length > 0 ? (
+              searchResults.map(result => {
+                const isAlreadyFriend = friends.some(f => f.friendId === result.id);
+                return (
+                  <div key={result.id} className="p-4 flex items-center justify-between hover:bg-muted/30 transition-colors">
+                    <div className="flex items-center gap-3">
+                      <Avatar className="h-11 w-11 border shadow-sm">
+                        <AvatarImage src={result.photoURL} className="object-cover" />
+                        <AvatarFallback className="text-foreground font-bold">{result.displayName?.[0]}</AvatarFallback>
+                      </Avatar>
+                      <div className="min-w-0">
+                        <div className="flex items-center gap-2">
+                          <p className="font-bold text-sm truncate">{result.displayName}</p>
+                          {result.isCompanion && (
+                            <Badge className="bg-primary/10 text-primary text-[8px] font-bold px-1.5 h-4 border-none">Companion</Badge>
+                          )}
+                        </div>
+                        <p className="text-[10px] text-muted-foreground font-medium flex items-center gap-1">
+                          <Mail className="h-2.5 w-2.5" />
+                          {result.email}
+                        </p>
                       </div>
-                      <p className="text-[9px] text-muted-foreground font-medium flex items-center gap-1">
-                        <Mail className="h-2 w-2" />
-                        {result.email}
-                      </p>
                     </div>
+                    <Button 
+                      size="sm" 
+                      className={cn(
+                        "rounded-full h-9 px-4 font-bold text-xs shadow-sm active:scale-95 transition-all",
+                        isAlreadyFriend ? "bg-muted text-muted-foreground hover:bg-muted" : "bg-primary text-white hover:bg-primary/90"
+                      )} 
+                      onClick={() => handleSendRequest(result)}
+                      disabled={isAlreadyFriend}
+                    >
+                      {isAlreadyFriend ? "Connected" : "Add Friend"}
+                    </Button>
                   </div>
-                  <Button 
-                    size="sm" 
-                    className={cn(
-                      "rounded-full h-8 px-4 font-bold text-xs",
-                      isAlreadyFriend ? "bg-muted text-muted-foreground hover:bg-muted" : "bg-primary text-white"
-                    )} 
-                    onClick={() => handleSendRequest(result)}
-                    disabled={isAlreadyFriend}
-                  >
-                    {isAlreadyFriend ? "Friends" : "Add Friend"}
-                  </Button>
-                </div>
-              );
-            })}
+                );
+              })
+            ) : (
+              <div className="p-8 text-center">
+                <p className="text-sm font-bold text-muted-foreground">No explorers found</p>
+                <p className="text-[10px] text-muted-foreground/60 mt-1">Try a different name or email</p>
+              </div>
+            )}
           </Card>
         )}
       </header>
