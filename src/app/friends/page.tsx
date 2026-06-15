@@ -34,8 +34,10 @@ import { useToast } from "@/hooks/use-toast";
 import { errorEmitter } from "@/firebase/error-emitter";
 import { FirestorePermissionError } from "@/firebase/errors";
 import { useTrips } from "@/context/trips-context";
+import { useRouter } from "next/navigation";
 
 export default function FriendsPage() {
+  const router = useRouter();
   const { user } = useUser();
   const firestore = useFirestore();
   const { trips } = useTrips();
@@ -160,7 +162,6 @@ export default function FriendsPage() {
     };
 
     try {
-      // Step A: Send request to recipient and add pending friend for sender
       await setDoc(doc(firestore, "users", targetUser.id, "requests", user.uid), requestData);
       await setDoc(doc(firestore, "users", user.uid, "friends", targetUser.id), friendEntry);
       
@@ -178,7 +179,6 @@ export default function FriendsPage() {
     if (!user?.uid || !firestore) return;
 
     try {
-      // Step B: Set both users to accepted and delete the request
       const myFriendDoc = {
         friendId: request.senderId,
         friendName: request.senderName,
@@ -208,7 +208,6 @@ export default function FriendsPage() {
   const handleDeclineRequest = async (request: any) => {
     if (!user?.uid || !firestore) return;
     try {
-      // Clean up both sides: the request in your inbox and the "pending" entry in the sender's list
       await deleteDoc(doc(firestore, "users", user.uid, "requests", request.senderId));
       await deleteDoc(doc(firestore, "users", request.senderId, "friends", user.uid)).catch(() => {});
       toast({ title: "Request declined" });
@@ -221,11 +220,8 @@ export default function FriendsPage() {
   const handleRemoveFriend = async (friendId: string) => {
     if (!user?.uid || !firestore) return;
     try {
-      // Remove friendship records from both users
       await deleteDoc(doc(firestore, "users", user.uid, "friends", friendId));
       await deleteDoc(doc(firestore, "users", friendId, "friends", user.uid)).catch(() => {});
-      
-      // Also attempt to remove any pending request record if this was a cancellation
       await deleteDoc(doc(firestore, "users", friendId, "requests", user.uid)).catch(() => {});
       
       toast({ title: "Connection removed" });
@@ -424,7 +420,10 @@ export default function FriendsPage() {
                           </Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end" className="rounded-2xl min-w-[160px] p-2">
-                          <DropdownMenuItem className="rounded-xl flex items-center gap-2 cursor-pointer py-2.5 focus:bg-primary/10">
+                          <DropdownMenuItem 
+                            className="rounded-xl flex items-center gap-2 cursor-pointer py-2.5 focus:bg-primary/10"
+                            onClick={() => router.push(`/users/${friend.friendId}`)}
+                          >
                             <User className="h-4 w-4" />
                             <span className="font-medium text-xs">View profile</span>
                           </DropdownMenuItem>
