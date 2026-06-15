@@ -65,8 +65,9 @@ export default function AllTripsPage() {
                 <Card className="overflow-hidden border-none shadow-sm hover:shadow-md transition-all bg-white rounded-[2rem] group">
                   <div className="h-36 w-full relative">
                     <img 
-                      src={getTripImage(trip.name, trip.image)} 
+                      src={getTripImage(trip.name, trip.image, trip.imageHint)} 
                       alt={trip.name} 
+                      data-ai-hint={trip.imageHint || "travel landscape"}
                       className="h-full w-full object-cover group-hover:scale-105 transition-transform duration-500"
                     />
                     <Badge className="absolute top-4 right-4 bg-white/90 text-foreground border-none backdrop-blur-md font-bold text-[10px] shadow-sm">
