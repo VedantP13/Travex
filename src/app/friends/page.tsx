@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Card, CardContent } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 import { BottomNav } from "@/components/bottom-nav";
 import {
   DropdownMenu,
@@ -85,8 +86,8 @@ export default function FriendsPage() {
   // Optimized Search as you type with Prefix Matching and Companion Boosting
   useEffect(() => {
     const searchUsers = async () => {
-      const qry = searchQuery.trim();
-      if (qry.length < 3) {
+      const qry = searchQuery.trim().toLowerCase();
+      if (qry.length < 2) {
         setSearchResults([]);
         return;
       }
@@ -96,17 +97,16 @@ export default function FriendsPage() {
         if (qry.includes('@')) {
           const emailQ = query(
             collection(firestore, "users"),
-            where("email", "==", qry.toLowerCase()),
-            limit(5)
+            where("email", "==", qry),
+            limit(10)
           );
           snap = await getDocs(emailQ);
         } else {
-          // Case-sensitive prefix match (Firestore limitation)
-          // We query for matches that start with the input string
+          // Use searchName (lowercase version of displayName) for case-insensitive prefix matching
           const nameQ = query(
             collection(firestore, "users"),
-            where("displayName", ">=", qry),
-            where("displayName", "<=", qry + "\uf8ff"),
+            where("searchName", ">=", qry),
+            where("searchName", "<=", qry + "\uf8ff"),
             limit(15)
           );
           snap = await getDocs(nameQ);
@@ -114,7 +114,7 @@ export default function FriendsPage() {
 
         const initialResults = snap.docs
           .map(d => ({ id: d.id, ...d.data() }))
-          .filter(u => u.id !== user?.uid && u.isAnonymous !== true && !!(u as any).email);
+          .filter(u => u.id !== user?.uid && u.isAnonymous !== true);
         
         // Prioritize companions in search results
         const rankedResults = initialResults.map(u => ({

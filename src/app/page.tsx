@@ -42,6 +42,7 @@ export default function Home() {
 
     const profileData = {
       displayName: user.displayName || "Explorer",
+      searchName: (user.displayName || "Explorer").toLowerCase(),
       photoURL: user.photoURL || "",
       email: user.email || "",
       isAnonymous: user.isAnonymous,
