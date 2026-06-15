@@ -86,64 +86,51 @@ export default function FriendsPage() {
 
   const handleSearch = async () => {
     const qry = searchQuery.trim().toLowerCase();
+    const originalQry = searchQuery.trim();
     if (qry.length < 2) return;
 
     setIsSearching(true);
     setHasSearched(true);
     
     try {
-      let initialResults: any[] = [];
+      const usersCol = collection(firestore, "users");
       
-      if (qry.includes('@')) {
-        const emailQ = query(
-          collection(firestore, "users"),
-          where("email", "==", qry),
-          limit(10)
-        );
-        const snap = await getDocs(emailQ);
-        initialResults = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-      } else {
-        // Dual-query strategy to find users with and without searchName index
-        const originalQry = searchQuery.trim();
-        
-        const nameQ1 = query(
-          collection(firestore, "users"),
-          where("searchName", ">=", qry),
-          where("searchName", "<=", qry + "\uf8ff"),
-          limit(15)
-        );
-        
-        const nameQ2 = query(
-          collection(firestore, "users"),
-          where("displayName", ">=", originalQry),
-          where("displayName", "<=", originalQry + "\uf8ff"),
-          limit(15)
-        );
+      // We run multiple queries in parallel to cover all discovery vectors
+      const queries = [
+        // 1. Email exact match
+        query(usersCol, where("email", "==", qry), limit(5)),
+        // 2. Email prefix match
+        query(usersCol, where("email", ">=", qry), where("email", "<=", qry + "\uf8ff"), limit(10)),
+        // 3. Display name prefix (case sensitive)
+        query(usersCol, where("displayName", ">=", originalQry), where("displayName", "<=", originalQry + "\uf8ff"), limit(10)),
+        // 4. Search index prefix (case insensitive)
+        query(usersCol, where("searchName", ">=", qry), where("searchName", "<=", qry + "\uf8ff"), limit(10))
+      ];
 
-        const [snap1, snap2] = await Promise.all([getDocs(nameQ1), getDocs(nameQ2)]);
-        
-        const resultsMap = new Map();
-        [...snap1.docs, ...snap2.docs].forEach(d => {
-          resultsMap.set(d.id, { id: d.id, ...d.data() });
+      const snapshots = await Promise.all(queries.map(q => getDocs(q)));
+      const resultsMap = new Map();
+      
+      snapshots.forEach(snap => {
+        snap.forEach(d => {
+          const data = d.data();
+          // Filter out current user and anonymous/guest accounts
+          if (d.id !== user?.uid && !data.isAnonymous) {
+            resultsMap.set(d.id, { id: d.id, ...data });
+          }
         });
-        
-        initialResults = Array.from(resultsMap.values());
-      }
+      });
 
-      const filteredResults = initialResults
-        .filter(u => u.id !== user?.uid && u.isAnonymous !== true);
-      
-      // Prioritize companions in search results
-      const rankedResults = filteredResults.map(u => ({
+      const finalResults = Array.from(resultsMap.values()).map(u => ({
         ...u,
         isCompanion: companionIds.has(u.id),
-        relevance: companionIds.has(u.id) ? 100 : 0
       })).sort((a, b) => {
-        if (b.relevance !== a.relevance) return b.relevance - a.relevance;
+        // Boost companions to the top
+        if (a.isCompanion && !b.isCompanion) return -1;
+        if (!a.isCompanion && b.isCompanion) return 1;
         return (a.displayName || "").localeCompare(b.displayName || "");
       });
       
-      setSearchResults(rankedResults);
+      setSearchResults(finalResults);
     } catch (err) {
       console.error("Search failed:", err);
     } finally {
