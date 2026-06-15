@@ -208,8 +208,11 @@ export default function FriendsPage() {
   const handleDeclineRequest = async (request: any) => {
     if (!user?.uid || !firestore) return;
     try {
+      // 1. Remove request from my inbox
       await deleteDoc(doc(firestore, "users", user.uid, "requests", request.senderId));
+      // 2. Clear pending status from sender's friends list (Handshake)
       await deleteDoc(doc(firestore, "users", request.senderId, "friends", user.uid)).catch(() => {});
+      
       toast({ title: "Request declined" });
     } catch (err) {
       console.error(err);
@@ -220,9 +223,13 @@ export default function FriendsPage() {
   const handleRemoveFriend = async (friendId: string) => {
     if (!user?.uid || !firestore) return;
     try {
+      // 1. Delete from my list
       await deleteDoc(doc(firestore, "users", user.uid, "friends", friendId));
+      // 2. Delete from their list (Handshake)
       await deleteDoc(doc(firestore, "users", friendId, "friends", user.uid)).catch(() => {});
+      // 3. Cleanup any potential requests in either direction
       await deleteDoc(doc(firestore, "users", friendId, "requests", user.uid)).catch(() => {});
+      await deleteDoc(doc(firestore, "users", user.uid, "requests", friendId)).catch(() => {});
       
       toast({ title: "Connection removed" });
     } catch (err) {

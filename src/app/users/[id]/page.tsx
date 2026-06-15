@@ -56,13 +56,25 @@ export default function UserProfilePage() {
     if (!currentUser?.uid || !firestore || !id) return;
     setIsRemoving(true);
     try {
-      await deleteDoc(doc(firestore, "users", currentUser.uid, "friends", id as string));
-      await deleteDoc(doc(firestore, "users", id as string, "friends", currentUser.uid)).catch(() => {});
-      toast({ title: "Friend removed" });
+      const targetId = id as string;
+      
+      // 1. Delete from my friends list
+      await deleteDoc(doc(firestore, "users", currentUser.uid, "friends", targetId));
+      
+      // 2. Delete from their friends list (Handshake)
+      await deleteDoc(doc(firestore, "users", targetId, "friends", currentUser.uid)).catch(() => {});
+      
+      // 3. Delete any pending requests I sent them
+      await deleteDoc(doc(firestore, "users", targetId, "requests", currentUser.uid)).catch(() => {});
+      
+      // 4. Delete any incoming requests they sent me
+      await deleteDoc(doc(firestore, "users", currentUser.uid, "requests", targetId)).catch(() => {});
+
+      toast({ title: "Connection removed" });
       router.push('/friends');
     } catch (err) {
-      console.error(err);
-      toast({ variant: "destructive", title: "Action failed" });
+      console.error("Failed to remove friend:", err);
+      toast({ variant: "destructive", title: "Action failed", description: "Could not remove friend connection." });
     } finally {
       setIsRemoving(false);
     }
@@ -84,8 +96,8 @@ export default function UserProfilePage() {
         <Button variant="ghost" size="icon" onClick={() => router.back()} className="rounded-xl">
           <ArrowLeft className="h-6 w-6" />
         </Button>
-        <h1 className="text-xl font-bold tracking-tight text-foreground">
-          {targetUser?.displayName ? `${targetUser.displayName}'s Profile` : "Explorer Profile"}
+        <h1 className="text-xl font-bold tracking-tight text-foreground truncate">
+          {targetUser?.displayName ? `${targetUser.displayName}'s Profile` : "User Profile"}
         </h1>
       </header>
 
