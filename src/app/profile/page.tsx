@@ -446,7 +446,7 @@ export default function ProfilePage() {
           </div>
         </section>
 
-        {/* Persistent Family Section */}
+        {/* My Family Section */}
         <section className="space-y-4">
           <div className="flex justify-between items-center ml-1">
             <h3 className="text-[11px] font-extrabold text-muted-foreground uppercase tracking-widest">My Family</h3>
@@ -527,7 +527,7 @@ export default function ProfilePage() {
                     <Label className="text-xs font-bold text-foreground">Public visibility</Label>
                     <p className="text-[10px] text-muted-foreground">Allow friends to see your group/family members</p>
                   </div>
-                  <switch 
+                  <Switch 
                     checked={isFamilyPublic} 
                     onCheckedChange={handleToggleFamilyVisibility}
                   />
