@@ -1,9 +1,9 @@
 
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
-import { ArrowLeft, Plus, X, UserPlus, Lightbulb, Loader2, Calendar as CalendarIcon, User, Users, Home } from "lucide-react";
+import { ArrowLeft, Plus, X, UserPlus, Lightbulb, Loader2, Calendar as CalendarIcon, User, Users, Home, Search, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
@@ -12,14 +12,6 @@ import { Label } from "@/components/ui/label";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-  DialogClose,
-} from "@/components/ui/dialog";
-import {
   Popover,
   PopoverContent,
   PopoverTrigger,
@@ -27,11 +19,10 @@ import {
 import { Calendar } from "@/components/ui/calendar";
 import { useToast } from "@/hooks/use-toast";
 import { useFirestore, useUser, useAuth } from "@/firebase";
-import { collection, doc, setDoc, serverTimestamp, onSnapshot } from "firebase/firestore";
+import { collection, doc, setDoc, serverTimestamp, onSnapshot, query, getDocs, getDoc } from "firebase/firestore";
 import { errorEmitter } from "@/firebase/error-emitter";
 import { FirestorePermissionError } from "@/firebase/errors";
 import { getDestinationHint } from "@/ai/flows/get-destination-hint";
-import Link from "next/link";
 import { cn } from "@/lib/utils";
 import { format } from "date-fns";
 import { DateRange } from "react-day-picker";
@@ -43,6 +34,7 @@ type Participant = {
   userId?: string;
   avatar: string;
   familyMembers: string[];
+  suggestedFamily?: string[]; // New: family members found in friend's profile
 };
 
 export default function CreateTrip() {
@@ -63,6 +55,10 @@ export default function CreateTrip() {
   const [newFamilyMemberName, setNewFamilyMemberName] = useState("");
   
   const [firestoreProfile, setFirestoreProfile] = useState<any>(null);
+
+  // Friend Search states
+  const [friendSearchResults, setFriendSearchResults] = useState<any[]>([]);
+  const [isSearchingFriends, setIsSearchingFriends] = useState(false);
 
   // Listen for persistent family members from profile
   useEffect(() => {
@@ -88,7 +84,6 @@ export default function CreateTrip() {
         isUser: true, 
         userId: user.uid,
         avatar: user.photoURL || `https://picsum.photos/seed/${user.uid}/50/50`, 
-        // Auto-fill from profile if this is a fresh setup or me exists but has fewer members
         familyMembers: meExists?.familyMembers?.length ? meExists.familyMembers : savedFamily
       };
 
@@ -97,6 +92,40 @@ export default function CreateTrip() {
       return prev.map(p => p.id === "me" ? me : p);
     });
   }, [user, firestoreProfile]);
+
+  // Search friends logic
+  useEffect(() => {
+    const searchFriends = async () => {
+      if (!user?.uid || !firestore || newParticipantName.trim().length < 2) {
+        setFriendSearchResults([]);
+        return;
+      }
+
+      setIsSearchingFriends(true);
+      try {
+        const qry = newParticipantName.toLowerCase();
+        const friendsRef = collection(firestore, "users", user.uid, "friends");
+        const snap = await getDocs(friendsRef);
+        
+        const results = snap.docs
+          .map(d => ({ id: d.id, ...d.data() }))
+          .filter((f: any) => 
+            f.status === "accepted" && 
+            f.friendName.toLowerCase().includes(qry) &&
+            !participants.some(p => p.userId === f.friendId)
+          );
+        
+        setFriendSearchResults(results);
+      } catch (e) {
+        console.error("Friend search failed:", e);
+      } finally {
+        setIsSearchingFriends(false);
+      }
+    };
+
+    const timeoutId = setTimeout(searchFriends, 300);
+    return () => clearTimeout(timeoutId);
+  }, [newParticipantName, user?.uid, firestore, participants]);
 
   const addParticipant = () => {
     if (!newParticipantName.trim()) return;
@@ -109,6 +138,55 @@ export default function CreateTrip() {
     };
     setParticipants([...participants, newP]);
     setNewParticipantName("");
+    setFriendSearchResults([]);
+  };
+
+  const handleSelectFriend = async (friend: any) => {
+    const friendId = friend.friendId;
+    
+    // Fetch friend's profile to get their family members
+    let familyFromProfile: string[] = [];
+    try {
+      const friendSnap = await getDoc(doc(firestore!, "users", friendId));
+      if (friendSnap.exists()) {
+        familyFromProfile = friendSnap.data().familyMembers || [];
+      }
+    } catch (e) {
+      console.warn("Failed to fetch friend family members:", e);
+    }
+
+    const newP: Participant = {
+      id: friendId,
+      name: friend.friendName,
+      isUser: true,
+      userId: friendId,
+      avatar: friend.friendPhoto || `https://picsum.photos/seed/${friendId}/50/50`,
+      familyMembers: [],
+      suggestedFamily: familyFromProfile
+    };
+
+    setParticipants([...participants, newP]);
+    setNewParticipantName("");
+    setFriendSearchResults([]);
+    
+    if (familyFromProfile.length > 0) {
+      toast({
+        title: `Found ${friend.friendName}'s family`,
+        description: `You can instantly add their ${familyFromProfile.length} family members below.`
+      });
+    }
+  };
+
+  const importFriendFamily = (pid: string) => {
+    setParticipants(prev => prev.map(p => {
+      if (p.id === pid && p.suggestedFamily) {
+        // Merge suggested into actual, unique only
+        const newMembers = Array.from(new Set([...p.familyMembers, ...p.suggestedFamily]));
+        return { ...p, familyMembers: newMembers, suggestedFamily: [] };
+      }
+      return p;
+    }));
+    toast({ title: "Family imported!" });
   };
 
   const removeParticipant = (id: string) => {
@@ -174,7 +252,7 @@ export default function CreateTrip() {
       console.warn("AI destination hint failed. Using default.", aiError);
     }
 
-    const newTripRef = doc(collection(firestore, "trips"));
+    const newTripRef = doc(collection(firestore!, "trips"));
     const tripId = newTripRef.id;
 
     const participantIdsSet = new Set<string>();
@@ -193,7 +271,7 @@ export default function CreateTrip() {
       name: name.trim(),
       date: formattedDate,
       travelMode,
-      participants: participants,
+      participants: participants.map(({ suggestedFamily, ...rest }) => rest),
       participantIds: Array.from(participantIdsSet),
       createdAt: serverTimestamp(),
       status: "Active",
@@ -227,7 +305,7 @@ export default function CreateTrip() {
                 className="h-8 rounded-lg bg-primary text-white border-none font-bold"
                 onClick={async () => {
                   try {
-                    const userRef = doc(firestore, "users", currentUser.uid);
+                    const userRef = doc(firestore!, "users", currentUser.uid);
                     await setDoc(userRef, { familyMembers: myFamily }, { merge: true });
                     toast({ title: "Travel group saved!" });
                   } catch (e) {
@@ -370,17 +448,44 @@ export default function CreateTrip() {
             </div>
             
             {travelMode === 'group' && (
-              <div className="flex gap-2">
-                <Input 
-                  placeholder="Who's coming with you?" 
-                  className="h-12 rounded-xl shadow-sm bg-white font-semibold border-2 border-muted/20"
-                  value={newParticipantName}
-                  onChange={e => setNewParticipantName(e.target.value)}
-                  onKeyDown={e => e.key === 'Enter' && addParticipant()}
-                />
-                <Button size="icon" className="h-12 w-12 rounded-xl shrink-0 bg-primary" onClick={addParticipant}>
-                  <UserPlus className="h-5 w-5" />
-                </Button>
+              <div className="relative">
+                <div className="flex gap-2">
+                  <Input 
+                    placeholder="Search friends or add guest..." 
+                    className="h-12 rounded-xl shadow-sm bg-white font-semibold border-2 border-muted/20 pl-10"
+                    value={newParticipantName}
+                    onChange={e => setNewParticipantName(e.target.value)}
+                    onKeyDown={e => e.key === 'Enter' && addParticipant()}
+                  />
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                  <Button size="icon" className="h-12 w-12 rounded-xl shrink-0 bg-primary" onClick={addParticipant}>
+                    <UserPlus className="h-5 w-5" />
+                  </Button>
+                </div>
+
+                {friendSearchResults.length > 0 && (
+                  <Card className="absolute top-full left-0 right-0 z-30 mt-2 border-none shadow-2xl bg-white rounded-2xl overflow-hidden divide-y animate-in fade-in slide-in-from-top-2 duration-200">
+                    <div className="px-3 py-2 bg-muted/20">
+                      <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">Confirmed Friends</p>
+                    </div>
+                    {friendSearchResults.map((friend) => (
+                      <div 
+                        key={friend.id} 
+                        className="p-3 flex items-center justify-between hover:bg-primary/5 cursor-pointer transition-colors"
+                        onClick={() => handleSelectFriend(friend)}
+                      >
+                        <div className="flex items-center gap-3">
+                          <Avatar className="h-8 w-8">
+                            <AvatarImage src={friend.friendPhoto} />
+                            <AvatarFallback>{friend.friendName[0]}</AvatarFallback>
+                          </Avatar>
+                          <span className="text-sm font-semibold">{friend.friendName}</span>
+                        </div>
+                        <Plus className="h-4 w-4 text-primary" />
+                      </div>
+                    ))}
+                  </Card>
+                )}
               </div>
             )}
 
@@ -396,18 +501,30 @@ export default function CreateTrip() {
             <div className="space-y-4 pt-2">
               {participants.map((p) => {
                 const headName = p.name.replace(" (You)", "");
-                const familyDisplayName = p.isUser ? "Your family" : `${headName}'s family`;
+                const familyDisplayName = p.isUser && p.id === 'me' ? "Your family" : `${headName}'s family`;
+                const hasSuggestions = p.suggestedFamily && p.suggestedFamily.length > 0;
 
                 return (
                   <Card key={p.id} className="rounded-2xl border-none shadow-sm overflow-hidden bg-white">
                     <CardContent className="p-4 space-y-4">
-                      <div className="flex justify-between items-center">
+                      <div className="flex justify-between items-start">
                         <div className="flex items-center gap-3">
                           <Avatar className="h-8 w-8">
                             <AvatarImage src={p.avatar} />
                             <AvatarFallback>{headName[0]}</AvatarFallback>
                           </Avatar>
-                          <span className="font-semibold text-sm tracking-tight">{familyDisplayName}</span>
+                          <div className="space-y-0.5">
+                            <span className="font-semibold text-sm tracking-tight block">{familyDisplayName}</span>
+                            {hasSuggestions && (
+                              <button 
+                                onClick={() => importFriendFamily(p.id)}
+                                className="flex items-center gap-1 text-[10px] font-bold text-accent hover:text-accent/80 transition-colors animate-pulse"
+                              >
+                                <Sparkles className="h-3 w-3 fill-current" />
+                                Import saved members ({p.suggestedFamily?.length})
+                              </button>
+                            )}
+                          </div>
                         </div>
                         {p.id !== "me" && (
                           <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive" onClick={() => removeParticipant(p.id)}>
@@ -461,7 +578,7 @@ export default function CreateTrip() {
                               className="h-7 text-[10px] font-semibold text-primary hover:bg-primary/20 hover:text-primary p-0 px-3 flex items-center gap-1 bg-primary/5 rounded-full transition-colors border border-primary/10"
                               onClick={() => setActiveFamilyMemberInput(p.id)}
                             >
-                              <Plus className="h-3.5 w-3.5" /> Add family member
+                              <Plus className="h-3.5 w-3.5" /> Add member
                             </Button>
                           )}
                         </div>

@@ -31,7 +31,8 @@ import {
   Timer,
   AlertCircle,
   Plane,
-  Box
+  Box,
+  Sparkles
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -39,7 +40,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Card, CardContent } from "@/components/ui/card";
 import { useFirestore, useUser } from "@/firebase";
-import { doc, onSnapshot, collection, query, orderBy, updateDoc, deleteDoc, serverTimestamp } from "firebase/firestore";
+import { doc, onSnapshot, collection, query, orderBy, updateDoc, deleteDoc, serverTimestamp, getDocs, getDoc } from "firebase/firestore";
 import { errorEmitter } from "@/firebase/error-emitter";
 import { FirestorePermissionError } from "@/firebase/errors";
 import { cn } from "@/lib/utils";
@@ -109,6 +110,9 @@ export default function TripDetails() {
   const [activeFamilyMemberInput, setActiveFamilyMemberInput] = useState<string | null>(null);
   const [newFamilyMemberName, setNewFamilyMemberName] = useState("");
   
+  const [friendSearchResults, setFriendSearchResults] = useState<any[]>([]);
+  const [isSearchingFriends, setIsSearchingFriends] = useState(false);
+
   const [isSaving, setIsSaving] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
@@ -160,6 +164,40 @@ export default function TripDetails() {
     };
   }, [id, firestore, router]);
 
+  // Friend Search logic for Edit Dialog
+  useEffect(() => {
+    const searchFriends = async () => {
+      if (!user?.uid || !firestore || !isEditDialogOpen || newParticipantName.trim().length < 2) {
+        setFriendSearchResults([]);
+        return;
+      }
+
+      setIsSearchingFriends(true);
+      try {
+        const qry = newParticipantName.toLowerCase();
+        const friendsRef = collection(firestore, "users", user.uid, "friends");
+        const snap = await getDocs(friendsRef);
+        
+        const results = snap.docs
+          .map(d => ({ id: d.id, ...d.data() }))
+          .filter((f: any) => 
+            f.status === "accepted" && 
+            f.friendName.toLowerCase().includes(qry) &&
+            !editParticipants.some(p => p.userId === f.friendId)
+          );
+        
+        setFriendSearchResults(results);
+      } catch (e) {
+        console.error("Friend search failed:", e);
+      } finally {
+        setIsSearchingFriends(false);
+      }
+    };
+
+    const timeoutId = setTimeout(searchFriends, 300);
+    return () => clearTimeout(timeoutId);
+  }, [newParticipantName, user?.uid, firestore, isEditDialogOpen, editParticipants]);
+
   const handleAddParticipant = () => {
     if (!newParticipantName.trim()) return;
     const newP = {
@@ -171,11 +209,51 @@ export default function TripDetails() {
     };
     setEditParticipants([...editParticipants, newP]);
     setNewParticipantName("");
+    setFriendSearchResults([]);
+  };
+
+  const handleSelectFriend = async (friend: any) => {
+    const friendId = friend.friendId;
+    
+    let familyFromProfile: string[] = [];
+    try {
+      const friendSnap = await getDoc(doc(firestore!, "users", friendId));
+      if (friendSnap.exists()) {
+        familyFromProfile = friendSnap.data().familyMembers || [];
+      }
+    } catch (e) {
+      console.warn("Failed to fetch friend family members:", e);
+    }
+
+    const newP = {
+      id: friendId,
+      name: friend.friendName,
+      isUser: true,
+      userId: friendId,
+      avatar: friend.friendPhoto || `https://picsum.photos/seed/${friendId}/50/50`,
+      familyMembers: [],
+      suggestedFamily: familyFromProfile
+    };
+
+    setEditParticipants([...editParticipants, newP]);
+    setNewParticipantName("");
+    setFriendSearchResults([]);
+  };
+
+  const importFriendFamily = (pid: string) => {
+    setEditParticipants(prev => prev.map(p => {
+      if (p.id === pid && p.suggestedFamily) {
+        const newMembers = Array.from(new Set([...p.familyMembers, ...p.suggestedFamily]));
+        return { ...p, familyMembers: newMembers, suggestedFamily: [] };
+      }
+      return p;
+    }));
+    toast({ title: "Family imported!" });
   };
 
   const handleRemoveParticipant = (pid: string) => {
     const p = editParticipants.find(part => part.id === pid);
-    if (p?.isUser) {
+    if (p?.isUser && p.userId === user?.uid) {
       toast({ title: "Cannot remove yourself", variant: "destructive" });
       return;
     }
@@ -245,11 +323,17 @@ export default function TripDetails() {
         : format(editDateRange.from, "d MMM")
     ) : trip.date;
 
+    const participantIdsSet = new Set<string>();
+    editParticipants.forEach(p => {
+      if (p.isUser && p.userId) participantIdsSet.add(p.userId);
+    });
+
     const updateData = {
       name: editName.trim(),
       date: formattedDate,
       status: editStatus,
-      participants: editParticipants,
+      participants: editParticipants.map(({ suggestedFamily, ...rest }) => rest),
+      participantIds: Array.from(participantIdsSet),
       updatedAt: serverTimestamp()
     };
 
@@ -706,36 +790,75 @@ export default function TripDetails() {
                   </span>
                 </div>
                 
-                <div className="flex gap-2">
-                  <Input 
-                    placeholder="Add friend..." 
-                    className="h-12 rounded-xl shadow-sm bg-white font-semibold text-sm border-2 border-muted/20"
-                    value={newParticipantName}
-                    onChange={e => setNewParticipantName(e.target.value)}
-                    onKeyDown={e => e.key === 'Enter' && handleAddParticipant()}
-                  />
-                  <Button size="icon" className="h-12 w-12 rounded-xl shrink-0 bg-primary" onClick={handleAddParticipant}>
-                    <UserPlus className="h-5 w-5" />
-                  </Button>
+                <div className="relative">
+                  <div className="flex gap-2">
+                    <Input 
+                      placeholder="Search friends or add guest..." 
+                      className="h-12 rounded-xl shadow-sm bg-white font-semibold text-sm border-2 border-muted/20 pl-10"
+                      value={newParticipantName}
+                      onChange={e => setNewParticipantName(e.target.value)}
+                      onKeyDown={e => e.key === 'Enter' && handleAddParticipant()}
+                    />
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                    <Button size="icon" className="h-12 w-12 rounded-xl shrink-0 bg-primary" onClick={handleAddParticipant}>
+                      <UserPlus className="h-5 w-5" />
+                    </Button>
+                  </div>
+
+                  {friendSearchResults.length > 0 && (
+                    <Card className="absolute top-full left-0 right-0 z-30 mt-2 border-none shadow-2xl bg-white rounded-2xl overflow-hidden divide-y animate-in fade-in slide-in-from-top-2 duration-200">
+                      <div className="px-3 py-2 bg-muted/20">
+                        <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">Confirmed Friends</p>
+                      </div>
+                      {friendSearchResults.map((friend) => (
+                        <div 
+                          key={friend.id} 
+                          className="p-3 flex items-center justify-between hover:bg-primary/5 cursor-pointer transition-colors"
+                          onClick={() => handleSelectFriend(friend)}
+                        >
+                          <div className="flex items-center gap-3">
+                            <Avatar className="h-8 w-8">
+                              <AvatarImage src={friend.friendPhoto} />
+                              <AvatarFallback>{friend.friendName[0]}</AvatarFallback>
+                            </Avatar>
+                            <span className="text-sm font-semibold">{friend.friendName}</span>
+                          </div>
+                          <Plus className="h-4 w-4 text-primary" />
+                        </div>
+                      ))}
+                    </Card>
+                  )}
                 </div>
 
                 <div className="space-y-4 pt-2">
                   {editParticipants.map((p) => {
                     const headName = p.name.replace(" (You)", "");
-                    const familyDisplayName = p.isUser ? "Your family" : `${headName}'s family`;
+                    const familyDisplayName = p.isUser && p.userId === user?.uid ? "Your family" : `${headName}'s family`;
+                    const hasSuggestions = p.suggestedFamily && p.suggestedFamily.length > 0;
 
                     return (
                       <Card key={p.id} className="rounded-2xl border-none shadow-sm overflow-hidden bg-white/50">
                         <CardContent className="p-4 space-y-4">
-                          <div className="flex justify-between items-center">
+                          <div className="flex justify-between items-start">
                             <div className="flex items-center gap-3">
                               <Avatar className="h-8 w-8">
                                 <AvatarImage src={p.avatar} />
                                 <AvatarFallback>{headName[0]}</AvatarFallback>
                               </Avatar>
-                              <span className="font-semibold text-sm tracking-tight">{familyDisplayName}</span>
+                              <div className="space-y-0.5">
+                                <span className="font-semibold text-sm tracking-tight block">{familyDisplayName}</span>
+                                {hasSuggestions && (
+                                  <button 
+                                    onClick={() => importFriendFamily(p.id)}
+                                    className="flex items-center gap-1 text-[10px] font-bold text-accent hover:text-accent/80 transition-colors animate-pulse"
+                                  >
+                                    <Sparkles className="h-3 w-3 fill-current" />
+                                    Import saved members ({p.suggestedFamily?.length})
+                                  </button>
+                                )}
+                              </div>
                             </div>
-                            {!p.isUser && (
+                            {(!p.isUser || p.userId !== user?.uid) && (
                               <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive" onClick={() => handleRemoveParticipant(p.id)}>
                                 <X className="h-4 w-4" />
                               </Button>
