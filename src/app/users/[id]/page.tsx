@@ -6,7 +6,6 @@ import { useParams, useRouter } from "next/navigation";
 import { 
   ArrowLeft, 
   Mail, 
-  Shield, 
   MapPin, 
   UserX, 
   Loader2,
@@ -115,15 +114,6 @@ export default function UserProfilePage() {
                 <div>
                   <p className="text-[10px] text-muted-foreground font-bold uppercase mb-0.5">Contact</p>
                   <p className="text-sm font-bold">{targetUser?.email || "Email hidden"}</p>
-                </div>
-              </div>
-              <div className="flex items-center gap-4">
-                <div className="h-10 w-10 rounded-xl bg-muted flex items-center justify-center text-muted-foreground">
-                  <Shield className="h-5 w-5" />
-                </div>
-                <div>
-                  <p className="text-[10px] text-muted-foreground font-bold uppercase mb-0.5">Status</p>
-                  <p className="text-sm font-bold">Verified Member</p>
                 </div>
               </div>
             </CardContent>
