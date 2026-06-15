@@ -201,16 +201,20 @@ export default function FriendsPage() {
       toast({ title: "Friends connected!", description: `You are now friends with ${request.senderName}` });
     } catch (error: any) {
        console.error(error);
+       toast({ variant: "destructive", title: "Action failed", description: "Could not accept request." });
     }
   };
 
-  const handleDeclineRequest = async (requestId: string) => {
+  const handleDeclineRequest = async (request: any) => {
     if (!user?.uid || !firestore) return;
     try {
-      await deleteDoc(doc(firestore, "users", user.uid, "requests", requestId));
+      // Clean up both sides: the request in your inbox and the "pending" entry in the sender's list
+      await deleteDoc(doc(firestore, "users", user.uid, "requests", request.senderId));
+      await deleteDoc(doc(firestore, "users", request.senderId, "friends", user.uid));
       toast({ title: "Request declined" });
     } catch (err) {
       console.error(err);
+      toast({ variant: "destructive", title: "Action failed", description: "Could not decline request." });
     }
   };
 
@@ -222,6 +226,7 @@ export default function FriendsPage() {
       toast({ title: "Friend removed" });
     } catch (err) {
       console.error(err);
+      toast({ variant: "destructive", title: "Action failed", description: "Could not remove friend." });
     }
   };
 
@@ -333,7 +338,7 @@ export default function FriendsPage() {
                         size="sm" 
                         variant="ghost" 
                         className="h-8 rounded-lg px-3 text-muted-foreground"
-                        onClick={() => handleDeclineRequest(request.id)}
+                        onClick={() => handleDeclineRequest(request)}
                       >
                         Decline
                       </Button>

@@ -13,28 +13,28 @@ service cloud.firestore {
       allow write: if request.auth.uid == userId;
       
       match /friends/{friendId} {
-        allow read, write: if request.auth.uid == userId;
+        // You can read and write your own friends list
+        // OR a friend can write/delete their specific entry in your list to handle request handshakes
+        allow read: if request.auth.uid == userId;
+        allow write: if request.auth.uid == userId || request.auth.uid == friendId;
       }
       match /requests/{requestId} {
+        // You can read/write your own requests
+        // OR the sender (requestId) can write to your requests to send an invitation
         allow read, write: if request.auth.uid == userId || request.auth.uid == requestId;
       }
     }
 
     // Trips rules
     match /trips/{tripId} {
-      // Creation rule: User must be authenticated and must be the creator.
-      // We rely on the participantIds list for subsequent access.
       allow create: if isAuthenticated() && 
                     request.resource.data.createdBy == request.auth.uid;
       
-      // Allow read/delete/update if user is a participant
       allow read, delete, update: if isAuthenticated() && 
         resource.data != null && 
         request.auth.uid in resource.data.participantIds;
 
-      // Expenses subcollection
       match /expenses/{expenseId} {
-        // Use get() to check the parent trip's participants
         allow read, write: if isAuthenticated() && 
           request.auth.uid in get(/databases/$(database)/documents/trips/$(tripId)).data.participantIds;
       }
