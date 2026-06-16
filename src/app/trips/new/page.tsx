@@ -278,6 +278,7 @@ export default function CreateTrip() {
       participants: participants.map(({ suggestedFamily, ...rest }) => rest),
       participantIds: Array.from(participantIdsSet),
       createdAt: serverTimestamp(),
+      updatedAt: serverTimestamp(),
       status: "Active",
       totalSpent: 0,
       yourBalance: 0,

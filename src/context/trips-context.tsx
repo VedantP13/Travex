@@ -27,10 +27,11 @@ export function TripsProvider({ children }: { children: ReactNode }) {
     }
     
     // Query ONLY trips where the current user is a participant
+    // Sorted by updatedAt to show most recent activity at the top
     const q = query(
       collection(firestore, "trips"), 
       where("participantIds", "array-contains", user.uid),
-      orderBy("createdAt", "desc")
+      orderBy("updatedAt", "desc")
     );
     
     const unsubscribe = onSnapshot(

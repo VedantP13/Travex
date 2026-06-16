@@ -8,6 +8,7 @@
       "properties": {
         "name": { "type": "string" },
         "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" },
         "date": { "type": "string", "description": "The planned date or date range of the trip." },
         "status": { "type": "string", "enum": ["Active", "Completed", "Upcoming"] },
         "totalSpent": { "type": "number", "default": 0 },

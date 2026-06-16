@@ -301,7 +301,8 @@ export default function AddExpenseWizard() {
     const newDefault = isCurrentlyDefault ? null : modeId;
     
     updateDoc(doc(firestore, "trips", selectedTripId), {
-      defaultSplitType: newDefault
+      defaultSplitType: newDefault,
+      updatedAt: serverTimestamp()
     }).then(() => {
       toast({
         title: newDefault ? "Preference saved" : "Preference removed",
@@ -348,11 +349,16 @@ export default function AddExpenseWizard() {
             : `Successfully added ₹${amount.toFixed(2)} to ${currentTrip?.name}.`
         });
         
+        const tripUpdate: any = {
+          totalSpent: increment(amount),
+          updatedAt: serverTimestamp()
+        };
+
         if (currentTrip?.status === 'Upcoming') {
-          updateDoc(doc(firestore, "trips", selectedTripId), {
-            status: 'Active'
-          }).catch(() => {});
+          tripUpdate.status = 'Active';
         }
+
+        updateDoc(doc(firestore, "trips", selectedTripId), tripUpdate).catch(() => {});
 
         router.push(`/trips/${selectedTripId}`);
       })
@@ -365,10 +371,6 @@ export default function AddExpenseWizard() {
         errorEmitter.emit('permission-error', permissionError);
         setIsPosting(false);
       });
-
-    updateDoc(doc(firestore, "trips", selectedTripId), {
-      totalSpent: increment(amount)
-    }).catch(() => {});
   };
 
   const handleAddCustomCategory = async () => {
@@ -382,7 +384,8 @@ export default function AddExpenseWizard() {
     const updated = [...existing, trimmed];
     try {
       await updateDoc(doc(firestore, "trips", selectedTripId), {
-        customCategories: updated
+        customCategories: updated,
+        updatedAt: serverTimestamp()
       });
       setNewCategoryName("");
       toast({ title: "Category added" });
@@ -397,7 +400,8 @@ export default function AddExpenseWizard() {
     const updated = existing.filter((c: string) => c !== catName);
     try {
       await updateDoc(doc(firestore, "trips", selectedTripId), {
-        customCategories: updated
+        customCategories: updated,
+        updatedAt: serverTimestamp()
       });
       toast({ title: "Category removed" });
     } catch (e) {
