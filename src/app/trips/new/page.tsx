@@ -3,7 +3,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
-import { ArrowLeft, Plus, X, UserPlus, Lightbulb, Loader2, Calendar as CalendarIcon, User, Users, Home, Search, Sparkles } from "lucide-react";
+import { ArrowLeft, Plus, X, UserPlus, Lightbulb, Loader2, Calendar as CalendarIcon, User, Users, Home, Search, Sparkles, AlertCircle, CheckCircle2, Archive, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
@@ -16,13 +16,24 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { Calendar } from "@/components/ui/calendar";
 import { useToast } from "@/hooks/use-toast";
 import { useFirestore, useUser, useAuth } from "@/firebase";
-import { collection, doc, setDoc, serverTimestamp, onSnapshot, query, getDocs, getDoc } from "firebase/firestore";
+import { collection, doc, setDoc, updateDoc, serverTimestamp, onSnapshot, query, getDocs, getDoc } from "firebase/firestore";
 import { errorEmitter } from "@/firebase/error-emitter";
 import { FirestorePermissionError } from "@/firebase/errors";
 import { getDestinationHint } from "@/ai/flows/get-destination-hint";
+import { useTrips } from "@/context/trips-context";
 import { cn } from "@/lib/utils";
 import { format } from "date-fns";
 import { DateRange } from "react-day-picker";
@@ -43,6 +54,7 @@ export default function CreateTrip() {
   const firestore = useFirestore();
   const auth = useAuth();
   const { user } = useUser();
+  const { trips, loading: tripsLoading } = useTrips();
   
   const [travelMode, setTravelMode] = useState<'solo' | 'family' | 'group'>('group');
   const [name, setName] = useState("");
@@ -59,6 +71,10 @@ export default function CreateTrip() {
   // Friend Search states
   const [friendSearchResults, setFriendSearchResults] = useState<any[]>([]);
   const [isSearchingFriends, setIsSearchingFriends] = useState(false);
+
+  // Active Nudge states
+  const [nudgeTrip, setNudgeTrip] = useState<any>(null);
+  const [hasInteractedWithNudge, setHasInteractedWithNudge] = useState(false);
 
   // Listen for persistent family members from profile
   useEffect(() => {
@@ -93,6 +109,25 @@ export default function CreateTrip() {
     });
   }, [user, firestoreProfile]);
 
+  // Phase 4 Logic: Check for active trips when entering New Trip flow
+  useEffect(() => {
+    if (tripsLoading || !trips.length || hasInteractedWithNudge) return;
+
+    // Smart Prioritization:
+    // 1. First, look for an Active trip that has already ended (Past Due)
+    const endedTrip = trips.find(t => {
+      if (t.status !== 'Active' || !t.endDate) return false;
+      return new Date(t.endDate) < new Date();
+    });
+
+    // 2. Fallback to any active trip
+    const anyActive = trips.find(t => t.status === 'Active');
+
+    if (endedTrip || anyActive) {
+      setNudgeTrip(endedTrip || anyActive);
+    }
+  }, [trips, tripsLoading, hasInteractedWithNudge]);
+
   // Search friends logic
   useEffect(() => {
     const searchFriends = async () => {
@@ -126,6 +161,26 @@ export default function CreateTrip() {
     const timeoutId = setTimeout(searchFriends, 300);
     return () => clearTimeout(timeoutId);
   }, [newParticipantName, user?.uid, firestore, participants]);
+
+  const handleUpdateStatusAndContinue = async (status: 'Completed' | 'Settled') => {
+    if (!nudgeTrip || !firestore) return;
+    
+    try {
+      await updateDoc(doc(firestore, "trips", nudgeTrip.id), {
+        status,
+        updatedAt: serverTimestamp()
+      });
+      toast({ 
+        title: `Trip marked as ${status}`,
+        description: status === 'Settled' ? "Dashboard totals updated." : "Organized!"
+      });
+      setNudgeTrip(null);
+      setHasInteractedWithNudge(true);
+    } catch (e) {
+      console.error(e);
+      toast({ variant: "destructive", title: "Action failed" });
+    }
+  };
 
   const addParticipant = () => {
     if (!newParticipantName.trim()) return;
@@ -614,6 +669,67 @@ export default function CreateTrip() {
           ) : travelMode === 'solo' ? "Start solo trip" : "Create trip group"}
         </Button>
       </footer>
+
+      {/* Interstitial Smart Nudge Dialog */}
+      <AlertDialog open={!!nudgeTrip} onOpenChange={(open) => !open && setHasInteractedWithNudge(true)}>
+        <AlertDialogContent className="max-w-[calc(100vw-40px)] w-full rounded-[2.5rem] p-0 border-none shadow-2xl bg-white overflow-hidden animate-in fade-in zoom-in-95 duration-300">
+          <div className="h-48 bg-foreground relative flex flex-col items-center justify-center overflow-hidden">
+             <div className="absolute inset-0 opacity-10">
+               <svg className="h-full w-full" viewBox="0 0 100 100" preserveAspectRatio="none">
+                 <path d="M0 0 L100 0 L100 100 L0 100 Z" fill="url(#grad)" />
+                 <defs><linearGradient id="grad" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stopColor="white" /><stop offset="100%" stopColor="transparent" /></linearGradient></defs>
+               </svg>
+             </div>
+             <div className="relative z-10 flex flex-col items-center text-center px-6">
+                <div className="h-16 w-16 rounded-full bg-accent/20 flex items-center justify-center mb-4">
+                  <AlertCircle className="h-8 w-8 text-accent animate-pulse" />
+                </div>
+                <h2 className="text-xl font-bold text-white tracking-tight">Active adventure found</h2>
+             </div>
+          </div>
+
+          <div className="p-8 text-center space-y-6">
+            <div className="space-y-3">
+              <AlertDialogTitle className="text-lg font-bold text-foreground leading-tight">
+                Is <span className="text-primary underline underline-offset-4 decoration-2">"{nudgeTrip?.name}"</span> still ongoing?
+              </AlertDialogTitle>
+              <AlertDialogDescription className="text-sm font-medium leading-relaxed text-muted-foreground px-2">
+                We noticed you have an active trip. Completing finished trips keeps your dashboard totals accurate and hassle-free.
+              </AlertDialogDescription>
+            </div>
+
+            <div className="grid gap-3 pt-2">
+              <Button 
+                className="w-full h-12 rounded-xl bg-primary text-white font-bold text-sm gap-2 shadow-lg shadow-primary/20 hover:scale-[1.02] active:scale-95 transition-all"
+                onClick={() => handleUpdateStatusAndContinue('Completed')}
+              >
+                <CheckCircle2 className="h-4 w-4" />
+                Mark as Completed
+              </Button>
+              <Button 
+                variant="outline"
+                className="w-full h-12 rounded-xl border-2 border-accent/20 text-accent hover:bg-accent/5 font-bold text-sm gap-2"
+                onClick={() => handleUpdateStatusAndContinue('Settled')}
+              >
+                <Archive className="h-4 w-4" />
+                Mark as Settled
+              </Button>
+              <div className="pt-2">
+                <Button 
+                  variant="ghost" 
+                  className="w-full h-10 rounded-xl font-semibold text-muted-foreground text-xs hover:bg-muted"
+                  onClick={() => {
+                    setNudgeTrip(null);
+                    setHasInteractedWithNudge(true);
+                  }}
+                >
+                  It's still ongoing, start new trip <ChevronRight className="h-3 w-3 ml-1" />
+                </Button>
+              </div>
+            </div>
+          </div>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
