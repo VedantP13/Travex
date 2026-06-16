@@ -42,7 +42,8 @@ import {
   ChevronDown,
   CreditCard,
   Tag,
-  MoreHorizontal
+  MoreHorizontal,
+  Calculator
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -587,7 +588,6 @@ export default function TripDetails() {
     if (!selectedExpenseDetail || !trip?.participants) return [];
     
     const amount = parseFloat(selectedExpenseDetail.amount);
-    const groups: any[] = [];
     
     const participantsMap = new Map();
     trip.participants.forEach((p: any) => {
@@ -1162,9 +1162,9 @@ export default function TripDetails() {
       </Dialog>
 
       <Dialog open={!!selectedExpenseDetail} onOpenChange={(open) => !open && setSelectedExpenseDetail(null)}>
-        <DialogContent className="max-w-[calc(100vw-40px)] w-full rounded-[2.5rem] p-0 border-none shadow-2xl bg-white overflow-hidden animate-in fade-in zoom-in-95 duration-300">
+        <DialogContent className="max-w-[calc(100vw-40px)] w-full rounded-[2.5rem] p-0 border-none shadow-2xl bg-white overflow-hidden animate-in fade-in zoom-in-95 duration-300 [&>button]:hidden">
           <DialogHeader className="sr-only">
-            <DialogTitle>Expense Details</DialogTitle>
+            <DialogTitle>Expense details</DialogTitle>
             <DialogDescription>View the full breakdown and split for this trip expense.</DialogDescription>
           </DialogHeader>
           {selectedExpenseDetail && (
@@ -1173,17 +1173,13 @@ export default function TripDetails() {
                 "h-48 relative flex flex-col items-center justify-center overflow-hidden pt-6",
                 getCategoryColor(selectedExpenseDetail.category)
               )}>
-                <DialogClose className="absolute left-6 top-6 h-9 w-9 rounded-full flex items-center justify-center bg-black/5 text-foreground/40 hover:bg-black/10 transition-all z-20 border border-black/5">
-                  <X className="h-4 w-4" />
-                </DialogClose>
-                
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" size="icon" className="absolute right-6 top-6 h-9 w-9 rounded-full bg-black/5 text-foreground/40 hover:bg-black/10 border border-black/5">
+                    <Button variant="ghost" size="icon" className="absolute left-6 top-6 h-9 w-9 rounded-full bg-black/5 text-foreground/40 hover:bg-black/10 transition-all border border-black/5 z-20">
                       <MoreHorizontal className="h-4 w-4" />
                     </Button>
                   </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end" className="rounded-2xl p-1 border-none shadow-xl bg-white min-w-[140px]">
+                  <DropdownMenuContent align="start" className="rounded-2xl p-1 border-none shadow-xl bg-white min-w-[140px]">
                     <DropdownMenuItem className="rounded-xl py-2 px-3 font-semibold text-xs flex items-center gap-2" disabled>
                       <Pencil className="h-3.5 w-3.5" /> Edit expense
                     </DropdownMenuItem>
@@ -1196,6 +1192,10 @@ export default function TripDetails() {
                   </DropdownMenuContent>
                 </DropdownMenu>
 
+                <DialogClose className="absolute right-6 top-6 h-9 w-9 rounded-full flex items-center justify-center bg-black/5 text-foreground/40 hover:bg-black/10 transition-all z-20 border border-black/5">
+                  <X className="h-4 w-4" />
+                </DialogClose>
+                
                 <div className="relative z-10 flex flex-col items-center text-center px-4">
                   <div className="h-12 w-12 rounded-2xl bg-white/40 backdrop-blur-md flex items-center justify-center mb-3 shadow-sm border border-white/20">
                     {(() => {
@@ -1212,27 +1212,33 @@ export default function TripDetails() {
 
               <ScrollArea className="max-h-[50vh] relative">
                 <div className="px-6 py-8 space-y-8">
-                  <div className="grid grid-cols-2 gap-y-6 gap-x-8 max-w-[320px]">
+                  <div className="grid grid-cols-2 gap-y-6 gap-x-8">
                     <div className="space-y-1">
-                      <Label className="text-[10px] font-bold text-muted-foreground/50 uppercase tracking-widest flex items-center gap-1.5">
-                        <User className="h-2.5 w-2.5" /> Payer
+                      <Label className="text-[10px] font-bold text-muted-foreground/50 flex items-center gap-1.5">
+                        <User className="h-2.5 w-2.5" /> Paid by
                       </Label>
                       <p className="text-xs font-bold text-foreground">{selectedExpenseDetail.payerName}</p>
                     </div>
                     <div className="space-y-1">
-                      <Label className="text-[10px] font-bold text-muted-foreground/50 uppercase tracking-widest flex items-center gap-1.5">
+                      <Label className="text-[10px] font-bold text-muted-foreground/50 flex items-center gap-1.5">
                         <CalendarIcon className="h-2.5 w-2.5" /> Date
                       </Label>
                       <p className="text-xs font-bold text-foreground">{friendlyDate(selectedExpenseDetail.date)}</p>
                     </div>
                     <div className="space-y-1">
-                      <Label className="text-[10px] font-bold text-muted-foreground/50 uppercase tracking-widest flex items-center gap-1.5">
+                      <Label className="text-[10px] font-bold text-muted-foreground/50 flex items-center gap-1.5">
                         <Tag className="h-2.5 w-2.5" /> Category
                       </Label>
                       <p className="text-xs font-bold text-foreground">{selectedExpenseDetail.category}</p>
                     </div>
                     <div className="space-y-1">
-                      <Label className="text-[10px] font-bold text-muted-foreground/50 uppercase tracking-widest flex items-center gap-1.5">
+                      <Label className="text-[10px] font-bold text-muted-foreground/50 flex items-center gap-1.5">
+                        <Calculator className="h-2.5 w-2.5" /> Split type
+                      </Label>
+                      <p className="text-xs font-bold text-foreground capitalize">{selectedExpenseDetail.splitType?.replace('_', ' ') || 'Standard'}</p>
+                    </div>
+                    <div className="space-y-1">
+                      <Label className="text-[10px] font-bold text-muted-foreground/50 flex items-center gap-1.5">
                         <CreditCard className="h-2.5 w-2.5" /> Method
                       </Label>
                       <p className="text-xs font-bold text-foreground">{selectedExpenseDetail.paymentType || 'Other'}</p>
@@ -1241,21 +1247,21 @@ export default function TripDetails() {
 
                   <div className="space-y-4">
                     <div className="flex justify-between items-end border-b border-muted/20 pb-3">
-                      <Label className="text-[10px] font-bold text-muted-foreground/50 uppercase tracking-widest">Split breakdown</Label>
+                      <Label className="text-[10px] font-bold text-muted-foreground/50">Split breakdown</Label>
                     </div>
 
                     <div className="space-y-3 pb-4">
                       {selectedExpenseDetail.splitType === 'unsplit' ? (
                         <div className="py-8 bg-accent/5 rounded-3xl border-2 border-dashed border-accent/10 flex flex-col items-center justify-center text-center px-6">
                            <Timer className="h-7 w-7 text-accent/60 mb-2" />
-                           <p className="text-xs font-bold text-foreground">Draft Expense</p>
+                           <p className="text-xs font-bold text-foreground">Draft expense</p>
                            <p className="text-[10px] text-muted-foreground mt-0.5 leading-relaxed">This hasn't been split yet.</p>
                            <Button 
                              size="sm" 
                              className="mt-4 rounded-xl bg-accent text-accent-foreground font-bold h-8 text-[10px] px-5"
                              onClick={() => router.push(`/trips/${id}/expenses/${selectedExpenseDetail.id}/split`)}
                            >
-                             Finalize Split
+                             Finalize split
                            </Button>
                         </div>
                       ) : (
@@ -1298,10 +1304,10 @@ export default function TripDetails() {
               <div className="p-6 bg-muted/5 border-t">
                 <Button 
                   variant="outline" 
-                  className="w-full h-14 rounded-2xl font-bold text-muted-foreground text-xs hover:bg-muted border-2 border-muted/20 tracking-widest uppercase transition-all active:scale-95"
+                  className="w-full h-14 rounded-2xl font-bold text-muted-foreground transition-all active:scale-95"
                   onClick={() => setSelectedExpenseDetail(null)}
                 >
-                  Close Details
+                  Close details
                 </Button>
               </div>
             </>
