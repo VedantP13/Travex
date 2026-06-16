@@ -35,7 +35,8 @@ import {
   Archive,
   TrendingUp,
   TrendingDown,
-  Info
+  Info,
+  ArrowRight
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -431,6 +432,50 @@ export default function TripDetails() {
     }).sort((a: any, b: any) => b.netTotal - a.netTotal);
   }, [trip?.participants, trip?.netBalances]);
 
+  // Phase 7: Suggested Payments Logic
+  const suggestedPayments = useMemo(() => {
+    if (groupedStandings.length === 0) return [];
+
+    // Filter debtors and creditors
+    const debtors = groupedStandings
+      .filter(s => s.netTotal < -0.01)
+      .map(s => ({ name: s.name, avatar: s.avatar, balance: Math.abs(s.netTotal) }));
+    
+    const creditors = groupedStandings
+      .filter(s => s.netTotal > 0.01)
+      .map(s => ({ name: s.name, avatar: s.avatar, balance: s.netTotal }));
+
+    const transactions: any[] = [];
+    let dIdx = 0;
+    let cIdx = 0;
+
+    // Use cloned lists for processing
+    const dList = JSON.parse(JSON.stringify(debtors));
+    const cList = JSON.parse(JSON.stringify(creditors));
+
+    while (dIdx < dList.length && cIdx < cList.length) {
+      const d = dList[dIdx];
+      const c = cList[cIdx];
+      const amount = Math.min(d.balance, c.balance);
+
+      transactions.push({
+        from: d.name,
+        fromAvatar: d.avatar,
+        to: c.name,
+        toAvatar: c.avatar,
+        amount: amount
+      });
+
+      d.balance -= amount;
+      c.balance -= amount;
+
+      if (d.balance < 0.01) dIdx++;
+      if (c.balance < 0.01) cIdx++;
+    }
+
+    return transactions;
+  }, [groupedStandings]);
+
   const isPastDue = useMemo(() => {
     if (!trip || trip.status !== 'Active' || !trip.endDate) return false;
     const today = new Date();
@@ -708,6 +753,44 @@ export default function TripDetails() {
                     <p className="text-lg font-bold">₹{Math.abs(groupedStandings.reduce((acc, s) => s.netTotal < 0 ? acc + s.netTotal : acc, 0)).toFixed(2)}</p>
                   </div>
                 </div>
+
+                {/* Phase 7: Suggested Payments Card */}
+                {suggestedPayments.length > 0 && (
+                  <div className="space-y-3 animate-in fade-in slide-in-from-bottom-2 duration-500">
+                    <h2 className="text-xs font-semibold text-accent tracking-widest px-1 uppercase">How to settle up</h2>
+                    <Card className="border-none shadow-xl bg-accent/5 rounded-[2rem] overflow-hidden border-2 border-dashed border-accent/20">
+                      <CardContent className="p-6 space-y-4">
+                        {suggestedPayments.map((p, idx) => (
+                          <div key={idx} className="flex items-center justify-between gap-4 bg-white/60 backdrop-blur-sm p-3 rounded-2xl border border-white shadow-sm">
+                            <div className="flex items-center gap-2 min-w-0 flex-1">
+                              <Avatar className="h-8 w-8 border shadow-sm">
+                                <AvatarImage src={p.fromAvatar} />
+                                <AvatarFallback className="text-[10px] font-bold">{p.from[0]}</AvatarFallback>
+                              </Avatar>
+                              <p className="text-xs font-bold truncate">{p.from.split(' ')[0]}</p>
+                            </div>
+                            
+                            <div className="flex flex-col items-center gap-1 shrink-0">
+                               <p className="text-[10px] font-extrabold text-accent">₹{p.amount.toFixed(0)}</p>
+                               <ArrowRight className="h-3 w-3 text-accent/40" strokeWidth={3} />
+                            </div>
+
+                            <div className="flex items-center gap-2 min-w-0 flex-1 justify-end">
+                              <p className="text-xs font-bold truncate">{p.to.split(' ')[0]}</p>
+                              <Avatar className="h-8 w-8 border shadow-sm">
+                                <AvatarImage src={p.toAvatar} />
+                                <AvatarFallback className="text-[10px] font-bold">{p.to[0]}</AvatarFallback>
+                              </Avatar>
+                            </div>
+                          </div>
+                        ))}
+                        <p className="text-[9px] text-center text-muted-foreground/60 font-medium px-4">
+                          Follow these transfers to bring everyone's balance to zero efficiently.
+                        </p>
+                      </CardContent>
+                    </Card>
+                  </div>
+                )}
 
                 <h2 className="text-xs font-semibold text-foreground/60 tracking-widest px-1 uppercase mb-2">Net standing</h2>
                 <div className="grid gap-3">
