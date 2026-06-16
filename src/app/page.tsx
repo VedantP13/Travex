@@ -7,13 +7,12 @@ import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { PlaceHolderImages } from "@/lib/placeholder-images";
 import { cn } from "@/lib/utils";
 import { BottomNav } from "@/components/bottom-nav";
 import { AnimatedCompass } from "@/components/animated-compass";
 import { useTrips } from "@/context/trips-context";
 import { useUser, useFirestore } from "@/firebase";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { doc, onSnapshot, setDoc, serverTimestamp } from "firebase/firestore";
 import { getTripImage } from "@/lib/image-utils";
 
@@ -40,8 +39,6 @@ export default function Home() {
   useEffect(() => {
     if (!user?.uid || !firestore) return;
 
-    // Ensure user profile has search indexes for discoverability
-    // Use the assigned displayName (which might be a random Explorer name for guests)
     const profileData = {
       displayName: user.displayName || (user.isAnonymous ? "Guest Explorer" : "Explorer"),
       searchName: (user.displayName || (user.isAnonymous ? "guest explorer" : "explorer")).toLowerCase(),
@@ -59,6 +56,27 @@ export default function Home() {
     });
     return () => unsub();
   }, [user?.uid, firestore, user?.displayName, user?.photoURL, user?.email, user?.isAnonymous]);
+
+  // Phase 3: Aggregate Balances Logic
+  const { totalOwe, totalOwed } = useMemo(() => {
+    return trips.reduce((acc, trip) => {
+      if (trip.status === 'Settled') return acc;
+
+      const me = trip.participants?.find((p: any) => p.isUser && p.userId === user?.uid);
+      if (!me) return acc;
+
+      // Net Balance = (User's personal balance) + (Sum of family member balances)
+      let balance = trip.netBalances?.[me.id] || 0;
+      me.familyMembers?.forEach((fm: string) => {
+        balance += (trip.netBalances?.[`${me.id}-${fm}`] || 0);
+      });
+
+      if (balance < 0) acc.totalOwe += Math.abs(balance);
+      if (balance > 0) acc.totalOwed += balance;
+
+      return acc;
+    }, { totalOwe: 0, totalOwed: 0 });
+  }, [trips, user?.uid]);
 
   const activeTrip = trips.find(t => t.status === "Active") || trips[0];
   const isAnonymous = user?.isAnonymous;
@@ -106,14 +124,14 @@ export default function Home() {
               <p className="text-[10px] font-medium text-white/40 mb-1">You owe</p>
               <div className="flex items-baseline font-bold text-xl tracking-tight text-white">
                 <span className="font-bold">₹</span>
-                <span className="font-bold">0.00</span>
+                <span className="font-bold">{totalOwe.toFixed(2)}</span>
               </div>
             </div>
             <div className="bg-accent/10 backdrop-blur-md p-5 rounded-3xl border border-accent/20">
               <p className="text-[10px] font-medium text-accent/60 mb-1">Owed to you</p>
               <div className="flex items-baseline font-bold text-xl tracking-tight text-accent">
                 <span className="font-bold">₹</span>
-                <span className="font-bold">0.00</span>
+                <span className="font-bold">{totalOwed.toFixed(2)}</span>
               </div>
             </div>
           </div>
@@ -233,60 +251,72 @@ export default function Home() {
           </div>
         ) : (
           <div className="grid gap-5">
-            {trips.length > 0 ? trips.slice(0, 3).map((trip) => (
-              <Link key={trip.id} href={`/trips/${trip.id}`}>
-                <Card className="overflow-hidden border-none shadow-sm hover:shadow-md transition-all bg-white rounded-[2rem] group">
-                  <div className="h-36 w-full relative">
-                    <img 
-                      src={getTripImage(trip.name, trip.image, trip.imageHint)} 
-                      alt={trip.name} 
-                      data-ai-hint={trip.imageHint || "travel landscape"}
-                      className="h-full w-full object-cover group-hover:scale-105 transition-transform duration-500"
-                    />
-                    <Badge className={cn(
-                      "absolute top-4 right-4 text-foreground border-none backdrop-blur-md font-bold text-[10px] shadow-sm px-3",
-                      trip.status === 'Active' ? 'bg-accent/90' : 'bg-white/90'
-                    )}>
-                      {trip.status || "Upcoming"}
-                    </Badge>
-                  </div>
-                  <CardHeader className="p-5 space-y-1">
-                    <div className="flex justify-between items-start">
-                      <CardTitle className="text-lg font-bold">{trip.name}</CardTitle>
-                      <div className="flex -space-x-1.5 bg-muted/40 p-1.5 rounded-full">
-                        {trip.participants?.slice(0, 3).map((p: any, idx: number) => (
-                          <Avatar key={idx} className="h-4 w-4 border border-white shadow-sm">
-                            <AvatarImage src={p.avatar} />
-                            <AvatarFallback className="text-[6px] bg-primary text-white font-bold">{p.name?.[0]}</AvatarFallback>
-                          </Avatar>
-                        ))}
+            {trips.length > 0 ? trips.slice(0, 3).map((trip) => {
+              // Per-trip balance calculation for user (+ family)
+              const me = trip.participants?.find((p: any) => p.isUser && p.userId === user?.uid);
+              let balance = 0;
+              if (me) {
+                balance = trip.netBalances?.[me.id] || 0;
+                me.familyMembers?.forEach((fm: string) => {
+                  balance += (trip.netBalances?.[`${me.id}-${fm}`] || 0);
+                });
+              }
+
+              return (
+                <Link key={trip.id} href={`/trips/${trip.id}`}>
+                  <Card className="overflow-hidden border-none shadow-sm hover:shadow-md transition-all bg-white rounded-[2rem] group">
+                    <div className="h-36 w-full relative">
+                      <img 
+                        src={getTripImage(trip.name, trip.image, trip.imageHint)} 
+                        alt={trip.name} 
+                        data-ai-hint={trip.imageHint || "travel landscape"}
+                        className="h-full w-full object-cover group-hover:scale-105 transition-transform duration-500"
+                      />
+                      <Badge className={cn(
+                        "absolute top-4 right-4 text-foreground border-none backdrop-blur-md font-bold text-[10px] shadow-sm px-3",
+                        trip.status === 'Active' ? 'bg-accent/90' : 'bg-white/90'
+                      )}>
+                        {trip.status || "Upcoming"}
+                      </Badge>
+                    </div>
+                    <CardHeader className="p-5 space-y-1">
+                      <div className="flex justify-between items-start">
+                        <CardTitle className="text-lg font-bold">{trip.name}</CardTitle>
+                        <div className="flex -space-x-1.5 bg-muted/40 p-1.5 rounded-full">
+                          {trip.participants?.slice(0, 3).map((p: any, idx: number) => (
+                            <Avatar key={idx} className="h-4 w-4 border border-white shadow-sm">
+                              <AvatarImage src={p.avatar} />
+                              <AvatarFallback className="text-[6px] bg-primary text-white font-bold">{p.name?.[0]}</AvatarFallback>
+                            </Avatar>
+                          ))}
+                        </div>
+                      </div>
+                      <CardDescription className="text-xs font-medium text-muted-foreground">{trip.date || "Ready for departure"}</CardDescription>
+                    </CardHeader>
+                    <div className="px-5 pb-5 pt-0 flex justify-between items-center">
+                      <div>
+                        <p className="text-[9px] text-muted-foreground font-bold uppercase tracking-widest mb-0.5">Total spent</p>
+                        <p className="text-base font-bold text-foreground">
+                          <span className="font-bold">₹</span>
+                          <span className="font-bold">{(trip.totalSpent || 0).toFixed(2)}</span>
+                        </p>
+                      </div>
+                      <div className="text-right">
+                        <p className="text-[9px] text-muted-foreground font-bold uppercase tracking-widest mb-0.5">Your balance</p>
+                        <p className={cn(
+                          "text-base font-bold",
+                          balance < 0 ? "text-destructive" : balance > 0 ? "text-primary" : "text-muted-foreground"
+                        )}>
+                          {balance < 0 ? "-" : balance > 0 ? "+" : ""}
+                          <span className="font-bold">₹</span>
+                          <span className="font-bold">{Math.abs(balance).toFixed(2)}</span>
+                        </p>
                       </div>
                     </div>
-                    <CardDescription className="text-xs font-medium text-muted-foreground">{trip.date || "Ready for departure"}</CardDescription>
-                  </CardHeader>
-                  <div className="px-5 pb-5 pt-0 flex justify-between items-center">
-                    <div>
-                      <p className="text-[9px] text-muted-foreground font-bold uppercase tracking-widest mb-0.5">Total spent</p>
-                      <p className="text-base font-bold text-foreground">
-                        <span className="font-bold">₹</span>
-                        <span className="font-bold">{(trip.totalSpent || 0).toFixed(2)}</span>
-                      </p>
-                    </div>
-                    <div className="text-right">
-                      <p className="text-[9px] text-muted-foreground font-bold uppercase tracking-widest mb-0.5">Your balance</p>
-                      <p className={cn(
-                        "text-base font-bold",
-                        (trip.yourBalance || 0) < 0 ? "text-destructive" : "text-primary"
-                      )}>
-                        {(trip.yourBalance || 0) < 0 ? "-" : "+"}
-                        <span className="font-bold">₹</span>
-                        <span className="font-bold">{Math.abs(trip.yourBalance || 0).toFixed(2)}</span>
-                      </p>
-                    </div>
-                  </div>
-                </Card>
-              </Link>
-            )) : (
+                  </Card>
+                </Link>
+              );
+            }) : (
               <div className="text-center py-14 bg-white rounded-[2rem] border-2 border-dashed border-muted/50 px-10">
                  <div className="h-14 w-14 bg-muted/20 rounded-full flex items-center justify-center mx-auto mb-5 shadow-sm">
                    <Plus className="h-6 w-6 text-muted-foreground/40" />

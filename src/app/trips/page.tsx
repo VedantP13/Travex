@@ -1,6 +1,7 @@
+
 "use client";
 
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { ArrowLeft, Plus, Users, Search } from "lucide-react";
@@ -14,15 +15,19 @@ import { AnimatedCompass } from "@/components/animated-compass";
 import { useTrips } from "@/context/trips-context";
 import { getTripImage } from "@/lib/image-utils";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { useUser } from "@/firebase";
 
 export default function AllTripsPage() {
   const router = useRouter();
   const { trips, loading, error } = useTrips();
+  const { user } = useUser();
   const [searchQuery, setSearchQuery] = useState("");
 
-  const filteredTrips = trips.filter(t => 
-    t.name.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  const filteredTrips = useMemo(() => {
+    return trips.filter(t => 
+      t.name.toLowerCase().includes(searchQuery.toLowerCase())
+    );
+  }, [trips, searchQuery]);
 
   return (
     <div className="max-w-md mx-auto min-h-screen flex flex-col bg-background pb-32">
@@ -58,57 +63,69 @@ export default function AllTripsPage() {
           </div>
         ) : filteredTrips.length > 0 ? (
           <div className="grid gap-5">
-            {filteredTrips.map((trip) => (
-              <Link key={trip.id} href={`/trips/${trip.id}`}>
-                <Card className="overflow-hidden border-none shadow-sm hover:shadow-md transition-all bg-white rounded-[2rem] group">
-                  <div className="h-36 w-full relative">
-                    <img 
-                      src={getTripImage(trip.name, trip.image, trip.imageHint)} 
-                      alt={trip.name} 
-                      data-ai-hint={trip.imageHint || "travel landscape"}
-                      className="h-full w-full object-cover group-hover:scale-105 transition-transform duration-500"
-                    />
-                    <Badge className="absolute top-4 right-4 bg-white/90 text-foreground border-none backdrop-blur-md font-bold text-[10px] shadow-sm">
-                      {trip.status || "Upcoming"}
-                    </Badge>
-                  </div>
-                  <CardHeader className="p-5 space-y-1">
-                    <div className="flex justify-between items-start">
-                      <CardTitle className="text-lg font-bold">{trip.name}</CardTitle>
-                      <div className="flex -space-x-1.5 bg-muted/40 p-1.5 rounded-full">
-                        {trip.participants?.slice(0, 3).map((p: any, idx: number) => (
-                          <Avatar key={idx} className="h-4 w-4 border border-white shadow-sm">
-                            <AvatarImage src={p.avatar} />
-                            <AvatarFallback className="text-[6px] bg-primary text-white font-bold">{p.name?.[0]}</AvatarFallback>
-                          </Avatar>
-                        ))}
+            {filteredTrips.map((trip) => {
+              // Per-trip balance calculation (+ family)
+              const me = trip.participants?.find((p: any) => p.isUser && p.userId === user?.uid);
+              let balance = 0;
+              if (me) {
+                balance = trip.netBalances?.[me.id] || 0;
+                me.familyMembers?.forEach((fm: string) => {
+                  balance += (trip.netBalances?.[`${me.id}-${fm}`] || 0);
+                });
+              }
+
+              return (
+                <Link key={trip.id} href={`/trips/${trip.id}`}>
+                  <Card className="overflow-hidden border-none shadow-sm hover:shadow-md transition-all bg-white rounded-[2rem] group">
+                    <div className="h-36 w-full relative">
+                      <img 
+                        src={getTripImage(trip.name, trip.image, trip.imageHint)} 
+                        alt={trip.name} 
+                        data-ai-hint={trip.imageHint || "travel landscape"}
+                        className="h-full w-full object-cover group-hover:scale-105 transition-transform duration-500"
+                      />
+                      <Badge className="absolute top-4 right-4 bg-white/90 text-foreground border-none backdrop-blur-md font-bold text-[10px] shadow-sm">
+                        {trip.status || "Upcoming"}
+                      </Badge>
+                    </div>
+                    <CardHeader className="p-5 space-y-1">
+                      <div className="flex justify-between items-start">
+                        <CardTitle className="text-lg font-bold">{trip.name}</CardTitle>
+                        <div className="flex -space-x-1.5 bg-muted/40 p-1.5 rounded-full">
+                          {trip.participants?.slice(0, 3).map((p: any, idx: number) => (
+                            <Avatar key={idx} className="h-4 w-4 border border-white shadow-sm">
+                              <AvatarImage src={p.avatar} />
+                              <AvatarFallback className="text-[6px] bg-primary text-white font-bold">{p.name?.[0]}</AvatarFallback>
+                            </Avatar>
+                          ))}
+                        </div>
+                      </div>
+                      <CardDescription className="text-xs font-medium text-muted-foreground">{trip.date || "Just created"}</CardDescription>
+                    </CardHeader>
+                    <div className="px-5 pb-5 pt-0 flex justify-between items-center">
+                      <div>
+                        <p className="text-[10px] text-muted-foreground font-bold mb-1 uppercase tracking-wider">Total spent</p>
+                        <p className="text-base font-bold text-foreground">
+                          <span className="font-bold">₹</span>
+                          <span className="font-bold">{(trip.totalSpent || 0).toFixed(2)}</span>
+                        </p>
+                      </div>
+                      <div className="text-right">
+                        <p className="text-[10px] text-muted-foreground font-bold mb-1 uppercase tracking-wider">Your balance</p>
+                        <p className={cn(
+                          "text-base font-bold",
+                          balance < 0 ? "text-destructive" : balance > 0 ? "text-primary" : "text-muted-foreground"
+                        )}>
+                          {balance < 0 ? "-" : balance > 0 ? "+" : ""}
+                          <span className="font-bold">₹</span>
+                          <span className="font-bold">{Math.abs(balance).toFixed(2)}</span>
+                        </p>
                       </div>
                     </div>
-                    <CardDescription className="text-xs font-medium text-muted-foreground">{trip.date || "Just created"}</CardDescription>
-                  </CardHeader>
-                  <div className="px-5 pb-5 pt-0 flex justify-between items-center">
-                    <div>
-                      <p className="text-[10px] text-muted-foreground font-bold mb-1 uppercase tracking-wider">Total spent</p>
-                      <p className="text-base font-bold text-foreground">
-                        <span className="font-bold">₹</span>
-                        <span className="font-bold">{(trip.totalSpent || 0).toFixed(2)}</span>
-                      </p>
-                    </div>
-                    <div className="text-right">
-                      <p className="text-[10px] text-muted-foreground font-bold mb-1 uppercase tracking-wider">Your share</p>
-                      <p className={cn(
-                        "text-base font-bold",
-                        (trip.yourBalance || 0) < 0 ? "text-destructive" : "text-primary"
-                      )}>
-                        {(trip.yourBalance || 0) < 0 ? "-" : "+"}
-                        <span className="font-bold">₹</span>
-                        <span className="font-bold">{Math.abs(trip.yourBalance || 0).toFixed(2)}</span>
-                      </p>
-                    </div>
-                  </div>
-                </Card>
-              </Link>
-            ))}
+                  </Card>
+                </Link>
+              );
+            })}
           </div>
         ) : (
           <div className="text-center py-14 bg-white rounded-[2rem] border-2 border-dashed border-muted/50 px-10">
