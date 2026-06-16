@@ -270,10 +270,13 @@ export default function CreateTrip() {
         ? `${format(dateRange.from, "d MMM")} - ${format(dateRange.to, "d MMM")}` 
         : format(dateRange.from, "d MMM")
     ) : null;
+
+    const endDate = dateRange?.to ? dateRange.to.toISOString() : (dateRange?.from ? dateRange.from.toISOString() : null);
     
     const tripData = {
       name: name.trim(),
       date: formattedDate,
+      endDate: endDate,
       travelMode,
       participants: participants.map(({ suggestedFamily, ...rest }) => rest),
       participantIds: Array.from(participantIdsSet),

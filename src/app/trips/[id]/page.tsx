@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useMemo } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { 
   ArrowLeft, 
@@ -39,6 +39,7 @@ import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Card, CardContent } from "@/components/ui/card";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import { useFirestore, useUser } from "@/firebase";
 import { doc, onSnapshot, collection, query, orderBy, updateDoc, deleteDoc, serverTimestamp, getDocs, getDoc } from "firebase/firestore";
 import { errorEmitter } from "@/firebase/error-emitter";
@@ -291,7 +292,7 @@ export default function TripDetails() {
     setIsUploading(true);
     
     const tripRef = doc(firestore, "trips", id as string);
-    updateDoc(tripRef, { image: stagedCoverImage })
+    updateDoc(tripRef, { image: stagedCoverImage, updatedAt: serverTimestamp() })
       .then(() => {
         toast({ title: "Cover updated" });
         setIsImagePickerOpen(false);
@@ -327,6 +328,10 @@ export default function TripDetails() {
         : format(editDateRange.from, "d MMM")
     ) : trip.date;
 
+    const endDate = editDateRange?.to 
+      ? editDateRange.to.toISOString() 
+      : (editDateRange?.from ? editDateRange.from.toISOString() : (trip.endDate || null));
+
     const participantIdsSet = new Set<string>();
     editParticipants.forEach(p => {
       if (p.isUser && p.userId) participantIdsSet.add(p.userId);
@@ -335,6 +340,7 @@ export default function TripDetails() {
     const updateData = {
       name: editName.trim(),
       date: formattedDate,
+      endDate: endDate,
       status: editStatus,
       participants: editParticipants.map(({ suggestedFamily, ...rest }) => rest),
       participantIds: Array.from(participantIdsSet),
@@ -356,6 +362,24 @@ export default function TripDetails() {
       .finally(() => setIsSaving(false));
   };
 
+  const handleUpdateStatus = async (newStatus: string) => {
+    if (!id || !firestore) return;
+    const tripRef = doc(firestore, "trips", id as string);
+    
+    updateDoc(tripRef, { 
+      status: newStatus,
+      updatedAt: serverTimestamp() 
+    }).then(() => {
+      toast({ title: `Trip marked as ${newStatus}` });
+    }).catch(async (error) => {
+      errorEmitter.emit('permission-error', new FirestorePermissionError({
+        path: tripRef.path,
+        operation: 'update',
+        requestResourceData: { status: newStatus }
+      }));
+    });
+  };
+
   const handleDeleteTrip = async () => {
     if (!id || !firestore) return;
     setIsDeleting(true);
@@ -374,6 +398,14 @@ export default function TripDetails() {
         setIsDeleting(false);
       });
   };
+
+  const isPastDue = useMemo(() => {
+    if (!trip || trip.status !== 'Active' || !trip.endDate) return false;
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const end = new Date(trip.endDate);
+    return end < today;
+  }, [trip]);
 
   const getCategoryIcon = (cat: string) => {
     switch (cat) {
@@ -514,6 +546,29 @@ export default function TripDetails() {
       </div>
 
       <div className="px-safe-pad pt-8 flex-1">
+        {isPastDue && (
+          <div className="mb-6 animate-in fade-in slide-in-from-top-2 duration-500">
+            <Alert className="bg-primary/5 border-primary/20 rounded-2xl flex items-center justify-between py-4 shadow-sm">
+              <div className="flex gap-3 items-center">
+                <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
+                  <CheckCircle2 className="h-5 w-5 text-primary" />
+                </div>
+                <div>
+                  <p className="text-xs font-bold text-foreground leading-tight">Trip ended on {trip.date?.split('-')[1] || trip.date}</p>
+                  <p className="text-[10px] text-muted-foreground font-medium">Mark this adventure as completed?</p>
+                </div>
+              </div>
+              <Button 
+                size="sm" 
+                className="rounded-xl bg-primary text-white font-bold h-8 text-[10px] px-3 shadow-md active:scale-95 transition-all"
+                onClick={() => handleUpdateStatus('Completed')}
+              >
+                Mark Done
+              </Button>
+            </Alert>
+          </div>
+        )}
+
         <Tabs defaultValue="feed" className="w-full">
           <TabsList className="grid w-full grid-cols-2 h-14 bg-white p-1.5 rounded-2xl shadow-inner border border-muted/20">
             <TabsTrigger 
@@ -696,7 +751,7 @@ export default function TripDetails() {
       <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
         <DialogContent className="max-w-[calc(100vw-40px)] w-full rounded-[2.5rem] p-0 border-none shadow-2xl bg-background overflow-hidden animate-in fade-in zoom-in-95 duration-300">
           <div className="h-24 bg-foreground relative flex items-center justify-center shrink-0">
-            <DialogTitle className="text-xl font-bold text-white relative z-10">Edit trip</DialogTitleEditor>
+            <DialogTitle className="text-xl font-bold text-white relative z-10">Edit trip</DialogTitle>
             <DialogDescription className="sr-only">Update your trip details and participants.</DialogDescription>
             <DialogClose className="absolute right-4 top-4 h-8 w-8 rounded-full flex items-center justify-center bg-white/10 text-white/70 hover:bg-white/20 hover:text-white transition-all z-20">
               <X className="h-5 w-5" />

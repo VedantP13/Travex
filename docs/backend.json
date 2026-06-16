@@ -10,6 +10,7 @@
         "createdAt": { "type": "string", "format": "date-time" },
         "updatedAt": { "type": "string", "format": "date-time" },
         "date": { "type": "string", "description": "The planned date or date range of the trip." },
+        "endDate": { "type": "string", "format": "date-time", "description": "The ISO string of the trip's end date for smart logic." },
         "status": { "type": "string", "enum": ["Active", "Completed", "Upcoming", "Settled"] },
         "totalSpent": { "type": "number", "default": 0 },
         "yourBalance": { "type": "number", "default": 0 },
