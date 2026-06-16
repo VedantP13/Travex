@@ -26,7 +26,7 @@ import { Switch } from "@/components/ui/switch";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
 import { useFirestore } from "@/firebase";
-import { doc, updateDoc, onSnapshot, serverTimestamp } from "firebase/firestore";
+import { doc, updateDoc, onSnapshot, serverTimestamp, getDoc } from "firebase/firestore";
 import { AnimatedCompass } from "@/components/animated-compass";
 import { errorEmitter } from "@/firebase/error-emitter";
 import { FirestorePermissionError } from "@/firebase/errors";
@@ -132,15 +132,16 @@ export default function CompleteSplitPage() {
     return Object.values(formData.customAmounts).reduce((acc, val) => acc + (parseFloat(val) || 0), 0);
   }, [formData.customAmounts]);
 
-  const handleSaveSplit = () => {
+  const handleSaveSplit = async () => {
     if (!firestore || !tripId || !expenseId || !expense) return;
 
+    const amount = parseFloat(expense.amount);
     if (formData.splitType === 'custom') {
-      const diff = Math.abs(expense.amount - customSum);
+      const diff = Math.abs(amount - customSum);
       if (diff > 0.01) {
         toast({ 
           title: "Amounts don't match", 
-          description: `Sum (₹${customSum.toFixed(2)}) must equal Total (₹${expense.amount.toFixed(2)}).`,
+          description: `Sum (₹${customSum.toFixed(2)}) must equal Total (₹${amount.toFixed(2)}).`,
           variant: "destructive" 
         });
         return;
@@ -154,19 +155,61 @@ export default function CompleteSplitPage() {
       updatedAt: serverTimestamp()
     };
 
-    updateDoc(expenseRef, updateData)
-      .then(() => {
-        toast({ title: "Split finalized!", description: "The expense has been successfully divided." });
-        router.push(`/trips/${tripId}`);
-      })
-      .catch(async (error) => {
-        errorEmitter.emit('permission-error', new FirestorePermissionError({
-          path: expenseRef.path,
-          operation: 'update',
-          requestResourceData: updateData,
-        }));
-        setIsPosting(false);
+    try {
+      // Calculate Balance Deltas
+      const deltas: Record<string, number> = {};
+      const payerId = expense.payerId;
+      const selected = formData.selectedIndividuals;
+      
+      if (formData.splitType === 'custom') {
+        selected.forEach(id => {
+          const share = parseFloat(formData.customAmounts[id]) || 0;
+          deltas[id] = (deltas[id] || 0) - share;
+        });
+      } else if (formData.splitType === 'equal_person') {
+        const share = amount / selected.length;
+        selected.forEach(id => {
+          deltas[id] = (deltas[id] || 0) - share;
+        });
+      } else if (formData.splitType === 'equal_family') {
+        const familyIds = Array.from(new Set(selected.map(id => id.split('-')[0])));
+        const sharePerFamily = amount / familyIds.length;
+        familyIds.forEach(fid => {
+          deltas[fid] = (deltas[fid] || 0) - sharePerFamily;
+        });
+      } else if (formData.splitType === 'just_me') {
+        deltas[payerId] = (deltas[payerId] || 0) - amount;
+      }
+
+      // Add credit for payer
+      deltas[payerId] = (deltas[payerId] || 0) + amount;
+
+      await updateDoc(expenseRef, updateData);
+      
+      const tripRef = doc(firestore, "trips", tripId as string);
+      const tripSnap = await getDoc(tripRef);
+      const currentBalances = tripSnap.data()?.netBalances || {};
+      
+      const newBalances = { ...currentBalances };
+      Object.entries(deltas).forEach(([id, delta]) => {
+        newBalances[id] = (newBalances[id] || 0) + delta;
       });
+
+      await updateDoc(tripRef, {
+        netBalances: newBalances,
+        updatedAt: serverTimestamp()
+      });
+
+      toast({ title: "Split finalized!", description: "The expense has been successfully divided." });
+      router.push(`/trips/${tripId}`);
+    } catch (error: any) {
+      errorEmitter.emit('permission-error', new FirestorePermissionError({
+        path: expenseRef.path,
+        operation: 'update',
+        requestResourceData: updateData,
+      }));
+      setIsPosting(false);
+    }
   };
 
   const toggleSelection = (targetId: string) => {

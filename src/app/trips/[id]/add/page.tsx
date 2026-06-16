@@ -44,7 +44,7 @@ import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { suggestExpenseCategory } from "@/ai/flows/suggest-expense-category";
 import { useToast } from "@/hooks/use-toast";
 import { useFirestore, useUser } from "@/firebase";
-import { collection, addDoc, doc, updateDoc, increment, serverTimestamp, onSnapshot } from "firebase/firestore";
+import { collection, addDoc, doc, updateDoc, increment, serverTimestamp, onSnapshot, getDoc } from "firebase/firestore";
 import { useTrips } from "@/context/trips-context";
 import { AnimatedCompass } from "@/components/animated-compass";
 import { errorEmitter } from "@/firebase/error-emitter";
@@ -313,15 +313,18 @@ export default function AddExpenseWizard() {
     }).catch(err => console.error("Failed to save default:", err));
   };
 
-  const handlePostExpense = (overrideSplitType?: string) => {
+  const handlePostExpense = async (overrideSplitType?: string) => {
     if (!selectedTripId || !formData.amount || !formData.description || !firestore) return;
     
-    if (formData.splitType === 'custom' && !formData.isItemized && !overrideSplitType) {
-      const diff = Math.abs(parseFloat(formData.amount) - customSum);
+    const amount = parseFloat(formData.amount);
+    const finalSplitType = overrideSplitType || formData.splitType;
+
+    if (finalSplitType === 'custom' && !formData.isItemized) {
+      const diff = Math.abs(amount - customSum);
       if (diff > 0.01) {
         toast({ 
           title: "Amounts don't match", 
-          description: `The sum of custom amounts (₹${customSum.toFixed(2)}) must equal the total amount (₹${parseFloat(formData.amount).toFixed(2)}).`,
+          description: `The sum of custom amounts (₹${customSum.toFixed(2)}) must equal the total amount (₹${amount.toFixed(2)}).`,
           variant: "destructive" 
         });
         return;
@@ -330,47 +333,89 @@ export default function AddExpenseWizard() {
 
     setIsPosting(true);
     
-    const amount = parseFloat(formData.amount);
     const expenseRef = collection(firestore, "trips", selectedTripId, "expenses");
     const expenseData = {
       ...formData,
       amount: amount,
-      splitType: overrideSplitType || formData.splitType,
+      splitType: finalSplitType,
       createdAt: serverTimestamp(),
       addedBy: user?.uid
     };
 
-    addDoc(expenseRef, expenseData)
-      .then(() => {
-        toast({
-          title: overrideSplitType === 'unsplit' ? "Saved as draft" : "Expense posted!",
-          description: overrideSplitType === 'unsplit' 
-            ? "Expense saved. You can split it later from the trip dashboard."
-            : `Successfully added ₹${amount.toFixed(2)} to ${currentTrip?.name}.`
-        });
+    try {
+      // Calculate Balance Deltas for the Math Engine
+      const deltas: Record<string, number> = {};
+      if (finalSplitType !== 'unsplit') {
+        const payers = [formData.payerId];
+        const selected = formData.selectedIndividuals;
         
-        const tripUpdate: any = {
-          totalSpent: increment(amount),
-          updatedAt: serverTimestamp()
-        };
-
-        if (currentTrip?.status === 'Upcoming') {
-          tripUpdate.status = 'Active';
+        if (finalSplitType === 'custom') {
+          selected.forEach(id => {
+            const share = parseFloat(formData.customAmounts[id]) || 0;
+            deltas[id] = (deltas[id] || 0) - share;
+          });
+        } else if (finalSplitType === 'equal_person') {
+          const share = amount / selected.length;
+          selected.forEach(id => {
+            deltas[id] = (deltas[id] || 0) - share;
+          });
+        } else if (finalSplitType === 'equal_family') {
+          // Equal by family unit (selected units)
+          const familyIds = Array.from(new Set(selected.map(id => id.split('-')[0])));
+          const sharePerFamily = amount / familyIds.length;
+          familyIds.forEach(fid => {
+            deltas[fid] = (deltas[fid] || 0) - sharePerFamily;
+          });
+        } else if (finalSplitType === 'just_me') {
+          deltas[formData.payerId] = (deltas[formData.payerId] || 0) - amount;
         }
 
-        updateDoc(doc(firestore, "trips", selectedTripId), tripUpdate).catch(() => {});
+        // Add the credit for the payer
+        deltas[formData.payerId] = (deltas[formData.payerId] || 0) + amount;
+      }
 
-        router.push(`/trips/${selectedTripId}`);
-      })
-      .catch(async (error) => {
-        const permissionError = new FirestorePermissionError({
-          path: expenseRef.path,
-          operation: 'create',
-          requestResourceData: expenseData,
-        });
-        errorEmitter.emit('permission-error', permissionError);
-        setIsPosting(false);
+      await addDoc(expenseRef, expenseData);
+      
+      const tripRef = doc(firestore, "trips", selectedTripId);
+      const tripSnap = await getDoc(tripRef);
+      const tripData = tripSnap.data();
+      const currentBalances = tripData?.netBalances || {};
+      
+      // Update global ledger
+      const newBalances = { ...currentBalances };
+      Object.entries(deltas).forEach(([id, delta]) => {
+        newBalances[id] = (newBalances[id] || 0) + delta;
       });
+
+      const tripUpdate: any = {
+        totalSpent: increment(amount),
+        netBalances: newBalances,
+        updatedAt: serverTimestamp()
+      };
+
+      if (tripData?.status === 'Upcoming') {
+        tripUpdate.status = 'Active';
+      }
+
+      await updateDoc(tripRef, tripUpdate);
+
+      toast({
+        title: finalSplitType === 'unsplit' ? "Saved as draft" : "Expense posted!",
+        description: finalSplitType === 'unsplit' 
+          ? "Expense saved. You can split it later from the trip dashboard."
+          : `Successfully added ₹${amount.toFixed(2)} to ${currentTrip?.name}.`
+      });
+
+      router.push(`/trips/${selectedTripId}`);
+    } catch (error: any) {
+      const permissionError = new FirestorePermissionError({
+        path: expenseRef.path,
+        operation: 'create',
+        requestResourceData: expenseData,
+      });
+      errorEmitter.emit('permission-error', permissionError);
+      setIsPosting(false);
+    }
   };
 
   const handleAddCustomCategory = async () => {

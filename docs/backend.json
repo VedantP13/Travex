@@ -10,9 +10,13 @@
         "createdAt": { "type": "string", "format": "date-time" },
         "updatedAt": { "type": "string", "format": "date-time" },
         "date": { "type": "string", "description": "The planned date or date range of the trip." },
-        "status": { "type": "string", "enum": ["Active", "Completed", "Upcoming"] },
+        "status": { "type": "string", "enum": ["Active", "Completed", "Upcoming", "Settled"] },
         "totalSpent": { "type": "number", "default": 0 },
         "yourBalance": { "type": "number", "default": 0 },
+        "netBalances": { 
+          "type": "object", 
+          "description": "A map of participant IDs to their current net debt/credit. Positive = owed to them, Negative = they owe." 
+        },
         "image": { "type": "string" },
         "imageHint": { "type": "string", "description": "AI-generated search keywords for the destination." },
         "defaultSplitType": { 
