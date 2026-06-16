@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
@@ -684,7 +683,7 @@ export default function CreateTrip() {
                 <div className="h-16 w-16 rounded-full bg-accent/20 flex items-center justify-center mb-4">
                   <AlertCircle className="h-8 w-8 text-accent animate-pulse" />
                 </div>
-                <h2 className="text-xl font-bold text-white tracking-tight">Active adventure found</h2>
+                <h2 className="text-xl font-bold text-white tracking-tight">Active Trips found</h2>
              </div>
           </div>
 
