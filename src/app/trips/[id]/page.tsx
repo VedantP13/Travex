@@ -441,7 +441,7 @@ export default function TripDetails() {
     }).sort((a: any, b: any) => b.netTotal - a.netTotal);
   }, [trip?.participants, trip?.netBalances, user?.uid]);
 
-  // Phase 7: Suggested Payments Logic
+  // Suggested Payments Logic
   const suggestedPayments = useMemo(() => {
     if (groupedStandings.length === 0) return [];
 
@@ -763,7 +763,7 @@ export default function TripDetails() {
                   </div>
                 </div>
 
-                {/* Phase 7: Suggested Payments Card */}
+                {/* Suggested Payments Card */}
                 {suggestedPayments.length > 0 && (
                   <div className="space-y-3 animate-in fade-in slide-in-from-bottom-2 duration-500">
                     <h2 className="text-xs font-semibold text-accent tracking-widest px-1 uppercase">How to settle up</h2>
@@ -808,9 +808,9 @@ export default function TripDetails() {
                     const isNegative = standing.netTotal < -0.01;
                     const isZero = !isPositive && !isNegative;
                     
-                    const groupDisplayName = standing.isMe 
-                      ? "Your group" 
-                      : `${standing.name}'s group`;
+                    const familyDisplayName = standing.isMe 
+                      ? "Your family" 
+                      : `${standing.name}'s family`;
 
                     return (
                       <Card key={standing.id} className="border-none shadow-sm bg-white rounded-[2rem] overflow-hidden group hover:shadow-md transition-shadow">
@@ -822,14 +822,9 @@ export default function TripDetails() {
                                   <AvatarImage src={standing.avatar} className="object-cover" />
                                   <AvatarFallback className="bg-muted text-foreground font-bold">{standing.name[0]}</AvatarFallback>
                                 </Avatar>
-                                {standing.isMe && (
-                                  <div className="absolute -bottom-1 -right-1 h-5 w-5 rounded-full bg-primary flex items-center justify-center border-2 border-white">
-                                    <Sparkles className="h-2.5 w-2.5 text-white" />
-                                  </div>
-                                )}
                               </div>
                               <div className="min-w-0">
-                                <h3 className="font-bold text-base truncate text-foreground">{groupDisplayName}</h3>
+                                <h3 className="font-bold text-base truncate text-foreground">{familyDisplayName}</h3>
                                 <p className={cn(
                                   "text-[10px] font-extrabold uppercase tracking-widest mt-0.5 flex items-center gap-1",
                                   isPositive ? "text-primary" : isNegative ? "text-accent" : "text-muted-foreground"
@@ -898,7 +893,7 @@ export default function TripDetails() {
                   <div className="flex items-start gap-3">
                     <Info className="h-4 w-4 text-muted-foreground mt-0.5 shrink-0" />
                     <p className="text-[11px] text-muted-foreground leading-relaxed font-medium">
-                      Calculations are optimized for simplicity. The primary group leader is responsible for coordinating payments for their unit.
+                      Calculations are optimized for simplicity. The primary family leader is responsible for coordinating payments for their unit.
                     </p>
                   </div>
                 </div>
@@ -1105,7 +1100,7 @@ export default function TripDetails() {
                 <div className="flex justify-between items-end">
                   <Label className="text-sm font-semibold text-foreground/60 ml-1">Friends & families</Label>
                   <span className="text-[10px] text-primary font-semibold">
-                    {editParticipants.length} {editParticipants.length === 1 ? 'group' : 'groups'} added
+                    {editParticipants.length} {editParticipants.length === 1 ? 'family' : 'families'} added
                   </span>
                 </div>
                 
