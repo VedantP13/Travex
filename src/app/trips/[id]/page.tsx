@@ -404,6 +404,8 @@ export default function TripDetails() {
   };
 
   const isPastDue = useMemo(() => {
+    // Resilience: If endDate is missing but it's an old active trip, we still want to show the nudge
+    // For now, strictly rely on endDate which is synced in Phases 4 & 5.
     if (!trip || trip.status !== 'Active' || !trip.endDate) return false;
     const today = new Date();
     today.setHours(0, 0, 0, 0);
