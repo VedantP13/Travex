@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useEffect, useRef, useMemo } from "react";
@@ -586,42 +587,87 @@ export default function TripDetails() {
     if (!selectedExpenseDetail || !trip?.participants) return [];
     
     const amount = parseFloat(selectedExpenseDetail.amount);
-    const splits: any[] = [];
-    const participantsFlat: any[] = [];
-
+    const groups: any[] = [];
+    
+    const participantsMap = new Map();
     trip.participants.forEach((p: any) => {
-      participantsFlat.push({ id: p.id, name: p.name, avatar: p.avatar });
-      p.familyMembers?.forEach((fm: string) => {
-        participantsFlat.push({ id: `${p.id}-${fm}`, name: fm, avatar: p.avatar });
-      });
+      participantsMap.set(p.id, p);
     });
 
     const selected = selectedExpenseDetail.selectedIndividuals || [];
+    if (selectedExpenseDetail.splitType === 'unsplit') return [];
 
-    if (selectedExpenseDetail.splitType === 'custom') {
-      Object.entries(selectedExpenseDetail.customAmounts || {}).forEach(([id, val]: [string, any]) => {
-        const p = participantsFlat.find(pf => pf.id === id);
-        if (p) splits.push({ ...p, share: parseFloat(val) });
-      });
-    } else if (selectedExpenseDetail.splitType === 'equal_person') {
-      const share = amount / selected.length;
-      selected.forEach((id: string) => {
-        const p = participantsFlat.find(pf => pf.id === id);
-        if (p) splits.push({ ...p, share });
+    const familyGroups: Record<string, any> = {};
+
+    selected.forEach((id: string) => {
+      const isFamilyMember = id.includes('-');
+      const parentId = isFamilyMember ? id.split('-')[0] : id;
+      const memberName = isFamilyMember ? id.split('-')[1] : null;
+
+      if (!familyGroups[parentId]) {
+        const p = participantsMap.get(parentId);
+        if (p) {
+          familyGroups[parentId] = {
+            id: parentId,
+            name: p.name,
+            avatar: p.avatar,
+            members: [],
+            totalShare: 0
+          };
+        }
+      }
+
+      if (familyGroups[parentId]) {
+        if (isFamilyMember) {
+          familyGroups[parentId].members.push({ id, name: memberName, share: 0 });
+        } else {
+          familyGroups[parentId].members.unshift({ id, name: participantsMap.get(parentId).name, share: 0 });
+        }
+      }
+    });
+
+    if (selectedExpenseDetail.splitType === 'equal_person') {
+      const sharePerPerson = amount / selected.length;
+      Object.values(familyGroups).forEach((group: any) => {
+        group.members.forEach((m: any) => {
+          m.share = sharePerPerson;
+          group.totalShare += sharePerPerson;
+        });
       });
     } else if (selectedExpenseDetail.splitType === 'equal_family') {
-      const familyIds = Array.from(new Set(selected.map((id: string) => id.split('-')[0])));
-      const sharePerFamily = amount / familyIds.length;
-      familyIds.forEach((fid: any) => {
-        const p = participantsFlat.find(pf => pf.id === fid);
-        if (p) splits.push({ ...p, share: sharePerFamily, isFamilyGroup: true });
+      const numFamilies = Object.keys(familyGroups).length;
+      const sharePerFamily = amount / numFamilies;
+      Object.values(familyGroups).forEach((group: any) => {
+        group.totalShare = sharePerFamily;
+        const sharePerMember = sharePerFamily / group.members.length;
+        group.members.forEach((m: any) => {
+          m.share = sharePerMember;
+        });
+      });
+    } else if (selectedExpenseDetail.splitType === 'custom') {
+      const customAmounts = selectedExpenseDetail.customAmounts || {};
+      Object.values(familyGroups).forEach((group: any) => {
+        group.members.forEach((m: any) => {
+          const val = parseFloat(customAmounts[m.id] || "0");
+          m.share = val;
+          group.totalShare += val;
+        });
       });
     } else if (selectedExpenseDetail.splitType === 'just_me') {
-      const p = participantsFlat.find(pf => pf.id === selectedExpenseDetail.payerId);
-      if (p) splits.push({ ...p, share: amount });
+       const payerId = selectedExpenseDetail.payerId;
+       const p = participantsMap.get(payerId);
+       if (p) {
+         return [{
+           id: payerId,
+           name: p.name,
+           avatar: p.avatar,
+           totalShare: amount,
+           members: [{ id: payerId, name: p.name, share: amount }]
+         }];
+       }
     }
 
-    return splits.sort((a, b) => b.share - a.share);
+    return Object.values(familyGroups).sort((a: any, b: any) => b.totalShare - a.totalShare);
   }, [selectedExpenseDetail, trip?.participants]);
 
   const friendlyDate = (dateStr: string) => {
@@ -1213,20 +1259,33 @@ export default function TripDetails() {
                            </Button>
                         </div>
                       ) : (
-                        selectedExpenseSplits.map((split, idx) => (
-                          <div key={idx} className="flex items-center justify-between group">
-                            <div className="flex items-center gap-3">
-                              <Avatar className="h-9 w-9 border-2 border-white shadow-sm ring-1 ring-black/5">
-                                <AvatarImage src={split.avatar} className="object-cover" />
-                                <AvatarFallback className="text-[10px] font-bold bg-muted text-foreground">{split.name[0]}</AvatarFallback>
-                              </Avatar>
-                              <div>
-                                <p className="text-xs font-bold text-foreground/80">
-                                  {split.isFamilyGroup ? `${split.name.split(' ')[0]}'s family` : split.name}
-                                </p>
+                        selectedExpenseSplits.map((group, idx) => (
+                          <div key={idx} className="space-y-2">
+                            <div className="flex items-center justify-between group">
+                              <div className="flex items-center gap-3">
+                                <Avatar className="h-9 w-9 border-2 border-white shadow-sm ring-1 ring-black/5">
+                                  <AvatarImage src={group.avatar} className="object-cover" />
+                                  <AvatarFallback className="text-[10px] font-bold bg-muted text-foreground">{group.name[0]}</AvatarFallback>
+                                </Avatar>
+                                <div>
+                                  <p className="text-xs font-bold text-foreground/80">
+                                    {group.members.length > 1 ? `${group.name.split(' ')[0]}'s family` : group.name}
+                                  </p>
+                                </div>
                               </div>
+                              <p className="text-xs font-black text-foreground">₹{group.totalShare.toFixed(2)}</p>
                             </div>
-                            <p className="text-xs font-black text-foreground">₹{split.share.toFixed(2)}</p>
+                            
+                            {group.members.length > 1 && (
+                              <div className="ml-12 space-y-1.5 border-l-2 border-muted/20 pl-3">
+                                {group.members.map((m: any, mIdx: number) => (
+                                  <div key={mIdx} className="flex justify-between items-center">
+                                    <span className="text-[10px] font-medium text-muted-foreground/70">{m.name}</span>
+                                    <span className="text-[10px] font-bold text-muted-foreground/50">₹{m.share.toFixed(2)}</span>
+                                  </div>
+                                ))}
+                              </div>
+                            )}
                           </div>
                         ))
                       )}
@@ -1539,4 +1598,3 @@ export default function TripDetails() {
     </div>
   );
 }
-
