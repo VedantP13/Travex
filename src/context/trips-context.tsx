@@ -2,7 +2,7 @@
 "use client";
 
 import React, { createContext, useContext, useState, useEffect, ReactNode } from "react";
-import { collection, onSnapshot, query, orderBy, where } from "firebase/firestore";
+import { collection, onSnapshot, query, where, Timestamp } from "firebase/firestore";
 import { useFirestore, useUser } from "@/firebase";
 
 interface TripsContextType {
@@ -27,11 +27,10 @@ export function TripsProvider({ children }: { children: ReactNode }) {
     }
     
     // Query ONLY trips where the current user is a participant
-    // Sorted by updatedAt to show most recent activity at the top
+    // Note: We avoid orderBy here to prevent the need for a manual composite index
     const q = query(
       collection(firestore, "trips"), 
-      where("participantIds", "array-contains", user.uid),
-      orderBy("updatedAt", "desc")
+      where("participantIds", "array-contains", user.uid)
     );
     
     const unsubscribe = onSnapshot(
@@ -44,15 +43,20 @@ export function TripsProvider({ children }: { children: ReactNode }) {
             ...data,
           };
         });
+
+        // Client-side sorting by updatedAt (descending)
+        // This ensures recent activity stays at the top without requiring Firestore composite indexes
+        tripData.sort((a, b) => {
+          const timeA = a.updatedAt instanceof Timestamp ? a.updatedAt.toMillis() : (a.updatedAt || 0);
+          const timeB = b.updatedAt instanceof Timestamp ? b.updatedAt.toMillis() : (b.updatedAt || 0);
+          return timeB - timeA;
+        });
+
         setTrips(tripData);
         setLoading(false);
         setError(false);
       },
       (err) => {
-        // Specifically ignore index-required errors which might happen on first run
-        if (err.message.includes('index')) {
-          console.warn("Firestore index required for optimized queries. Please check the console link.");
-        }
         console.error("Firestore trips sync failed:", err);
         setError(true);
         setLoading(false);
