@@ -32,7 +32,8 @@ import {
   AlertCircle,
   Plane,
   Box,
-  Sparkles
+  Sparkles,
+  Archive
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -370,7 +371,10 @@ export default function TripDetails() {
       status: newStatus,
       updatedAt: serverTimestamp() 
     }).then(() => {
-      toast({ title: `Trip marked as ${newStatus}` });
+      toast({ 
+        title: `Trip marked as ${newStatus}`,
+        description: newStatus === 'Settled' ? 'This trip will no longer impact your dashboard totals.' : undefined
+      });
     }).catch(async (error) => {
       errorEmitter.emit('permission-error', new FirestorePermissionError({
         path: tripRef.path,
@@ -514,7 +518,7 @@ export default function TripDetails() {
           <div className="flex items-center gap-3">
             <Badge className={cn(
               "backdrop-blur-md text-white/80 border border-white/10 text-[10px] font-medium px-3 py-1 rounded-lg",
-              trip?.status === 'Active' ? 'bg-white/10' : trip?.status === 'Completed' ? 'bg-green-500/40' : 'bg-white/5'
+              trip?.status === 'Active' ? 'bg-white/10' : trip?.status === 'Completed' ? 'bg-green-500/40' : trip?.status === 'Settled' ? 'bg-white/5 opacity-60' : 'bg-white/5'
             )}>
               {trip?.status || "Active"}
             </Badge>
@@ -835,6 +839,9 @@ export default function TripDetails() {
                       </SelectItem>
                       <SelectItem value="Completed">
                         <div className="flex items-center gap-3"><CheckCircle2 className="h-4 w-4" />Completed</div>
+                      </SelectItem>
+                      <SelectItem value="Settled">
+                        <div className="flex items-center gap-3"><Archive className="h-4 w-4" />Settled</div>
                       </SelectItem>
                     </SelectContent>
                   </Select>

@@ -60,6 +60,7 @@ export default function Home() {
   // Phase 3: Aggregate Balances Logic
   const { totalOwe, totalOwed } = useMemo(() => {
     return trips.reduce((acc, trip) => {
+      // Phase 5: Exclude Settled trips from active standing
       if (trip.status === 'Settled') return acc;
 
       const me = trip.participants?.find((p: any) => p.isUser && p.userId === user?.uid);
@@ -78,7 +79,12 @@ export default function Home() {
     }, { totalOwe: 0, totalOwed: 0 });
   }, [trips, user?.uid]);
 
-  const activeTrip = trips.find(t => t.status === "Active") || trips[0];
+  // Phase 5: Select the most relevant non-settled trip to feature
+  const activeTrip = trips.find(t => t.status === "Active") || 
+                     trips.find(t => t.status === "Upcoming") || 
+                     trips.find(t => t.status !== "Settled") || 
+                     trips[0];
+                     
   const isAnonymous = user?.isAnonymous;
 
   const displayPhoto = firestoreProfile?.photoURL || user?.photoURL || "";
@@ -156,7 +162,7 @@ export default function Home() {
                         "text-white/80 border-none text-[10px] font-medium rounded-lg px-2.5 py-1 mb-1 shadow-sm backdrop-blur-md",
                         activeTrip.status === 'Active' ? 'bg-white/10' : 'bg-white/5'
                       )}>
-                        {activeTrip.status === 'Active' ? 'Ongoing Trip' : 'Featured Trip'}
+                        {activeTrip.status || 'Ongoing Trip'}
                       </Badge>
                     </div>
                     <h3 className="text-lg font-bold tracking-tight truncate leading-tight text-white">{activeTrip.name}</h3>
@@ -274,7 +280,7 @@ export default function Home() {
                       />
                       <Badge className={cn(
                         "absolute top-4 right-4 text-foreground border-none backdrop-blur-md font-bold text-[10px] shadow-sm px-3",
-                        trip.status === 'Active' ? 'bg-accent/90' : 'bg-white/90'
+                        trip.status === 'Active' ? 'bg-accent/90' : trip.status === 'Settled' ? 'bg-muted/80' : 'bg-white/90'
                       )}>
                         {trip.status || "Upcoming"}
                       </Badge>

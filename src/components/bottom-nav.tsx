@@ -32,8 +32,13 @@ export function BottomNav() {
     return () => unsubscribe();
   }, [user?.uid, firestore]);
 
-  // Dynamically route to the active trip or fallback to creating a new one
-  const activeTrip = trips.find(t => t.status === "Active") || trips[0];
+  // Phase 5: Dynamically route to the active trip or fallback to creating a new one
+  // Exclude settled trips from being the immediate "Active" target
+  const activeTrip = trips.find(t => t.status === "Active") || 
+                     trips.find(t => t.status === "Upcoming") || 
+                     trips.find(t => t.status !== 'Settled') || 
+                     trips[0];
+                     
   const fabLink = activeTrip ? `/trips/${activeTrip.id}/add` : "/trips/new";
 
   const leftItems = [
