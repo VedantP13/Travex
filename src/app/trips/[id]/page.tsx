@@ -40,7 +40,8 @@ import {
   ArrowRight,
   ChevronDown,
   CreditCard,
-  Tag
+  Tag,
+  MoreHorizontal
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -49,7 +50,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Card, CardContent } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { useFirestore, useUser } from "@/firebase";
-import { doc, onSnapshot, collection, query, orderBy, updateDoc, deleteDoc, serverTimestamp, getDocs, getDoc } from "firebase/firestore";
+import { doc, onSnapshot, collection, query, orderBy, updateDoc, deleteDoc, serverTimestamp, getDocs, getDoc, increment } from "firebase/firestore";
 import { errorEmitter } from "@/firebase/error-emitter";
 import { FirestorePermissionError } from "@/firebase/errors";
 import { cn } from "@/lib/utils";
@@ -98,7 +99,7 @@ import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { format } from "date-fns";
+import { format, parseISO } from "date-fns";
 import { DateRange } from "react-day-picker";
 
 export default function TripDetails() {
@@ -181,39 +182,38 @@ export default function TripDetails() {
     };
   }, [id, firestore, router]);
 
-  // Friend Search logic for Edit Dialog
+  const searchFriends = async () => {
+    if (!user?.uid || !firestore || !isEditDialogOpen || newParticipantName.trim().length < 2) {
+      setFriendSearchResults([]);
+      return;
+    }
+
+    setIsSearchingFriends(true);
+    try {
+      const qry = newParticipantName.toLowerCase();
+      const friendsRef = collection(firestore, "users", user.uid, "friends");
+      const snap = await getDocs(friendsRef);
+      
+      const results = snap.docs
+        .map(d => ({ id: d.id, ...d.data() }))
+        .filter((f: any) => 
+          f.status === "accepted" && 
+          f.friendName.toLowerCase().includes(qry) &&
+          !editParticipants.some(p => p.userId === f.friendId)
+        );
+      
+      setFriendSearchResults(results);
+    } catch (e) {
+      console.error("Friend search failed:", e);
+    } finally {
+      setIsSearchingFriends(false);
+    }
+  };
+
   useEffect(() => {
-    const searchFriends = async () => {
-      if (!user?.uid || !firestore || !isEditDialogOpen || newParticipantName.trim().length < 2) {
-        setFriendSearchResults([]);
-        return;
-      }
-
-      setIsSearchingFriends(true);
-      try {
-        const qry = newParticipantName.toLowerCase();
-        const friendsRef = collection(firestore, "users", user.uid, "friends");
-        const snap = await getDocs(friendsRef);
-        
-        const results = snap.docs
-          .map(d => ({ id: d.id, ...d.data() }))
-          .filter((f: any) => 
-            f.status === "accepted" && 
-            f.friendName.toLowerCase().includes(qry) &&
-            !editParticipants.some(p => p.userId === f.friendId)
-          );
-        
-        setFriendSearchResults(results);
-      } catch (e) {
-        console.error("Friend search failed:", e);
-      } finally {
-        setIsSearchingFriends(false);
-      }
-    };
-
     const timeoutId = setTimeout(searchFriends, 300);
     return () => clearTimeout(timeoutId);
-  }, [newParticipantName, user?.uid, firestore, isEditDialogOpen, editParticipants]);
+  }, [newParticipantName, user?.uid, firestore, isEditDialogOpen]);
 
   const handleAddParticipant = () => {
     if (!newParticipantName.trim()) return;
@@ -417,6 +417,66 @@ export default function TripDetails() {
       });
   };
 
+  const handleDeleteExpense = async (expenseId: string) => {
+    if (!id || !firestore || !expenseId || !selectedExpenseDetail) return;
+    
+    const expenseData = selectedExpenseDetail;
+    const amount = parseFloat(expenseData.amount);
+    const tripRef = doc(firestore, "trips", id as string);
+    const expenseRef = doc(firestore, "trips", id as string, "expenses", expenseId);
+
+    // Calculate balance reversal deltas
+    const deltas: Record<string, number> = {};
+    const payerId = expenseData.payerId;
+    const selected = expenseData.selectedIndividuals || [];
+
+    if (expenseData.splitType === 'custom') {
+      Object.entries(expenseData.customAmounts || {}).forEach(([pid, val]: [string, any]) => {
+        deltas[pid] = (deltas[pid] || 0) + parseFloat(val);
+      });
+    } else if (expenseData.splitType === 'equal_person') {
+      const share = amount / selected.length;
+      selected.forEach((pid: string) => {
+        deltas[pid] = (deltas[pid] || 0) + share;
+      });
+    } else if (expenseData.splitType === 'equal_family') {
+      const familyIds = Array.from(new Set(selected.map((pid: string) => pid.split('-')[0])));
+      const sharePerFamily = amount / familyIds.length;
+      familyIds.forEach((fid: any) => {
+        deltas[fid] = (deltas[fid] || 0) + sharePerFamily;
+      });
+    } else if (expenseData.splitType === 'just_me') {
+      deltas[payerId] = (deltas[payerId] || 0) + amount;
+    }
+
+    // Reverse the credit for the payer
+    deltas[payerId] = (deltas[payerId] || 0) - amount;
+
+    try {
+      const tripSnap = await getDoc(tripRef);
+      const currentBalances = tripSnap.data()?.netBalances || {};
+      const newBalances = { ...currentBalances };
+      
+      Object.entries(deltas).forEach(([pid, delta]) => {
+        newBalances[pid] = (newBalances[pid] || 0) + delta;
+      });
+
+      await updateDoc(tripRef, {
+        totalSpent: increment(-amount),
+        netBalances: newBalances,
+        updatedAt: serverTimestamp()
+      });
+
+      await deleteDoc(expenseRef);
+      
+      setSelectedExpenseDetail(null);
+      toast({ title: "Expense deleted" });
+    } catch (e) {
+      console.error(e);
+      toast({ variant: "destructive", title: "Could not delete expense" });
+    }
+  };
+
   const groupedStandings = useMemo(() => {
     if (!trip?.participants || !trip?.netBalances) return [];
 
@@ -446,7 +506,6 @@ export default function TripDetails() {
     }).sort((a: any, b: any) => b.netTotal - a.netTotal);
   }, [trip?.participants, trip?.netBalances, user?.uid]);
 
-  // Suggested Payments Logic
   const suggestedPayments = useMemo(() => {
     if (groupedStandings.length === 0) return [];
 
@@ -530,7 +589,6 @@ export default function TripDetails() {
     const splits: any[] = [];
     const participantsFlat: any[] = [];
 
-    // Flatten participants for ID matching
     trip.participants.forEach((p: any) => {
       participantsFlat.push({ id: p.id, name: p.name, avatar: p.avatar });
       p.familyMembers?.forEach((fm: string) => {
@@ -565,6 +623,14 @@ export default function TripDetails() {
 
     return splits.sort((a, b) => b.share - a.share);
   }, [selectedExpenseDetail, trip?.participants]);
+
+  const friendlyDate = (dateStr: string) => {
+    try {
+      return format(parseISO(dateStr), "d MMMM yyyy");
+    } catch {
+      return dateStr;
+    }
+  };
 
   if (loading && !trip) {
     return (
@@ -813,7 +879,6 @@ export default function TripDetails() {
                   </div>
                 </div>
 
-                {/* Suggested Payments Card */}
                 {suggestedPayments.length > 0 && (
                   <div className="space-y-3 animate-in fade-in slide-in-from-bottom-2 duration-500">
                     <h2 className="text-xs font-semibold text-accent tracking-widest px-1 uppercase">How to settle up</h2>
@@ -1050,79 +1115,95 @@ export default function TripDetails() {
         </DialogContent>
       </Dialog>
 
-      {/* Expense Detail Dialog */}
       <Dialog open={!!selectedExpenseDetail} onOpenChange={(open) => !open && setSelectedExpenseDetail(null)}>
-        <DialogContent className="max-w-[calc(100vw-40px)] w-full rounded-[2.5rem] p-0 border-none shadow-2xl bg-background overflow-hidden animate-in fade-in zoom-in-95 duration-300">
+        <DialogContent className="max-w-[calc(100vw-40px)] w-full rounded-[2.5rem] p-0 border-none shadow-2xl bg-white overflow-hidden animate-in fade-in zoom-in-95 duration-300">
           <DialogHeader className="sr-only">
             <DialogTitle>Expense Details</DialogTitle>
-            <DialogDescription>View the breakdown and split for this expense.</DialogDescription>
+            <DialogDescription>View the full breakdown and split for this trip expense.</DialogDescription>
           </DialogHeader>
           {selectedExpenseDetail && (
             <>
               <div className={cn(
-                "h-40 relative flex flex-col items-center justify-center overflow-hidden",
+                "h-48 relative flex flex-col items-center justify-center overflow-hidden pt-6",
                 getCategoryColor(selectedExpenseDetail.category)
               )}>
-                <DialogClose className="absolute right-5 top-5 h-8 w-8 rounded-full flex items-center justify-center bg-black/5 text-foreground/40 hover:bg-black/10 transition-all z-20">
+                <DialogClose className="absolute left-6 top-6 h-9 w-9 rounded-full flex items-center justify-center bg-black/5 text-foreground/40 hover:bg-black/10 transition-all z-20 border border-black/5">
                   <X className="h-4 w-4" />
                 </DialogClose>
-                <div className="relative z-10 flex flex-col items-center text-center px-6">
-                  <div className="h-12 w-12 rounded-2xl bg-white/40 backdrop-blur-md flex items-center justify-center mb-2 shadow-sm">
+                
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="ghost" size="icon" className="absolute right-6 top-6 h-9 w-9 rounded-full bg-black/5 text-foreground/40 hover:bg-black/10 border border-black/5">
+                      <MoreHorizontal className="h-4 w-4" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end" className="rounded-2xl p-1 border-none shadow-xl bg-white min-w-[140px]">
+                    <DropdownMenuItem className="rounded-xl py-2 px-3 font-semibold text-xs flex items-center gap-2" disabled>
+                      <Pencil className="h-3.5 w-3.5" /> Edit expense
+                    </DropdownMenuItem>
+                    <DropdownMenuItem 
+                      className="rounded-xl py-2 px-3 font-semibold text-xs text-destructive focus:bg-destructive/5 flex items-center gap-2"
+                      onClick={() => handleDeleteExpense(selectedExpenseDetail.id)}
+                    >
+                      <Trash2 className="h-3.5 w-3.5" /> Delete
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+
+                <div className="relative z-10 flex flex-col items-center text-center px-4">
+                  <div className="h-12 w-12 rounded-2xl bg-white/40 backdrop-blur-md flex items-center justify-center mb-3 shadow-sm border border-white/20">
                     {(() => {
                       const Icon = getCategoryIcon(selectedExpenseDetail.category);
                       return <Icon className="h-6 w-6" />;
                     })()}
                   </div>
-                  <h2 className="text-2xl font-black tracking-tight text-foreground">₹{parseFloat(selectedExpenseDetail.amount).toFixed(2)}</h2>
-                  <p className="text-[10px] font-bold text-foreground/50 uppercase tracking-widest mt-0.5">{selectedExpenseDetail.description}</p>
+                  <h2 className="text-3xl font-black tracking-tight text-foreground leading-none">₹{parseFloat(selectedExpenseDetail.amount).toFixed(2)}</h2>
+                  <p className="text-sm font-bold text-foreground/60 mt-2 max-w-[240px] leading-tight capitalize">
+                    {selectedExpenseDetail.description.toLowerCase()}
+                  </p>
                 </div>
               </div>
 
-              <ScrollArea className="max-h-[60vh]">
-                <div className="px-6 py-6 space-y-6">
-                  <div className="grid grid-cols-2 gap-y-5 gap-x-4">
+              <ScrollArea className="max-h-[50vh] relative">
+                <div className="px-6 py-8 space-y-8">
+                  <div className="grid grid-cols-2 gap-y-6 gap-x-8 max-w-[320px]">
                     <div className="space-y-1">
-                      <Label className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest flex items-center gap-1.5 opacity-60">
+                      <Label className="text-[10px] font-bold text-muted-foreground/50 uppercase tracking-widest flex items-center gap-1.5">
                         <User className="h-2.5 w-2.5" /> Payer
                       </Label>
                       <p className="text-xs font-bold text-foreground">{selectedExpenseDetail.payerName}</p>
                     </div>
                     <div className="space-y-1">
-                      <Label className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest flex items-center gap-1.5 opacity-60">
+                      <Label className="text-[10px] font-bold text-muted-foreground/50 uppercase tracking-widest flex items-center gap-1.5">
                         <CalendarIcon className="h-2.5 w-2.5" /> Date
                       </Label>
-                      <p className="text-xs font-bold text-foreground">{selectedExpenseDetail.date}</p>
+                      <p className="text-xs font-bold text-foreground">{friendlyDate(selectedExpenseDetail.date)}</p>
                     </div>
                     <div className="space-y-1">
-                      <Label className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest flex items-center gap-1.5 opacity-60">
-                        <Tag className="h-2.5 w-2.5" /> Type
+                      <Label className="text-[10px] font-bold text-muted-foreground/50 uppercase tracking-widest flex items-center gap-1.5">
+                        <Tag className="h-2.5 w-2.5" /> Category
                       </Label>
                       <p className="text-xs font-bold text-foreground">{selectedExpenseDetail.category}</p>
                     </div>
                     <div className="space-y-1">
-                      <Label className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest flex items-center gap-1.5 opacity-60">
+                      <Label className="text-[10px] font-bold text-muted-foreground/50 uppercase tracking-widest flex items-center gap-1.5">
                         <CreditCard className="h-2.5 w-2.5" /> Method
                       </Label>
                       <p className="text-xs font-bold text-foreground">{selectedExpenseDetail.paymentType || 'Other'}</p>
                     </div>
                   </div>
 
-                  <Separator className="bg-muted/20" />
-
                   <div className="space-y-4">
-                    <div className="flex justify-between items-center px-1">
-                      <Label className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest opacity-60">Split Breakdown</Label>
-                      <Badge variant="outline" className="text-[8px] font-bold border-primary/10 text-primary bg-primary/5 uppercase px-2 py-0 h-4">
-                        {selectedExpenseDetail.splitType.replace('_', ' ')}
-                      </Badge>
+                    <div className="flex justify-between items-end border-b border-muted/20 pb-3">
+                      <Label className="text-[10px] font-bold text-muted-foreground/50 uppercase tracking-widest">Split breakdown</Label>
                     </div>
 
-                    <div className="space-y-2 pb-2">
+                    <div className="space-y-3 pb-4">
                       {selectedExpenseDetail.splitType === 'unsplit' ? (
                         <div className="py-8 bg-accent/5 rounded-3xl border-2 border-dashed border-accent/10 flex flex-col items-center justify-center text-center px-6">
                            <Timer className="h-7 w-7 text-accent/60 mb-2" />
                            <p className="text-xs font-bold text-foreground">Draft Expense</p>
-                           <p className="text-[9px] text-muted-foreground mt-0.5 leading-relaxed">This hasn't been split yet and doesn't impact balances.</p>
+                           <p className="text-[10px] text-muted-foreground mt-0.5 leading-relaxed">This hasn't been split yet.</p>
                            <Button 
                              size="sm" 
                              className="mt-4 rounded-xl bg-accent text-accent-foreground font-bold h-8 text-[10px] px-5"
@@ -1133,15 +1214,16 @@ export default function TripDetails() {
                         </div>
                       ) : (
                         selectedExpenseSplits.map((split, idx) => (
-                          <div key={idx} className="flex items-center justify-between p-3 rounded-2xl bg-muted/10 hover:bg-muted/20 transition-all group">
+                          <div key={idx} className="flex items-center justify-between group">
                             <div className="flex items-center gap-3">
-                              <Avatar className="h-8 w-8 border border-white shadow-sm ring-1 ring-black/5">
+                              <Avatar className="h-9 w-9 border-2 border-white shadow-sm ring-1 ring-black/5">
                                 <AvatarImage src={split.avatar} className="object-cover" />
-                                <AvatarFallback className="text-[10px] font-bold bg-white text-foreground">{split.name[0]}</AvatarFallback>
+                                <AvatarFallback className="text-[10px] font-bold bg-muted text-foreground">{split.name[0]}</AvatarFallback>
                               </Avatar>
                               <div>
-                                <p className="text-xs font-bold text-foreground/80">{split.name}</p>
-                                {split.isFamilyGroup && <p className="text-[8px] font-bold text-muted-foreground uppercase opacity-70">Entire unit</p>}
+                                <p className="text-xs font-bold text-foreground/80">
+                                  {split.isFamilyGroup ? `${split.name.split(' ')[0]}'s family` : split.name}
+                                </p>
                               </div>
                             </div>
                             <p className="text-xs font-black text-foreground">₹{split.share.toFixed(2)}</p>
@@ -1151,12 +1233,13 @@ export default function TripDetails() {
                     </div>
                   </div>
                 </div>
+                <div className="absolute bottom-0 left-0 right-0 h-12 bg-gradient-to-t from-white to-transparent pointer-events-none" />
               </ScrollArea>
 
-              <div className="p-4 bg-muted/5 border-t">
+              <div className="p-6 bg-muted/5 border-t">
                 <Button 
-                  variant="ghost" 
-                  className="w-full h-11 rounded-xl font-bold text-muted-foreground text-[11px] hover:bg-muted/20 uppercase tracking-widest"
+                  variant="outline" 
+                  className="w-full h-14 rounded-2xl font-bold text-muted-foreground text-xs hover:bg-muted border-2 border-muted/20 tracking-widest uppercase transition-all active:scale-95"
                   onClick={() => setSelectedExpenseDetail(null)}
                 >
                   Close Details
@@ -1456,3 +1539,4 @@ export default function TripDetails() {
     </div>
   );
 }
+
