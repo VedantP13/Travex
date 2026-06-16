@@ -22,6 +22,7 @@ import {
   X,
   AlertTriangle,
   UserPlus,
+  User,
   ImageIcon,
   Upload,
   Camera,
