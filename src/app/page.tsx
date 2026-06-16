@@ -180,7 +180,7 @@ export default function Home() {
                         </div>
                       )}
                     </div>
-                    <h3 className="text-lg font-bold tracking-tight truncate leading-tight">{activeTrip.name}</h3>
+                    <h3 className="text-lg font-bold tracking-tight truncate leading-tight text-white">{activeTrip.name}</h3>
                     <div className="flex items-center gap-2">
                       <p className={cn("text-[10px] font-bold flex items-center gap-1", isPastDue ? "text-white/60" : "text-white/50")}>
                         <Calendar className="h-2.5 w-2.5" />
