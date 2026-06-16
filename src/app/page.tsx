@@ -2,7 +2,7 @@
 "use client";
 
 import Link from "next/link";
-import { Plus, ChevronRight, Compass, MapPinPlus, Users, Calendar } from "lucide-react";
+import { Plus, ChevronRight, Compass, MapPinPlus, Users, Calendar, AlertCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -57,10 +57,10 @@ export default function Home() {
     return () => unsub();
   }, [user?.uid, firestore, user?.displayName, user?.photoURL, user?.email, user?.isAnonymous]);
 
-  // Phase 3: Aggregate Balances Logic
+  // Aggregate Balances Logic
   const { totalOwe, totalOwed } = useMemo(() => {
     return trips.reduce((acc, trip) => {
-      // Phase 5: Exclude Settled trips from active standing
+      // Exclude Settled trips from active standing
       if (trip.status === 'Settled') return acc;
 
       const me = trip.participants?.find((p: any) => p.isUser && p.userId === user?.uid);
@@ -79,12 +79,19 @@ export default function Home() {
     }, { totalOwe: 0, totalOwed: 0 });
   }, [trips, user?.uid]);
 
-  // Phase 5: Select the most relevant non-settled trip to feature
+  // Select the most relevant non-settled trip to feature
   const activeTrip = trips.find(t => t.status === "Active") || 
                      trips.find(t => t.status === "Upcoming") || 
                      trips.find(t => t.status !== "Settled") || 
                      trips[0];
                      
+  const isPastDue = useMemo(() => {
+    if (!activeTrip || activeTrip.status !== 'Active' || !activeTrip.endDate) return false;
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    return new Date(activeTrip.endDate) < today;
+  }, [activeTrip]);
+
   const isAnonymous = user?.isAnonymous;
 
   const displayPhoto = firestoreProfile?.photoURL || user?.photoURL || "";
@@ -154,28 +161,36 @@ export default function Home() {
         <div className="grid grid-cols-12 gap-3 items-stretch">
           {activeTrip ? (
             <>
-              <Card className="col-span-8 border-none shadow-xl bg-primary text-primary-foreground rounded-[2.5rem] p-5 flex flex-col justify-between relative overflow-hidden transition-all hover:translate-y-[-1px]">
+              <Card className={cn(
+                "col-span-8 border-none shadow-xl rounded-[2.5rem] p-5 flex flex-col justify-between relative overflow-hidden transition-all hover:translate-y-[-1px]",
+                isPastDue ? "bg-accent text-accent-foreground" : "bg-primary text-primary-foreground"
+              )}>
                 <div className="space-y-3 relative z-10">
                   <div className="space-y-2">
-                    <div className="flex">
+                    <div className="flex justify-between items-start">
                       <Badge variant="outline" className={cn(
-                        "text-white/80 border-none text-[10px] font-medium rounded-lg px-2.5 py-1 mb-1 shadow-sm backdrop-blur-md",
-                        activeTrip.status === 'Active' ? 'bg-white/10' : 'bg-white/5'
+                        "border-none text-[10px] font-bold rounded-lg px-2.5 py-1 mb-1 shadow-sm backdrop-blur-md",
+                        isPastDue ? "bg-white text-accent" : "bg-white/10 text-white/80"
                       )}>
-                        {activeTrip.status || 'Ongoing Trip'}
+                        {isPastDue ? 'Ended' : activeTrip.status || 'Ongoing'}
                       </Badge>
+                      {isPastDue && (
+                        <div className="animate-pulse bg-white/20 p-1 rounded-full">
+                          <AlertCircle className="h-3.5 w-3.5 text-white" />
+                        </div>
+                      )}
                     </div>
-                    <h3 className="text-lg font-bold tracking-tight truncate leading-tight text-white">{activeTrip.name}</h3>
+                    <h3 className="text-lg font-bold tracking-tight truncate leading-tight">{activeTrip.name}</h3>
                     <div className="flex items-center gap-2">
-                      <p className="text-[10px] font-bold text-white/50 flex items-center gap-1">
+                      <p className={cn("text-[10px] font-bold flex items-center gap-1", isPastDue ? "text-white/60" : "text-white/50")}>
                         <Calendar className="h-2.5 w-2.5" />
                         {activeTrip.date || "Ready"}
                       </p>
                       <div className="flex -space-x-1.5">
                         {activeTrip.participants?.slice(0, 3).map((p: any, idx: number) => (
-                          <Avatar key={idx} className="h-4 w-4 border border-primary ring-1 ring-white/10 shadow-sm">
+                          <Avatar key={idx} className={cn("h-4 w-4 border shadow-sm", isPastDue ? "border-accent ring-1 ring-white/20" : "border-primary ring-1 ring-white/10")}>
                             <AvatarImage src={p.avatar} />
-                            <AvatarFallback className="text-[6px] bg-accent text-foreground font-bold">{p.name?.[0]}</AvatarFallback>
+                            <AvatarFallback className="text-[6px] bg-white/10 text-white font-bold">{p.name?.[0]}</AvatarFallback>
                           </Avatar>
                         ))}
                       </div>
@@ -183,8 +198,8 @@ export default function Home() {
                   </div>
                   
                   <div className="space-y-0.5 mt-1">
-                    <p className="text-[9px] font-medium text-white/40">Total spent</p>
-                    <div className="flex items-baseline font-bold text-2xl tracking-tight text-white leading-none">
+                    <p className={cn("text-[9px] font-bold uppercase tracking-tight", isPastDue ? "text-white/60" : "text-white/40")}>Total spent</p>
+                    <div className="flex items-baseline font-bold text-2xl tracking-tight leading-none">
                       <span className="font-bold">₹</span>
                       <span className="font-bold">{(activeTrip.totalSpent || 0).toFixed(2)}</span>
                     </div>
@@ -193,17 +208,20 @@ export default function Home() {
 
                 <div className="mt-4 relative z-10">
                   <Link 
-                    href={`/trips/${activeTrip.id}/add`} 
-                    className="inline-flex items-center justify-center gap-2 w-full h-10 px-5 bg-white/10 hover:bg-white/20 rounded-2xl text-[10px] font-bold text-white transition-all backdrop-blur-sm border border-white/5"
+                    href={isPastDue ? `/trips/${activeTrip.id}` : `/trips/${activeTrip.id}/add`} 
+                    className={cn(
+                      "inline-flex items-center justify-center gap-2 w-full h-10 px-5 rounded-2xl text-[10px] font-extrabold transition-all backdrop-blur-sm border",
+                      isPastDue ? "bg-white text-accent border-white/20 hover:bg-white/90" : "bg-white/10 text-white hover:bg-white/20 border-white/5"
+                    )}
                   >
-                    Add expense <ChevronRight className="h-3.5 w-3.5 text-accent" />
+                    {isPastDue ? "Review & Complete" : "Add expense"} <ChevronRight className="h-3.5 w-3.5" />
                   </Link>
                 </div>
               </Card>
 
               <Link 
                 href="/trips/new" 
-                className="col-span-4 bg-white shadow-lg rounded-[2.5rem] flex flex-col items-center justify-center p-4 transition-all duration-300 transform hover:-translate-y-1 active:scale-95 border border-primary/5 group hover:bg-accent"
+                className="col-span-4 bg-white shadow-lg rounded-[2.5rem] flex flex-col items-center justify-center p-4 transition-all duration-300 transform hover:-translate-y-1 active:scale-95 border border-primary/5 group hover:bg-primary"
               >
                 <div className="h-14 w-14 rounded-[1.5rem] bg-primary/5 flex items-center justify-center text-primary group-hover:bg-white/20 group-hover:text-white transition-all shadow-sm shrink-0 mb-3">
                   <MapPinPlus className="h-8 w-8" />
@@ -268,6 +286,8 @@ export default function Home() {
                 });
               }
 
+              const tripPastDue = trip.status === 'Active' && trip.endDate && new Date(trip.endDate) < new Date(new Date().setHours(0,0,0,0));
+
               return (
                 <Link key={trip.id} href={`/trips/${trip.id}`}>
                   <Card className="overflow-hidden border-none shadow-sm hover:shadow-md transition-all bg-white rounded-[2rem] group">
@@ -280,10 +300,18 @@ export default function Home() {
                       />
                       <Badge className={cn(
                         "absolute top-4 right-4 text-foreground border-none backdrop-blur-md font-bold text-[10px] shadow-sm px-3",
-                        trip.status === 'Active' ? 'bg-accent/90' : trip.status === 'Settled' ? 'bg-muted/80' : 'bg-white/90'
+                        tripPastDue ? "bg-accent text-white" : 
+                        trip.status === 'Active' ? 'bg-primary/90 text-white' : 
+                        trip.status === 'Settled' ? 'bg-muted/80' : 'bg-white/90'
                       )}>
-                        {trip.status || "Upcoming"}
+                        {tripPastDue ? "Ended" : (trip.status || "Upcoming")}
                       </Badge>
+                      {tripPastDue && (
+                        <div className="absolute top-4 left-4 bg-white/20 backdrop-blur-md rounded-lg px-2 py-1 flex items-center gap-1.5 animate-in fade-in zoom-in duration-500">
+                          <AlertCircle className="h-3 w-3 text-white" />
+                          <span className="text-[8px] font-bold text-white uppercase tracking-tighter">Review required</span>
+                        </div>
+                      )}
                     </div>
                     <CardHeader className="p-5 space-y-1">
                       <div className="flex justify-between items-start">

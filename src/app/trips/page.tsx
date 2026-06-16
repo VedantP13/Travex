@@ -4,7 +4,7 @@
 import { useState, useMemo } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { ArrowLeft, Plus, Users, Search } from "lucide-react";
+import { ArrowLeft, Plus, Users, Search, AlertCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -74,6 +74,8 @@ export default function AllTripsPage() {
                 });
               }
 
+              const tripPastDue = trip.status === 'Active' && trip.endDate && new Date(trip.endDate) < new Date(new Date().setHours(0,0,0,0));
+
               return (
                 <Link key={trip.id} href={`/trips/${trip.id}`}>
                   <Card className="overflow-hidden border-none shadow-sm hover:shadow-md transition-all bg-white rounded-[2rem] group">
@@ -84,9 +86,20 @@ export default function AllTripsPage() {
                         data-ai-hint={trip.imageHint || "travel landscape"}
                         className="h-full w-full object-cover group-hover:scale-105 transition-transform duration-500"
                       />
-                      <Badge className="absolute top-4 right-4 bg-white/90 text-foreground border-none backdrop-blur-md font-bold text-[10px] shadow-sm">
-                        {trip.status || "Upcoming"}
+                      <Badge className={cn(
+                        "absolute top-4 right-4 border-none backdrop-blur-md font-bold text-[10px] shadow-sm px-3",
+                        tripPastDue ? "bg-accent text-white" : 
+                        trip.status === 'Active' ? 'bg-primary/90 text-white' : 
+                        trip.status === 'Settled' ? 'bg-muted/80' : 'bg-white/90'
+                      )}>
+                        {tripPastDue ? "Ended" : (trip.status || "Upcoming")}
                       </Badge>
+                      {tripPastDue && (
+                        <div className="absolute top-4 left-4 bg-white/20 backdrop-blur-md rounded-lg px-2 py-1 flex items-center gap-1.5">
+                          <AlertCircle className="h-3 w-3 text-white" />
+                          <span className="text-[8px] font-bold text-white uppercase tracking-tighter">Needs review</span>
+                        </div>
+                      )}
                     </div>
                     <CardHeader className="p-5 space-y-1">
                       <div className="flex justify-between items-start">
