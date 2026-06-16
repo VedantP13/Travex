@@ -208,18 +208,21 @@ export function ExpenseDetailDialog({ expense, trip, onClose, onDelete, onFinali
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="start" className="rounded-2xl min-w-[160px] p-1 shadow-xl border-none bg-white">
-                  <DropdownMenuItem className="group rounded-xl py-2 px-3 flex items-center gap-3 cursor-pointer text-primary focus:bg-primary/10 focus:text-primary transition-all" disabled>
-                    <div className="h-7 w-7 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
-                      <Pencil className="h-3.5 w-3.5" />
+                  <DropdownMenuItem 
+                    className="group rounded-xl py-2 px-3 flex items-center gap-3 cursor-pointer text-primary focus:bg-primary/10 focus:text-primary active:scale-[0.98] transition-all" 
+                    disabled
+                  >
+                    <div className="h-8 w-8 rounded-full bg-primary/10 group-focus:bg-white/20 flex items-center justify-center shrink-0 transition-colors">
+                      <Pencil className="h-4 w-4" />
                     </div>
                     <span className="font-semibold text-xs">Edit expense</span>
                   </DropdownMenuItem>
                   <DropdownMenuItem 
-                    className="group rounded-xl py-2 px-3 flex items-center gap-3 cursor-pointer text-destructive focus:bg-destructive/5 focus:text-destructive transition-all"
+                    className="group rounded-xl py-2 px-3 flex items-center gap-3 cursor-pointer text-destructive focus:bg-destructive/5 focus:text-destructive active:scale-[0.98] transition-all"
                     onClick={() => setIsDeleteConfirmOpen(true)}
                   >
-                    <div className="h-7 w-7 rounded-full bg-destructive/10 flex items-center justify-center shrink-0">
-                      <Trash2 className="h-3.5 w-3.5" />
+                    <div className="h-8 w-8 rounded-full bg-destructive/10 group-focus:bg-white/20 flex items-center justify-center shrink-0 transition-colors">
+                      <Trash2 className="h-4 w-4" />
                     </div>
                     <span className="font-semibold text-xs">Delete</span>
                   </DropdownMenuItem>
@@ -252,7 +255,7 @@ export function ExpenseDetailDialog({ expense, trip, onClose, onDelete, onFinali
               <div className="grid grid-cols-2 gap-y-6 gap-x-4">
                 <div className="space-y-1">
                   <Label className="text-[10px] font-medium text-muted-foreground/80 flex items-center gap-1.5">
-                    <User className="h-3 w-3" /> Paid by
+                    <User className="h-3 w-3" /> Payer
                   </Label>
                   <p className="text-sm font-semibold text-foreground">{expense.payerName}</p>
                 </div>
@@ -351,7 +354,7 @@ export function ExpenseDetailDialog({ expense, trip, onClose, onDelete, onFinali
       </Dialog>
 
       <AlertDialog open={isDeleteConfirmOpen} onOpenChange={setIsDeleteConfirmOpen}>
-        <AlertDialogContent className="max-w-[calc(100vw-40px)] w-full rounded-[2.5rem] p-0 border-none shadow-2xl bg-white overflow-hidden">
+        <AlertDialogContent className="max-w-[calc(100vw-40px)] w-full rounded-[2.5rem] p-0 border-none shadow-2xl bg-white overflow-hidden animate-in fade-in zoom-in-95 duration-300">
           <div className="h-40 bg-destructive/10 relative flex flex-col items-center justify-center">
             <div className="h-16 w-16 rounded-full bg-destructive/10 flex items-center justify-center">
                <AlertTriangle className="h-8 w-8 text-destructive animate-pulse" />
