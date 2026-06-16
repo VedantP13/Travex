@@ -36,7 +36,8 @@ import {
   TrendingUp,
   TrendingDown,
   Info,
-  ArrowRight
+  ArrowRight,
+  ChevronDown
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -82,6 +83,12 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
@@ -409,6 +416,7 @@ export default function TripDetails() {
     if (!trip?.participants || !trip?.netBalances) return [];
 
     return trip.participants.map((p: any) => {
+      const isMe = p.isUser && p.userId === user?.uid;
       const headName = p.name.replace(" (You)", "");
       let total = trip.netBalances[p.id] || 0;
       const breakdown = [{ name: headName, balance: trip.netBalances[p.id] || 0 }];
@@ -422,6 +430,7 @@ export default function TripDetails() {
       return {
         id: p.id,
         name: headName,
+        isMe,
         avatar: p.avatar,
         isUser: p.isUser,
         userId: p.userId,
@@ -430,7 +439,7 @@ export default function TripDetails() {
         familyCount: (p.familyMembers?.length || 0) + 1
       };
     }).sort((a: any, b: any) => b.netTotal - a.netTotal);
-  }, [trip?.participants, trip?.netBalances]);
+  }, [trip?.participants, trip?.netBalances, user?.uid]);
 
   // Phase 7: Suggested Payments Logic
   const suggestedPayments = useMemo(() => {
@@ -795,41 +804,90 @@ export default function TripDetails() {
                 <h2 className="text-xs font-semibold text-foreground/60 tracking-widest px-1 uppercase mb-2">Net standing</h2>
                 <div className="grid gap-3">
                   {groupedStandings.map((standing) => {
-                    const isPositive = standing.netTotal > 0;
-                    const isZero = Math.abs(standing.netTotal) < 0.01;
-                    const isMe = standing.isUser && standing.userId === user?.uid;
+                    const isPositive = standing.netTotal > 0.01;
+                    const isNegative = standing.netTotal < -0.01;
+                    const isZero = !isPositive && !isNegative;
+                    
+                    const groupDisplayName = standing.isMe 
+                      ? "Your group" 
+                      : `${standing.name}'s group`;
 
                     return (
-                      <Card key={standing.id} className="border-none shadow-sm bg-white rounded-3xl overflow-hidden group hover:shadow-md transition-shadow">
-                        <CardContent className="p-4 flex items-center justify-between">
-                          <div className="flex items-center gap-4">
-                            <Avatar className="h-12 w-12 border-2 border-white shadow-sm shrink-0">
-                              <AvatarImage src={standing.avatar} />
-                              <AvatarFallback className="bg-muted text-foreground font-bold">{standing.name[0]}</AvatarFallback>
-                            </Avatar>
-                            <div className="min-w-0">
-                              <div className="flex items-center gap-2">
-                                <h3 className="font-bold text-sm truncate text-foreground">{standing.name}{standing.familyCount > 1 ? "'s family" : ""}</h3>
-                                {isMe && <Badge className="bg-primary/10 text-primary text-[8px] font-bold border-none h-4 px-1.5">You</Badge>}
-                              </div>
-                              <p className="text-[10px] font-medium text-muted-foreground mt-0.5 leading-tight">
-                                {isZero ? 'Settled' : (
-                                  standing.breakdown.map((b: any) => `${b.name}: ${b.balance >= 0 ? '+' : ''}${b.balance.toFixed(0)}`).join(', ')
+                      <Card key={standing.id} className="border-none shadow-sm bg-white rounded-[2rem] overflow-hidden group hover:shadow-md transition-shadow">
+                        <CardContent className="p-0">
+                          <div className="p-5 flex items-center justify-between">
+                            <div className="flex items-center gap-4">
+                              <div className="relative">
+                                <Avatar className="h-14 w-14 border-2 border-white shadow-md shrink-0">
+                                  <AvatarImage src={standing.avatar} className="object-cover" />
+                                  <AvatarFallback className="bg-muted text-foreground font-bold">{standing.name[0]}</AvatarFallback>
+                                </Avatar>
+                                {standing.isMe && (
+                                  <div className="absolute -bottom-1 -right-1 h-5 w-5 rounded-full bg-primary flex items-center justify-center border-2 border-white">
+                                    <Sparkles className="h-2.5 w-2.5 text-white" />
+                                  </div>
                                 )}
+                              </div>
+                              <div className="min-w-0">
+                                <h3 className="font-bold text-base truncate text-foreground">{groupDisplayName}</h3>
+                                <p className={cn(
+                                  "text-[10px] font-extrabold uppercase tracking-widest mt-0.5 flex items-center gap-1",
+                                  isPositive ? "text-primary" : isNegative ? "text-accent" : "text-muted-foreground"
+                                )}>
+                                  {isPositive ? <TrendingDown className="h-3 w-3" /> : isNegative ? <TrendingUp className="h-3 w-3" /> : null}
+                                  {isPositive ? 'Is owed' : isNegative ? 'Owes' : 'Perfectly settled'}
+                                </p>
+                              </div>
+                            </div>
+                            
+                            <div className="text-right shrink-0">
+                              <p className={cn(
+                                "text-lg font-black tracking-tight",
+                                isPositive ? "text-primary" : isZero ? "text-muted-foreground" : "text-foreground"
+                              )}>
+                                {isZero ? '—' : `₹${Math.abs(standing.netTotal).toFixed(2)}`}
                               </p>
+                              {standing.familyCount > 1 && (
+                                <p className="text-[9px] font-bold text-muted-foreground/50 uppercase">
+                                  {standing.familyCount} members
+                                </p>
+                              )}
                             </div>
                           </div>
-                          <div className="text-right shrink-0 ml-4">
-                            <p className={cn(
-                              "text-sm font-extrabold tracking-tight",
-                              isPositive ? "text-primary" : isZero ? "text-muted-foreground" : "text-destructive"
-                            )}>
-                              {isPositive ? '+' : isZero ? '' : '-'}₹{Math.abs(standing.netTotal).toFixed(2)}
-                            </p>
-                            <p className="text-[9px] font-bold text-muted-foreground/60 uppercase tracking-tighter">
-                              {isPositive ? 'is owed' : isZero ? 'Even' : 'owes'}
-                            </p>
-                          </div>
+
+                          {standing.familyCount > 1 && (
+                            <Accordion type="single" collapsible className="border-t border-muted/20">
+                              <AccordionItem value="breakdown" className="border-none">
+                                <AccordionTrigger className="px-5 py-3 hover:no-underline hover:bg-muted/10 group">
+                                  <span className="text-[10px] font-bold text-muted-foreground/60 uppercase tracking-widest group-hover:text-primary transition-colors">
+                                    View breakdown
+                                  </span>
+                                </AccordionTrigger>
+                                <AccordionContent className="px-5 pb-5">
+                                  <div className="space-y-3 pt-1">
+                                    {standing.breakdown.map((b: any, idx: number) => {
+                                      const bPos = b.balance > 0.01;
+                                      const bNeg = b.balance < -0.01;
+                                      return (
+                                        <div key={idx} className="flex justify-between items-center text-xs">
+                                          <div className="flex items-center gap-2">
+                                            <div className="h-1.5 w-1.5 rounded-full bg-muted-foreground/30" />
+                                            <span className="font-semibold text-foreground/80">{b.name}</span>
+                                          </div>
+                                          <span className={cn(
+                                            "font-bold",
+                                            bPos ? "text-primary" : bNeg ? "text-accent" : "text-muted-foreground/40"
+                                          )}>
+                                            {bPos ? '+' : bNeg ? '-' : ''}₹{Math.abs(b.balance).toFixed(0)}
+                                          </span>
+                                        </div>
+                                      );
+                                    })}
+                                  </div>
+                                </AccordionContent>
+                              </AccordionItem>
+                            </Accordion>
+                          )}
                         </CardContent>
                       </Card>
                     );
@@ -840,7 +898,7 @@ export default function TripDetails() {
                   <div className="flex items-start gap-3">
                     <Info className="h-4 w-4 text-muted-foreground mt-0.5 shrink-0" />
                     <p className="text-[11px] text-muted-foreground leading-relaxed font-medium">
-                      Balances are grouped by family unit. The primary user handles payments for their entire group.
+                      Calculations are optimized for simplicity. The primary group leader is responsible for coordinating payments for their unit.
                     </p>
                   </div>
                 </div>
@@ -1093,8 +1151,9 @@ export default function TripDetails() {
 
                 <div className="space-y-4 pt-2">
                   {editParticipants.map((p) => {
+                    const isMe = p.isUser && p.userId === user?.uid;
                     const headName = p.name.replace(" (You)", "");
-                    const familyDisplayName = p.isUser && p.userId === user?.uid ? "Your family" : `${headName}'s family`;
+                    const familyDisplayName = isMe ? "Your family" : `${headName}'s family`;
                     const hasSuggestions = p.suggestedFamily && p.suggestedFamily.length > 0;
 
                     return (
@@ -1119,7 +1178,7 @@ export default function TripDetails() {
                                 )}
                               </div>
                             </div>
-                            {(!p.isUser || p.userId !== user?.uid) && (
+                            {!isMe && (
                               <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive" onClick={() => handleRemoveParticipant(p.id)}>
                                 <X className="h-4 w-4" />
                               </Button>
