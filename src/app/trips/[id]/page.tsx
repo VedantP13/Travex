@@ -1053,6 +1053,10 @@ export default function TripDetails() {
       {/* Expense Detail Dialog */}
       <Dialog open={!!selectedExpenseDetail} onOpenChange={(open) => !open && setSelectedExpenseDetail(null)}>
         <DialogContent className="max-w-[calc(100vw-40px)] w-full rounded-[2.5rem] p-0 border-none shadow-2xl bg-background overflow-hidden animate-in fade-in zoom-in-95 duration-300">
+          <DialogHeader className="sr-only">
+            <DialogTitle>Expense Details</DialogTitle>
+            <DialogDescription>View the breakdown and split for this expense.</DialogDescription>
+          </DialogHeader>
           {selectedExpenseDetail && (
             <>
               <div className={cn(
