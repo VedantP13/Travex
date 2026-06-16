@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
-import { ArrowLeft, Plus, X, UserPlus, Lightbulb, Loader2, Calendar as CalendarIcon, User, Users, Home, Search, Sparkles, AlertCircle, CheckCircle2, Archive, ChevronRight } from "lucide-react";
+import { ArrowLeft, Plus, X, UserPlus, Lightbulb, Loader2, Calendar as CalendarIcon, User, Users, Home, Search, Sparkles, AlertCircle, CheckCircle2, Archive, ChevronRight, TentTree } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
@@ -681,7 +681,7 @@ export default function CreateTrip() {
              </div>
              <div className="relative z-10 flex flex-col items-center text-center px-6">
                 <div className="h-16 w-16 rounded-full bg-accent/20 flex items-center justify-center mb-4">
-                  <AlertCircle className="h-8 w-8 text-accent animate-pulse" />
+                  <TentTree className="h-8 w-8 text-accent animate-pulse" />
                 </div>
                 <h2 className="text-xl font-bold text-white tracking-tight">Active Trips found</h2>
              </div>
