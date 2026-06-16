@@ -175,7 +175,7 @@ export function ExpenseDetailDialog({ expense, trip, onClose, onDelete, onFinali
         </DialogHeader>
         
         <div className={cn(
-          "h-52 relative flex flex-col items-center justify-center overflow-hidden pt-10",
+          "h-48 relative flex flex-col items-center justify-center overflow-hidden pt-10 shrink-0",
           getCategoryColor(expense.category)
         )}>
           <DropdownMenu>
@@ -217,36 +217,36 @@ export function ExpenseDetailDialog({ expense, trip, onClose, onDelete, onFinali
           </div>
         </div>
 
-        <ScrollArea className="max-h-[55vh] relative">
+        <ScrollArea className="max-h-[50vh] relative">
           <div className="px-safe-pad py-8 space-y-10">
             {/* Metadata Grid */}
-            <div className="grid grid-cols-2 gap-y-7 gap-x-10">
+            <div className="grid grid-cols-2 gap-y-7 gap-x-6">
               <div className="space-y-1.5">
-                <Label className="text-[10px] font-medium text-muted-foreground/60 flex items-center gap-2">
+                <Label className="text-[11px] font-medium text-muted-foreground/80 flex items-center gap-2">
                   <User className="h-3 w-3" /> Paid by
                 </Label>
                 <p className="text-sm font-semibold text-foreground">{expense.payerName}</p>
               </div>
               <div className="space-y-1.5">
-                <Label className="text-[10px] font-medium text-muted-foreground/60 flex items-center gap-2">
+                <Label className="text-[11px] font-medium text-muted-foreground/80 flex items-center gap-2">
                   <CalendarIcon className="h-3 w-3" /> Date
                 </Label>
                 <p className="text-sm font-semibold text-foreground">{friendlyDate(expense.date)}</p>
               </div>
               <div className="space-y-1.5">
-                <Label className="text-[10px] font-medium text-muted-foreground/60 flex items-center gap-2">
+                <Label className="text-[11px] font-medium text-muted-foreground/80 flex items-center gap-2">
                   <Tag className="h-3 w-3" /> Category
                 </Label>
                 <p className="text-sm font-semibold text-foreground">{expense.category}</p>
               </div>
               <div className="space-y-1.5">
-                <Label className="text-[10px] font-medium text-muted-foreground/60 flex items-center gap-2">
+                <Label className="text-[11px] font-medium text-muted-foreground/80 flex items-center gap-2">
                   <Calculator className="h-3 w-3" /> Split type
                 </Label>
                 <p className="text-sm font-semibold text-foreground">{getSplitTypeLabel(expense.splitType)}</p>
               </div>
               <div className="space-y-1.5">
-                <Label className="text-[10px] font-medium text-muted-foreground/60 flex items-center gap-2">
+                <Label className="text-[11px] font-medium text-muted-foreground/80 flex items-center gap-2">
                   <CreditCard className="h-3 w-3" /> Method
                 </Label>
                 <p className="text-sm font-semibold text-foreground">{expense.paymentType || 'Other'}</p>
@@ -284,7 +284,9 @@ export function ExpenseDetailDialog({ expense, trip, onClose, onDelete, onFinali
                           </Avatar>
                           <div className="space-y-0.5">
                             <p className="text-sm font-semibold text-foreground">
-                              {group.members.length > 1 ? `${group.name.split(' ')[0]}'s family` : group.name}
+                              {group.members.length > 1 
+                                ? (group.name.includes("You") ? "Your family" : `${group.name.split(' ')[0]}'s family`) 
+                                : group.name}
                             </p>
                           </div>
                         </div>
@@ -310,7 +312,7 @@ export function ExpenseDetailDialog({ expense, trip, onClose, onDelete, onFinali
           <div className="absolute bottom-0 left-0 right-0 h-16 bg-gradient-to-t from-white to-transparent pointer-events-none" />
         </ScrollArea>
 
-        <div className="p-safe-pad bg-muted/5 border-t">
+        <div className="p-safe-pad bg-muted/5 border-t shrink-0">
           <Button 
             className="w-full h-14 rounded-2xl bg-primary text-white font-bold text-base transition-all active:scale-95 shadow-lg shadow-primary/20"
             onClick={onClose}
