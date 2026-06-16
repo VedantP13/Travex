@@ -1,8 +1,7 @@
 
 'use client';
 
-import { useMemo } from "react";
-import { useRouter } from "next/navigation";
+import { useMemo, useState } from "react";
 import { 
   X, 
   Trash2, 
@@ -20,7 +19,9 @@ import {
   Plane,
   Camera,
   Box,
-  Timer
+  Timer,
+  AlertTriangle,
+  Loader2
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -28,6 +29,16 @@ import { Label } from "@/components/ui/label";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogClose } from "@/components/ui/dialog";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { cn } from "@/lib/utils";
 import { format, parseISO } from "date-fns";
 
@@ -75,6 +86,9 @@ const getSplitTypeLabel = (type: string) => {
 };
 
 export function ExpenseDetailDialog({ expense, trip, onClose, onDelete, onFinalizeSplit }: ExpenseDetailDialogProps) {
+  const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
+
   const splits = useMemo(() => {
     if (!expense || !trip?.participants) return [];
     
@@ -164,163 +178,216 @@ export function ExpenseDetailDialog({ expense, trip, onClose, onDelete, onFinali
     }
   };
 
+  const confirmDelete = async () => {
+    setIsDeleting(true);
+    await onDelete(expense.id);
+    setIsDeleting(false);
+    setIsDeleteConfirmOpen(false);
+  };
+
   if (!expense) return null;
 
   return (
-    <Dialog open={!!expense} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="max-w-[calc(100vw-40px)] w-full rounded-[2.5rem] p-0 border-none shadow-2xl bg-white overflow-hidden animate-in fade-in zoom-in-95 duration-300 [&>button]:hidden">
-        <DialogHeader className="sr-only">
-          <DialogTitle>Expense details</DialogTitle>
-          <DialogDescription>View the full breakdown and split for this trip expense.</DialogDescription>
-        </DialogHeader>
-        
-        <div className={cn(
-          "h-48 relative flex flex-col items-center justify-center overflow-hidden pt-10 shrink-0",
-          getCategoryColor(expense.category)
-        )}>
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="icon" className="absolute left-6 top-8 h-10 w-10 rounded-full bg-white/40 backdrop-blur-md text-foreground/60 hover:bg-white/60 transition-all border border-white/20 z-20">
-                <MoreHorizontal className="h-5 w-5" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="start" className="rounded-2xl p-1 border-none shadow-xl bg-white min-w-[140px]">
-              <DropdownMenuItem className="rounded-xl py-2.5 px-3 font-semibold text-xs flex items-center gap-2" disabled>
-                <Pencil className="h-4 w-4" /> Edit expense
-              </DropdownMenuItem>
-              <DropdownMenuItem 
-                className="rounded-xl py-2.5 px-3 font-semibold text-xs text-destructive focus:bg-destructive/5 flex items-center gap-2"
-                onClick={() => onDelete(expense.id)}
-              >
-                <Trash2 className="h-4 w-4" /> Delete
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-
-          <DialogClose asChild>
-            <Button variant="ghost" size="icon" className="absolute right-6 top-8 h-10 w-10 rounded-full flex items-center justify-center bg-white/40 backdrop-blur-md text-foreground/60 hover:bg-white/60 transition-all z-20 border border-white/20">
-              <X className="h-5 w-5" />
-            </Button>
-          </DialogClose>
+    <>
+      <Dialog open={!!expense} onOpenChange={(open) => !open && onClose()}>
+        <DialogContent className="max-w-[calc(100vw-40px)] w-full rounded-[2.5rem] p-0 border-none shadow-2xl bg-white overflow-hidden animate-in fade-in zoom-in-95 duration-300 [&>button]:hidden">
+          <DialogHeader className="sr-only">
+            <DialogTitle>Expense details</DialogTitle>
+            <DialogDescription>View the full breakdown and split for this trip expense.</DialogDescription>
+          </DialogHeader>
           
-          <div className="relative z-10 flex flex-col items-center text-center px-6">
-            <div className="h-14 w-14 rounded-2xl bg-white flex items-center justify-center mb-4 shadow-md border border-white/20">
-              {(() => {
-                const Icon = getCategoryIcon(expense.category);
-                return <Icon className="h-7 w-7" />;
-              })()}
-            </div>
-            <h2 className="text-4xl font-bold tracking-tight text-foreground leading-none">₹{parseFloat(expense.amount).toFixed(2)}</h2>
-            <p className="text-sm font-medium text-foreground/50 mt-2 max-w-[280px] leading-tight">
-              {expense.description}
-            </p>
-          </div>
-        </div>
-
-        <ScrollArea className="max-h-[50vh] relative">
-          <div className="px-safe-pad py-8 space-y-10">
-            {/* Metadata Grid */}
-            <div className="grid grid-cols-2 gap-y-7 gap-x-6">
-              <div className="space-y-1.5">
-                <Label className="text-[11px] font-medium text-muted-foreground/80 flex items-center gap-2">
-                  <User className="h-3 w-3" /> Paid by
-                </Label>
-                <p className="text-sm font-semibold text-foreground">{expense.payerName}</p>
-              </div>
-              <div className="space-y-1.5">
-                <Label className="text-[11px] font-medium text-muted-foreground/80 flex items-center gap-2">
-                  <CalendarIcon className="h-3 w-3" /> Date
-                </Label>
-                <p className="text-sm font-semibold text-foreground">{friendlyDate(expense.date)}</p>
-              </div>
-              <div className="space-y-1.5">
-                <Label className="text-[11px] font-medium text-muted-foreground/80 flex items-center gap-2">
-                  <Tag className="h-3 w-3" /> Category
-                </Label>
-                <p className="text-sm font-semibold text-foreground">{expense.category}</p>
-              </div>
-              <div className="space-y-1.5">
-                <Label className="text-[11px] font-medium text-muted-foreground/80 flex items-center gap-2">
-                  <Calculator className="h-3 w-3" /> Split type
-                </Label>
-                <p className="text-sm font-semibold text-foreground">{getSplitTypeLabel(expense.splitType)}</p>
-              </div>
-              <div className="space-y-1.5">
-                <Label className="text-[11px] font-medium text-muted-foreground/80 flex items-center gap-2">
-                  <CreditCard className="h-3 w-3" /> Method
-                </Label>
-                <p className="text-sm font-semibold text-foreground">{expense.paymentType || 'Other'}</p>
-              </div>
-            </div>
-
-            {/* Split Breakdown */}
-            <div className="space-y-6">
-              <div className="flex justify-between items-end border-b border-muted/10 pb-3">
-                <Label className="text-[11px] font-bold text-muted-foreground/50 tracking-wider">Split breakdown</Label>
-              </div>
-
-              <div className="space-y-5 pb-6">
-                {expense.splitType === 'unsplit' ? (
-                  <div className="py-10 bg-accent/5 rounded-[2rem] border-2 border-dashed border-accent/10 flex flex-col items-center justify-center text-center px-8">
-                     <Timer className="h-8 w-8 text-accent/40 mb-3" />
-                     <h4 className="text-sm font-bold text-foreground">Draft expense</h4>
-                     <p className="text-[11px] text-muted-foreground mt-1 leading-relaxed">This transaction hasn't been split yet.</p>
-                     <Button 
-                       size="sm" 
-                       className="mt-5 rounded-xl bg-accent text-accent-foreground font-bold h-9 text-[11px] px-6 shadow-lg shadow-accent/10"
-                       onClick={() => onFinalizeSplit(expense.id)}
-                     >
-                       Finalize split
-                     </Button>
-                  </div>
-                ) : (
-                  splits.map((group: any, idx: number) => (
-                    <div key={idx} className="space-y-3">
-                      <div className="flex items-center justify-between group">
-                        <div className="flex items-center gap-3.5">
-                          <Avatar className="h-10 w-10 border-2 border-white shadow-sm ring-1 ring-black/5">
-                            <AvatarImage src={group.avatar} className="object-cover" />
-                            <AvatarFallback className="text-[10px] font-bold bg-muted text-foreground">{group.name[0]}</AvatarFallback>
-                          </Avatar>
-                          <div className="space-y-0.5">
-                            <p className="text-sm font-semibold text-foreground">
-                              {group.members.length > 1 
-                                ? (group.name.includes("You") ? "Your family" : `${group.name.split(' ')[0]}'s family`) 
-                                : group.name}
-                            </p>
-                          </div>
-                        </div>
-                        <p className="text-sm font-bold text-foreground tracking-tight">₹{group.totalShare.toFixed(2)}</p>
-                      </div>
-                      
-                      {group.members.length > 1 && (
-                        <div className="ml-14 space-y-2.5 border-l-2 border-muted/10 pl-4 py-1">
-                          {group.members.map((m: any, mIdx: number) => (
-                            <div key={mIdx} className="flex justify-between items-center">
-                              <span className="text-[11px] font-medium text-muted-foreground">{m.name}</span>
-                              <span className="text-[11px] font-semibold text-muted-foreground/80">₹{m.share.toFixed(2)}</span>
-                            </div>
-                          ))}
-                        </div>
-                      )}
+          <div className={cn(
+            "h-44 relative flex flex-col items-center justify-center overflow-hidden pt-8 shrink-0",
+            getCategoryColor(expense.category)
+          )}>
+            <div className="absolute top-6 left-6 right-6 flex justify-between items-center z-10">
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" size="icon" className="h-10 w-10 rounded-full bg-white/40 backdrop-blur-md text-foreground/60 hover:bg-white/60 transition-all border border-white/20">
+                    <MoreHorizontal className="h-5 w-5" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="start" className="rounded-2xl min-w-[160px] p-1 shadow-xl border-none bg-white">
+                  <DropdownMenuItem className="group rounded-xl py-2 px-3 flex items-center gap-3 cursor-pointer text-primary focus:bg-primary/10 focus:text-primary transition-all" disabled>
+                    <div className="h-7 w-7 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
+                      <Pencil className="h-3.5 w-3.5" />
                     </div>
-                  ))
-                )}
+                    <span className="font-semibold text-xs">Edit expense</span>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem 
+                    className="group rounded-xl py-2 px-3 flex items-center gap-3 cursor-pointer text-destructive focus:bg-destructive/5 focus:text-destructive transition-all"
+                    onClick={() => setIsDeleteConfirmOpen(true)}
+                  >
+                    <div className="h-7 w-7 rounded-full bg-destructive/10 flex items-center justify-center shrink-0">
+                      <Trash2 className="h-3.5 w-3.5" />
+                    </div>
+                    <span className="font-semibold text-xs">Delete</span>
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+
+              <DialogClose asChild>
+                <Button variant="ghost" size="icon" className="h-10 w-10 rounded-full flex items-center justify-center bg-white/40 backdrop-blur-md text-foreground/60 hover:bg-white/60 transition-all border border-white/20">
+                  <X className="h-5 w-5" />
+                </Button>
+              </DialogClose>
+            </div>
+            
+            <div className="relative z-10 flex flex-col items-center text-center px-6 mt-4">
+              <div className="h-12 w-12 rounded-2xl bg-white flex items-center justify-center mb-3 shadow-md border border-white/20">
+                {(() => {
+                  const Icon = getCategoryIcon(expense.category);
+                  return <Icon className="h-6 w-6" />;
+                })()}
               </div>
+              <h2 className="text-3xl font-bold tracking-tight text-foreground leading-none">₹{parseFloat(expense.amount).toFixed(2)}</h2>
+              <p className="text-xs font-medium text-foreground/50 mt-1.5 max-w-[280px] leading-tight line-clamp-1">
+                {expense.description}
+              </p>
             </div>
           </div>
-          <div className="absolute bottom-0 left-0 right-0 h-16 bg-gradient-to-t from-white to-transparent pointer-events-none" />
-        </ScrollArea>
 
-        <div className="p-safe-pad bg-muted/5 border-t shrink-0">
-          <Button 
-            className="w-full h-14 rounded-2xl bg-primary text-white font-bold text-base transition-all active:scale-95 shadow-lg shadow-primary/20"
-            onClick={onClose}
-          >
-            Close details
-          </Button>
-        </div>
-      </DialogContent>
-    </Dialog>
+          <ScrollArea className="max-h-[50vh] relative">
+            <div className="px-6 py-8 space-y-8">
+              <div className="grid grid-cols-2 gap-y-6 gap-x-4">
+                <div className="space-y-1">
+                  <Label className="text-[10px] font-medium text-muted-foreground/80 flex items-center gap-1.5">
+                    <User className="h-3 w-3" /> Paid by
+                  </Label>
+                  <p className="text-sm font-semibold text-foreground">{expense.payerName}</p>
+                </div>
+                <div className="space-y-1">
+                  <Label className="text-[10px] font-medium text-muted-foreground/80 flex items-center gap-1.5">
+                    <CalendarIcon className="h-3 w-3" /> Date
+                  </Label>
+                  <p className="text-sm font-semibold text-foreground">{friendlyDate(expense.date)}</p>
+                </div>
+                <div className="space-y-1">
+                  <Label className="text-[10px] font-medium text-muted-foreground/80 flex items-center gap-1.5">
+                    <Tag className="h-3 w-3" /> Category
+                  </Label>
+                  <p className="text-sm font-semibold text-foreground">{expense.category}</p>
+                </div>
+                <div className="space-y-1">
+                  <Label className="text-[10px] font-medium text-muted-foreground/80 flex items-center gap-1.5">
+                    <Calculator className="h-3 w-3" /> Split type
+                  </Label>
+                  <p className="text-sm font-semibold text-foreground">{getSplitTypeLabel(expense.splitType)}</p>
+                </div>
+                <div className="space-y-1">
+                  <Label className="text-[10px] font-medium text-muted-foreground/80 flex items-center gap-1.5">
+                    <CreditCard className="h-3 w-3" /> Method
+                  </Label>
+                  <p className="text-sm font-semibold text-foreground">{expense.paymentType || 'Other'}</p>
+                </div>
+              </div>
+
+              <div className="space-y-5">
+                <div className="border-b border-muted/10 pb-2">
+                  <Label className="text-[10px] font-bold text-muted-foreground/50 tracking-wider">Split breakdown</Label>
+                </div>
+
+                <div className="space-y-5 pb-6">
+                  {expense.splitType === 'unsplit' ? (
+                    <div className="py-10 bg-accent/5 rounded-[2rem] border-2 border-dashed border-accent/10 flex flex-col items-center justify-center text-center px-8">
+                       <Timer className="h-8 w-8 text-accent/40 mb-3" />
+                       <h4 className="text-sm font-bold text-foreground">Draft expense</h4>
+                       <p className="text-[11px] text-muted-foreground mt-1 leading-relaxed">This transaction hasn't been split yet.</p>
+                       <Button 
+                         size="sm" 
+                         className="mt-5 rounded-xl bg-accent text-accent-foreground font-bold h-9 text-[11px] px-6 shadow-lg shadow-accent/10"
+                         onClick={() => onFinalizeSplit(expense.id)}
+                       >
+                         Finalize split
+                       </Button>
+                    </div>
+                  ) : (
+                    splits.map((group: any, idx: number) => {
+                      const familyDisplayName = group.name.includes("You") ? "Your family" : `${group.name.split(' ')[0]}'s family`;
+                      return (
+                        <div key={idx} className="space-y-3">
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-3">
+                              <Avatar className="h-9 w-9 border-2 border-white shadow-sm ring-1 ring-black/5">
+                                <AvatarImage src={group.avatar} className="object-cover" />
+                                <AvatarFallback className="text-[10px] font-bold bg-muted text-foreground">{group.name[0]}</AvatarFallback>
+                              </Avatar>
+                              <p className="text-sm font-semibold text-foreground">
+                                {group.members.length > 1 ? familyDisplayName : group.name}
+                              </p>
+                            </div>
+                            <p className="text-sm font-bold text-foreground tracking-tight">₹{group.totalShare.toFixed(2)}</p>
+                          </div>
+                          
+                          {group.members.length > 1 && (
+                            <div className="ml-12 space-y-2 border-l-2 border-muted/10 pl-4 py-0.5">
+                              {group.members.map((m: any, mIdx: number) => (
+                                <div key={mIdx} className="flex justify-between items-center">
+                                  <span className="text-[11px] font-medium text-muted-foreground/80">{m.name}</span>
+                                  <span className="text-[11px] font-semibold text-muted-foreground/60">₹{m.share.toFixed(2)}</span>
+                                </div>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })
+                  )}
+                </div>
+              </div>
+            </div>
+            <div className="absolute bottom-0 left-0 right-0 h-12 bg-gradient-to-t from-white to-transparent pointer-events-none" />
+          </ScrollArea>
+
+          <div className="p-6 bg-muted/5 border-t shrink-0">
+            <Button 
+              className="w-full h-14 rounded-2xl bg-primary text-white font-bold text-base transition-all active:scale-95 shadow-lg shadow-primary/20"
+              onClick={onClose}
+            >
+              Close details
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      <AlertDialog open={isDeleteConfirmOpen} onOpenChange={setIsDeleteConfirmOpen}>
+        <AlertDialogContent className="max-w-[calc(100vw-40px)] w-full rounded-[2.5rem] p-0 border-none shadow-2xl bg-white overflow-hidden">
+          <div className="h-40 bg-destructive/10 relative flex flex-col items-center justify-center">
+            <div className="h-16 w-16 rounded-full bg-destructive/10 flex items-center justify-center">
+               <AlertTriangle className="h-8 w-8 text-destructive animate-pulse" />
+            </div>
+          </div>
+          <div className="p-8 text-center space-y-6">
+            <div className="space-y-2">
+              <AlertDialogTitle className="text-xl font-bold tracking-tight text-foreground">
+                Delete expense?
+              </AlertDialogTitle>
+              <AlertDialogDescription className="text-sm font-medium leading-relaxed text-muted-foreground px-4">
+                This transaction will be removed and trip balances will be recalculated. This cannot be undone.
+              </AlertDialogDescription>
+            </div>
+            <div className="space-y-3 pt-2">
+              <Button 
+                variant="destructive"
+                className="w-full h-14 rounded-2xl font-bold text-base gap-3 shadow-lg shadow-destructive/20 transition-all active:scale-95"
+                onClick={confirmDelete}
+                disabled={isDeleting}
+              >
+                {isDeleting ? <Loader2 className="h-5 w-5 animate-spin" /> : <Trash2 className="h-4 w-4" />}
+                Delete Permanently
+              </Button>
+              <AlertDialogCancel asChild>
+                <Button 
+                  variant="ghost"
+                  className="w-full h-12 rounded-2xl font-bold text-foreground hover:bg-muted"
+                >
+                  Cancel
+                </Button>
+              </AlertDialogCancel>
+            </div>
+          </div>
+        </AlertDialogContent>
+      </AlertDialog>
+    </>
   );
 }
