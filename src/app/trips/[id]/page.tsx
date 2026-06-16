@@ -1060,72 +1060,72 @@ export default function TripDetails() {
           {selectedExpenseDetail && (
             <>
               <div className={cn(
-                "h-48 relative flex flex-col items-center justify-center overflow-hidden",
+                "h-40 relative flex flex-col items-center justify-center overflow-hidden",
                 getCategoryColor(selectedExpenseDetail.category)
               )}>
-                <DialogClose className="absolute right-4 top-4 h-8 w-8 rounded-full flex items-center justify-center bg-black/5 text-foreground/60 hover:bg-black/10 transition-all z-20">
-                  <X className="h-5 w-5" />
+                <DialogClose className="absolute right-5 top-5 h-8 w-8 rounded-full flex items-center justify-center bg-black/5 text-foreground/40 hover:bg-black/10 transition-all z-20">
+                  <X className="h-4 w-4" />
                 </DialogClose>
                 <div className="relative z-10 flex flex-col items-center text-center px-6">
-                  <div className="h-16 w-16 rounded-3xl bg-white/50 backdrop-blur-md flex items-center justify-center mb-3 shadow-sm">
+                  <div className="h-12 w-12 rounded-2xl bg-white/40 backdrop-blur-md flex items-center justify-center mb-2 shadow-sm">
                     {(() => {
                       const Icon = getCategoryIcon(selectedExpenseDetail.category);
-                      return <Icon className="h-8 w-8" />;
+                      return <Icon className="h-6 w-6" />;
                     })()}
                   </div>
-                  <h2 className="text-3xl font-black tracking-tight text-foreground">₹{parseFloat(selectedExpenseDetail.amount).toFixed(2)}</h2>
-                  <p className="text-xs font-bold text-foreground/60 uppercase tracking-widest mt-1">{selectedExpenseDetail.description}</p>
+                  <h2 className="text-2xl font-black tracking-tight text-foreground">₹{parseFloat(selectedExpenseDetail.amount).toFixed(2)}</h2>
+                  <p className="text-[10px] font-bold text-foreground/50 uppercase tracking-widest mt-0.5">{selectedExpenseDetail.description}</p>
                 </div>
               </div>
 
               <ScrollArea className="max-h-[60vh]">
-                <div className="p-8 space-y-8">
-                  <div className="grid grid-cols-2 gap-6">
+                <div className="px-6 py-6 space-y-6">
+                  <div className="grid grid-cols-2 gap-y-5 gap-x-4">
                     <div className="space-y-1">
-                      <Label className="text-[10px] font-extrabold text-muted-foreground uppercase tracking-widest flex items-center gap-1.5">
-                        <User className="h-3 w-3" /> Paid by
+                      <Label className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest flex items-center gap-1.5 opacity-60">
+                        <User className="h-2.5 w-2.5" /> Payer
                       </Label>
-                      <p className="text-sm font-bold text-foreground">{selectedExpenseDetail.payerName}</p>
+                      <p className="text-xs font-bold text-foreground">{selectedExpenseDetail.payerName}</p>
                     </div>
                     <div className="space-y-1">
-                      <Label className="text-[10px] font-extrabold text-muted-foreground uppercase tracking-widest flex items-center gap-1.5">
-                        <CalendarIcon className="h-3 w-3" /> Date
+                      <Label className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest flex items-center gap-1.5 opacity-60">
+                        <CalendarIcon className="h-2.5 w-2.5" /> Date
                       </Label>
-                      <p className="text-sm font-bold text-foreground">{selectedExpenseDetail.date}</p>
+                      <p className="text-xs font-bold text-foreground">{selectedExpenseDetail.date}</p>
                     </div>
                     <div className="space-y-1">
-                      <Label className="text-[10px] font-extrabold text-muted-foreground uppercase tracking-widest flex items-center gap-1.5">
-                        <Tag className="h-3 w-3" /> Category
+                      <Label className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest flex items-center gap-1.5 opacity-60">
+                        <Tag className="h-2.5 w-2.5" /> Type
                       </Label>
-                      <p className="text-sm font-bold text-foreground">{selectedExpenseDetail.category}</p>
+                      <p className="text-xs font-bold text-foreground">{selectedExpenseDetail.category}</p>
                     </div>
                     <div className="space-y-1">
-                      <Label className="text-[10px] font-extrabold text-muted-foreground uppercase tracking-widest flex items-center gap-1.5">
-                        <CreditCard className="h-3 w-3" /> Method
+                      <Label className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest flex items-center gap-1.5 opacity-60">
+                        <CreditCard className="h-2.5 w-2.5" /> Method
                       </Label>
-                      <p className="text-sm font-bold text-foreground">{selectedExpenseDetail.paymentType || 'Not specified'}</p>
+                      <p className="text-xs font-bold text-foreground">{selectedExpenseDetail.paymentType || 'Other'}</p>
                     </div>
                   </div>
 
-                  <Separator className="bg-muted/30" />
+                  <Separator className="bg-muted/20" />
 
                   <div className="space-y-4">
-                    <div className="flex justify-between items-end">
-                      <Label className="text-[10px] font-extrabold text-muted-foreground uppercase tracking-widest">Split Breakdown</Label>
-                      <Badge variant="outline" className="text-[9px] font-bold border-primary/20 text-primary bg-primary/5 uppercase">
+                    <div className="flex justify-between items-center px-1">
+                      <Label className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest opacity-60">Split Breakdown</Label>
+                      <Badge variant="outline" className="text-[8px] font-bold border-primary/10 text-primary bg-primary/5 uppercase px-2 py-0 h-4">
                         {selectedExpenseDetail.splitType.replace('_', ' ')}
                       </Badge>
                     </div>
 
-                    <div className="space-y-3">
+                    <div className="space-y-2 pb-2">
                       {selectedExpenseDetail.splitType === 'unsplit' ? (
-                        <div className="py-8 bg-accent/5 rounded-3xl border-2 border-dashed border-accent/20 flex flex-col items-center justify-center text-center px-6">
-                           <Timer className="h-8 w-8 text-accent mb-2 animate-pulse" />
-                           <p className="text-sm font-bold text-foreground">Waiting to be split</p>
-                           <p className="text-[10px] text-muted-foreground mt-1">This transaction is currently a draft and doesn't impact balances yet.</p>
+                        <div className="py-8 bg-accent/5 rounded-3xl border-2 border-dashed border-accent/10 flex flex-col items-center justify-center text-center px-6">
+                           <Timer className="h-7 w-7 text-accent/60 mb-2" />
+                           <p className="text-xs font-bold text-foreground">Draft Expense</p>
+                           <p className="text-[9px] text-muted-foreground mt-0.5 leading-relaxed">This hasn't been split yet and doesn't impact balances.</p>
                            <Button 
                              size="sm" 
-                             className="mt-4 rounded-xl bg-accent text-accent-foreground font-bold h-9 px-6"
+                             className="mt-4 rounded-xl bg-accent text-accent-foreground font-bold h-8 text-[10px] px-5"
                              onClick={() => router.push(`/trips/${id}/expenses/${selectedExpenseDetail.id}/split`)}
                            >
                              Finalize Split
@@ -1133,18 +1133,18 @@ export default function TripDetails() {
                         </div>
                       ) : (
                         selectedExpenseSplits.map((split, idx) => (
-                          <div key={idx} className="flex items-center justify-between p-3 rounded-2xl bg-muted/20 hover:bg-muted/40 transition-colors">
+                          <div key={idx} className="flex items-center justify-between p-3 rounded-2xl bg-muted/10 hover:bg-muted/20 transition-all group">
                             <div className="flex items-center gap-3">
-                              <Avatar className="h-8 w-8 border shadow-sm">
-                                <AvatarImage src={split.avatar} />
-                                <AvatarFallback className="text-[10px] font-bold">{split.name[0]}</AvatarFallback>
+                              <Avatar className="h-8 w-8 border border-white shadow-sm ring-1 ring-black/5">
+                                <AvatarImage src={split.avatar} className="object-cover" />
+                                <AvatarFallback className="text-[10px] font-bold bg-white text-foreground">{split.name[0]}</AvatarFallback>
                               </Avatar>
                               <div>
-                                <p className="text-xs font-bold text-foreground">{split.name}</p>
-                                {split.isFamilyGroup && <p className="text-[8px] font-bold text-muted-foreground uppercase">Family Unit</p>}
+                                <p className="text-xs font-bold text-foreground/80">{split.name}</p>
+                                {split.isFamilyGroup && <p className="text-[8px] font-bold text-muted-foreground uppercase opacity-70">Entire unit</p>}
                               </div>
                             </div>
-                            <p className="text-xs font-extrabold text-foreground">₹{split.share.toFixed(2)}</p>
+                            <p className="text-xs font-black text-foreground">₹{split.share.toFixed(2)}</p>
                           </div>
                         ))
                       )}
@@ -1153,10 +1153,10 @@ export default function TripDetails() {
                 </div>
               </ScrollArea>
 
-              <div className="p-6 pt-0 mt-4">
+              <div className="p-4 bg-muted/5 border-t">
                 <Button 
                   variant="ghost" 
-                  className="w-full h-12 rounded-2xl font-bold text-muted-foreground text-sm hover:bg-muted"
+                  className="w-full h-11 rounded-xl font-bold text-muted-foreground text-[11px] hover:bg-muted/20 uppercase tracking-widest"
                   onClick={() => setSelectedExpenseDetail(null)}
                 >
                   Close Details
