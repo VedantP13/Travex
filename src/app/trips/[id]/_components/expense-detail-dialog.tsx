@@ -53,13 +53,13 @@ const getCategoryIcon = (cat: string) => {
 
 const getCategoryColor = (cat: string) => {
   switch (cat) {
-    case 'Food': return 'bg-orange-100 text-orange-600';
-    case 'Transport': return 'bg-blue-100 text-blue-600';
-    case 'Stay': return 'bg-purple-100 text-purple-600';
-    case 'Shopping': return 'bg-pink-100 text-pink-600';
-    case 'Flights': return 'bg-indigo-100 text-indigo-600';
-    case 'Sightseeing': return 'bg-green-100 text-green-600';
-    default: return 'bg-teal-100 text-teal-600';
+    case 'Food': return 'bg-orange-50 text-orange-600';
+    case 'Transport': return 'bg-blue-50 text-blue-600';
+    case 'Stay': return 'bg-purple-50 text-purple-600';
+    case 'Shopping': return 'bg-pink-50 text-pink-600';
+    case 'Flights': return 'bg-indigo-50 text-indigo-600';
+    case 'Sightseeing': return 'bg-green-50 text-green-600';
+    default: return 'bg-teal-50 text-teal-600';
   }
 };
 
@@ -75,8 +75,6 @@ const getSplitTypeLabel = (type: string) => {
 };
 
 export function ExpenseDetailDialog({ expense, trip, onClose, onDelete, onFinalizeSplit }: ExpenseDetailDialogProps) {
-  const router = useRouter();
-
   const splits = useMemo(() => {
     if (!expense || !trip?.participants) return [];
     
@@ -177,97 +175,99 @@ export function ExpenseDetailDialog({ expense, trip, onClose, onDelete, onFinali
         </DialogHeader>
         
         <div className={cn(
-          "h-48 relative flex flex-col items-center justify-center overflow-hidden pt-6",
+          "h-52 relative flex flex-col items-center justify-center overflow-hidden pt-10",
           getCategoryColor(expense.category)
         )}>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="icon" className="absolute left-6 top-6 h-9 w-9 rounded-full bg-black/5 text-foreground/40 hover:bg-black/10 transition-all border border-black/5 z-20">
-                <MoreHorizontal className="h-4 w-4" />
+              <Button variant="ghost" size="icon" className="absolute left-6 top-8 h-10 w-10 rounded-full bg-white/40 backdrop-blur-md text-foreground/60 hover:bg-white/60 transition-all border border-white/20 z-20">
+                <MoreHorizontal className="h-5 w-5" />
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="start" className="rounded-2xl p-1 border-none shadow-xl bg-white min-w-[140px]">
-              <DropdownMenuItem className="rounded-xl py-2 px-3 font-semibold text-xs flex items-center gap-2" disabled>
-                <Pencil className="h-3.5 w-3.5" /> Edit expense
+              <DropdownMenuItem className="rounded-xl py-2.5 px-3 font-semibold text-xs flex items-center gap-2" disabled>
+                <Pencil className="h-4 w-4" /> Edit expense
               </DropdownMenuItem>
               <DropdownMenuItem 
-                className="rounded-xl py-2 px-3 font-semibold text-xs text-destructive focus:bg-destructive/5 flex items-center gap-2"
+                className="rounded-xl py-2.5 px-3 font-semibold text-xs text-destructive focus:bg-destructive/5 flex items-center gap-2"
                 onClick={() => onDelete(expense.id)}
               >
-                <Trash2 className="h-3.5 w-3.5" /> Delete
+                <Trash2 className="h-4 w-4" /> Delete
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
 
           <DialogClose asChild>
-            <Button variant="ghost" size="icon" className="absolute right-6 top-6 h-9 w-9 rounded-full flex items-center justify-center bg-black/5 text-foreground/40 hover:bg-black/10 transition-all z-20 border border-black/5">
-              <X className="h-4 w-4" />
+            <Button variant="ghost" size="icon" className="absolute right-6 top-8 h-10 w-10 rounded-full flex items-center justify-center bg-white/40 backdrop-blur-md text-foreground/60 hover:bg-white/60 transition-all z-20 border border-white/20">
+              <X className="h-5 w-5" />
             </Button>
           </DialogClose>
           
-          <div className="relative z-10 flex flex-col items-center text-center px-4">
-            <div className="h-12 w-12 rounded-2xl bg-white/40 backdrop-blur-md flex items-center justify-center mb-3 shadow-sm border border-white/20">
+          <div className="relative z-10 flex flex-col items-center text-center px-6">
+            <div className="h-14 w-14 rounded-2xl bg-white flex items-center justify-center mb-4 shadow-md border border-white/20">
               {(() => {
                 const Icon = getCategoryIcon(expense.category);
-                return <Icon className="h-6 w-6" />;
+                return <Icon className="h-7 w-7" />;
               })()}
             </div>
-            <h2 className="text-3xl font-black tracking-tight text-foreground leading-none">₹{parseFloat(expense.amount).toFixed(2)}</h2>
-            <p className="text-sm font-bold text-foreground/60 mt-2 max-w-[240px] leading-tight">
+            <h2 className="text-4xl font-bold tracking-tight text-foreground leading-none">₹{parseFloat(expense.amount).toFixed(2)}</h2>
+            <p className="text-sm font-medium text-foreground/50 mt-2 max-w-[280px] leading-tight">
               {expense.description}
             </p>
           </div>
         </div>
 
-        <ScrollArea className="max-h-[50vh] relative">
-          <div className="px-6 py-8 space-y-8">
-            <div className="grid grid-cols-2 gap-y-6 gap-x-8">
-              <div className="space-y-1">
-                <Label className="text-[10px] font-bold text-muted-foreground/50 flex items-center gap-1.5">
-                  <User className="h-2.5 w-2.5" /> Paid by
+        <ScrollArea className="max-h-[55vh] relative">
+          <div className="px-safe-pad py-8 space-y-10">
+            {/* Metadata Grid */}
+            <div className="grid grid-cols-2 gap-y-7 gap-x-10">
+              <div className="space-y-1.5">
+                <Label className="text-[10px] font-medium text-muted-foreground/60 flex items-center gap-2">
+                  <User className="h-3 w-3" /> Paid by
                 </Label>
-                <p className="text-xs font-bold text-foreground">{expense.payerName}</p>
+                <p className="text-sm font-semibold text-foreground">{expense.payerName}</p>
               </div>
-              <div className="space-y-1">
-                <Label className="text-[10px] font-bold text-muted-foreground/50 flex items-center gap-1.5">
-                  <CalendarIcon className="h-2.5 w-2.5" /> Date
+              <div className="space-y-1.5">
+                <Label className="text-[10px] font-medium text-muted-foreground/60 flex items-center gap-2">
+                  <CalendarIcon className="h-3 w-3" /> Date
                 </Label>
-                <p className="text-xs font-bold text-foreground">{friendlyDate(expense.date)}</p>
+                <p className="text-sm font-semibold text-foreground">{friendlyDate(expense.date)}</p>
               </div>
-              <div className="space-y-1">
-                <Label className="text-[10px] font-bold text-muted-foreground/50 flex items-center gap-1.5">
-                  <Tag className="h-2.5 w-2.5" /> Category
+              <div className="space-y-1.5">
+                <Label className="text-[10px] font-medium text-muted-foreground/60 flex items-center gap-2">
+                  <Tag className="h-3 w-3" /> Category
                 </Label>
-                <p className="text-xs font-bold text-foreground">{expense.category}</p>
+                <p className="text-sm font-semibold text-foreground">{expense.category}</p>
               </div>
-              <div className="space-y-1">
-                <Label className="text-[10px] font-bold text-muted-foreground/50 flex items-center gap-1.5">
-                  <Calculator className="h-2.5 w-2.5" /> Split type
+              <div className="space-y-1.5">
+                <Label className="text-[10px] font-medium text-muted-foreground/60 flex items-center gap-2">
+                  <Calculator className="h-3 w-3" /> Split type
                 </Label>
-                <p className="text-xs font-bold text-foreground">{getSplitTypeLabel(expense.splitType)}</p>
+                <p className="text-sm font-semibold text-foreground">{getSplitTypeLabel(expense.splitType)}</p>
               </div>
-              <div className="space-y-1">
-                <Label className="text-[10px] font-bold text-muted-foreground/50 flex items-center gap-1.5">
-                  <CreditCard className="h-2.5 w-2.5" /> Method
+              <div className="space-y-1.5">
+                <Label className="text-[10px] font-medium text-muted-foreground/60 flex items-center gap-2">
+                  <CreditCard className="h-3 w-3" /> Method
                 </Label>
-                <p className="text-xs font-bold text-foreground">{expense.paymentType || 'Other'}</p>
+                <p className="text-sm font-semibold text-foreground">{expense.paymentType || 'Other'}</p>
               </div>
             </div>
 
-            <div className="space-y-4">
-              <div className="flex justify-between items-end border-b border-muted/20 pb-3">
-                <Label className="text-[10px] font-bold text-muted-foreground/50">Split breakdown</Label>
+            {/* Split Breakdown */}
+            <div className="space-y-6">
+              <div className="flex justify-between items-end border-b border-muted/10 pb-3">
+                <Label className="text-[11px] font-bold text-muted-foreground/50 tracking-wider">Split breakdown</Label>
               </div>
 
-              <div className="space-y-3 pb-4">
+              <div className="space-y-5 pb-6">
                 {expense.splitType === 'unsplit' ? (
-                  <div className="py-8 bg-accent/5 rounded-3xl border-2 border-dashed border-accent/10 flex flex-col items-center justify-center text-center px-6">
-                     <Timer className="h-7 w-7 text-accent/60 mb-2" />
-                     <p className="text-xs font-bold text-foreground">Draft expense</p>
-                     <p className="text-[10px] text-muted-foreground mt-0.5 leading-relaxed">This hasn't been split yet.</p>
+                  <div className="py-10 bg-accent/5 rounded-[2rem] border-2 border-dashed border-accent/10 flex flex-col items-center justify-center text-center px-8">
+                     <Timer className="h-8 w-8 text-accent/40 mb-3" />
+                     <h4 className="text-sm font-bold text-foreground">Draft expense</h4>
+                     <p className="text-[11px] text-muted-foreground mt-1 leading-relaxed">This transaction hasn't been split yet.</p>
                      <Button 
                        size="sm" 
-                       className="mt-4 rounded-xl bg-accent text-accent-foreground font-bold h-8 text-[10px] px-5"
+                       className="mt-5 rounded-xl bg-accent text-accent-foreground font-bold h-9 text-[11px] px-6 shadow-lg shadow-accent/10"
                        onClick={() => onFinalizeSplit(expense.id)}
                      >
                        Finalize split
@@ -275,28 +275,28 @@ export function ExpenseDetailDialog({ expense, trip, onClose, onDelete, onFinali
                   </div>
                 ) : (
                   splits.map((group: any, idx: number) => (
-                    <div key={idx} className="space-y-2">
+                    <div key={idx} className="space-y-3">
                       <div className="flex items-center justify-between group">
-                        <div className="flex items-center gap-3">
-                          <Avatar className="h-9 w-9 border-2 border-white shadow-sm ring-1 ring-black/5">
+                        <div className="flex items-center gap-3.5">
+                          <Avatar className="h-10 w-10 border-2 border-white shadow-sm ring-1 ring-black/5">
                             <AvatarImage src={group.avatar} className="object-cover" />
                             <AvatarFallback className="text-[10px] font-bold bg-muted text-foreground">{group.name[0]}</AvatarFallback>
                           </Avatar>
-                          <div>
-                            <p className="text-xs font-bold text-foreground/80">
+                          <div className="space-y-0.5">
+                            <p className="text-sm font-semibold text-foreground">
                               {group.members.length > 1 ? `${group.name.split(' ')[0]}'s family` : group.name}
                             </p>
                           </div>
                         </div>
-                        <p className="text-xs font-black text-foreground">₹{group.totalShare.toFixed(2)}</p>
+                        <p className="text-sm font-bold text-foreground tracking-tight">₹{group.totalShare.toFixed(2)}</p>
                       </div>
                       
                       {group.members.length > 1 && (
-                        <div className="ml-12 space-y-1.5 border-l-2 border-muted/20 pl-3">
+                        <div className="ml-14 space-y-2.5 border-l-2 border-muted/10 pl-4 py-1">
                           {group.members.map((m: any, mIdx: number) => (
                             <div key={mIdx} className="flex justify-between items-center">
-                              <span className="text-[10px] font-medium text-muted-foreground/70">{m.name}</span>
-                              <span className="text-[10px] font-bold text-muted-foreground/50">₹{m.share.toFixed(2)}</span>
+                              <span className="text-[11px] font-medium text-muted-foreground">{m.name}</span>
+                              <span className="text-[11px] font-semibold text-muted-foreground/80">₹{m.share.toFixed(2)}</span>
                             </div>
                           ))}
                         </div>
@@ -307,12 +307,12 @@ export function ExpenseDetailDialog({ expense, trip, onClose, onDelete, onFinali
               </div>
             </div>
           </div>
-          <div className="absolute bottom-0 left-0 right-0 h-12 bg-gradient-to-t from-white to-transparent pointer-events-none" />
+          <div className="absolute bottom-0 left-0 right-0 h-16 bg-gradient-to-t from-white to-transparent pointer-events-none" />
         </ScrollArea>
 
-        <div className="p-6 bg-muted/5 border-t">
+        <div className="p-safe-pad bg-muted/5 border-t">
           <Button 
-            className="w-full h-14 rounded-2xl bg-primary text-white font-bold transition-all active:scale-95 shadow-lg shadow-primary/20"
+            className="w-full h-14 rounded-2xl bg-primary text-white font-bold text-base transition-all active:scale-95 shadow-lg shadow-primary/20"
             onClick={onClose}
           >
             Close details
