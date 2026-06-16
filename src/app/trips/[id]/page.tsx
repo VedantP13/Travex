@@ -33,7 +33,10 @@ import {
   Plane,
   Box,
   Sparkles,
-  Archive
+  Archive,
+  TrendingUp,
+  TrendingDown,
+  Info
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -75,7 +78,6 @@ import {
   AlertDialogAction,
   AlertDialogCancel,
   AlertDialogContent,
-  AlertDialogDescription,
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
@@ -222,7 +224,6 @@ export default function TripDetails() {
       const friendSnap = await getDoc(doc(firestore!, "users", friendId));
       if (friendSnap.exists()) {
         const friendData = friendSnap.data();
-        // Respect privacy setting
         if (friendData.isFamilyPublic !== false) {
           familyFromProfile = friendData.familyMembers || [];
         }
@@ -403,9 +404,34 @@ export default function TripDetails() {
       });
   };
 
+  const groupedStandings = useMemo(() => {
+    if (!trip?.participants || !trip?.netBalances) return [];
+
+    return trip.participants.map((p: any) => {
+      const headName = p.name.replace(" (You)", "");
+      let total = trip.netBalances[p.id] || 0;
+      const breakdown = [{ name: headName, balance: trip.netBalances[p.id] || 0 }];
+
+      p.familyMembers?.forEach((fm: string) => {
+        const val = trip.netBalances[`${p.id}-${fm}`] || 0;
+        total += val;
+        breakdown.push({ name: fm, balance: val });
+      });
+
+      return {
+        id: p.id,
+        name: headName,
+        avatar: p.avatar,
+        isUser: p.isUser,
+        userId: p.userId,
+        netTotal: total,
+        breakdown,
+        familyCount: (p.familyMembers?.length || 0) + 1
+      };
+    }).sort((a: any, b: any) => b.netTotal - a.netTotal);
+  }, [trip?.participants, trip?.netBalances]);
+
   const isPastDue = useMemo(() => {
-    // Resilience: If endDate is missing but it's an old active trip, we still want to show the nudge
-    // For now, strictly rely on endDate which is synced in Phases 4 & 5.
     if (!trip || trip.status !== 'Active' || !trip.endDate) return false;
     const today = new Date();
     today.setHours(0, 0, 0, 0);
@@ -650,17 +676,101 @@ export default function TripDetails() {
                   })}
                 </div>
               )}
+
+              {!loading && expenses.length === 0 && (
+                <div className="text-center py-16 bg-white rounded-[2rem] border-2 border-dashed border-muted/50 px-8">
+                  <div className="h-14 w-14 bg-muted/20 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <Sparkles className="h-6 w-6 text-muted-foreground/40" />
+                  </div>
+                  <p className="text-sm font-bold text-foreground">No expenses yet</p>
+                  <p className="text-[10px] text-muted-foreground mt-1">Tap the + button to add your first transaction.</p>
+                </div>
+              )}
             </div>
           </TabsContent>
 
-          <TabsContent value="balances" className="mt-6 space-y-6">
-            <div className="text-center py-20 bg-white rounded-[2.5rem] border-2 border-dashed border-muted/50 px-10">
-               <div className="h-16 w-16 bg-primary/5 rounded-full flex items-center justify-center mx-auto mb-6">
-                 <Activity className="h-7 w-7 text-primary/40" />
-               </div>
-               <h3 className="text-lg font-bold text-foreground tracking-tight">Balance summaries</h3>
-               <p className="text-sm text-muted-foreground mt-1 leading-relaxed px-4">Detailed debt and settlement tracking will appear here as expenses are added.</p>
-            </div>
+          <TabsContent value="balances" className="mt-6 space-y-6 pb-24">
+            {groupedStandings.length > 0 ? (
+              <div className="space-y-4">
+                <div className="grid grid-cols-2 gap-3 mb-6">
+                  <div className="bg-white p-5 rounded-3xl shadow-sm border border-primary/5">
+                    <div className="flex items-center gap-1.5 text-primary mb-1">
+                      <TrendingDown className="h-3 w-3" />
+                      <span className="text-[9px] font-bold uppercase tracking-widest">Owed</span>
+                    </div>
+                    <p className="text-lg font-bold">₹{groupedStandings.reduce((acc, s) => s.netTotal > 0 ? acc + s.netTotal : acc, 0).toFixed(2)}</p>
+                  </div>
+                  <div className="bg-white p-5 rounded-3xl shadow-sm border border-destructive/5">
+                    <div className="flex items-center gap-1.5 text-destructive mb-1">
+                      <TrendingUp className="h-3 w-3" />
+                      <span className="text-[9px] font-bold uppercase tracking-widest">Debt</span>
+                    </div>
+                    <p className="text-lg font-bold">₹{Math.abs(groupedStandings.reduce((acc, s) => s.netTotal < 0 ? acc + s.netTotal : acc, 0)).toFixed(2)}</p>
+                  </div>
+                </div>
+
+                <h2 className="text-xs font-semibold text-foreground/60 tracking-widest px-1 uppercase mb-2">Net standing</h2>
+                <div className="grid gap-3">
+                  {groupedStandings.map((standing) => {
+                    const isPositive = standing.netTotal > 0;
+                    const isZero = Math.abs(standing.netTotal) < 0.01;
+                    const isMe = standing.isUser && standing.userId === user?.uid;
+
+                    return (
+                      <Card key={standing.id} className="border-none shadow-sm bg-white rounded-3xl overflow-hidden group hover:shadow-md transition-shadow">
+                        <CardContent className="p-4 flex items-center justify-between">
+                          <div className="flex items-center gap-4">
+                            <Avatar className="h-12 w-12 border-2 border-white shadow-sm shrink-0">
+                              <AvatarImage src={standing.avatar} />
+                              <AvatarFallback className="bg-muted text-foreground font-bold">{standing.name[0]}</AvatarFallback>
+                            </Avatar>
+                            <div className="min-w-0">
+                              <div className="flex items-center gap-2">
+                                <h3 className="font-bold text-sm truncate text-foreground">{standing.name}{standing.familyCount > 1 ? "'s family" : ""}</h3>
+                                {isMe && <Badge className="bg-primary/10 text-primary text-[8px] font-bold border-none h-4 px-1.5">You</Badge>}
+                              </div>
+                              <p className="text-[10px] font-medium text-muted-foreground mt-0.5 leading-tight">
+                                {isZero ? 'Settled' : (
+                                  standing.breakdown.map((b: any) => `${b.name}: ${b.balance >= 0 ? '+' : ''}${b.balance.toFixed(0)}`).join(', ')
+                                )}
+                              </p>
+                            </div>
+                          </div>
+                          <div className="text-right shrink-0 ml-4">
+                            <p className={cn(
+                              "text-sm font-extrabold tracking-tight",
+                              isPositive ? "text-primary" : isZero ? "text-muted-foreground" : "text-destructive"
+                            )}>
+                              {isPositive ? '+' : isZero ? '' : '-'}₹{Math.abs(standing.netTotal).toFixed(2)}
+                            </p>
+                            <p className="text-[9px] font-bold text-muted-foreground/60 uppercase tracking-tighter">
+                              {isPositive ? 'is owed' : isZero ? 'Even' : 'owes'}
+                            </p>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    );
+                  })}
+                </div>
+
+                <div className="mt-8 bg-muted/20 rounded-3xl p-5 border border-dashed border-muted/50">
+                  <div className="flex items-start gap-3">
+                    <Info className="h-4 w-4 text-muted-foreground mt-0.5 shrink-0" />
+                    <p className="text-[11px] text-muted-foreground leading-relaxed font-medium">
+                      Balances are grouped by family unit. The primary user handles payments for their entire group.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            ) : (
+              <div className="text-center py-20 bg-white rounded-[2.5rem] border-2 border-dashed border-muted/50 px-10">
+                 <div className="h-16 w-16 bg-primary/5 rounded-full flex items-center justify-center mx-auto mb-6">
+                   <Activity className="h-7 w-7 text-primary/40" />
+                 </div>
+                 <h3 className="text-lg font-bold text-foreground tracking-tight">Balance summaries</h3>
+                 <p className="text-sm text-muted-foreground mt-1 leading-relaxed px-4">Calculated debt and credit standings will appear as you finalize expense splits.</p>
+              </div>
+            )}
           </TabsContent>
         </Tabs>
       </div>
