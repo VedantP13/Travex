@@ -37,7 +37,9 @@ import {
   TrendingDown,
   Info,
   ArrowRight,
-  ChevronDown
+  ChevronDown,
+  CreditCard,
+  Tag
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -52,6 +54,7 @@ import { FirestorePermissionError } from "@/firebase/errors";
 import { cn } from "@/lib/utils";
 import { getTripImage } from "@/lib/image-utils";
 import { PlaceHolderImages } from "@/lib/placeholder-images";
+import { Separator } from "@/components/ui/separator";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -113,6 +116,7 @@ export default function TripDetails() {
   const [isCalendarOpen, setIsCalendarOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [isImagePickerOpen, setIsImagePickerOpen] = useState(false);
+  const [selectedExpenseDetail, setSelectedExpenseDetail] = useState<any>(null);
   
   const [editName, setEditName] = useState("");
   const [editDateRange, setEditDateRange] = useState<DateRange | undefined>();
@@ -445,7 +449,6 @@ export default function TripDetails() {
   const suggestedPayments = useMemo(() => {
     if (groupedStandings.length === 0) return [];
 
-    // Filter debtors and creditors
     const debtors = groupedStandings
       .filter(s => s.netTotal < -0.01)
       .map(s => ({ name: s.name, avatar: s.avatar, balance: Math.abs(s.netTotal) }));
@@ -458,7 +461,6 @@ export default function TripDetails() {
     let dIdx = 0;
     let cIdx = 0;
 
-    // Use cloned lists for processing
     const dList = JSON.parse(JSON.stringify(debtors));
     const cList = JSON.parse(JSON.stringify(creditors));
 
@@ -519,6 +521,49 @@ export default function TripDetails() {
 
   const unsplitExpenses = expenses.filter(e => e.splitType === 'unsplit');
   const finalizedExpenses = expenses.filter(e => e.splitType !== 'unsplit');
+
+  const selectedExpenseSplits = useMemo(() => {
+    if (!selectedExpenseDetail || !trip?.participants) return [];
+    
+    const amount = parseFloat(selectedExpenseDetail.amount);
+    const splits: any[] = [];
+    const participantsFlat: any[] = [];
+
+    // Flatten participants for ID matching
+    trip.participants.forEach((p: any) => {
+      participantsFlat.push({ id: p.id, name: p.name, avatar: p.avatar });
+      p.familyMembers?.forEach((fm: string) => {
+        participantsFlat.push({ id: `${p.id}-${fm}`, name: fm, avatar: p.avatar });
+      });
+    });
+
+    const selected = selectedExpenseDetail.selectedIndividuals || [];
+
+    if (selectedExpenseDetail.splitType === 'custom') {
+      Object.entries(selectedExpenseDetail.customAmounts || {}).forEach(([id, val]: [string, any]) => {
+        const p = participantsFlat.find(pf => pf.id === id);
+        if (p) splits.push({ ...p, share: parseFloat(val) });
+      });
+    } else if (selectedExpenseDetail.splitType === 'equal_person') {
+      const share = amount / selected.length;
+      selected.forEach((id: string) => {
+        const p = participantsFlat.find(pf => pf.id === id);
+        if (p) splits.push({ ...p, share });
+      });
+    } else if (selectedExpenseDetail.splitType === 'equal_family') {
+      const familyIds = Array.from(new Set(selected.map((id: string) => id.split('-')[0])));
+      const sharePerFamily = amount / familyIds.length;
+      familyIds.forEach((fid: any) => {
+        const p = participantsFlat.find(pf => pf.id === fid);
+        if (p) splits.push({ ...p, share: sharePerFamily, isFamilyGroup: true });
+      });
+    } else if (selectedExpenseDetail.splitType === 'just_me') {
+      const p = participantsFlat.find(pf => pf.id === selectedExpenseDetail.payerId);
+      if (p) splits.push({ ...p, share: amount });
+    }
+
+    return splits.sort((a, b) => b.share - a.share);
+  }, [selectedExpenseDetail, trip?.participants]);
 
   if (loading && !trip) {
     return (
@@ -684,7 +729,7 @@ export default function TripDetails() {
                     return (
                       <Card key={item.id} className="border-none shadow-lg bg-white rounded-[2rem] overflow-hidden">
                         <CardContent className="p-5 flex items-center justify-between">
-                          <div className="flex items-center gap-4">
+                          <div className="flex items-center gap-4 cursor-pointer" onClick={() => setSelectedExpenseDetail(item)}>
                             <div className="h-12 w-12 rounded-2xl bg-accent/10 flex items-center justify-center text-accent">
                               <Icon className="h-6 w-6" />
                             </div>
@@ -716,7 +761,11 @@ export default function TripDetails() {
                   {finalizedExpenses.map(item => {
                     const Icon = getCategoryIcon(item.category);
                     return (
-                      <div key={item.id} className="bg-white p-5 rounded-[2rem] shadow-sm flex items-center gap-5 group hover:shadow-md transition-shadow">
+                      <div 
+                        key={item.id} 
+                        className="bg-white p-5 rounded-[2rem] shadow-sm flex items-center gap-5 group hover:shadow-md transition-all active:scale-[0.98] cursor-pointer"
+                        onClick={() => setSelectedExpenseDetail(item)}
+                      >
                         <div className={cn("h-14 w-14 rounded-2xl flex items-center justify-center shrink-0", getCategoryColor(item.category))}>
                           <Icon className="h-7 w-7" />
                         </div>
@@ -997,6 +1046,119 @@ export default function TripDetails() {
               </Button>
             </DialogClose>
           </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Expense Detail Dialog */}
+      <Dialog open={!!selectedExpenseDetail} onOpenChange={(open) => !open && setSelectedExpenseDetail(null)}>
+        <DialogContent className="max-w-[calc(100vw-40px)] w-full rounded-[2.5rem] p-0 border-none shadow-2xl bg-background overflow-hidden animate-in fade-in zoom-in-95 duration-300">
+          {selectedExpenseDetail && (
+            <>
+              <div className={cn(
+                "h-48 relative flex flex-col items-center justify-center overflow-hidden",
+                getCategoryColor(selectedExpenseDetail.category)
+              )}>
+                <DialogClose className="absolute right-4 top-4 h-8 w-8 rounded-full flex items-center justify-center bg-black/5 text-foreground/60 hover:bg-black/10 transition-all z-20">
+                  <X className="h-5 w-5" />
+                </DialogClose>
+                <div className="relative z-10 flex flex-col items-center text-center px-6">
+                  <div className="h-16 w-16 rounded-3xl bg-white/50 backdrop-blur-md flex items-center justify-center mb-3 shadow-sm">
+                    {(() => {
+                      const Icon = getCategoryIcon(selectedExpenseDetail.category);
+                      return <Icon className="h-8 w-8" />;
+                    })()}
+                  </div>
+                  <h2 className="text-3xl font-black tracking-tight text-foreground">₹{parseFloat(selectedExpenseDetail.amount).toFixed(2)}</h2>
+                  <p className="text-xs font-bold text-foreground/60 uppercase tracking-widest mt-1">{selectedExpenseDetail.description}</p>
+                </div>
+              </div>
+
+              <ScrollArea className="max-h-[60vh]">
+                <div className="p-8 space-y-8">
+                  <div className="grid grid-cols-2 gap-6">
+                    <div className="space-y-1">
+                      <Label className="text-[10px] font-extrabold text-muted-foreground uppercase tracking-widest flex items-center gap-1.5">
+                        <User className="h-3 w-3" /> Paid by
+                      </Label>
+                      <p className="text-sm font-bold text-foreground">{selectedExpenseDetail.payerName}</p>
+                    </div>
+                    <div className="space-y-1">
+                      <Label className="text-[10px] font-extrabold text-muted-foreground uppercase tracking-widest flex items-center gap-1.5">
+                        <CalendarIcon className="h-3 w-3" /> Date
+                      </Label>
+                      <p className="text-sm font-bold text-foreground">{selectedExpenseDetail.date}</p>
+                    </div>
+                    <div className="space-y-1">
+                      <Label className="text-[10px] font-extrabold text-muted-foreground uppercase tracking-widest flex items-center gap-1.5">
+                        <Tag className="h-3 w-3" /> Category
+                      </Label>
+                      <p className="text-sm font-bold text-foreground">{selectedExpenseDetail.category}</p>
+                    </div>
+                    <div className="space-y-1">
+                      <Label className="text-[10px] font-extrabold text-muted-foreground uppercase tracking-widest flex items-center gap-1.5">
+                        <CreditCard className="h-3 w-3" /> Method
+                      </Label>
+                      <p className="text-sm font-bold text-foreground">{selectedExpenseDetail.paymentType || 'Not specified'}</p>
+                    </div>
+                  </div>
+
+                  <Separator className="bg-muted/30" />
+
+                  <div className="space-y-4">
+                    <div className="flex justify-between items-end">
+                      <Label className="text-[10px] font-extrabold text-muted-foreground uppercase tracking-widest">Split Breakdown</Label>
+                      <Badge variant="outline" className="text-[9px] font-bold border-primary/20 text-primary bg-primary/5 uppercase">
+                        {selectedExpenseDetail.splitType.replace('_', ' ')}
+                      </Badge>
+                    </div>
+
+                    <div className="space-y-3">
+                      {selectedExpenseDetail.splitType === 'unsplit' ? (
+                        <div className="py-8 bg-accent/5 rounded-3xl border-2 border-dashed border-accent/20 flex flex-col items-center justify-center text-center px-6">
+                           <Timer className="h-8 w-8 text-accent mb-2 animate-pulse" />
+                           <p className="text-sm font-bold text-foreground">Waiting to be split</p>
+                           <p className="text-[10px] text-muted-foreground mt-1">This transaction is currently a draft and doesn't impact balances yet.</p>
+                           <Button 
+                             size="sm" 
+                             className="mt-4 rounded-xl bg-accent text-accent-foreground font-bold h-9 px-6"
+                             onClick={() => router.push(`/trips/${id}/expenses/${selectedExpenseDetail.id}/split`)}
+                           >
+                             Finalize Split
+                           </Button>
+                        </div>
+                      ) : (
+                        selectedExpenseSplits.map((split, idx) => (
+                          <div key={idx} className="flex items-center justify-between p-3 rounded-2xl bg-muted/20 hover:bg-muted/40 transition-colors">
+                            <div className="flex items-center gap-3">
+                              <Avatar className="h-8 w-8 border shadow-sm">
+                                <AvatarImage src={split.avatar} />
+                                <AvatarFallback className="text-[10px] font-bold">{split.name[0]}</AvatarFallback>
+                              </Avatar>
+                              <div>
+                                <p className="text-xs font-bold text-foreground">{split.name}</p>
+                                {split.isFamilyGroup && <p className="text-[8px] font-bold text-muted-foreground uppercase">Family Unit</p>}
+                              </div>
+                            </div>
+                            <p className="text-xs font-extrabold text-foreground">₹{split.share.toFixed(2)}</p>
+                          </div>
+                        ))
+                      )}
+                    </div>
+                  </div>
+                </div>
+              </ScrollArea>
+
+              <div className="p-6 pt-0 mt-4">
+                <Button 
+                  variant="ghost" 
+                  className="w-full h-12 rounded-2xl font-bold text-muted-foreground text-sm hover:bg-muted"
+                  onClick={() => setSelectedExpenseDetail(null)}
+                >
+                  Close Details
+                </Button>
+              </div>
+            </>
+          )}
         </DialogContent>
       </Dialog>
 
