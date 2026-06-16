@@ -172,7 +172,7 @@ export default function CreateTrip() {
       });
       toast({ 
         title: `Trip marked as ${status}`,
-        description: status === 'Settled' ? "Dashboard totals updated." : "Organized!"
+        description: status === 'Settled' ? "Dashboard totals updated." : "Adventure organized!"
       });
       setNudgeTrip(null);
       setHasInteractedWithNudge(true);
@@ -691,10 +691,10 @@ export default function CreateTrip() {
           <div className="p-8 text-center space-y-6">
             <div className="space-y-3">
               <AlertDialogTitle className="text-lg font-bold text-foreground leading-tight">
-                Is <span className="text-primary underline underline-offset-4 decoration-2">"{nudgeTrip?.name}"</span> still ongoing?
+                Is <span className="text-primary font-bold">{nudgeTrip?.name}</span> still ongoing?
               </AlertDialogTitle>
               <AlertDialogDescription className="text-sm font-medium leading-relaxed text-muted-foreground px-2">
-                We noticed you have an active trip. Completing finished trips keeps your dashboard totals accurate and hassle-free.
+                Keeping your trips organized ensures your dashboard reflects your true balance. Mark as <span className="text-foreground font-bold">Completed</span> if you're done spending, or <span className="text-foreground font-bold">Settled</span> if all debts are resolved.
               </AlertDialogDescription>
             </div>
 
@@ -707,8 +707,7 @@ export default function CreateTrip() {
                 Mark as Completed
               </Button>
               <Button 
-                variant="outline"
-                className="w-full h-12 rounded-xl border-2 border-accent/20 text-accent hover:bg-accent/5 font-bold text-sm gap-2"
+                className="w-full h-12 rounded-xl bg-accent text-accent-foreground font-bold text-sm gap-2 shadow-lg shadow-accent/20 hover:bg-accent/90 active:scale-95 transition-all"
                 onClick={() => handleUpdateStatusAndContinue('Settled')}
               >
                 <Archive className="h-4 w-4" />
@@ -723,7 +722,7 @@ export default function CreateTrip() {
                     setHasInteractedWithNudge(true);
                   }}
                 >
-                  It's still ongoing, start new trip <ChevronRight className="h-3 w-3 ml-1" />
+                  Keep journey active & start new trip <ChevronRight className="h-3 w-3 ml-1" />
                 </Button>
               </div>
             </div>
