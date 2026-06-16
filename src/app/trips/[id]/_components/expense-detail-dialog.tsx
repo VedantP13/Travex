@@ -63,6 +63,17 @@ const getCategoryColor = (cat: string) => {
   }
 };
 
+const getSplitTypeLabel = (type: string) => {
+  switch (type) {
+    case 'equal_person': return 'Per person';
+    case 'equal_family': return 'Per family';
+    case 'custom': return 'Custom';
+    case 'just_me': return 'Just me';
+    case 'unsplit': return 'Unsplit';
+    default: return type?.replace('_', ' ') || 'Standard';
+  }
+};
+
 export function ExpenseDetailDialog({ expense, trip, onClose, onDelete, onFinalizeSplit }: ExpenseDetailDialogProps) {
   const router = useRouter();
 
@@ -188,8 +199,10 @@ export function ExpenseDetailDialog({ expense, trip, onClose, onDelete, onFinali
             </DropdownMenuContent>
           </DropdownMenu>
 
-          <DialogClose className="absolute right-6 top-6 h-9 w-9 rounded-full flex items-center justify-center bg-black/5 text-foreground/40 hover:bg-black/10 transition-all z-20 border border-black/5">
-            <X className="h-4 w-4" />
+          <DialogClose asChild>
+            <Button variant="ghost" size="icon" className="absolute right-6 top-6 h-9 w-9 rounded-full flex items-center justify-center bg-black/5 text-foreground/40 hover:bg-black/10 transition-all z-20 border border-black/5">
+              <X className="h-4 w-4" />
+            </Button>
           </DialogClose>
           
           <div className="relative z-10 flex flex-col items-center text-center px-4">
@@ -200,8 +213,8 @@ export function ExpenseDetailDialog({ expense, trip, onClose, onDelete, onFinali
               })()}
             </div>
             <h2 className="text-3xl font-black tracking-tight text-foreground leading-none">₹{parseFloat(expense.amount).toFixed(2)}</h2>
-            <p className="text-sm font-bold text-foreground/60 mt-2 max-w-[240px] leading-tight capitalize">
-              {expense.description.toLowerCase()}
+            <p className="text-sm font-bold text-foreground/60 mt-2 max-w-[240px] leading-tight">
+              {expense.description}
             </p>
           </div>
         </div>
@@ -231,7 +244,7 @@ export function ExpenseDetailDialog({ expense, trip, onClose, onDelete, onFinali
                 <Label className="text-[10px] font-bold text-muted-foreground/50 flex items-center gap-1.5">
                   <Calculator className="h-2.5 w-2.5" /> Split type
                 </Label>
-                <p className="text-xs font-bold text-foreground capitalize">{expense.splitType?.replace('_', ' ') || 'Standard'}</p>
+                <p className="text-xs font-bold text-foreground">{getSplitTypeLabel(expense.splitType)}</p>
               </div>
               <div className="space-y-1">
                 <Label className="text-[10px] font-bold text-muted-foreground/50 flex items-center gap-1.5">
@@ -299,8 +312,7 @@ export function ExpenseDetailDialog({ expense, trip, onClose, onDelete, onFinali
 
         <div className="p-6 bg-muted/5 border-t">
           <Button 
-            variant="outline" 
-            className="w-full h-14 rounded-2xl font-bold text-muted-foreground transition-all active:scale-95"
+            className="w-full h-14 rounded-2xl bg-primary text-white font-bold transition-all active:scale-95 shadow-lg shadow-primary/20"
             onClick={onClose}
           >
             Close details
