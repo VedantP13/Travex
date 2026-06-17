@@ -1,12 +1,11 @@
 
 "use client";
 
-import { useState, useEffect, useMemo, useRef } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { 
   ChevronRight, 
   ChevronLeft,
-  ChevronDown,
   X,
   Loader2,
   Users,
@@ -14,8 +13,7 @@ import {
   Home,
   Plus,
   Minus,
-  Calculator,
-  Pin
+  Calculator
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -23,7 +21,6 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Switch } from "@/components/ui/switch";
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
 import { useFirestore } from "@/firebase";
 import { doc, updateDoc, onSnapshot, serverTimestamp, getDoc } from "firebase/firestore";
@@ -50,7 +47,6 @@ export default function CompleteSplitPage() {
   const [isPosting, setIsPosting] = useState(false);
   const [trip, setTrip] = useState<any>(null);
   const [expense, setExpense] = useState<any>(null);
-  const [viewMode, setViewMode] = useState<'person' | 'family'>('person');
   const [expandedFamilies, setExpandedFamilies] = useState<Record<string, boolean>>({});
 
   const [formData, setFormData] = useState({
@@ -156,7 +152,6 @@ export default function CompleteSplitPage() {
     };
 
     try {
-      // Calculate Balance Deltas
       const deltas: Record<string, number> = {};
       const payerId = expense.payerId;
       const selected = formData.selectedIndividuals;
@@ -181,7 +176,6 @@ export default function CompleteSplitPage() {
         deltas[payerId] = (deltas[payerId] || 0) - amount;
       }
 
-      // Add credit for payer
       deltas[payerId] = (deltas[payerId] || 0) + amount;
 
       await updateDoc(expenseRef, updateData);
@@ -200,7 +194,7 @@ export default function CompleteSplitPage() {
         updatedAt: serverTimestamp()
       });
 
-      toast({ title: "Split finalized!", description: "The expense has been successfully divided." });
+      toast({ title: "Split finalized!" });
       router.push(`/trips/${tripId}`);
     } catch (error: any) {
       errorEmitter.emit('permission-error', new FirestorePermissionError({
@@ -246,52 +240,70 @@ export default function CompleteSplitPage() {
   const renderHierarchicalList = (isCustom: boolean, currentView: 'person' | 'family') => {
     const isFamilyView = currentView === 'family';
     return (
-      <div className="space-y-4 max-h-[440px] overflow-y-auto pr-1 scrollbar-thin">
-        {familyList.map((family) => {
-          const members = personList.filter(p => p.familyId === family.id);
-          const memberIds = members.map(m => m.id);
-          const allSelected = memberIds.every(id => formData.selectedIndividuals.includes(id));
-          const isExpanded = expandedFamilies[family.id];
-          
-          return (
-            <div key={family.id} className={cn("rounded-2xl border-2 transition-all overflow-hidden shadow-sm", allSelected ? family.scheme.border : "border-muted/10", family.scheme.bg)}>
-              <div className="p-3 flex items-center justify-between cursor-pointer" onClick={() => isFamilyView ? toggleFamilySelection(family.id) : setExpandedFamilies(prev => ({ ...prev, [family.id]: !prev[family.id] }))}>
-                <div className="flex items-center gap-3">
-                  <Avatar className="h-10 w-10 border-2 border-white"><AvatarImage src={family.avatar} /><AvatarFallback>{family.name?.[0]}</AvatarFallback></Avatar>
-                  <div>
-                    <p className="text-sm font-semibold truncate leading-tight">{family.familyName}</p>
-                    {!isFamilyView && <span className="text-[10px] text-muted-foreground font-semibold flex items-center gap-1">{members.length} members <ChevronDown className={cn("h-3 w-3 transition-transform", isExpanded && "rotate-180")} /></span>}
+      <div className="relative">
+        <div className="absolute top-0 left-0 right-0 h-8 bg-gradient-to-b from-white to-transparent z-10 pointer-events-none opacity-40" />
+        <div className="space-y-4 max-h-[440px] overflow-y-auto pr-1 px-1 py-4 scrollbar-thin">
+          {familyList.map((family) => {
+            const members = personList.filter(p => p.familyId === family.id);
+            const memberIds = members.map(m => m.id);
+            const allSelected = memberIds.every(id => formData.selectedIndividuals.includes(id));
+            const isExpanded = expandedFamilies[family.id];
+            const selectedCount = memberIds.filter(id => formData.selectedIndividuals.includes(id)).length;
+            
+            return (
+              <div key={family.id} className={cn("rounded-2xl border-2 transition-all overflow-hidden shadow-sm", allSelected ? family.scheme.border : "border-muted/10", family.scheme.bg)}>
+                <div className={cn("p-3 flex items-center justify-between cursor-pointer transition-colors", allSelected ? "opacity-100" : "opacity-70 grayscale-[0.2]")} onClick={(e) => isFamilyView ? toggleFamilySelection(family.id) : setExpandedFamilies(prev => ({ ...prev, [family.id]: !prev[family.id] }))}>
+                  <div className="flex items-center gap-3">
+                    <Avatar className="h-10 w-10 border-2 border-white shadow-sm"><AvatarImage src={family.avatar} /><AvatarFallback>{family.name?.[0]}</AvatarFallback></Avatar>
+                    <div>
+                      <p className="text-sm font-semibold truncate leading-tight">{family.familyName}</p>
+                      {!isFamilyView && <div className="flex items-center gap-1 mt-0.5"><span className="text-[10px] text-muted-foreground font-semibold">{members.length} members</span><ChevronRight className={cn("h-3 w-3 text-muted-foreground transition-transform", isExpanded && "rotate-90")} /></div>}
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    {selectedCount > 0 && <span className={cn("text-[10px] font-semibold whitespace-nowrap mr-1", family.scheme.text)}>{selectedCount}/{members.length} selected</span>}
+                    {isFamilyView && (
+                      <div className="flex items-center gap-3">
+                        {allSelected && isCustom && (
+                          <div className="flex items-center gap-2" onClick={e => e.stopPropagation()}>
+                            <span className="text-xs font-semibold text-muted-foreground">₹</span>
+                            <Input type="number" placeholder="0" className={cn("h-9 w-24 rounded-lg text-right font-semibold text-sm border-none shadow-inner bg-black/5 focus-visible:ring-1", family.scheme.focus)} value={formData.customAmounts[family.id] || ""} onChange={e => setFormData(prev => ({ ...prev, customAmounts: { ...prev.customAmounts, [family.id]: e.target.value } }))} />
+                          </div>
+                        )}
+                        <div className={cn("h-7 w-7 rounded-full flex items-center justify-center bg-white shadow-sm", allSelected ? family.scheme.text : "text-muted-foreground")}>{allSelected ? <Minus className="h-4 w-4" /> : <Plus className="h-4 w-4" />}</div>
+                      </div>
+                    )}
                   </div>
                 </div>
-                {isFamilyView && (
-                  <div className="flex items-center gap-3">
-                    {allSelected && isCustom && <div className="flex items-center gap-2" onClick={e => e.stopPropagation()}><span className="text-xs font-semibold text-muted-foreground">₹</span><Input type="number" className="h-9 w-24 rounded-lg text-right font-semibold" value={formData.customAmounts[family.id] || ""} onChange={e => setFormData(prev => ({ ...prev, customAmounts: { ...prev.customAmounts, [family.id]: e.target.value } }))} /></div>}
-                    <div className={cn("h-7 w-7 rounded-full flex items-center justify-center bg-white", allSelected ? family.scheme.text : "text-muted-foreground")}>{allSelected ? <Minus className="h-4 w-4" /> : <Plus className="h-4 w-4" />}</div>
+                {isExpanded && !isFamilyView && (
+                  <div className="bg-white/40 divide-y divide-muted/5 animate-in slide-in-from-top-1 duration-200">
+                    {members.map((member) => {
+                      const isSel = formData.selectedIndividuals.includes(member.id);
+                      return (
+                        <div key={member.id} className={cn("flex items-center justify-between p-3 pl-8 transition-colors cursor-pointer", isSel ? "bg-white/50" : "opacity-60")} onClick={() => toggleSelection(member.id)}>
+                          <div className="flex items-center gap-3">
+                            <Avatar className="h-8 w-8"><AvatarImage src={member.avatar} /><AvatarFallback>{member.name?.[0]}</AvatarFallback></Avatar>
+                            <div><span className="text-xs font-semibold block leading-none">{member.name}</span><span className="text-[9px] text-muted-foreground font-medium">{family.familyName}</span></div>
+                          </div>
+                          <div className="flex items-center gap-3">
+                            {isSel && isCustom && (
+                              <div className="flex items-center gap-2" onClick={e => e.stopPropagation()}>
+                                <span className="text-xs font-semibold text-muted-foreground">₹</span>
+                                <Input type="number" placeholder="0" className={cn("h-8 w-20 rounded-lg text-right font-semibold text-xs border-none shadow-inner bg-black/5 focus-visible:ring-1", family.scheme.focus)} value={formData.customAmounts[member.id] || ""} onChange={e => setFormData(prev => ({ ...prev, customAmounts: { ...prev.customAmounts, [member.id]: e.target.value } }))} />
+                              </div>
+                            )}
+                            <div className={cn("h-6 w-6 rounded-full flex items-center justify-center bg-white shadow-sm", isSel ? family.scheme.text : "text-muted-foreground")}>{isSel ? <Minus className="h-3 w-3" /> : <Plus className="h-3 w-3" />}</div>
+                          </div>
+                        </div>
+                      );
+                    })}
                   </div>
                 )}
               </div>
-              {isExpanded && !isFamilyView && (
-                <div className="bg-white/40 divide-y divide-muted/5">
-                  {members.map((member) => {
-                    const isSel = formData.selectedIndividuals.includes(member.id);
-                    return (
-                      <div key={member.id} className="flex items-center justify-between p-3 pl-8 cursor-pointer" onClick={() => toggleSelection(member.id)}>
-                        <div className="flex items-center gap-3">
-                          <Avatar className="h-8 w-8"><AvatarImage src={member.avatar} /><AvatarFallback>{member.name?.[0]}</AvatarFallback></Avatar>
-                          <span className="text-xs font-semibold">{member.name}</span>
-                        </div>
-                        <div className="flex items-center gap-3">
-                          {isSel && isCustom && <div onClick={e => e.stopPropagation()}><Input type="number" className="h-8 w-20 text-right text-xs" value={formData.customAmounts[member.id] || ""} onChange={e => setFormData(prev => ({ ...prev, customAmounts: { ...prev.customAmounts, [member.id]: e.target.value } }))} /></div>}
-                          <div className={cn("h-6 w-6 rounded-full flex items-center justify-center bg-white shadow-sm", isSel ? family.scheme.text : "text-muted-foreground")}>{isSel ? <Minus className="h-3 w-3" /> : <Plus className="h-3 w-3" />}</div>
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-              )}
-            </div>
-          );
-        })}
+            );
+          })}
+        </div>
+        <div className="absolute bottom-0 left-0 right-0 h-8 bg-gradient-to-t from-white to-transparent z-10 pointer-events-none opacity-40" />
       </div>
     );
   };
@@ -339,18 +351,13 @@ export default function CompleteSplitPage() {
           })}
         </div>
 
-        {(formData.splitType === 'equal_family' || formData.splitType === 'equal_person' || formData.splitType === 'custom') && (
+        {(formData.splitType !== 'just_me' && formData.splitType !== 'unsplit') && (
           <div className="bg-white p-6 rounded-3xl border-2 border-dashed border-primary/20 space-y-4 shadow-sm">
             <div className="flex justify-between items-center"><p className="text-xs font-semibold text-primary">Member selection</p><div className="flex items-center gap-2"><Label className="text-xs font-semibold text-muted-foreground/60">Select all</Label><Switch checked={isAllSelected} onCheckedChange={handleSelectAll} /></div></div>
-            <div className="flex justify-end mb-2">
-              <Tabs value={viewMode} onValueChange={(v: any) => setViewMode(v)} className="w-auto">
-                <TabsList className="h-8 bg-muted/50 rounded-xl p-0.5">
-                  <TabsTrigger value="person" className="text-[10px] px-3 h-7 font-semibold rounded-lg">Individual</TabsTrigger>
-                  <TabsTrigger value="family" className="text-[10px] px-3 h-7 font-semibold rounded-lg">Family</TabsTrigger>
-                </TabsList>
-              </Tabs>
-            </div>
-            {renderHierarchicalList(formData.splitType === 'custom', viewMode)}
+            {renderHierarchicalList(
+              formData.splitType === 'custom',
+              formData.splitType === 'equal_family' ? 'family' : 'person'
+            )}
           </div>
         )}
       </main>

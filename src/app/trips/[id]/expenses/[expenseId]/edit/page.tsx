@@ -25,11 +25,11 @@ import {
   Users,
   Save,
   Settings,
-  ShieldAlert,
   Smartphone,
   Banknote,
   Globe,
-  Trash2
+  Trash2,
+  ShieldAlert
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -156,7 +156,6 @@ export default function EditExpensePage() {
     return Array.from(new Set([...base, ...customOnes]));
   }, [trip?.customCategories]);
 
-  // AI Categorization Logic
   useEffect(() => {
     const trimmedDesc = formData.description.trim();
     if (trimmedDesc.length < 3 || trimmedDesc === lastAnalyzedDescription.current) return;
@@ -218,7 +217,6 @@ export default function EditExpensePage() {
     return Object.values(formData.customAmounts).reduce((acc, val) => acc + (parseFloat(val) || 0), 0);
   }, [formData.customAmounts]);
 
-  // Update total if itemized
   useEffect(() => {
     if (formData.isItemized) {
       setFormData(prev => ({ ...prev, amount: customSum.toFixed(2) }));
@@ -297,9 +295,7 @@ export default function EditExpensePage() {
       const newImpact = calculateImpact(formData);
 
       const updatedBalances = { ...currentBalances };
-      // Reverse old
       Object.entries(oldImpact).forEach(([id, impact]) => { updatedBalances[id] = (updatedBalances[id] || 0) - impact; });
-      // Apply new
       Object.entries(newImpact).forEach(([id, impact]) => { updatedBalances[id] = (updatedBalances[id] || 0) + impact; });
 
       const amountDiff = amount - expense.amount;
@@ -316,7 +312,7 @@ export default function EditExpensePage() {
         updatedAt: serverTimestamp()
       });
 
-      toast({ title: "Expense updated", description: "Audit complete. Balances recalculated." });
+      toast({ title: "Expense updated" });
       router.push(`/trips/${tripId}`);
     } catch (error: any) {
       errorEmitter.emit('permission-error', new FirestorePermissionError({
@@ -398,71 +394,73 @@ export default function EditExpensePage() {
   const renderHierarchicalList = (isCustom: boolean, currentView: 'person' | 'family') => {
     const isFamilyView = currentView === 'family';
     return (
-      <div className="space-y-4 max-h-[440px] overflow-y-auto pr-1 scrollbar-thin">
-        {familyList.map((family) => {
-          const members = personList.filter(p => p.familyId === family.id);
-          const memberIds = members.map(m => m.id);
-          const allSelected = memberIds.every(id => formData.selectedIndividuals.includes(id));
-          const isExpanded = expandedFamilies[family.id];
-          
-          return (
-            <div key={family.id} className={cn("rounded-2xl border-2 transition-all overflow-hidden shadow-sm", allSelected ? family.scheme.border : "border-muted/10", family.scheme.bg)}>
-              <div className="p-3 flex items-center justify-between cursor-pointer" onClick={() => isFamilyView ? toggleFamilySelection(family.id) : setExpandedFamilies(prev => ({ ...prev, [family.id]: !prev[family.id] }))}>
-                <div className="flex items-center gap-3">
-                  <Avatar className="h-10 w-10 border-2 border-white shadow-sm"><AvatarImage src={family.avatar} /><AvatarFallback>{family.name?.[0]}</AvatarFallback></Avatar>
-                  <div>
-                    <p className="text-sm font-semibold truncate leading-tight">{family.familyName}</p>
-                    {!isFamilyView && <span className="text-[10px] text-muted-foreground font-semibold flex items-center gap-1">{members.length} members <ChevronRight className={cn("h-3 w-3 transition-transform", isExpanded && "rotate-90")} /></span>}
-                  </div>
-                </div>
-                {isFamilyView && (
+      <div className="relative">
+        <div className="absolute top-0 left-0 right-0 h-8 bg-gradient-to-b from-white to-transparent z-10 pointer-events-none opacity-40" />
+        <div className="space-y-4 max-h-[440px] overflow-y-auto pr-1 px-1 py-4 scrollbar-thin">
+          {familyList.map((family) => {
+            const members = personList.filter(p => p.familyId === family.id);
+            const memberIds = members.map(m => m.id);
+            const allSelected = memberIds.every(id => formData.selectedIndividuals.includes(id));
+            const isExpanded = expandedFamilies[family.id];
+            const selectedCount = memberIds.filter(id => formData.selectedIndividuals.includes(id)).length;
+            
+            return (
+              <div key={family.id} className={cn("rounded-2xl border-2 transition-all overflow-hidden shadow-sm", allSelected ? family.scheme.border : "border-muted/10", family.scheme.bg)}>
+                <div className={cn("p-3 flex items-center justify-between cursor-pointer transition-colors", allSelected ? "opacity-100" : "opacity-70 grayscale-[0.2]")} onClick={(e) => isFamilyView ? toggleFamilySelection(family.id) : setExpandedFamilies(prev => ({ ...prev, [family.id]: !prev[family.id] }))}>
                   <div className="flex items-center gap-3">
-                    {allSelected && isCustom && (
-                      <div className="flex items-center gap-2" onClick={e => e.stopPropagation()}>
-                        <span className="text-xs font-semibold text-muted-foreground">₹</span>
-                        <Input 
-                          type="number" 
-                          className={cn("h-9 w-24 rounded-lg text-right font-semibold border-none shadow-inner bg-black/5 focus-visible:ring-1", family.scheme.focus)} 
-                          value={formData.customAmounts[family.id] || ""} 
-                          onChange={e => setFormData(prev => ({ ...prev, customAmounts: { ...prev.customAmounts, [family.id]: e.target.value } }))} 
-                        />
+                    <Avatar className="h-10 w-10 border-2 border-white shadow-sm"><AvatarImage src={family.avatar} /><AvatarFallback>{family.name?.[0]}</AvatarFallback></Avatar>
+                    <div>
+                      <p className="text-sm font-semibold truncate leading-tight">{family.familyName}</p>
+                      <div className="flex items-center gap-1 mt-0.5" onClick={(e) => { e.stopPropagation(); setExpandedFamilies(prev => ({ ...prev, [family.id]: !prev[family.id] })); }}>
+                        <span className="text-[10px] text-muted-foreground font-semibold">{members.length} members</span>
+                        {!isFamilyView && <ChevronRight className={cn("h-3 w-3 text-muted-foreground transition-transform", isExpanded && "rotate-90")} />}
+                      </div>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    {selectedCount > 0 && <span className={cn("text-[10px] font-semibold whitespace-nowrap mr-1", family.scheme.text)}>{selectedCount}/{members.length} selected</span>}
+                    {isFamilyView && (
+                      <div className="flex items-center gap-3">
+                        {allSelected && isCustom && (
+                          <div className="flex items-center gap-2" onClick={e => e.stopPropagation()}>
+                            <span className="text-xs font-semibold text-muted-foreground">₹</span>
+                            <Input type="number" placeholder="0" className={cn("h-9 w-24 rounded-lg text-right font-semibold text-sm border-none shadow-inner bg-black/5 focus-visible:ring-1", family.scheme.focus)} value={formData.customAmounts[family.id] || ""} onChange={e => setFormData(prev => ({ ...prev, customAmounts: { ...prev.customAmounts, [family.id]: e.target.value } }))} />
+                          </div>
+                        )}
+                        <div className={cn("h-7 w-7 rounded-full flex items-center justify-center bg-white shadow-sm", allSelected ? family.scheme.text : "text-muted-foreground")}>{allSelected ? <Minus className="h-4 w-4" /> : <Plus className="h-4 w-4" />}</div>
                       </div>
                     )}
-                    <div className={cn("h-7 w-7 rounded-full flex items-center justify-center bg-white shadow-sm", allSelected ? family.scheme.text : "text-muted-foreground")}>{allSelected ? <Minus className="h-4 w-4" /> : <Plus className="h-4 w-4" />}</div>
+                  </div>
+                </div>
+                {isExpanded && !isFamilyView && (
+                  <div className="bg-white/40 divide-y divide-muted/5 animate-in slide-in-from-top-1 duration-200">
+                    {members.map((member) => {
+                      const isSel = formData.selectedIndividuals.includes(member.id);
+                      return (
+                        <div key={member.id} className={cn("flex items-center justify-between p-3 pl-8 transition-colors cursor-pointer", isSel ? "bg-white/50" : "opacity-60")} onClick={() => toggleSelection(member.id)}>
+                          <div className="flex items-center gap-3">
+                            <Avatar className="h-8 w-8"><AvatarImage src={member.avatar} /><AvatarFallback>{member.name?.[0]}</AvatarFallback></Avatar>
+                            <div><span className="text-xs font-semibold block leading-none">{member.name}</span><span className="text-[9px] text-muted-foreground font-medium">{family.familyName}</span></div>
+                          </div>
+                          <div className="flex items-center gap-3">
+                            {isSel && isCustom && (
+                              <div className="flex items-center gap-2" onClick={e => e.stopPropagation()}>
+                                <span className="text-xs font-semibold text-muted-foreground">₹</span>
+                                <Input type="number" placeholder="0" className={cn("h-8 w-20 rounded-lg text-right font-semibold text-xs border-none shadow-inner bg-black/5 focus-visible:ring-1", family.scheme.focus)} value={formData.customAmounts[member.id] || ""} onChange={e => setFormData(prev => ({ ...prev, customAmounts: { ...prev.customAmounts, [member.id]: e.target.value } }))} />
+                              </div>
+                            )}
+                            <div className={cn("h-6 w-6 rounded-full flex items-center justify-center bg-white shadow-sm", isSel ? family.scheme.text : "text-muted-foreground")}>{isSel ? <Minus className="h-3 w-3" /> : <Plus className="h-3 w-3" />}</div>
+                          </div>
+                        </div>
+                      );
+                    })}
                   </div>
                 )}
               </div>
-              {isExpanded && !isFamilyView && (
-                <div className="bg-white/40 divide-y divide-muted/5 animate-in slide-in-from-top-1 duration-200">
-                  {members.map((member) => {
-                    const isSel = formData.selectedIndividuals.includes(member.id);
-                    return (
-                      <div key={member.id} className="flex items-center justify-between p-3 pl-8 cursor-pointer transition-colors" onClick={() => toggleSelection(member.id)}>
-                        <div className="flex items-center gap-3">
-                          <Avatar className="h-8 w-8"><AvatarImage src={member.avatar} /><AvatarFallback>{member.name?.[0]}</AvatarFallback></Avatar>
-                          <span className="text-xs font-semibold">{member.name}</span>
-                        </div>
-                        <div className="flex items-center gap-3">
-                          {isSel && isCustom && (
-                            <div onClick={e => e.stopPropagation()}>
-                              <Input 
-                                type="number" 
-                                className={cn("h-8 w-20 text-right text-xs border-none shadow-inner bg-black/5 focus-visible:ring-1", family.scheme.focus)} 
-                                value={formData.customAmounts[member.id] || ""} 
-                                onChange={e => setFormData(prev => ({ ...prev, customAmounts: { ...prev.customAmounts, [member.id]: e.target.value } }))} 
-                              />
-                            </div>
-                          )}
-                          <div className={cn("h-6 w-6 rounded-full flex items-center justify-center bg-white shadow-sm", isSel ? family.scheme.text : "text-muted-foreground")}>{isSel ? <Minus className="h-3 w-3" /> : <Plus className="h-3 w-3" />}</div>
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-              )}
-            </div>
-          );
-        })}
+            );
+          })}
+        </div>
+        <div className="absolute bottom-0 left-0 right-0 h-8 bg-gradient-to-t from-white to-transparent z-10 pointer-events-none opacity-40" />
       </div>
     );
   };
@@ -475,7 +473,7 @@ export default function EditExpensePage() {
     return (
       <div className="max-w-md mx-auto min-h-screen bg-background flex flex-col items-center justify-center p-8 text-center gap-6">
         <div className="h-20 w-20 rounded-full bg-destructive/10 flex items-center justify-center"><ShieldAlert className="h-10 w-10 text-destructive" /></div>
-        <div className="space-y-2"><h2 className="text-xl font-bold">Access Denied</h2><p className="text-sm text-muted-foreground leading-relaxed">Only the person who added this expense (<span className="font-bold text-foreground">{expense.payerName}</span>) can make changes to it.</p></div>
+        <div className="space-y-2"><h2 className="text-xl font-bold">Access Denied</h2><p className="text-sm text-muted-foreground leading-relaxed">Only the person who added this expense can make changes to it.</p></div>
         <Button className="w-full h-12 rounded-2xl font-bold" variant="outline" onClick={() => router.back()}>Go back</Button>
       </div>
     );
@@ -499,17 +497,8 @@ export default function EditExpensePage() {
 
             <div className="space-y-6">
               <div className="relative">
-                <span className={cn(
-                  "absolute left-6 top-1/2 -translate-y-1/2 text-3xl font-medium transition-colors",
-                  formData.amount ? "text-foreground" : "text-muted-foreground/40"
-                )}>₹</span>
-                <Input 
-                  type="number"
-                  className={cn("h-24 text-4xl font-medium rounded-3xl pl-14 focus-visible:ring-primary shadow-sm bg-white border-none placeholder:text-muted-foreground/30", formData.isItemized && "bg-muted/50 text-muted-foreground/60 cursor-not-allowed")}
-                  value={formData.amount}
-                  onChange={e => setFormData(prev => ({ ...prev, amount: e.target.value }))}
-                  disabled={formData.isItemized}
-                />
+                <span className={cn("absolute left-6 top-1/2 -translate-y-1/2 text-3xl font-medium transition-colors", formData.amount ? "text-foreground" : "text-muted-foreground/40")}>₹</span>
+                <Input type="number" className={cn("h-24 text-4xl font-medium rounded-3xl pl-14 focus-visible:ring-primary shadow-sm bg-white border-none placeholder:text-muted-foreground/30", formData.isItemized && "bg-muted/50 text-muted-foreground/60 cursor-not-allowed")} value={formData.amount} onChange={e => setFormData(prev => ({ ...prev, amount: e.target.value }))} disabled={formData.isItemized} />
                 <div className="absolute right-6 bottom-4 flex items-center gap-2">
                    <Label htmlFor="itemized-split" className="text-xs font-semibold text-muted-foreground/60">Itemized split</Label>
                    <Switch id="itemized-split" checked={formData.isItemized} onCheckedChange={(val) => setFormData(prev => ({ ...prev, isItemized: val, splitType: val ? 'custom' : prev.splitType }))} />
@@ -521,10 +510,7 @@ export default function EditExpensePage() {
                   <div className="flex justify-between items-center">
                     <div className="flex items-center gap-4">
                       <p className="text-xs font-semibold text-primary">Member split</p>
-                      <div className="flex items-center gap-2">
-                        <Label className="text-xs font-semibold text-muted-foreground/60">Select all</Label>
-                        <Switch checked={isAllSelected} onCheckedChange={handleSelectAll} />
-                      </div>
+                      <div className="flex items-center gap-2"><Label className="text-xs font-semibold text-muted-foreground/60">Select all</Label><Switch checked={isAllSelected} onCheckedChange={handleSelectAll} /></div>
                     </div>
                     <Tabs value={viewMode} onValueChange={(v: any) => setViewMode(v)} className="w-auto">
                       <TabsList className="h-8 bg-muted/50 rounded-xl p-0.5">
@@ -548,33 +534,18 @@ export default function EditExpensePage() {
                    <Popover open={isCalendarOpen} onOpenChange={setIsCalendarOpen}>
                       <PopoverTrigger asChild>
                         <Button variant="outline" className="h-14 justify-start font-medium rounded-2xl border-none shadow-sm bg-white hover:bg-muted/50 transition-all">
-                          <CalendarIcon className={cn(
-                            "mr-3 h-4 w-4 transition-all",
-                            formData.date ? "text-foreground stroke-[2px]" : "text-muted-foreground/60"
-                          )} /> 
+                          <CalendarIcon className={cn("mr-3 h-4 w-4 transition-all", formData.date ? "text-foreground stroke-[2px]" : "text-muted-foreground/60")} /> 
                           {formData.date ? format(new Date(formData.date), "d MMM yyyy") : "Date"}
                         </Button>
                       </PopoverTrigger>
                       <PopoverContent className="w-auto p-0 rounded-[2rem] border-none shadow-2xl overflow-hidden" align="start">
-                        <Calendar 
-                          mode="single" 
-                          selected={formData.date ? new Date(formData.date) : undefined} 
-                          onSelect={(d) => { if (d) { setFormData(prev => ({ ...prev, date: d.toISOString().split('T')[0] })); setIsCalendarOpen(false); } }} 
-                          disabled={{ after: new Date() }}
-                          initialFocus 
-                        />
+                        <Calendar mode="single" selected={formData.date ? new Date(formData.date) : undefined} onSelect={(d) => { if (d) { setFormData(prev => ({ ...prev, date: d.toISOString().split('T')[0] })); setIsCalendarOpen(false); } }} disabled={{ after: new Date() }} initialFocus />
                       </PopoverContent>
                    </Popover>
                    <Select value={formData.paymentType} onValueChange={val => setFormData(prev => ({ ...prev, paymentType: val }))}>
-                     <SelectTrigger className={cn(
-                       "h-14 rounded-2xl shadow-sm bg-white border-none focus:ring-primary font-medium",
-                       formData.paymentType ? "text-foreground" : "text-muted-foreground/60"
-                     )}>
+                     <SelectTrigger className={cn("h-14 rounded-2xl shadow-sm bg-white border-none focus:ring-primary font-medium", formData.paymentType ? "text-foreground" : "text-muted-foreground/60")}>
                        <div className="flex items-center gap-2">
-                         <CreditCard className={cn(
-                           "h-3.5 w-3.5 transition-all",
-                           formData.paymentType ? "text-foreground stroke-[2px]" : "text-muted-foreground/40"
-                         )} />
+                         <CreditCard className={cn("h-3.5 w-3.5 transition-all", formData.paymentType ? "text-foreground stroke-[2px]" : "text-muted-foreground/40")} />
                          <SelectValue placeholder="Method" />
                        </div>
                      </SelectTrigger>
@@ -588,23 +559,15 @@ export default function EditExpensePage() {
                   <div className="flex items-center justify-between px-1">
                     <Label className="text-sm font-semibold text-muted-foreground/70">Category</Label>
                     <Dialog open={isManagingCategories} onOpenChange={setIsManagingCategories}>
-                      <DialogTrigger asChild>
-                        <Button variant="ghost" size="sm" className="h-7 px-2 text-[10px] font-semibold text-muted-foreground/40 hover:text-primary transition-colors">
-                          <Settings className="h-3 w-3 mr-1" /> Manage
-                        </Button>
-                      </DialogTrigger>
+                      <DialogTrigger asChild><Button variant="ghost" size="sm" className="h-7 px-2 text-[10px] font-semibold text-muted-foreground/40 hover:text-primary transition-colors"><Settings className="h-3 w-3 mr-1" /> Manage</Button></DialogTrigger>
                       <DialogContent className="max-w-[calc(100vw-40px)] w-full rounded-[2.5rem] p-6 border-none shadow-2xl bg-white animate-in fade-in zoom-in-95 duration-300">
-                        <DialogHeader className="mb-6">
-                          <DialogTitle className="text-xl font-bold text-center">Manage categories</DialogTitle>
-                        </DialogHeader>
+                        <DialogHeader className="mb-6"><DialogTitle className="text-xl font-bold text-center">Manage categories</DialogTitle></DialogHeader>
                         <div className="space-y-6">
                           <div className="max-h-[300px] overflow-y-auto space-y-2 pr-1 scrollbar-thin">
                             {(trip?.customCategories || []).map((cat: string) => (
                               <div key={cat} className="flex items-center justify-between p-4 bg-muted/30 rounded-2xl border border-transparent hover:border-primary/20 transition-all">
                                 <span className="text-sm font-semibold">{cat}</span>
-                                <Button variant="ghost" size="icon" className="h-10 w-10 text-destructive hover:bg-destructive/10 rounded-xl" onClick={() => handleRemoveCustomCategory(cat)}>
-                                  <Trash2 className="h-4 w-4" />
-                                </Button>
+                                <Button variant="ghost" size="icon" className="h-10 w-10 text-destructive hover:bg-destructive/10 rounded-xl" onClick={() => handleRemoveCustomCategory(cat)}><Trash2 className="h-4 w-4" /></Button>
                               </div>
                             ))}
                           </div>
@@ -619,7 +582,6 @@ export default function EditExpensePage() {
                       </DialogContent>
                     </Dialog>
                   </div>
-                  
                   <div className="grid grid-cols-4 gap-2">
                     {categoriesList.slice(0, 11).map(catName => {
                       const baseCat = DEFAULT_CATEGORIES.find(c => c.name === catName);
@@ -635,16 +597,29 @@ export default function EditExpensePage() {
                   </div>
                 </div>
               </div>
+
+              <div className="space-y-3">
+                <Label className="text-sm font-semibold text-muted-foreground/70">Who paid?</Label>
+                <div className="grid grid-cols-2 gap-3">
+                  {trip?.participants?.map((p: any) => {
+                    const isMe = p.isUser && p.userId === user?.uid;
+                    const isSelected = formData.payerId === p.id;
+                    return (
+                      <Card key={p.id} className={cn("p-3 rounded-2xl border-2 transition-all cursor-pointer flex items-center gap-3", isSelected ? 'border-primary bg-primary/5 shadow-sm' : 'border-transparent bg-white shadow-sm hover:border-muted/20')} onClick={() => setFormData(prev => ({ ...prev, payerId: p.id, payerName: p.name }))}>
+                        <Avatar className="h-8 w-8 shadow-sm"><AvatarImage src={p.avatar} /><AvatarFallback>{p.name?.[0]}</AvatarFallback></Avatar>
+                        <span className={cn("font-semibold text-xs truncate", isSelected ? "text-foreground" : "text-foreground/80")}>{isMe ? "You" : p.name}</span>
+                      </Card>
+                    );
+                  })}
+                </div>
+              </div>
             </div>
           </div>
         ) : (
           <div className="space-y-8 animate-in fade-in slide-in-from-right-4 duration-300">
              <div className="space-y-2">
                 <div className="flex justify-between items-end">
-                   <div>
-                      <h1 className="text-2xl font-bold">Splitting</h1>
-                      <p className="text-muted-foreground font-medium">Re-calculating ₹{parseFloat(formData.amount || "0").toFixed(2)}</p>
-                   </div>
+                   <div><h1 className="text-2xl font-bold">Splitting</h1><p className="text-muted-foreground font-medium">Re-calculating ₹{parseFloat(formData.amount || "0").toFixed(2)}</p></div>
                    {formData.splitType === 'custom' && (
                      <div className="text-right">
                         <p className="text-[10px] font-semibold text-muted-foreground uppercase">Sum</p>
@@ -656,23 +631,28 @@ export default function EditExpensePage() {
 
              <div className="grid grid-cols-2 gap-4">
                {[
-                 { id: "equal_person", label: "Per person", icon: Users },
-                 { id: "equal_family", label: "Per family", icon: Home },
-                 { id: "custom", label: "Custom", icon: Calculator },
-                 { id: "just_me", label: "Just you", icon: User }
+                 { id: "equal_person", label: "Per person", icon: Users, desc: "Include all members" },
+                 { id: "equal_family", label: "Per family", icon: Home, desc: "One per family unit" },
+                 { id: "custom", label: "Custom amount", icon: Calculator, desc: "Specific ₹ per person" },
+                 { id: "just_me", label: "Just you", icon: User, desc: "100% to you" }
                ].map(mode => (
                  <Card key={mode.id} className={cn("p-5 rounded-3xl border-2 transition-all cursor-pointer flex flex-col gap-2 bg-white shadow-sm", formData.splitType === mode.id ? "border-primary bg-primary/5 shadow-md" : "border-transparent hover:border-muted/20")} onClick={() => setFormData(prev => ({ ...prev, splitType: mode.id }))}>
                     <div className={cn("h-10 w-10 rounded-xl flex items-center justify-center transition-colors", formData.splitType === mode.id ? "bg-primary text-white" : "bg-muted text-muted-foreground/50")}><mode.icon className="h-5 w-5" /></div>
-                    <p className="font-semibold text-sm tracking-tight">{mode.label}</p>
+                    <div className="mt-2"><p className="font-semibold text-sm tracking-tight">{mode.label}</p><p className="text-[10px] text-muted-foreground/60 font-medium leading-tight">{mode.desc}</p></div>
                  </Card>
                ))}
              </div>
 
              {(formData.splitType !== 'just_me' && formData.splitType !== 'unsplit') && (
                <div className="bg-white p-6 rounded-3xl border-2 border-dashed border-primary/20 space-y-4 shadow-sm">
-                  <div className="flex justify-between items-center"><p className="text-xs font-semibold text-primary">Member selection</p><div className="flex items-center gap-2"><Label className="text-xs font-semibold text-muted-foreground/60">Select all</Label><Switch checked={isAllSelected} onCheckedChange={handleSelectAll} /></div></div>
-                  <div className="flex justify-end mb-2"><Tabs value={viewMode} onValueChange={(v: any) => setViewMode(v)} className="w-auto"><TabsList className="h-8 rounded-xl p-0.5"><TabsTrigger value="person" className="text-[10px] px-3 font-semibold rounded-lg">Individual</TabsTrigger><TabsTrigger value="family" className="text-[10px] px-3 font-semibold rounded-lg">Family</TabsTrigger></TabsList></Tabs></div>
-                  {renderHierarchicalList(formData.splitType === 'custom', viewMode)}
+                  <div className="flex justify-between items-center">
+                    <p className="text-xs font-semibold text-primary">Member selection</p>
+                    <div className="flex items-center gap-2"><Label className="text-xs font-semibold text-muted-foreground/60">Select all</Label><Switch checked={isAllSelected} onCheckedChange={handleSelectAll} /></div>
+                  </div>
+                  {renderHierarchicalList(
+                    formData.splitType === 'custom',
+                    formData.splitType === 'equal_family' ? 'family' : 'person'
+                  )}
                </div>
              )}
           </div>
