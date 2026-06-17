@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState, useEffect, useMemo } from "react";
@@ -21,6 +20,7 @@ import { ExpenseDetailDialog } from "./_components/expense-detail-dialog";
 import { EditTripDialog } from "./_components/edit-trip-dialog";
 import { ImagePickerDialog } from "./_components/image-picker-dialog";
 import { DeleteTripDialog } from "./_components/delete-trip-dialog";
+import { SecureAdventureDialog } from "./_components/secure-adventure-dialog";
 
 export default function TripDetails() {
   const router = useRouter();
@@ -36,9 +36,24 @@ export default function TripDetails() {
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [isImagePickerOpen, setIsImagePickerOpen] = useState(false);
+  const [isSecureNudgeOpen, setIsSecureNudgeOpen] = useState(false);
   const [selectedExpenseDetail, setSelectedExpenseDetail] = useState<any>(null);
   const [isDeletingTrip, setIsDeletingTrip] = useState(false);
   const [isUpdatingImage, setIsUpdatingImage] = useState(false);
+
+  // Status Nudge Logic: Only show to guest users once per visit to this page
+  useEffect(() => {
+    if (user?.isAnonymous && !loading && trip) {
+      const nudgeShown = sessionStorage.getItem(`secure_nudge_${id}`);
+      if (!nudgeShown) {
+        const timer = setTimeout(() => {
+          setIsSecureNudgeOpen(true);
+          sessionStorage.setItem(`secure_nudge_${id}`, 'true');
+        }, 1500);
+        return () => clearTimeout(timer);
+      }
+    }
+  }, [user, loading, trip, id]);
 
   useEffect(() => {
     if (!id || !firestore) return;
@@ -282,6 +297,11 @@ export default function TripDetails() {
         tripName={trip?.name} 
         onDelete={handleDeleteTrip} 
         isDeleting={isDeletingTrip} 
+      />
+
+      <SecureAdventureDialog 
+        isOpen={isSecureNudgeOpen} 
+        onOpenChange={setIsSecureNudgeOpen} 
       />
     </div>
   );
