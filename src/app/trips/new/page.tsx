@@ -81,6 +81,7 @@ export default function CreateTrip() {
   const [showReuseDialog, setShowReuseDialog] = useState(false);
   const [hasInteractedWithReuse, setHasInteractedWithReuse] = useState(false);
   const [selectedReuseIds, setSelectedReuseIds] = useState<Set<string>>(new Set());
+  const [ignoredReuseIds, setIgnoredReuseIds] = useState<Set<string>>(new Set());
 
   const lastTrip = useMemo(() => {
     return trips.length > 0 ? trips[0] : null;
@@ -444,6 +445,15 @@ export default function CreateTrip() {
     });
   };
 
+  const ignoreReuseGroup = (id: string) => {
+    setIgnoredReuseIds(prev => new Set(prev).add(id));
+    setSelectedReuseIds(prev => {
+      const next = new Set(prev);
+      next.delete(id);
+      return next;
+    });
+  };
+
   return (
     <div className="max-w-md mx-auto min-h-screen bg-background flex flex-col pb-24">
       <header className="px-safe-pad py-6 flex items-center justify-between border-b bg-white sticky top-0 z-10">
@@ -727,7 +737,7 @@ export default function CreateTrip() {
              </div>
              <div className="relative z-10 flex flex-col items-center text-center px-6">
                 <div className="h-16 w-16 rounded-full bg-white/20 backdrop-blur-md flex items-center justify-center mb-4">
-                  <Sparkles className="h-8 w-8 text-white animate-pulse" />
+                  <History className="h-8 w-8 text-white" />
                 </div>
                 <h2 className="text-xl font-bold text-white tracking-tight">Recent travel buddies</h2>
              </div>
@@ -735,48 +745,73 @@ export default function CreateTrip() {
 
           <div className="p-6 space-y-6">
             <div className="space-y-2 text-center">
-              <AlertDialogTitle className="text-lg font-bold text-foreground">
-                Reuse from <span className="text-primary">{lastTrip?.name}</span>?
+              <AlertDialogTitle className="text-lg font-bold text-foreground leading-tight">
+                Reuse groups from <span className="text-primary">{lastTrip?.name}</span>?
               </AlertDialogTitle>
               <AlertDialogDescription className="text-xs font-medium text-muted-foreground leading-relaxed">
-                We found {lastTrip?.participants?.length - 1} groups you traveled with recently. Select who's coming this time.
+                We found travel groups from your last adventure. Select who's coming this time.
               </AlertDialogDescription>
             </div>
 
-            <ScrollArea className="max-h-[240px] pr-3 -mx-2 px-2 scrollbar-thin">
-              <div className="space-y-3">
+            <ScrollArea className="max-h-[300px] pr-3 -mx-2 px-2 scrollbar-thin">
+              <div className="space-y-4">
                 {lastTrip?.participants
-                  ?.filter((p: any) => p.userId !== user?.uid)
+                  ?.filter((p: any) => p.userId !== user?.uid && !ignoredReuseIds.has(p.id))
                   ?.map((p: any) => {
                     const isSelected = selectedReuseIds.has(p.id);
+                    const headName = p.name.replace(" (You)", "");
+                    const familyDisplayName = `${headName}'s family`;
+                    
                     return (
                       <div 
                         key={p.id}
                         className={cn(
-                          "p-3 rounded-2xl border-2 transition-all flex items-center justify-between cursor-pointer",
+                          "rounded-[1.5rem] border-2 transition-all overflow-hidden relative",
                           isSelected ? "border-primary bg-primary/5 shadow-sm" : "border-muted/10 bg-muted/5 opacity-60"
                         )}
-                        onClick={() => toggleReuseId(p.id)}
                       >
-                        <div className="flex items-center gap-3">
-                          <Avatar className="h-9 w-9 border-2 border-white shadow-sm">
-                            <AvatarImage src={p.avatar} />
-                            <AvatarFallback>{p.name?.[0]}</AvatarFallback>
-                          </Avatar>
-                          <div className="space-y-0.5">
-                            <p className="text-sm font-bold text-foreground leading-tight">{p.name}</p>
-                            {p.familyMembers?.length > 0 && (
-                              <p className="text-[9px] text-muted-foreground font-semibold uppercase tracking-tighter">
-                                + {p.familyMembers.length} {p.familyMembers.length === 1 ? 'guest' : 'guests'}
-                              </p>
-                            )}
+                        <div className="p-4 space-y-3">
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-3">
+                              <Checkbox 
+                                id={`reuse-${p.id}`} 
+                                checked={isSelected} 
+                                onCheckedChange={() => toggleReuseId(p.id)}
+                                className="rounded-md h-5 w-5 border-2"
+                              />
+                              <div className="flex items-center gap-2">
+                                <Avatar className="h-8 w-8 border border-white shadow-sm">
+                                  <AvatarImage src={p.avatar} />
+                                  <AvatarFallback>{headName[0]}</AvatarFallback>
+                                </Avatar>
+                                <Label htmlFor={`reuse-${p.id}`} className="text-sm font-bold text-foreground cursor-pointer">
+                                  {familyDisplayName}
+                                </Label>
+                              </div>
+                            </div>
+                            <Button 
+                              variant="ghost" 
+                              size="icon" 
+                              className="h-7 w-7 rounded-full hover:bg-destructive/10 hover:text-destructive text-muted-foreground transition-all"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                ignoreReuseGroup(p.id);
+                              }}
+                            >
+                              <X className="h-4 w-4" />
+                            </Button>
                           </div>
-                        </div>
-                        <div className={cn(
-                          "h-6 w-6 rounded-full flex items-center justify-center transition-all",
-                          isSelected ? "bg-primary text-white scale-110" : "bg-muted-foreground/20 text-transparent"
-                        )}>
-                          <Check className="h-3.5 w-3.5" strokeWidth={4} />
+
+                          <div className="flex flex-wrap gap-1.5 pl-7">
+                            <Badge variant="outline" className="px-2.5 py-0.5 rounded-lg bg-white border-muted/20 text-[10px] font-semibold text-foreground/70">
+                              {headName}
+                            </Badge>
+                            {p.familyMembers?.map((fm: string) => (
+                              <Badge key={fm} variant="outline" className="px-2.5 py-0.5 rounded-lg bg-white border-muted/20 text-[10px] font-medium text-muted-foreground">
+                                {fm}
+                              </Badge>
+                            ))}
+                          </div>
                         </div>
                       </div>
                     );
@@ -790,7 +825,7 @@ export default function CreateTrip() {
                 onClick={handleReuseMembers}
                 disabled={selectedReuseIds.size === 0}
               >
-                Add {selectedReuseIds.size} travel groups
+                Add selected groups ({selectedReuseIds.size})
               </Button>
               <Button 
                 variant="ghost" 
