@@ -289,6 +289,7 @@ export default function TripDetails() {
         trip={trip} 
         onClose={() => setSelectedExpenseDetail(null)} 
         onDelete={handleDeleteExpense} 
+        onEdit={(expenseId) => router.push(`/trips/${id}/expenses/${expenseId}/edit`)}
         onFinalizeSplit={(expenseId) => router.push(`/trips/${id}/expenses/${expenseId}/split`)} 
       />
 

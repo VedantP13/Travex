@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useMemo, useState } from "react";
@@ -20,8 +21,7 @@ import {
   Box,
   Timer,
   AlertTriangle,
-  Loader2,
-  Construction
+  Loader2
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -47,6 +47,7 @@ interface ExpenseDetailDialogProps {
   trip: any;
   onClose: () => void;
   onDelete: (expenseId: string) => void;
+  onEdit: (expenseId: string) => void;
   onFinalizeSplit: (expenseId: string) => void;
 }
 
@@ -85,9 +86,8 @@ const getSplitTypeLabel = (type: string) => {
   }
 };
 
-export function ExpenseDetailDialog({ expense, trip, onClose, onDelete, onFinalizeSplit }: ExpenseDetailDialogProps) {
+export function ExpenseDetailDialog({ expense, trip, onClose, onDelete, onEdit, onFinalizeSplit }: ExpenseDetailDialogProps) {
   const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = useState(false);
-  const [isEditPlaceholderOpen, setIsEditPlaceholderOpen] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
 
   const splits = useMemo(() => {
@@ -211,7 +211,10 @@ export function ExpenseDetailDialog({ expense, trip, onClose, onDelete, onFinali
                 <DropdownMenuContent align="start" className="rounded-2xl min-w-[160px] p-1 shadow-xl border-none bg-white">
                   <DropdownMenuItem 
                     className="group rounded-xl py-2 px-3 flex items-center gap-3 cursor-pointer text-primary focus:bg-primary/10 focus:text-primary active:scale-[0.98] transition-all" 
-                    onClick={() => setIsEditPlaceholderOpen(true)}
+                    onClick={() => {
+                      onEdit(expense.id);
+                      onClose();
+                    }}
                   >
                     <div className="h-8 w-8 rounded-full bg-primary/10 group-focus:bg-white/20 flex items-center justify-center shrink-0 transition-colors">
                       <Pencil className="h-4 w-4" />
@@ -390,36 +393,6 @@ export function ExpenseDetailDialog({ expense, trip, onClose, onDelete, onFinali
                   Cancel
                 </Button>
               </AlertDialogCancel>
-            </div>
-          </div>
-        </AlertDialogContent>
-      </AlertDialog>
-
-      <AlertDialog open={isEditPlaceholderOpen} onOpenChange={setIsEditPlaceholderOpen}>
-        <AlertDialogContent className="max-w-[calc(100vw-40px)] w-full rounded-[2.5rem] p-0 border-none shadow-2xl bg-white overflow-hidden animate-in fade-in zoom-in-95 duration-300">
-          <div className="h-44 bg-primary/5 relative flex flex-col items-center justify-center">
-             <div className="h-20 w-20 rounded-full bg-primary/10 flex items-center justify-center mb-2">
-                <Construction className="h-10 w-10 text-primary animate-pulse" />
-             </div>
-          </div>
-          <div className="p-8 text-center space-y-6">
-            <div className="space-y-2">
-              <AlertDialogTitle className="text-2xl font-bold tracking-tight text-foreground">
-                Coming Soon!
-              </AlertDialogTitle>
-              <AlertDialogDescription className="text-sm font-medium leading-relaxed text-muted-foreground px-4">
-                We're currently building the <span className="text-primary font-bold">Edit Expense</span> engine to ensure your balance history stays perfectly accurate. 
-                Stay tuned for updates!
-              </AlertDialogDescription>
-            </div>
-            <div className="pt-2">
-              <AlertDialogAction asChild>
-                <Button 
-                  className="w-full h-14 rounded-2xl bg-primary text-white font-bold text-base shadow-lg shadow-primary/20"
-                >
-                  Got it
-                </Button>
-              </AlertDialogAction>
             </div>
           </div>
         </AlertDialogContent>
