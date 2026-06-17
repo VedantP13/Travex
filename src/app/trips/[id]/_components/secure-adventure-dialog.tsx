@@ -1,6 +1,6 @@
 'use client';
 
-import { Loader2, X } from "lucide-react";
+import { Loader2, X } from "lucide-material";
 import { Button } from "@/components/ui/button";
 import { AlertDialog, AlertDialogContent, AlertDialogDescription, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { useState } from "react";
@@ -86,7 +86,8 @@ export function SecureAdventureDialog({ isOpen, onOpenChange }: SecureAdventureD
 
            <div className="relative z-10 flex flex-col items-center text-center w-full px-6">
               <div className="w-full max-w-[480px] aspect-[4/3] flex items-center justify-center">
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="350 200 150 150" className="w-full h-full text-accent fill-current drop-shadow-2xl">
+                {/* Adjusted viewBox: min-x shifted left to move content right, min-y shifted down to move content up */}
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="340 210 150 150" className="w-full h-full text-accent fill-current drop-shadow-2xl">
                    <g>
                      <title>Layer 1</title>
                      <g>
