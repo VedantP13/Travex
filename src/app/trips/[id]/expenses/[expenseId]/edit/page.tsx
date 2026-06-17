@@ -570,7 +570,7 @@ export default function EditExpensePage() {
 
               <div className="space-y-4">
                 <div className="relative">
-                  <AlignLeft className={cn("absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 transition-colors", formData.description ? "text-foreground" : "text-muted-foreground/40")} />
+                  <AlignLeft className={cn("absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 transition-colors", formData.description ? "text-foreground stroke-[2px]" : "text-muted-foreground/40")} />
                   <Input placeholder="What was it for?" className="h-16 text-base font-medium rounded-2xl pl-12 pr-4 shadow-sm bg-white border-none" value={formData.description} onChange={e => setFormData(prev => ({ ...prev, description: e.target.value }))} />
                   {isAnalyzing && <Loader2 className="absolute right-4 top-1/2 -translate-y-1/2 h-4 w-4 animate-spin text-primary" />}
                 </div>
@@ -588,9 +588,9 @@ export default function EditExpensePage() {
                       </PopoverContent>
                    </Popover>
                    <Select value={formData.paymentType} onValueChange={val => setFormData(prev => ({ ...prev, paymentType: val }))}>
-                     <SelectTrigger className={cn("h-14 rounded-2xl shadow-sm bg-white border-none focus:ring-primary font-medium", formData.paymentType ? "text-foreground" : "text-muted-foreground/60")}>
+                     <SelectTrigger className={cn("h-14 rounded-2xl shadow-sm bg-white border-none focus:ring-primary font-medium", formData.paymentType ? "text-foreground [&_svg]:text-foreground [&_svg]:stroke-[2px]" : "text-muted-foreground/60 [&_svg]:text-muted-foreground/40")}>
                        <div className="flex items-center gap-2">
-                         <CreditCard className={cn("h-3.5 w-3.5 transition-all", formData.paymentType ? "text-foreground stroke-[2px]" : "text-muted-foreground/40")} />
+                         {!formData.paymentType && <CreditCard className="h-4 w-4" />}
                          <SelectValue placeholder="Method" />
                        </div>
                      </SelectTrigger>
@@ -716,3 +716,4 @@ export default function EditExpensePage() {
     </div>
   );
 }
+

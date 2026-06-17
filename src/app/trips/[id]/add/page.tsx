@@ -496,13 +496,6 @@ export default function AddExpenseWizard() {
     });
   };
 
-  const updateCustomAmount = (targetId: string, value: string) => {
-    setFormData(prev => ({
-      ...prev,
-      customAmounts: { ...prev.customAmounts, [targetId]: value }
-    }));
-  };
-
   const toggleExpand = (e: React.MouseEvent, familyId: string) => {
     e.stopPropagation();
     setExpandedFamilies(prev => ({ ...prev, [familyId]: !prev[familyId] }));
@@ -684,6 +677,13 @@ export default function AddExpenseWizard() {
     );
   };
 
+  const updateCustomAmount = (targetId: string, value: string) => {
+    setFormData(prev => ({
+      ...prev,
+      customAmounts: { ...prev.customAmounts, [targetId]: value }
+    }));
+  };
+
   if (tripsLoading) {
     return (
       <div className="max-w-md mx-auto min-h-screen flex flex-col items-center justify-center bg-background gap-4">
@@ -802,7 +802,7 @@ export default function AddExpenseWizard() {
                 <div className="relative">
                   <AlignLeft className={cn(
                     "absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 transition-colors",
-                    formData.description ? "text-foreground" : "text-muted-foreground/40"
+                    formData.description ? "text-foreground stroke-[2px]" : "text-muted-foreground/40"
                   )} />
                   <Input 
                     placeholder="What was it for?"
@@ -853,13 +853,10 @@ export default function AddExpenseWizard() {
                   >
                     <SelectTrigger className={cn(
                       "h-14 rounded-2xl shadow-sm focus:ring-primary text-base font-medium bg-white border-none",
-                      formData.paymentType ? "text-foreground" : "text-muted-foreground/60"
+                      formData.paymentType ? "text-foreground [&_svg]:text-foreground [&_svg]:stroke-[2px]" : "text-muted-foreground/60 [&_svg]:text-muted-foreground/40"
                     )}>
                       <div className="flex items-center gap-2">
-                        <CreditCard className={cn(
-                          "h-4 w-4 transition-all",
-                          formData.paymentType ? "text-foreground stroke-[2px]" : "text-muted-foreground/40"
-                        )} />
+                        {!formData.paymentType && <CreditCard className="h-4 w-4" />}
                         <SelectValue placeholder="Method" />
                       </div>
                     </SelectTrigger>
@@ -1148,3 +1145,4 @@ export default function AddExpenseWizard() {
     </div>
   );
 }
+
