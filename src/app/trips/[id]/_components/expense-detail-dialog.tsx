@@ -21,7 +21,7 @@ import {
   Timer,
   AlertTriangle,
   Loader2,
-  Sparkles
+  Construction
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -399,7 +399,7 @@ export function ExpenseDetailDialog({ expense, trip, onClose, onDelete, onFinali
         <AlertDialogContent className="max-w-[calc(100vw-40px)] w-full rounded-[2.5rem] p-0 border-none shadow-2xl bg-white overflow-hidden animate-in fade-in zoom-in-95 duration-300">
           <div className="h-44 bg-primary/5 relative flex flex-col items-center justify-center">
              <div className="h-20 w-20 rounded-full bg-primary/10 flex items-center justify-center mb-2">
-                <Sparkles className="h-10 w-10 text-primary animate-pulse" />
+                <Construction className="h-10 w-10 text-primary animate-pulse" />
              </div>
           </div>
           <div className="p-8 text-center space-y-6">
