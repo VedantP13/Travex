@@ -6,6 +6,7 @@ import { useParams, useRouter } from "next/navigation";
 import { 
   ChevronRight, 
   ChevronLeft,
+  ChevronDown,
   X,
   Loader2,
   Users,
@@ -245,58 +246,107 @@ export default function CompleteSplitPage() {
         <div className="space-y-4 max-h-[440px] overflow-y-auto pr-1 px-1 py-4 scrollbar-thin">
           {familyList.map((family) => {
             const members = personList.filter(p => p.familyId === family.id);
-            const memberIds = members.map(m => m.id);
-            const allSelected = memberIds.every(id => formData.selectedIndividuals.includes(id));
+            const selectedMembers = members.filter(m => formData.selectedIndividuals.includes(m.id));
+            const unselectedMembers = members.filter(m => !formData.selectedIndividuals.includes(m.id));
+            
             const isExpanded = expandedFamilies[family.id];
-            const selectedCount = memberIds.filter(id => formData.selectedIndividuals.includes(id)).length;
+            const hasAnySelected = selectedMembers.length > 0;
+            const allSelected = selectedMembers.length === members.length;
             
             return (
-              <div key={family.id} className={cn("rounded-2xl border-2 transition-all overflow-hidden shadow-sm", allSelected ? family.scheme.border : "border-muted/10", family.scheme.bg)}>
-                <div className={cn("p-3 flex items-center justify-between cursor-pointer transition-colors", allSelected ? "opacity-100" : "opacity-70 grayscale-[0.2]")} onClick={(e) => isFamilyView ? toggleFamilySelection(family.id) : setExpandedFamilies(prev => ({ ...prev, [family.id]: !prev[family.id] }))}>
-                  <div className="flex items-center gap-3">
-                    <Avatar className="h-10 w-10 border-2 border-white shadow-sm"><AvatarImage src={family.avatar} /><AvatarFallback>{family.name?.[0]}</AvatarFallback></Avatar>
-                    <div>
-                      <p className="text-sm font-semibold truncate leading-tight">{family.familyName}</p>
-                      {!isFamilyView && <div className="flex items-center gap-1 mt-0.5"><span className="text-[10px] text-muted-foreground font-semibold">{members.length} members</span><ChevronRight className={cn("h-3 w-3 text-muted-foreground transition-transform", isExpanded && "rotate-90")} /></div>}
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-3">
-                    {selectedCount > 0 && <span className={cn("text-[10px] font-semibold whitespace-nowrap mr-1", family.scheme.text)}>{selectedCount}/{members.length} selected</span>}
-                    {isFamilyView && (
-                      <div className="flex items-center gap-3">
-                        {allSelected && isCustom && (
-                          <div className="flex items-center gap-2" onClick={e => e.stopPropagation()}>
-                            <span className="text-xs font-semibold text-muted-foreground">₹</span>
-                            <Input type="number" placeholder="0" className={cn("h-9 w-24 rounded-lg text-right font-semibold text-sm border-none shadow-inner bg-black/5 focus-visible:ring-1", family.scheme.focus)} value={formData.customAmounts[family.id] || ""} onChange={e => setFormData(prev => ({ ...prev, customAmounts: { ...prev.customAmounts, [family.id]: e.target.value } }))} />
+              <div key={family.id} className="space-y-2">
+                {/* The "Selected" Card (or Header if none selected) */}
+                <div 
+                  className={cn(
+                    "rounded-2xl border-2 transition-all overflow-hidden shadow-sm", 
+                    hasAnySelected ? family.scheme.border : "border-muted/10", 
+                    hasAnySelected ? family.scheme.bg : "bg-white/50"
+                  )}
+                >
+                  <div 
+                    className={cn(
+                      "p-3 flex items-center justify-between cursor-pointer transition-colors", 
+                      hasAnySelected ? "opacity-100" : "opacity-70 grayscale-[0.2]"
+                    )} 
+                    onClick={(e) => isFamilyView ? toggleFamilySelection(family.id) : setExpandedFamilies(prev => ({ ...prev, [family.id]: !prev[family.id] }))}
+                  >
+                    <div className="flex items-center gap-3">
+                      <Avatar className="h-10 w-10 border-2 border-white shadow-sm">
+                        <AvatarImage src={family.avatar} />
+                        <AvatarFallback>{family.name?.[0]}</AvatarFallback>
+                      </Avatar>
+                      <div>
+                        <p className="text-sm font-semibold truncate leading-tight">{family.familyName}</p>
+                        {!isFamilyView && (
+                          <div className="flex items-center gap-1 mt-0.5" onClick={(e) => { e.stopPropagation(); setExpandedFamilies(prev => ({ ...prev, [family.id]: !prev[family.id] })); }}>
+                            <span className="text-[10px] text-muted-foreground font-semibold">{members.length} members</span>
+                            <ChevronDown className={cn("h-3 w-3 text-muted-foreground transition-transform", isExpanded && "rotate-180")} />
                           </div>
                         )}
-                        <div className={cn("h-7 w-7 rounded-full flex items-center justify-center bg-white shadow-sm", allSelected ? family.scheme.text : "text-muted-foreground")}>{allSelected ? <Minus className="h-4 w-4" /> : <Plus className="h-4 w-4" />}</div>
                       </div>
-                    )}
+                    </div>
+                    <div className="flex items-center gap-3">
+                      {hasAnySelected && <span className={cn("text-[10px] font-semibold whitespace-nowrap mr-1", family.scheme.text)}>{selectedMembers.length}/{members.length} selected</span>}
+                      {isFamilyView && (
+                        <div className="flex items-center gap-3">
+                          {allSelected && isCustom && (
+                            <div className="flex items-center gap-2" onClick={e => e.stopPropagation()}>
+                              <span className="text-xs font-semibold text-muted-foreground">₹</span>
+                              <Input type="number" placeholder="0" className={cn("h-9 w-24 rounded-lg text-right font-semibold text-sm border-none shadow-inner bg-black/5 focus-visible:ring-1", family.scheme.focus)} value={formData.customAmounts[family.id] || ""} onChange={e => setFormData(prev => ({ ...prev, customAmounts: { ...prev.customAmounts, [family.id]: e.target.value } }))} />
+                            </div>
+                          )}
+                          <div className={cn("h-7 w-7 rounded-full flex items-center justify-center bg-white shadow-sm", allSelected ? family.scheme.text : "text-muted-foreground")}>{allSelected ? <Minus className="h-4 w-4" /> : <Plus className="h-4 w-4" />}</div>
+                        </div>
+                      )}
+                    </div>
                   </div>
-                </div>
-                {isExpanded && !isFamilyView && (
-                  <div className="bg-white/40 divide-y divide-muted/5 animate-in slide-in-from-top-1 duration-200">
-                    {members.map((member) => {
-                      const isSel = formData.selectedIndividuals.includes(member.id);
-                      return (
-                        <div key={member.id} className={cn("flex items-center justify-between p-3 pl-8 transition-colors cursor-pointer", isSel ? "bg-white/50" : "opacity-60")} onClick={() => toggleSelection(member.id)}>
+                  {isExpanded && !isFamilyView && selectedMembers.length > 0 && (
+                    <div className="bg-white/40 divide-y divide-muted/5 animate-in slide-in-from-top-1 duration-200">
+                      {selectedMembers.map((member) => (
+                        <div key={member.id} className="flex items-center justify-between p-3 pl-8 transition-colors cursor-pointer bg-white/50" onClick={() => toggleSelection(member.id)}>
                           <div className="flex items-center gap-3">
                             <Avatar className="h-8 w-8"><AvatarImage src={member.avatar} /><AvatarFallback>{member.name?.[0]}</AvatarFallback></Avatar>
                             <div><span className="text-xs font-semibold block leading-none">{member.name}</span><span className="text-[9px] text-muted-foreground font-medium">{family.familyName}</span></div>
                           </div>
                           <div className="flex items-center gap-3">
-                            {isSel && isCustom && (
+                            {isCustom && (
                               <div className="flex items-center gap-2" onClick={e => e.stopPropagation()}>
                                 <span className="text-xs font-semibold text-muted-foreground">₹</span>
                                 <Input type="number" placeholder="0" className={cn("h-8 w-20 rounded-lg text-right font-semibold text-xs border-none shadow-inner bg-black/5 focus-visible:ring-1", family.scheme.focus)} value={formData.customAmounts[member.id] || ""} onChange={e => setFormData(prev => ({ ...prev, customAmounts: { ...prev.customAmounts, [member.id]: e.target.value } }))} />
                               </div>
                             )}
-                            <div className={cn("h-6 w-6 rounded-full flex items-center justify-center bg-white shadow-sm", isSel ? family.scheme.text : "text-muted-foreground")}>{isSel ? <Minus className="h-3 w-3" /> : <Plus className="h-3 w-3" />}</div>
+                            <div className={cn("h-6 w-6 rounded-full flex items-center justify-center bg-white shadow-sm", family.scheme.text)}><Minus className="h-3 w-3" /></div>
                           </div>
                         </div>
-                      );
-                    })}
+                      ))}
+                    </div>
+                  )}
+                </div>
+
+                {/* The "Unselected" List (Outside the colored box) */}
+                {isExpanded && !isFamilyView && unselectedMembers.length > 0 && (
+                  <div className="space-y-1 pl-4 animate-in slide-in-from-top-1 duration-200">
+                    {unselectedMembers.map((member) => (
+                      <div 
+                        key={member.id} 
+                        className="flex items-center justify-between p-3 pl-4 transition-all cursor-pointer rounded-xl hover:bg-muted/10 opacity-60"
+                        onClick={() => toggleSelection(member.id)}
+                      >
+                        <div className="flex items-center gap-3">
+                          <Avatar className="h-8 w-8">
+                            <AvatarImage src={member.avatar} />
+                            <AvatarFallback>{member.name?.[0]}</AvatarFallback>
+                          </Avatar>
+                          <div>
+                            <span className="text-xs font-semibold block leading-none">{member.name}</span>
+                            <span className="text-[9px] text-muted-foreground font-medium">{family.familyName}</span>
+                          </div>
+                        </div>
+                        <div className="h-6 w-6 rounded-full flex items-center justify-center bg-muted/20 text-muted-foreground">
+                          <Plus className="h-3 w-3" />
+                        </div>
+                      </div>
+                    ))}
                   </div>
                 )}
               </div>
