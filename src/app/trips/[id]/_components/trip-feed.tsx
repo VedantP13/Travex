@@ -1,4 +1,3 @@
-
 'use client';
 
 import { Utensils, Car, Home, ShoppingBag, Plane, Camera, Box, Timer, Sparkles } from "lucide-react";
@@ -96,7 +95,7 @@ export function TripFeed({ unsplitExpenses, finalizedExpenses, loading, onSelect
                   <h3 className="font-semibold text-sm truncate text-foreground">{item.description}</h3>
                   <p className="text-[10px] font-medium text-muted-foreground">Paid by {item.payerName?.split(' ')[0]} • {item.date}</p>
                 </div>
-                <p className="font-semibold text-base tracking-tight text-foreground">₹{parseFloat(item.amount || 0).toFixed(2)}</p>
+                <p className="font-bold text-base tracking-tight text-foreground">₹{parseFloat(item.amount || 0).toFixed(2)}</p>
               </div>
             );
           })}
