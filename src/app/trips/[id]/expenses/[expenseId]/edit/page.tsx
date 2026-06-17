@@ -536,10 +536,9 @@ export default function EditExpensePage() {
         {step === 1 ? (
           <div className="space-y-8 animate-in fade-in slide-in-from-right-4 duration-300">
             <div className="p-3 bg-accent/5 rounded-2xl border-2 border-dashed border-accent/20 flex items-center justify-center gap-3 mx-2">
-               <div className="h-2 w-2 rounded-full bg-accent animate-pulse shrink-0" />
-               <div className="text-left">
-                  <h2 className="text-[10px] font-bold text-accent uppercase tracking-wider leading-none mb-0.5">Audit Mode</h2>
-                  <p className="text-[9px] text-muted-foreground font-medium leading-tight">You are modifying a live transaction</p>
+               <div className="text-center">
+                  <h2 className="text-[11px] font-bold text-accent leading-none mb-1">Editing expense</h2>
+                  <p className="text-[10px] text-muted-foreground font-medium leading-tight">Trip balances will update upon saving</p>
                </div>
             </div>
 
