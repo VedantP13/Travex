@@ -744,21 +744,16 @@ export default function CreateTrip() {
         setShowReuseDialog(open);
       }}>
         <AlertDialogContent className="max-w-[calc(100vw-40px)] w-full rounded-[2.5rem] p-0 border-none shadow-2xl bg-white overflow-hidden animate-in fade-in zoom-in-95 duration-300">
-          <div className="h-32 bg-primary relative flex flex-col items-center justify-center overflow-hidden">
-             <div className="absolute inset-0 opacity-10">
-               <History className="h-full w-full p-4 scale-150 text-white" />
+          <div className="h-40 bg-foreground relative flex flex-col items-center justify-center shrink-0">
+             <div className="h-16 w-16 rounded-full bg-white/10 flex items-center justify-center mb-2">
+                <History className="h-8 w-8 text-white" />
              </div>
-             <div className="relative z-10 flex flex-col items-center text-center px-6">
-                <div className="h-12 w-12 rounded-full bg-white/20 backdrop-blur-md flex items-center justify-center mb-2">
-                  <History className="h-6 w-6 text-white" />
-                </div>
-                <h2 className="text-lg font-bold text-white tracking-tight">Recent travel buddies</h2>
-             </div>
+             <p className="text-[10px] font-bold text-white/50 uppercase tracking-widest">Recent travel buddies</p>
           </div>
 
-          <div className="p-5 space-y-5">
+          <div className="p-6 space-y-6">
             <div className="space-y-1 text-center">
-              <AlertDialogTitle className="text-base font-bold text-foreground leading-tight">
+              <AlertDialogTitle className="text-lg font-bold text-foreground leading-tight">
                 Reuse groups from <span className="text-primary">{lastTrip?.name}</span>?
               </AlertDialogTitle>
               <AlertDialogDescription className="text-[11px] font-medium text-muted-foreground leading-relaxed px-4">
