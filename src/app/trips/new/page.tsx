@@ -141,19 +141,6 @@ export default function CreateTrip() {
     }
   }, [trips, tripsLoading, hasInteractedWithNudge]);
 
-  // Trigger Reuse Members Nudge
-  useEffect(() => {
-    if (tripsLoading || !lastTrip || hasInteractedWithReuse || travelMode !== 'group') return;
-    
-    if (lastTrip.participants?.length > 1) {
-      const others = lastTrip.participants.filter((p: any) => p.userId !== user?.uid);
-      if (others.length > 0) {
-        setSelectedReuseIds(new Set(others.map((p: any) => p.id)));
-        setShowReuseDialog(true);
-      }
-    }
-  }, [tripsLoading, lastTrip, hasInteractedWithReuse, travelMode, user?.uid]);
-
   useEffect(() => {
     const searchFriends = async () => {
       if (!user?.uid || !firestore || newParticipantName.trim().length < 2) {
@@ -467,6 +454,16 @@ export default function CreateTrip() {
     });
   };
 
+  const handleInputClick = () => {
+    if (!hasInteractedWithReuse && lastTrip && lastTrip.participants?.length > 1 && travelMode === 'group') {
+      const others = lastTrip.participants.filter((p: any) => p.userId !== user?.uid);
+      if (others.length > 0) {
+        setSelectedReuseIds(new Set(others.map((p: any) => p.id)));
+        setShowReuseDialog(true);
+      }
+    }
+  };
+
   return (
     <div className="max-w-md mx-auto min-h-screen bg-background flex flex-col pb-24">
       <header className="px-safe-pad py-6 flex items-center justify-between border-b bg-white sticky top-0 z-10">
@@ -590,6 +587,7 @@ export default function CreateTrip() {
                   value={newParticipantName}
                   onChange={e => setNewParticipantName(e.target.value)}
                   onKeyDown={e => e.key === 'Enter' && addParticipant()}
+                  onClick={handleInputClick}
                 />
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                 <Button size="icon" className="h-12 w-12 rounded-xl shrink-0 bg-primary" onClick={addParticipant}>
@@ -865,7 +863,7 @@ export default function CreateTrip() {
                 variant="ghost" 
                 className="w-full h-9 rounded-xl font-bold text-muted-foreground text-[10px] hover:bg-muted"
                 onClick={() => {
-                  setShowReuseDialog(false);
+                  setShowReuseDialog(true);
                   setHasInteractedWithReuse(true);
                 }}
               >
