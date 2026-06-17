@@ -574,7 +574,7 @@ export default function CreateTrip() {
                                 onClick={() => importFriendFamily(p.id)}
                                 className="flex items-center gap-1 text-[10px] font-bold text-accent hover:text-accent/80 transition-colors animate-pulse"
                               >
-                                <Sparkles className="h-3 w-3 fill-current" />
+                                <UserPlus className="h-3 w-3" />
                                 Import saved members ({p.suggestedFamily?.length})
                               </button>
                             )}
