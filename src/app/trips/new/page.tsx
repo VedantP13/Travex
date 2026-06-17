@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
@@ -73,6 +74,7 @@ export default function CreateTrip() {
   const [nudgeTrip, setNudgeTrip] = useState<any>(null);
   const [hasInteractedWithNudge, setHasInteractedWithNudge] = useState(false);
 
+  // Sync current user's profile to get saved family members
   useEffect(() => {
     if (!user?.uid || !firestore) return;
     const unsub = onSnapshot(doc(firestore, "users", user.uid), (snap) => {
@@ -81,26 +83,33 @@ export default function CreateTrip() {
     return () => unsub();
   }, [user?.uid, firestore]);
 
+  // Handle "Me" participant initialization and auto-fill
   useEffect(() => {
-    if (!user || !firestoreProfile) return;
-
-    const savedFamily = firestoreProfile.familyMembers || [];
+    if (!user) return;
 
     setParticipants(prev => {
       const meExists = prev.find(p => p.isUser && p.userId === user.uid);
-      
-      const me: Participant = { 
-        id: "me", 
-        name: `${user.displayName?.split(' ')[0] || "You"} (You)`, 
-        isUser: true, 
-        userId: user.uid,
-        avatar: user.photoURL || `https://picsum.photos/seed/${user.uid}/50/50`, 
-        familyMembers: meExists?.familyMembers?.length ? meExists.familyMembers : savedFamily
-      };
+      const savedFamily = firestoreProfile?.familyMembers || [];
 
-      if (!meExists) return [me, ...prev];
+      if (!meExists) {
+        // Initial creation of "Me"
+        const me: Participant = { 
+          id: "me", 
+          name: `${user.displayName?.split(' ')[0] || "You"} (You)`, 
+          isUser: true, 
+          userId: user.uid,
+          avatar: user.photoURL || `https://picsum.photos/seed/${user.uid}/50/50`, 
+          familyMembers: savedFamily
+        };
+        return [me, ...prev];
+      }
       
-      return prev.map(p => p.id === "me" ? me : p);
+      // If "Me" exists but family is empty and we just loaded profile data, fill it
+      if (meExists.familyMembers.length === 0 && savedFamily.length > 0) {
+        return prev.map(p => p.id === "me" ? { ...p, familyMembers: savedFamily } : p);
+      }
+      
+      return prev;
     });
   }, [user, firestoreProfile]);
 
@@ -194,6 +203,7 @@ export default function CreateTrip() {
       const friendSnap = await getDoc(doc(firestore!, "users", friendId));
       if (friendSnap.exists()) {
         const friendData = friendSnap.data();
+        // Friends can see family if visibility is public
         if (friendData.isFamilyPublic !== false) {
           familyFromProfile = friendData.familyMembers || [];
         }
@@ -401,8 +411,8 @@ export default function CreateTrip() {
               <Card 
                 key={mode.id}
                 className={cn(
-                  "p-5 rounded-[2rem] border-2 transition-all cursor-pointer flex flex-col items-center gap-2 text-center",
-                  travelMode === mode.id ? "border-primary bg-primary/5" : "border-muted/20 shadow-sm bg-white"
+                  "p-5 rounded-[2rem] border-2 transition-all cursor-pointer flex flex-col items-center gap-2 text-center shadow-none",
+                  travelMode === mode.id ? "border-primary bg-primary/5" : "border-muted/20 bg-white"
                 )}
                 onClick={() => {
                   setTravelMode(mode.id as any);
