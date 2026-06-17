@@ -44,7 +44,7 @@ type Participant = {
   userId?: string;
   avatar: string;
   familyMembers: string[];
-  suggestedFamily?: string[]; // New: family members found in friend's profile
+  suggestedFamily?: string[];
 };
 
 export default function CreateTrip() {
@@ -55,7 +55,7 @@ export default function CreateTrip() {
   const { user } = useUser();
   const { trips, loading: tripsLoading } = useTrips();
   
-  const [travelMode, setTravelMode] = useState<'solo' | 'family' | 'group'>('group');
+  const [travelMode, setTravelMode] = useState<'solo' | 'group'>('group');
   const [name, setName] = useState("");
   const [dateRange, setDateRange] = useState<DateRange | undefined>();
   const [isCalendarOpen, setIsCalendarOpen] = useState(false);
@@ -67,15 +67,12 @@ export default function CreateTrip() {
   
   const [firestoreProfile, setFirestoreProfile] = useState<any>(null);
 
-  // Friend Search states
   const [friendSearchResults, setFriendSearchResults] = useState<any[]>([]);
   const [isSearchingFriends, setIsSearchingFriends] = useState(false);
 
-  // Active Nudge states
   const [nudgeTrip, setNudgeTrip] = useState<any>(null);
   const [hasInteractedWithNudge, setHasInteractedWithNudge] = useState(false);
 
-  // Listen for persistent family members from profile
   useEffect(() => {
     if (!user?.uid || !firestore) return;
     const unsub = onSnapshot(doc(firestore, "users", user.uid), (snap) => {
@@ -84,7 +81,6 @@ export default function CreateTrip() {
     return () => unsub();
   }, [user?.uid, firestore]);
 
-  // Sync family members to "Your family" participant
   useEffect(() => {
     if (!user || !firestoreProfile) return;
 
@@ -108,18 +104,14 @@ export default function CreateTrip() {
     });
   }, [user, firestoreProfile]);
 
-  // Phase 4 Logic: Check for active trips when entering New Trip flow
   useEffect(() => {
     if (tripsLoading || !trips.length || hasInteractedWithNudge) return;
 
-    // Smart Prioritization:
-    // 1. First, look for an Active trip that has already ended (Past Due)
     const endedTrip = trips.find(t => {
       if (t.status !== 'Active' || !t.endDate) return false;
       return new Date(t.endDate) < new Date();
     });
 
-    // 2. Fallback to any active trip
     const anyActive = trips.find(t => t.status === 'Active');
 
     if (endedTrip || anyActive) {
@@ -127,7 +119,6 @@ export default function CreateTrip() {
     }
   }, [trips, tripsLoading, hasInteractedWithNudge]);
 
-  // Search friends logic
   useEffect(() => {
     const searchFriends = async () => {
       if (!user?.uid || !firestore || newParticipantName.trim().length < 2) {
@@ -198,13 +189,11 @@ export default function CreateTrip() {
   const handleSelectFriend = async (friend: any) => {
     const friendId = friend.friendId;
     
-    // Fetch friend's profile to get their family members
     let familyFromProfile: string[] = [];
     try {
       const friendSnap = await getDoc(doc(firestore!, "users", friendId));
       if (friendSnap.exists()) {
         const friendData = friendSnap.data();
-        // Check visibility setting - default to true
         if (friendData.isFamilyPublic !== false) {
           familyFromProfile = friendData.familyMembers || [];
         }
@@ -238,7 +227,6 @@ export default function CreateTrip() {
   const importFriendFamily = (pid: string) => {
     setParticipants(prev => prev.map(p => {
       if (p.id === pid && p.suggestedFamily) {
-        // Merge suggested into actual, unique only
         const newMembers = Array.from(new Set([...p.familyMembers, ...p.suggestedFamily]));
         return { ...p, familyMembers: newMembers, suggestedFamily: [] };
       }
@@ -351,7 +339,6 @@ export default function CreateTrip() {
           description: `${name} has been set up successfully.`,
         });
         
-        // Check if we should prompt to save family members to profile
         const myFamily = participants.find(p => p.id === "me")?.familyMembers || [];
         const savedFamily = firestoreProfile?.familyMembers || [];
         const hasNewMembers = myFamily.some(m => !savedFamily.includes(m));
@@ -406,16 +393,15 @@ export default function CreateTrip() {
       <main className="flex-1 px-safe-pad py-8 space-y-8 overflow-y-auto">
         <div className="space-y-4">
           <Label className="text-sm font-semibold text-foreground/60 ml-1">Who's traveling?</Label>
-          <div className="grid grid-cols-3 gap-3">
+          <div className="grid grid-cols-2 gap-3">
             {[
               { id: 'solo', label: 'Solo', icon: User, desc: 'Just me' },
-              { id: 'family', label: 'Family', icon: Home, desc: 'Me & kin' },
               { id: 'group', label: 'Group', icon: Users, desc: 'Friends' },
             ].map((mode) => (
               <Card 
                 key={mode.id}
                 className={cn(
-                  "p-4 rounded-[2rem] border-2 transition-all cursor-pointer flex flex-col items-center gap-2 text-center",
+                  "p-5 rounded-[2rem] border-2 transition-all cursor-pointer flex flex-col items-center gap-2 text-center",
                   travelMode === mode.id ? "border-primary bg-primary/5" : "border-muted/20 shadow-sm bg-white"
                 )}
                 onClick={() => {
@@ -426,14 +412,14 @@ export default function CreateTrip() {
                 }}
               >
                 <div className={cn(
-                  "h-10 w-10 rounded-2xl flex items-center justify-center transition-colors",
-                  travelMode === mode.id ? "bg-primary text-white" : "bg-muted text-muted-foreground"
+                  "h-12 w-12 rounded-2xl flex items-center justify-center transition-colors",
+                  travelMode === mode.id ? "bg-primary text-white" : "text-muted-foreground"
                 )}>
-                  <mode.icon className="h-5 w-5" />
+                  <mode.icon className="h-6 w-6" />
                 </div>
                 <div className="space-y-0.5">
-                  <p className={cn("text-xs font-semibold", travelMode === mode.id ? "text-primary" : "text-foreground")}>{mode.label}</p>
-                  <p className="text-[8px] text-muted-foreground font-medium uppercase tracking-tighter">{mode.desc}</p>
+                  <p className={cn("text-sm font-bold", travelMode === mode.id ? "text-primary" : "text-foreground")}>{mode.label}</p>
+                  <p className="text-[10px] text-muted-foreground font-medium">{mode.desc}</p>
                 </div>
               </Card>
             ))}
@@ -509,54 +495,50 @@ export default function CreateTrip() {
               </span>
             </div>
             
-            {travelMode === 'group' && (
-              <div className="relative">
-                <div className="flex gap-2">
-                  <Input 
-                    placeholder="Search friends or add guest..." 
-                    className="h-12 rounded-xl shadow-sm bg-white font-semibold border-2 border-muted/20 pl-10"
-                    value={newParticipantName}
-                    onChange={e => setNewParticipantName(e.target.value)}
-                    onKeyDown={e => e.key === 'Enter' && addParticipant()}
-                  />
-                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                  <Button size="icon" className="h-12 w-12 rounded-xl shrink-0 bg-primary" onClick={addParticipant}>
-                    <UserPlus className="h-5 w-5" />
-                  </Button>
-                </div>
-
-                {friendSearchResults.length > 0 && (
-                  <Card className="absolute top-full left-0 right-0 z-30 mt-2 border-none shadow-2xl bg-white rounded-2xl overflow-hidden divide-y animate-in fade-in slide-in-from-top-2 duration-200">
-                    <div className="px-3 py-2 bg-muted/20">
-                      <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">Confirmed Friends</p>
-                    </div>
-                    {friendSearchResults.map((friend) => (
-                      <div 
-                        key={friend.id} 
-                        className="p-3 flex items-center justify-between hover:bg-primary/5 cursor-pointer transition-colors"
-                        onClick={() => handleSelectFriend(friend)}
-                      >
-                        <div className="flex items-center gap-3">
-                          <Avatar className="h-8 w-8">
-                            <AvatarImage src={friend.friendPhoto} />
-                            <AvatarFallback>{friend.friendName[0]}</AvatarFallback>
-                          </Avatar>
-                          <span className="text-sm font-semibold">{friend.friendName}</span>
-                        </div>
-                        <Plus className="h-4 w-4 text-primary" />
-                      </div>
-                    ))}
-                  </Card>
-                )}
+            <div className="relative">
+              <div className="flex gap-2">
+                <Input 
+                  placeholder="Search friends or add guest..." 
+                  className="h-12 rounded-xl shadow-sm bg-white font-semibold border-2 border-muted/20 pl-10"
+                  value={newParticipantName}
+                  onChange={e => setNewParticipantName(e.target.value)}
+                  onKeyDown={e => e.key === 'Enter' && addParticipant()}
+                />
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Button size="icon" className="h-12 w-12 rounded-xl shrink-0 bg-primary" onClick={addParticipant}>
+                  <UserPlus className="h-5 w-5" />
+                </Button>
               </div>
-            )}
+
+              {friendSearchResults.length > 0 && (
+                <Card className="absolute top-full left-0 right-0 z-30 mt-2 border-none shadow-2xl bg-white rounded-2xl overflow-hidden divide-y animate-in fade-in slide-in-from-top-2 duration-200">
+                  <div className="px-3 py-2 bg-muted/20">
+                    <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">Confirmed Friends</p>
+                  </div>
+                  {friendSearchResults.map((friend) => (
+                    <div 
+                      key={friend.id} 
+                      className="p-3 flex items-center justify-between hover:bg-primary/5 cursor-pointer transition-colors"
+                      onClick={() => handleSelectFriend(friend)}
+                    >
+                      <div className="flex items-center gap-3">
+                        <Avatar className="h-8 w-8">
+                          <AvatarImage src={friend.friendPhoto} />
+                          <AvatarFallback>{friend.friendName[0]}</AvatarFallback>
+                        </Avatar>
+                        <span className="text-sm font-semibold">{friend.friendName}</span>
+                      </div>
+                      <Plus className="h-4 w-4 text-primary" />
+                    </div>
+                  ))}
+                </Card>
+              )}
+            </div>
 
             <Alert className="bg-primary/10 border-primary/30 rounded-2xl py-3 shadow-sm">
               <Lightbulb className="h-5 w-5 text-foreground/60" strokeWidth={1.5} />
               <AlertDescription className="text-xs text-foreground/60 font-medium leading-relaxed">
-                {travelMode === 'family' 
-                  ? "Traveling with your household? Add them below to track individual spending within your family."
-                  : "Add your travel buddies! This helps Travex split costs perfectly by individual person or family later."}
+                Add your travel buddies! This helps Travex split costs perfectly by individual person or family later.
               </AlertDescription>
             </Alert>
 
@@ -669,7 +651,6 @@ export default function CreateTrip() {
         </Button>
       </footer>
 
-      {/* Interstitial Smart Nudge Dialog */}
       <AlertDialog open={!!nudgeTrip} onOpenChange={(open) => !open && setHasInteractedWithNudge(true)}>
         <AlertDialogContent className="max-w-[calc(100vw-40px)] w-full rounded-[2.5rem] p-0 border-none shadow-2xl bg-white overflow-hidden animate-in fade-in zoom-in-95 duration-300">
           <div className="h-48 bg-foreground relative flex flex-col items-center justify-center overflow-hidden">
