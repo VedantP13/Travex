@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useEffect, useMemo } from "react";
@@ -41,19 +42,19 @@ export default function TripDetails() {
   const [isDeletingTrip, setIsDeletingTrip] = useState(false);
   const [isUpdatingImage, setIsUpdatingImage] = useState(false);
 
-  // Status Nudge Logic: Only show to guest users once per visit to this page
+  // Status Nudge Logic: Only show to guest users ONCE ever across all trips
   useEffect(() => {
     if (user?.isAnonymous && !loading && trip) {
-      const nudgeShown = sessionStorage.getItem(`secure_nudge_${id}`);
-      if (!nudgeShown) {
+      const globalNudgeShown = localStorage.getItem('travex_secure_nudge_shown');
+      if (!globalNudgeShown) {
         const timer = setTimeout(() => {
           setIsSecureNudgeOpen(true);
-          sessionStorage.setItem(`secure_nudge_${id}`, 'true');
+          localStorage.setItem('travex_secure_nudge_shown', 'true');
         }, 1500);
         return () => clearTimeout(timer);
       }
     }
-  }, [user, loading, trip, id]);
+  }, [user, loading, trip]);
 
   useEffect(() => {
     if (!id || !firestore) return;
