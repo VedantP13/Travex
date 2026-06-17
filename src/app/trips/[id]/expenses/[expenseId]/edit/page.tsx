@@ -499,7 +499,10 @@ export default function EditExpensePage() {
 
             <div className="space-y-6">
               <div className="relative">
-                <span className="absolute left-6 top-1/2 -translate-y-1/2 text-3xl font-medium">₹</span>
+                <span className={cn(
+                  "absolute left-6 top-1/2 -translate-y-1/2 text-3xl font-medium transition-colors",
+                  formData.amount ? "text-foreground" : "text-muted-foreground/40"
+                )}>₹</span>
                 <Input 
                   type="number"
                   className={cn("h-24 text-4xl font-medium rounded-3xl pl-14 focus-visible:ring-primary shadow-sm bg-white border-none placeholder:text-muted-foreground/30", formData.isItemized && "bg-muted/50 text-muted-foreground/60 cursor-not-allowed")}
@@ -544,13 +547,36 @@ export default function EditExpensePage() {
                 <div className="grid grid-cols-2 gap-4">
                    <Popover open={isCalendarOpen} onOpenChange={setIsCalendarOpen}>
                       <PopoverTrigger asChild>
-                        <Button variant="outline" className="h-14 justify-start font-medium rounded-2xl border-none shadow-sm bg-white hover:bg-muted/50 transition-all"><CalendarIcon className="mr-3 h-4 w-4 text-muted-foreground/60" /> {formData.date ? format(new Date(formData.date), "d MMM yyyy") : "Date"}</Button>
+                        <Button variant="outline" className="h-14 justify-start font-medium rounded-2xl border-none shadow-sm bg-white hover:bg-muted/50 transition-all">
+                          <CalendarIcon className={cn(
+                            "mr-3 h-4 w-4 transition-all",
+                            formData.date ? "text-foreground stroke-[2px]" : "text-muted-foreground/60"
+                          )} /> 
+                          {formData.date ? format(new Date(formData.date), "d MMM yyyy") : "Date"}
+                        </Button>
                       </PopoverTrigger>
-                      <PopoverContent className="w-auto p-0 rounded-[2rem] border-none shadow-2xl overflow-hidden" align="start"><Calendar mode="single" selected={formData.date ? new Date(formData.date) : undefined} onSelect={(d) => { if (d) { setFormData(prev => ({ ...prev, date: d.toISOString().split('T')[0] })); setIsCalendarOpen(false); } }} initialFocus /></PopoverContent>
+                      <PopoverContent className="w-auto p-0 rounded-[2rem] border-none shadow-2xl overflow-hidden" align="start">
+                        <Calendar 
+                          mode="single" 
+                          selected={formData.date ? new Date(formData.date) : undefined} 
+                          onSelect={(d) => { if (d) { setFormData(prev => ({ ...prev, date: d.toISOString().split('T')[0] })); setIsCalendarOpen(false); } }} 
+                          disabled={{ after: new Date() }}
+                          initialFocus 
+                        />
+                      </PopoverContent>
                    </Popover>
                    <Select value={formData.paymentType} onValueChange={val => setFormData(prev => ({ ...prev, paymentType: val }))}>
-                     <SelectTrigger className="h-14 rounded-2xl shadow-sm bg-white border-none focus:ring-primary">
-                       <SelectValue placeholder="Method" />
+                     <SelectTrigger className={cn(
+                       "h-14 rounded-2xl shadow-sm bg-white border-none focus:ring-primary font-medium",
+                       formData.paymentType ? "text-foreground" : "text-muted-foreground/60"
+                     )}>
+                       <div className="flex items-center gap-2">
+                         <CreditCard className={cn(
+                           "h-3.5 w-3.5 transition-all",
+                           formData.paymentType ? "text-foreground stroke-[2px]" : "text-muted-foreground/40"
+                         )} />
+                         <SelectValue placeholder="Method" />
+                       </div>
                      </SelectTrigger>
                      <SelectContent className="rounded-xl border-none shadow-xl bg-white p-2">
                        {PAYMENT_METHODS.map(m => <SelectItem key={m.id} value={m.id} className="rounded-xl font-semibold py-3 text-xs"><div className="flex items-center gap-2"><m.icon className="h-3.5 w-3.5" />{m.label}</div></SelectItem>)}

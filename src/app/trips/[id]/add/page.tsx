@@ -826,6 +826,7 @@ export default function AddExpenseWizard() {
                               setIsCalendarOpen(false);
                             }
                           }}
+                          disabled={{ after: new Date() }}
                           initialFocus
                         />
                       </PopoverContent>
@@ -839,12 +840,13 @@ export default function AddExpenseWizard() {
                       "h-14 rounded-2xl shadow-sm focus:ring-primary text-base font-medium bg-white border-none",
                       formData.paymentType ? "text-foreground" : "text-muted-foreground/60"
                     )}>
-                      <SelectValue placeholder={
-                        <div className="flex items-center gap-2 font-medium">
-                          <CreditCard className="h-4 w-4" />
-                          <span>Method</span>
-                        </div>
-                      } />
+                      <div className="flex items-center gap-2">
+                        <CreditCard className={cn(
+                          "h-4 w-4 transition-all",
+                          formData.paymentType ? "text-foreground stroke-[2px]" : "text-muted-foreground/40"
+                        )} />
+                        <SelectValue placeholder="Method" />
+                      </div>
                     </SelectTrigger>
                     <SelectContent className="rounded-[1.5rem] border-none shadow-[0_20px_50px_rgba(0,0,0,0.1)] bg-white p-2">
                       {PAYMENT_METHODS.map((method) => (

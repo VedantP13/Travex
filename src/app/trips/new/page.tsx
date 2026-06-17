@@ -3,7 +3,7 @@
 
 import { useState, useEffect, useMemo } from "react";
 import { useRouter } from "next/navigation";
-import { ArrowLeft, Plus, X, UserPlus, Lightbulb, Loader2, Calendar as CalendarIcon, User, Users, Home, Search, Sparkles, AlertCircle, CheckCircle2, Archive, ChevronRight, TentTree, History, Check } from "lucide-react";
+import { ArrowLeft, Plus, X, UserPlus, Lightbulb, Loader2, Calendar as CalendarIcon, User, Users, Home, Search, Sparkles, AlertCircle, CheckCircle2, Archive, ChevronRight, TentTree, History, Check, MapPin } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
@@ -512,12 +512,18 @@ export default function CreateTrip() {
 
         <div className="space-y-4">
           <Label className="text-sm font-semibold text-foreground/60 ml-1">Trip name</Label>
-          <Input 
-            placeholder="e.g. Goa 2024, Europe tour" 
-            className="h-14 text-base font-medium rounded-2xl focus-visible:ring-primary shadow-sm bg-white border-2 border-muted/20"
-            value={name}
-            onChange={e => setName(e.target.value)}
-          />
+          <div className="relative">
+            <MapPin className={cn(
+              "absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 transition-all",
+              name.trim() ? "text-foreground stroke-[2px]" : "text-muted-foreground/40"
+            )} />
+            <Input 
+              placeholder="e.g. Goa 2024, Europe tour" 
+              className="h-14 text-base font-medium rounded-2xl focus-visible:ring-primary shadow-sm bg-white border-2 border-muted/20 pl-12"
+              value={name}
+              onChange={e => setName(e.target.value)}
+            />
+          </div>
         </div>
 
         <div className="space-y-4">
