@@ -1,6 +1,6 @@
 'use client';
 
-import { ShieldCheck, Loader2, X } from "lucide-react";
+import { Loader2, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { AlertDialog, AlertDialogContent, AlertDialogDescription, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { useState } from "react";
@@ -72,10 +72,25 @@ export function SecureAdventureDialog({ isOpen, onOpenChange }: SecureAdventureD
     <AlertDialog open={isOpen} onOpenChange={onOpenChange}>
       <AlertDialogContent className="max-w-[calc(100vw-40px)] w-full rounded-[2.5rem] p-0 border-none shadow-2xl bg-white overflow-hidden animate-in fade-in zoom-in-95 duration-300">
         <div className="h-56 bg-foreground relative flex flex-col items-center justify-center overflow-hidden">
-           {/* Visual Area - Placeholder for future SVG */}
+           {/* Visual Area - PASTE YOUR CUSTOM SVG BELOW */}
            <div className="relative z-10 flex flex-col items-center text-center px-6">
-              <div className="h-20 w-20 rounded-full bg-accent/20 flex items-center justify-center mb-4">
-                <ShieldCheck className="h-10 w-10 text-accent animate-pulse" />
+              <div className="h-24 w-24 flex items-center justify-center mb-4">
+                {/* 
+                   REPLACE THIS SVG BLOCK WITH YOUR OWN 
+                   Make sure to keep the classes for sizing/animation if needed 
+                */}
+                <svg 
+                  viewBox="0 0 24 24" 
+                  className="h-16 w-16 text-accent animate-pulse" 
+                  fill="none" 
+                  stroke="currentColor" 
+                  strokeWidth="2" 
+                  strokeLinecap="round" 
+                  strokeLinejoin="round"
+                >
+                  <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10" />
+                  <path d="m9 12 2 2 4-4" />
+                </svg>
               </div>
               <p className="text-[10px] font-bold text-white/50 uppercase tracking-widest">Security Nudge</p>
            </div>
