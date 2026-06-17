@@ -71,7 +71,7 @@ export function SecureAdventureDialog({ isOpen, onOpenChange }: SecureAdventureD
   return (
     <AlertDialog open={isOpen} onOpenChange={onOpenChange}>
       <AlertDialogContent className="max-w-[calc(100vw-40px)] w-full rounded-[2.5rem] p-0 border-none shadow-2xl bg-accent overflow-hidden animate-in fade-in zoom-in-95 duration-300">
-        <div className="h-56 bg-foreground relative flex flex-col items-center justify-center overflow-hidden">
+        <div className="h-64 bg-foreground relative flex flex-col items-center justify-center overflow-hidden shrink-0">
            <div className="absolute inset-0 opacity-10">
              <svg className="h-full w-full" viewBox="0 0 100 100" preserveAspectRatio="none">
                <path d="M0 0 L100 0 L100 100 L0 100 Z" fill="url(#grad-secure)" />
@@ -84,9 +84,9 @@ export function SecureAdventureDialog({ isOpen, onOpenChange }: SecureAdventureD
              </svg>
            </div>
 
-           <div className="relative z-10 flex flex-col items-center text-center px-6">
-              <div className="h-28 w-28 flex items-center justify-center mb-4">
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 600" className="h-full w-full text-accent fill-current">
+           <div className="relative z-10 flex flex-col items-center text-center w-full px-6">
+              <div className="w-full max-w-[320px] aspect-[4/3] flex items-center justify-center">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 600" className="w-full h-full text-accent fill-current drop-shadow-2xl">
                    <g>
                      <title>Layer 1</title>
                      <g>
@@ -99,7 +99,6 @@ export function SecureAdventureDialog({ isOpen, onOpenChange }: SecureAdventureD
                    </g>
                 </svg>
               </div>
-              <p className="text-[10px] font-bold text-white/40 uppercase tracking-[0.2em] ml-1">Account Protection</p>
            </div>
            
            <button 
