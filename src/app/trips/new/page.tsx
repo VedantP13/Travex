@@ -1,9 +1,9 @@
 
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useRouter } from "next/navigation";
-import { ArrowLeft, Plus, X, UserPlus, Lightbulb, Loader2, Calendar as CalendarIcon, User, Users, Home, Search, Sparkles, AlertCircle, CheckCircle2, Archive, ChevronRight, TentTree } from "lucide-react";
+import { ArrowLeft, Plus, X, UserPlus, Lightbulb, Loader2, Calendar as CalendarIcon, User, Users, Home, Search, Sparkles, AlertCircle, CheckCircle2, Archive, ChevronRight, TentTree, History, Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
@@ -37,6 +37,8 @@ import { useTrips } from "@/context/trips-context";
 import { cn } from "@/lib/utils";
 import { format } from "date-fns";
 import { DateRange } from "react-day-picker";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { Checkbox } from "@/components/ui/checkbox";
 
 type Participant = {
   id: string;
@@ -71,8 +73,18 @@ export default function CreateTrip() {
   const [friendSearchResults, setFriendSearchResults] = useState<any[]>([]);
   const [isSearchingFriends, setIsSearchingFriends] = useState(false);
 
+  // Status Nudge State
   const [nudgeTrip, setNudgeTrip] = useState<any>(null);
   const [hasInteractedWithNudge, setHasInteractedWithNudge] = useState(false);
+
+  // Reuse Members Nudge State
+  const [showReuseDialog, setShowReuseDialog] = useState(false);
+  const [hasInteractedWithReuse, setHasInteractedWithReuse] = useState(false);
+  const [selectedReuseIds, setSelectedReuseIds] = useState<Set<string>>(new Set());
+
+  const lastTrip = useMemo(() => {
+    return trips.length > 0 ? trips[0] : null;
+  }, [trips]);
 
   // Sync current user's profile to get saved family members
   useEffect(() => {
@@ -92,7 +104,6 @@ export default function CreateTrip() {
       const savedFamily = firestoreProfile?.familyMembers || [];
 
       if (!meExists) {
-        // Initial creation of "Me"
         const me: Participant = { 
           id: "me", 
           name: `${user.displayName?.split(' ')[0] || "You"} (You)`, 
@@ -104,7 +115,6 @@ export default function CreateTrip() {
         return [me, ...prev];
       }
       
-      // If "Me" exists but family is empty and we just loaded profile data, fill it
       if (meExists.familyMembers.length === 0 && savedFamily.length > 0) {
         return prev.map(p => p.id === "me" ? { ...p, familyMembers: savedFamily } : p);
       }
@@ -113,6 +123,7 @@ export default function CreateTrip() {
     });
   }, [user, firestoreProfile]);
 
+  // Trigger Status Nudge
   useEffect(() => {
     if (tripsLoading || !trips.length || hasInteractedWithNudge) return;
 
@@ -127,6 +138,21 @@ export default function CreateTrip() {
       setNudgeTrip(endedTrip || anyActive);
     }
   }, [trips, tripsLoading, hasInteractedWithNudge]);
+
+  // Trigger Reuse Members Nudge
+  useEffect(() => {
+    if (tripsLoading || !lastTrip || hasInteractedWithReuse || travelMode !== 'group') return;
+    
+    // Only nudge if the last trip had other people
+    if (lastTrip.participants?.length > 1) {
+      // Exclude "Me" from the selectable list for reuse
+      const others = lastTrip.participants.filter((p: any) => p.userId !== user?.uid);
+      if (others.length > 0) {
+        setSelectedReuseIds(new Set(others.map((p: any) => p.id)));
+        setShowReuseDialog(true);
+      }
+    }
+  }, [tripsLoading, lastTrip, hasInteractedWithReuse, travelMode, user?.uid]);
 
   useEffect(() => {
     const searchFriends = async () => {
@@ -181,6 +207,26 @@ export default function CreateTrip() {
     }
   };
 
+  const handleReuseMembers = () => {
+    if (!lastTrip || !user) return;
+    
+    const reusedParticipants: Participant[] = lastTrip.participants
+      .filter((p: any) => selectedReuseIds.has(p.id) && p.userId !== user.uid)
+      .map((p: any) => ({
+        ...p,
+        id: Math.random().toString(36).substr(2, 9), // Generate new local IDs to avoid conflicts
+        familyMembers: p.familyMembers || []
+      }));
+
+    setParticipants(prev => [...prev, ...reusedParticipants]);
+    setShowReuseDialog(false);
+    setHasInteractedWithReuse(true);
+    toast({ 
+      title: "Members added!", 
+      description: `Imported ${reusedParticipants.length} travel groups from ${lastTrip.name}.` 
+    });
+  };
+
   const addParticipant = () => {
     if (!newParticipantName.trim()) return;
     const newP: Participant = {
@@ -203,7 +249,6 @@ export default function CreateTrip() {
       const friendSnap = await getDoc(doc(firestore!, "users", friendId));
       if (friendSnap.exists()) {
         const friendData = friendSnap.data();
-        // Friends can see family if visibility is public
         if (friendData.isFamilyPublic !== false) {
           familyFromProfile = friendData.familyMembers || [];
         }
@@ -388,6 +433,15 @@ export default function CreateTrip() {
       });
     
     router.push(`/trips/${tripId}`);
+  };
+
+  const toggleReuseId = (id: string) => {
+    setSelectedReuseIds(prev => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
   };
 
   return (
@@ -661,7 +715,100 @@ export default function CreateTrip() {
         </Button>
       </footer>
 
-      <AlertDialog open={!!nudgeTrip} onOpenChange={(open) => !open && setHasInteractedWithNudge(true)}>
+      {/* REUSE MEMBERS DIALOG */}
+      <AlertDialog open={showReuseDialog} onOpenChange={(open) => {
+        if (!open) setHasInteractedWithReuse(true);
+        setShowReuseDialog(open);
+      }}>
+        <AlertDialogContent className="max-w-[calc(100vw-40px)] w-full rounded-[2.5rem] p-0 border-none shadow-2xl bg-white overflow-hidden animate-in fade-in zoom-in-95 duration-300">
+          <div className="h-44 bg-primary relative flex flex-col items-center justify-center overflow-hidden">
+             <div className="absolute inset-0 opacity-10">
+               <History className="h-full w-full p-4 scale-150 text-white" />
+             </div>
+             <div className="relative z-10 flex flex-col items-center text-center px-6">
+                <div className="h-16 w-16 rounded-full bg-white/20 backdrop-blur-md flex items-center justify-center mb-4">
+                  <Sparkles className="h-8 w-8 text-white animate-pulse" />
+                </div>
+                <h2 className="text-xl font-bold text-white tracking-tight">Recent travel buddies</h2>
+             </div>
+          </div>
+
+          <div className="p-6 space-y-6">
+            <div className="space-y-2 text-center">
+              <AlertDialogTitle className="text-lg font-bold text-foreground">
+                Reuse from <span className="text-primary">{lastTrip?.name}</span>?
+              </AlertDialogTitle>
+              <AlertDialogDescription className="text-xs font-medium text-muted-foreground leading-relaxed">
+                We found {lastTrip?.participants?.length - 1} groups you traveled with recently. Select who's coming this time.
+              </AlertDialogDescription>
+            </div>
+
+            <ScrollArea className="max-h-[240px] pr-3 -mx-2 px-2 scrollbar-thin">
+              <div className="space-y-3">
+                {lastTrip?.participants
+                  ?.filter((p: any) => p.userId !== user?.uid)
+                  ?.map((p: any) => {
+                    const isSelected = selectedReuseIds.has(p.id);
+                    return (
+                      <div 
+                        key={p.id}
+                        className={cn(
+                          "p-3 rounded-2xl border-2 transition-all flex items-center justify-between cursor-pointer",
+                          isSelected ? "border-primary bg-primary/5 shadow-sm" : "border-muted/10 bg-muted/5 opacity-60"
+                        )}
+                        onClick={() => toggleReuseId(p.id)}
+                      >
+                        <div className="flex items-center gap-3">
+                          <Avatar className="h-9 w-9 border-2 border-white shadow-sm">
+                            <AvatarImage src={p.avatar} />
+                            <AvatarFallback>{p.name?.[0]}</AvatarFallback>
+                          </Avatar>
+                          <div className="space-y-0.5">
+                            <p className="text-sm font-bold text-foreground leading-tight">{p.name}</p>
+                            {p.familyMembers?.length > 0 && (
+                              <p className="text-[9px] text-muted-foreground font-semibold uppercase tracking-tighter">
+                                + {p.familyMembers.length} {p.familyMembers.length === 1 ? 'guest' : 'guests'}
+                              </p>
+                            )}
+                          </div>
+                        </div>
+                        <div className={cn(
+                          "h-6 w-6 rounded-full flex items-center justify-center transition-all",
+                          isSelected ? "bg-primary text-white scale-110" : "bg-muted-foreground/20 text-transparent"
+                        )}>
+                          <Check className="h-3.5 w-3.5" strokeWidth={4} />
+                        </div>
+                      </div>
+                    );
+                  })}
+              </div>
+            </ScrollArea>
+
+            <div className="grid gap-3 pt-2">
+              <Button 
+                className="w-full h-14 rounded-2xl bg-primary text-white font-bold text-base shadow-lg shadow-primary/20 hover:scale-[1.02] active:scale-95 transition-all"
+                onClick={handleReuseMembers}
+                disabled={selectedReuseIds.size === 0}
+              >
+                Add {selectedReuseIds.size} travel groups
+              </Button>
+              <Button 
+                variant="ghost" 
+                className="w-full h-12 rounded-xl font-bold text-muted-foreground text-sm hover:bg-muted"
+                onClick={() => {
+                  setShowReuseDialog(false);
+                  setHasInteractedWithReuse(true);
+                }}
+              >
+                Add manually
+              </Button>
+            </div>
+          </div>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* STATUS NUDGE DIALOG */}
+      <AlertDialog open={!!nudgeTrip && !showReuseDialog} onOpenChange={(open) => !open && setHasInteractedWithNudge(true)}>
         <AlertDialogContent className="max-w-[calc(100vw-40px)] w-full rounded-[2.5rem] p-0 border-none shadow-2xl bg-white overflow-hidden animate-in fade-in zoom-in-95 duration-300">
           <div className="h-48 bg-foreground relative flex flex-col items-center justify-center overflow-hidden">
              <div className="absolute inset-0 opacity-10">
