@@ -664,7 +664,7 @@ export default function EditExpensePage() {
           <div className="space-y-8 animate-in fade-in slide-in-from-right-4 duration-300">
              <div className="space-y-2">
                 <div className="flex justify-between items-end">
-                   <div><h1 className="text-2xl font-bold">Splitting</h1><p className="text-muted-foreground font-medium">Re-calculating ₹{parseFloat(formData.amount || "0").toFixed(2)}</p></div>
+                   <div><h1 className="text-2xl font-bold">Splitting</h1><p className="text-muted-foreground font-medium">Dividing ₹{parseFloat(formData.amount || "0").toFixed(2)}</p></div>
                    {formData.splitType === 'custom' && (
                      <div className="text-right">
                         <p className="text-[10px] font-semibold text-muted-foreground uppercase">Sum</p>
@@ -716,4 +716,3 @@ export default function EditExpensePage() {
     </div>
   );
 }
-

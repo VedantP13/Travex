@@ -168,10 +168,9 @@ export default function CompleteSplitPage() {
           deltas[id] = (deltas[id] || 0) - share;
         });
       } else if (formData.splitType === 'equal_family') {
-        const familyIds = Array.from(new Set(selected.map(id => id.split('-')[0])));
-        const sharePerFamily = amount / familyIds.length;
-        familyIds.forEach(fid => {
-          deltas[fid] = (deltas[fid] || 0) - sharePerFamily;
+        const sharePerFamily = amount / selected.length;
+        selected.forEach(id => {
+          deltas[id] = (deltas[id] || 0) - sharePerFamily;
         });
       } else if (formData.splitType === 'just_me') {
         deltas[payerId] = (deltas[payerId] || 0) - amount;
@@ -373,7 +372,7 @@ export default function CompleteSplitPage() {
           <div className="flex justify-between items-end">
             <div>
               <h2 className="text-2xl font-bold tracking-tight">{expense.description}</h2>
-              <p className="text-muted-foreground font-medium">Divide ₹{parseFloat(expense.amount).toFixed(2)}</p>
+              <p className="text-muted-foreground font-medium">Dividing ₹{parseFloat(expense.amount).toFixed(2)}</p>
             </div>
             {formData.splitType === 'custom' && (
               <div className="text-right">
