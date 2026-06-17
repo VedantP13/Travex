@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useMemo, useState } from "react";
@@ -21,7 +20,8 @@ import {
   Box,
   Timer,
   AlertTriangle,
-  Loader2
+  Loader2,
+  Sparkles
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -87,6 +87,7 @@ const getSplitTypeLabel = (type: string) => {
 
 export function ExpenseDetailDialog({ expense, trip, onClose, onDelete, onFinalizeSplit }: ExpenseDetailDialogProps) {
   const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = useState(false);
+  const [isEditPlaceholderOpen, setIsEditPlaceholderOpen] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
 
   const splits = useMemo(() => {
@@ -210,7 +211,7 @@ export function ExpenseDetailDialog({ expense, trip, onClose, onDelete, onFinali
                 <DropdownMenuContent align="start" className="rounded-2xl min-w-[160px] p-1 shadow-xl border-none bg-white">
                   <DropdownMenuItem 
                     className="group rounded-xl py-2 px-3 flex items-center gap-3 cursor-pointer text-primary focus:bg-primary/10 focus:text-primary active:scale-[0.98] transition-all" 
-                    disabled
+                    onClick={() => setIsEditPlaceholderOpen(true)}
                   >
                     <div className="h-8 w-8 rounded-full bg-primary/10 group-focus:bg-white/20 flex items-center justify-center shrink-0 transition-colors">
                       <Pencil className="h-4 w-4" />
@@ -287,7 +288,7 @@ export function ExpenseDetailDialog({ expense, trip, onClose, onDelete, onFinali
 
               <div className="space-y-5">
                 <div className="border-b border-muted/10 pb-2">
-                  <Label className="text-[10px] font-bold text-muted-foreground/50 tracking-wider">Split breakdown</Label>
+                  <Label className="text-[10px] font-bold text-muted-foreground/80 tracking-wider">Split breakdown</Label>
                 </div>
 
                 <div className="space-y-5 pb-6">
@@ -306,7 +307,9 @@ export function ExpenseDetailDialog({ expense, trip, onClose, onDelete, onFinali
                     </div>
                   ) : (
                     splits.map((group: any, idx: number) => {
-                      const familyDisplayName = group.name.includes("You") ? "Your family" : `${group.name.split(' ')[0]}'s family`;
+                      const isMe = group.name.includes("You") || group.name === "You" || (group.isUser && group.userId === trip.createdBy);
+                      const familyDisplayName = isMe ? "Your family" : `${group.name.split(' ')[0]}'s family`;
+                      
                       return (
                         <div key={idx} className="space-y-3">
                           <div className="flex items-center justify-between">
@@ -325,9 +328,9 @@ export function ExpenseDetailDialog({ expense, trip, onClose, onDelete, onFinali
                           {group.members.length > 1 && (
                             <div className="ml-12 space-y-2 border-l-2 border-muted/10 pl-4 py-0.5">
                               {group.members.map((m: any, mIdx: number) => (
-                                <div key={mIdx} className="flex justify-between items-center">
-                                  <span className="text-[11px] font-medium text-muted-foreground/80">{m.name}</span>
-                                  <span className="text-[11px] font-semibold text-muted-foreground/60">₹{m.share.toFixed(2)}</span>
+                                <div key={mIdx} className="flex justify-between items-center text-xs">
+                                  <span className="font-medium text-muted-foreground/80">{m.name}</span>
+                                  <span className="font-semibold text-muted-foreground/60">₹{m.share.toFixed(2)}</span>
                                 </div>
                               ))}
                             </div>
@@ -344,7 +347,7 @@ export function ExpenseDetailDialog({ expense, trip, onClose, onDelete, onFinali
 
           <div className="p-6 bg-muted/5 border-t shrink-0">
             <Button 
-              className="w-full h-14 rounded-2xl bg-primary text-white font-bold text-base transition-all active:scale-95 shadow-lg shadow-primary/20"
+              className="w-full h-14 rounded-2xl bg-primary text-white font-bold text-base shadow-lg shadow-primary/20 transition-all active:scale-95"
               onClick={onClose}
             >
               Close details
@@ -387,6 +390,36 @@ export function ExpenseDetailDialog({ expense, trip, onClose, onDelete, onFinali
                   Cancel
                 </Button>
               </AlertDialogCancel>
+            </div>
+          </div>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      <AlertDialog open={isEditPlaceholderOpen} onOpenChange={setIsEditPlaceholderOpen}>
+        <AlertDialogContent className="max-w-[calc(100vw-40px)] w-full rounded-[2.5rem] p-0 border-none shadow-2xl bg-white overflow-hidden animate-in fade-in zoom-in-95 duration-300">
+          <div className="h-44 bg-primary/5 relative flex flex-col items-center justify-center">
+             <div className="h-20 w-20 rounded-full bg-primary/10 flex items-center justify-center mb-2">
+                <Sparkles className="h-10 w-10 text-primary animate-pulse" />
+             </div>
+          </div>
+          <div className="p-8 text-center space-y-6">
+            <div className="space-y-2">
+              <AlertDialogTitle className="text-2xl font-bold tracking-tight text-foreground">
+                Coming Soon!
+              </AlertDialogTitle>
+              <AlertDialogDescription className="text-sm font-medium leading-relaxed text-muted-foreground px-4">
+                We're currently building the <span className="text-primary font-bold">Edit Expense</span> engine to ensure your balance history stays perfectly accurate. 
+                Stay tuned for updates!
+              </AlertDialogDescription>
+            </div>
+            <div className="pt-2">
+              <AlertDialogAction asChild>
+                <Button 
+                  className="w-full h-14 rounded-2xl bg-primary text-white font-bold text-base shadow-lg shadow-primary/20"
+                >
+                  Got it
+                </Button>
+              </AlertDialogAction>
             </div>
           </div>
         </AlertDialogContent>
