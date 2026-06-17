@@ -138,6 +138,13 @@ export default function AddExpenseWizard() {
     const unsubscribe = onSnapshot(doc(firestore, "trips", selectedTripId), (snapshot) => {
       if (snapshot.exists()) {
         const data = snapshot.data();
+        
+        if (data.status === 'Settled') {
+          toast({ title: "Trip is settled", description: "You cannot add expenses to a settled trip.", variant: "destructive" });
+          router.push(`/trips/${selectedTripId}`);
+          return;
+        }
+
         setCurrentTrip({ id: snapshot.id, ...data });
         
         const me = data.participants.find((p: any) => p.isUser && p.userId === user?.uid) || data.participants[0];
@@ -156,7 +163,7 @@ export default function AddExpenseWizard() {
       }
     });
     return () => unsubscribe();
-  }, [selectedTripId, user, firestore]);
+  }, [selectedTripId, user, firestore, router, toast]);
 
   useEffect(() => {
     const trimmedDesc = formData.description.trim();
@@ -1145,4 +1152,3 @@ export default function AddExpenseWizard() {
     </div>
   );
 }
-

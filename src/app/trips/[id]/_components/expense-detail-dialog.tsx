@@ -205,6 +205,7 @@ export function ExpenseDetailDialog({ expense, trip, onClose, onDelete, onEdit, 
 
   const canEdit = expense.addedBy === user?.uid;
   const isEdited = !!expense.updatedAt;
+  const isSettled = trip?.status === 'Settled';
 
   return (
     <>
@@ -220,38 +221,40 @@ export function ExpenseDetailDialog({ expense, trip, onClose, onDelete, onEdit, 
             getCategoryColor(expense.category)
           )}>
             <div className="absolute top-6 left-6 right-6 flex justify-between items-center z-10">
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" size="icon" className="h-10 w-10 rounded-full bg-white/40 backdrop-blur-md text-foreground/60 hover:bg-white/60 transition-all border border-white/20">
-                    <MoreHorizontal className="h-5 w-5" />
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="start" className="rounded-2xl min-w-[160px] p-1 shadow-xl border-none bg-white">
-                  {canEdit && (
+              {!isSettled ? (
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="ghost" size="icon" className="h-10 w-10 rounded-full bg-white/40 backdrop-blur-md text-foreground/60 hover:bg-white/60 transition-all border border-white/20">
+                      <MoreHorizontal className="h-5 w-5" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="start" className="rounded-2xl min-w-[160px] p-1 shadow-xl border-none bg-white">
+                    {canEdit && (
+                      <DropdownMenuItem 
+                        className="group rounded-xl py-2 px-3 flex items-center gap-3 cursor-pointer text-primary focus:bg-primary/10 focus:text-primary active:scale-[0.98] transition-all" 
+                        onClick={() => {
+                          onEdit(expense.id);
+                          onClose();
+                        }}
+                      >
+                        <div className="h-8 w-8 rounded-full bg-primary/10 group-focus:bg-white/20 flex items-center justify-center shrink-0 transition-colors">
+                          <Pencil className="h-4 w-4" />
+                        </div>
+                        <span className="font-semibold text-xs">Edit expense</span>
+                      </DropdownMenuItem>
+                    )}
                     <DropdownMenuItem 
-                      className="group rounded-xl py-2 px-3 flex items-center gap-3 cursor-pointer text-primary focus:bg-primary/10 focus:text-primary active:scale-[0.98] transition-all" 
-                      onClick={() => {
-                        onEdit(expense.id);
-                        onClose();
-                      }}
+                      className="group rounded-xl py-2 px-3 flex items-center gap-3 cursor-pointer text-destructive focus:bg-destructive/5 focus:text-destructive active:scale-[0.98] transition-all"
+                      onClick={() => setIsDeleteConfirmOpen(true)}
                     >
-                      <div className="h-8 w-8 rounded-full bg-primary/10 group-focus:bg-white/20 flex items-center justify-center shrink-0 transition-colors">
-                        <Pencil className="h-4 w-4" />
+                      <div className="h-8 w-8 rounded-full bg-destructive/10 group-focus:bg-white/20 flex items-center justify-center shrink-0 transition-colors">
+                        <Trash2 className="h-4 w-4" />
                       </div>
-                      <span className="font-semibold text-xs">Edit expense</span>
+                      <span className="font-semibold text-xs">Delete</span>
                     </DropdownMenuItem>
-                  )}
-                  <DropdownMenuItem 
-                    className="group rounded-xl py-2 px-3 flex items-center gap-3 cursor-pointer text-destructive focus:bg-destructive/5 focus:text-destructive active:scale-[0.98] transition-all"
-                    onClick={() => setIsDeleteConfirmOpen(true)}
-                  >
-                    <div className="h-8 w-8 rounded-full bg-destructive/10 group-focus:bg-white/20 flex items-center justify-center shrink-0 transition-colors">
-                      <Trash2 className="h-4 w-4" />
-                    </div>
-                    <span className="font-semibold text-xs">Delete</span>
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              ) : <div className="w-10" />}
 
               <DialogClose asChild>
                 <Button variant="ghost" size="icon" className="h-10 w-10 rounded-full flex items-center justify-center bg-white/40 backdrop-blur-md text-foreground/60 hover:bg-white/60 transition-all border border-white/20">
@@ -336,13 +339,15 @@ export function ExpenseDetailDialog({ expense, trip, onClose, onDelete, onEdit, 
                        <Timer className="h-8 w-8 text-accent/40 mb-3" />
                        <h4 className="text-sm font-bold text-foreground">Draft expense</h4>
                        <p className="text-[11px] text-muted-foreground mt-1 leading-relaxed">This transaction hasn't been split yet.</p>
-                       <Button 
-                         size="sm" 
-                         className="mt-5 rounded-xl bg-accent text-accent-foreground font-bold h-9 text-[11px] px-6 shadow-lg shadow-accent/10"
-                         onClick={() => onFinalizeSplit(expense.id)}
-                       >
-                         Finalize split
-                       </Button>
+                       {!isSettled && (
+                         <Button 
+                           size="sm" 
+                           className="mt-5 rounded-xl bg-accent text-accent-foreground font-bold h-9 text-[11px] px-6 shadow-lg shadow-accent/10"
+                           onClick={() => onFinalizeSplit(expense.id)}
+                         >
+                           Finalize split
+                         </Button>
+                       )}
                     </div>
                   ) : (
                     splits.map((group: any, idx: number) => {

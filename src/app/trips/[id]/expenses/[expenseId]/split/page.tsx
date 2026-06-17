@@ -60,7 +60,15 @@ export default function CompleteSplitPage() {
     if (!tripId || !expenseId || !firestore) return;
 
     const tripUnsub = onSnapshot(doc(firestore, "trips", tripId as string), (snap) => {
-      if (snap.exists()) setTrip({ id: snap.id, ...snap.data() });
+      if (snap.exists()) {
+        const data = snap.data();
+        if (data.status === 'Settled') {
+          toast({ title: "Trip is settled", description: "You cannot finalize splits in a settled trip.", variant: "destructive" });
+          router.push(`/trips/${tripId}`);
+          return;
+        }
+        setTrip({ id: snap.id, ...data });
+      }
     });
 
     const expenseUnsub = onSnapshot(doc(firestore, "trips", tripId as string, "expenses", expenseId as string), (snap) => {
@@ -82,7 +90,7 @@ export default function CompleteSplitPage() {
       tripUnsub();
       expenseUnsub();
     };
-  }, [tripId, expenseId, firestore, router]);
+  }, [tripId, expenseId, firestore, router, toast]);
 
   const familyList = useMemo(() => {
     if (!trip?.participants) return [];

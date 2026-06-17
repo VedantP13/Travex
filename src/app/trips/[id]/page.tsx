@@ -219,6 +219,7 @@ export default function TripDetails() {
 
   const unsplitExpenses = expenses.filter(e => e.splitType === 'unsplit');
   const finalizedExpenses = expenses.filter(e => e.splitType !== 'unsplit');
+  const isSettled = trip?.status === 'Settled';
 
   return (
     <div className="max-w-md mx-auto min-h-screen bg-background flex flex-col pb-32">
@@ -231,7 +232,7 @@ export default function TripDetails() {
       />
 
       <div className="px-safe-pad pt-8 flex-1">
-        {isPastDue && (
+        {isPastDue && !isSettled && (
           <div className="mb-6 animate-in fade-in slide-in-from-top-2 duration-500">
             <Alert className="bg-primary/5 border-primary/20 rounded-2xl flex items-center justify-between py-4 shadow-sm">
               <div className="flex gap-3 items-center">
@@ -261,6 +262,7 @@ export default function TripDetails() {
               loading={loading} 
               onSelectExpense={setSelectedExpenseDetail}
               onSplitNow={(expenseId) => router.push(`/trips/${id}/expenses/${expenseId}/split`)}
+              isSettled={isSettled}
             />
           </TabsContent>
 
@@ -270,11 +272,13 @@ export default function TripDetails() {
         </Tabs>
       </div>
       
-      <div className="fixed bottom-10 right-8 z-30">
-        <Button size="lg" className="rounded-full h-16 w-16 shadow-2xl shadow-accent/40 bg-accent hover:bg-accent/90 p-0 transition-transform hover:scale-110 active:scale-95 group" onClick={() => router.push(`/trips/${id}/add`)}>
-          <Plus className="h-10 w-10 transition-transform group-hover:rotate-90 duration-300" strokeWidth={3} />
-        </Button>
-      </div>
+      {!isSettled && (
+        <div className="fixed bottom-10 right-8 z-30">
+          <Button size="lg" className="rounded-full h-16 w-16 shadow-2xl shadow-accent/40 bg-accent hover:bg-accent/90 p-0 transition-transform hover:scale-110 active:scale-95 group" onClick={() => router.push(`/trips/${id}/add`)}>
+            <Plus className="h-10 w-10 transition-transform group-hover:rotate-90 duration-300" strokeWidth={3} />
+          </Button>
+        </div>
+      )}
 
       <ImagePickerDialog 
         isOpen={isImagePickerOpen} 

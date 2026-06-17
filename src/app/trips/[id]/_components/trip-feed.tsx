@@ -1,3 +1,4 @@
+
 'use client';
 
 import { Utensils, Car, Home, ShoppingBag, Plane, Camera, Box, Timer, Sparkles } from "lucide-react";
@@ -11,6 +12,7 @@ interface TripFeedProps {
   loading: boolean;
   onSelectExpense: (expense: any) => void;
   onSplitNow: (expenseId: string) => void;
+  isSettled?: boolean;
 }
 
 const getCategoryIcon = (cat: string) => {
@@ -37,7 +39,7 @@ const getCategoryColor = (cat: string) => {
   }
 };
 
-export function TripFeed({ unsplitExpenses, finalizedExpenses, loading, onSelectExpense, onSplitNow }: TripFeedProps) {
+export function TripFeed({ unsplitExpenses, finalizedExpenses, loading, onSelectExpense, onSplitNow, isSettled }: TripFeedProps) {
   return (
     <div className="space-y-4 pb-24">
       {unsplitExpenses.length > 0 && (
@@ -62,13 +64,15 @@ export function TripFeed({ unsplitExpenses, finalizedExpenses, loading, onSelect
                       </p>
                     </div>
                   </div>
-                  <Button 
-                    size="sm" 
-                    className="rounded-full bg-accent text-accent-foreground font-bold text-xs h-9 px-4 hover:scale-105 transition-all shadow-md shadow-accent/20"
-                    onClick={() => onSplitNow(item.id)}
-                  >
-                    Split Now
-                  </Button>
+                  {!isSettled && (
+                    <Button 
+                      size="sm" 
+                      className="rounded-full bg-accent text-accent-foreground font-bold text-xs h-9 px-4 hover:scale-105 transition-all shadow-md shadow-accent/20"
+                      onClick={() => onSplitNow(item.id)}
+                    >
+                      Split Now
+                    </Button>
+                  )}
                 </CardContent>
               </Card>
             );
