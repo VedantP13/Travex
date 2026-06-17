@@ -535,9 +535,12 @@ export default function EditExpensePage() {
       <main className="flex-1 px-safe-pad py-8 overflow-y-auto pb-32">
         {step === 1 ? (
           <div className="space-y-8 animate-in fade-in slide-in-from-right-4 duration-300">
-            <div className="p-6 bg-primary/5 rounded-[2rem] border-2 border-dashed border-primary/10 text-center space-y-2">
-               <h2 className="text-lg font-bold">Audit Mode</h2>
-               <p className="text-[10px] text-muted-foreground">You are modifying a live transaction.</p>
+            <div className="p-3 bg-accent/5 rounded-2xl border-2 border-dashed border-accent/20 flex items-center justify-center gap-3 mx-2">
+               <div className="h-2 w-2 rounded-full bg-accent animate-pulse shrink-0" />
+               <div className="text-left">
+                  <h2 className="text-[10px] font-bold text-accent uppercase tracking-wider leading-none mb-0.5">Audit Mode</h2>
+                  <p className="text-[9px] text-muted-foreground font-medium leading-tight">You are modifying a live transaction</p>
+               </div>
             </div>
 
             <div className="space-y-6">
