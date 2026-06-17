@@ -21,7 +21,9 @@ import {
   Box,
   Timer,
   AlertTriangle,
-  Loader2
+  Loader2,
+  Clock,
+  History
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -41,6 +43,8 @@ import {
 } from "@/components/ui/alert-dialog";
 import { cn } from "@/lib/utils";
 import { format, parseISO } from "date-fns";
+import { Timestamp } from "firebase/firestore";
+import { useUser } from "@/firebase";
 
 interface ExpenseDetailDialogProps {
   expense: any;
@@ -87,6 +91,7 @@ const getSplitTypeLabel = (type: string) => {
 };
 
 export function ExpenseDetailDialog({ expense, trip, onClose, onDelete, onEdit, onFinalizeSplit }: ExpenseDetailDialogProps) {
+  const { user } = useUser();
   const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
 
@@ -179,6 +184,16 @@ export function ExpenseDetailDialog({ expense, trip, onClose, onDelete, onEdit, 
     }
   };
 
+  const formatTimestamp = (val: any) => {
+    if (!val) return null;
+    try {
+      const d = val instanceof Timestamp ? val.toDate() : new Date(val);
+      return format(d, "d MMM, h:mm a");
+    } catch {
+      return null;
+    }
+  };
+
   const confirmDelete = async () => {
     setIsDeleting(true);
     await onDelete(expense.id);
@@ -187,6 +202,9 @@ export function ExpenseDetailDialog({ expense, trip, onClose, onDelete, onEdit, 
   };
 
   if (!expense) return null;
+
+  const canEdit = expense.addedBy === user?.uid;
+  const isEdited = !!expense.updatedAt;
 
   return (
     <>
@@ -209,18 +227,20 @@ export function ExpenseDetailDialog({ expense, trip, onClose, onDelete, onEdit, 
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="start" className="rounded-2xl min-w-[160px] p-1 shadow-xl border-none bg-white">
-                  <DropdownMenuItem 
-                    className="group rounded-xl py-2 px-3 flex items-center gap-3 cursor-pointer text-primary focus:bg-primary/10 focus:text-primary active:scale-[0.98] transition-all" 
-                    onClick={() => {
-                      onEdit(expense.id);
-                      onClose();
-                    }}
-                  >
-                    <div className="h-8 w-8 rounded-full bg-primary/10 group-focus:bg-white/20 flex items-center justify-center shrink-0 transition-colors">
-                      <Pencil className="h-4 w-4" />
-                    </div>
-                    <span className="font-semibold text-xs">Edit expense</span>
-                  </DropdownMenuItem>
+                  {canEdit && (
+                    <DropdownMenuItem 
+                      className="group rounded-xl py-2 px-3 flex items-center gap-3 cursor-pointer text-primary focus:bg-primary/10 focus:text-primary active:scale-[0.98] transition-all" 
+                      onClick={() => {
+                        onEdit(expense.id);
+                        onClose();
+                      }}
+                    >
+                      <div className="h-8 w-8 rounded-full bg-primary/10 group-focus:bg-white/20 flex items-center justify-center shrink-0 transition-colors">
+                        <Pencil className="h-4 w-4" />
+                      </div>
+                      <span className="font-semibold text-xs">Edit expense</span>
+                    </DropdownMenuItem>
+                  )}
                   <DropdownMenuItem 
                     className="group rounded-xl py-2 px-3 flex items-center gap-3 cursor-pointer text-destructive focus:bg-destructive/5 focus:text-destructive active:scale-[0.98] transition-all"
                     onClick={() => setIsDeleteConfirmOpen(true)}
@@ -281,15 +301,31 @@ export function ExpenseDetailDialog({ expense, trip, onClose, onDelete, onEdit, 
                   </Label>
                   <p className="text-sm font-semibold text-foreground">{getSplitTypeLabel(expense.splitType)}</p>
                 </div>
-                <div className="space-y-1">
-                  <Label className="text-[10px] font-medium text-muted-foreground/80 flex items-center gap-1.5">
-                    <CreditCard className="h-3 w-3" /> Method
-                  </Label>
-                  <p className="text-sm font-semibold text-foreground">{expense.paymentType || 'Other'}</p>
-                </div>
               </div>
 
-              <div className="space-y-5">
+              {/* TIMESTAMPS SECTION */}
+              <div className="grid grid-cols-2 gap-x-4 pt-4 border-t border-muted/20">
+                <div className="space-y-1">
+                  <Label className="text-[9px] font-bold text-muted-foreground/50 uppercase flex items-center gap-1.5">
+                    <Clock className="h-2.5 w-2.5" /> Added on
+                  </Label>
+                  <p className="text-[10px] font-medium text-muted-foreground">
+                    {formatTimestamp(expense.createdAt) || '—'}
+                  </p>
+                </div>
+                {isEdited && (
+                  <div className="space-y-1">
+                    <Label className="text-[9px] font-bold text-accent/60 uppercase flex items-center gap-1.5">
+                      <History className="h-2.5 w-2.5" /> Last modified
+                    </Label>
+                    <p className="text-[10px] font-bold text-accent/80">
+                      {formatTimestamp(expense.updatedAt)}
+                    </p>
+                  </div>
+                )}
+              </div>
+
+              <div className="space-y-5 pt-4">
                 <div className="border-b border-muted/10 pb-2">
                   <Label className="text-[10px] font-bold text-muted-foreground/80 tracking-wider">Split breakdown</Label>
                 </div>
