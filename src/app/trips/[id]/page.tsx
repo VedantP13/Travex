@@ -1,11 +1,11 @@
 
 "use client";
 
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useRef } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { Plus, Loader2, CheckCircle2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/tabs";
 import { Alert } from "@/components/ui/alert";
 import { useFirestore, useUser } from "@/firebase";
 import { doc, onSnapshot, collection, query, orderBy, updateDoc, deleteDoc, serverTimestamp, getDoc, increment } from "firebase/firestore";
@@ -42,19 +42,26 @@ export default function TripDetails() {
   const [isDeletingTrip, setIsDeletingTrip] = useState(false);
   const [isUpdatingImage, setIsUpdatingImage] = useState(false);
 
-  // Status Nudge Logic: Only show to guest users ONCE ever across all trips
+  // Guest Security Nudge Logic: Appears every 3rd time a guest opens any trip page
+  const nudgeCountedForId = useRef<string | null>(null);
   useEffect(() => {
-    if (user?.isAnonymous && !loading && trip) {
-      const globalNudgeShown = localStorage.getItem('travex_secure_nudge_shown');
-      if (!globalNudgeShown) {
+    if (user?.isAnonymous && !loading && trip && nudgeCountedForId.current !== trip.id) {
+      // Mark this specific trip ID as counted for this component lifecycle
+      nudgeCountedForId.current = trip.id;
+      
+      const currentCount = parseInt(localStorage.getItem('travex_secure_nudge_total_opens') || '0', 10);
+      const nextCount = currentCount + 1;
+      localStorage.setItem('travex_secure_nudge_total_opens', nextCount.toString());
+
+      // Show nudge on 3rd, 6th, 9th... visit
+      if (nextCount > 0 && nextCount % 3 === 0) {
         const timer = setTimeout(() => {
           setIsSecureNudgeOpen(true);
-          localStorage.setItem('travex_secure_nudge_shown', 'true');
         }, 1500);
         return () => clearTimeout(timer);
       }
     }
-  }, [user, loading, trip]);
+  }, [user?.isAnonymous, loading, trip]);
 
   useEffect(() => {
     if (!id || !firestore) return;
