@@ -744,16 +744,16 @@ export default function CreateTrip() {
         setShowReuseDialog(open);
       }}>
         <AlertDialogContent className="max-w-[calc(100vw-40px)] w-full rounded-[2.5rem] p-0 border-none shadow-2xl bg-white overflow-hidden animate-in fade-in zoom-in-95 duration-300">
-          <div className="h-40 bg-foreground relative flex flex-col items-center justify-center shrink-0">
-             <div className="h-16 w-16 rounded-full bg-white/10 flex items-center justify-center mb-2">
-                <History className="h-8 w-8 text-white" />
+          <div className="h-32 bg-foreground relative flex flex-col items-center justify-center shrink-0">
+             <div className="h-12 w-12 rounded-full bg-white/10 flex items-center justify-center mb-2">
+                <History className="h-6 w-6 text-white" />
              </div>
-             <p className="text-[10px] font-bold text-white/50 uppercase tracking-widest">Recent travel buddies</p>
+             <p className="text-sm font-bold text-white tracking-tight">Recent Travel Buddies</p>
           </div>
 
-          <div className="p-6 space-y-6">
+          <div className="p-4 sm:p-6 space-y-4">
             <div className="space-y-1 text-center">
-              <AlertDialogTitle className="text-lg font-bold text-foreground leading-tight">
+              <AlertDialogTitle className="text-base font-bold text-foreground leading-tight">
                 Reuse groups from <span className="text-primary">{lastTrip?.name}</span>?
               </AlertDialogTitle>
               <AlertDialogDescription className="text-[11px] font-medium text-muted-foreground leading-relaxed px-4">
@@ -761,7 +761,7 @@ export default function CreateTrip() {
               </AlertDialogDescription>
             </div>
 
-            <ScrollArea className="max-h-[280px] pr-2 -mx-1 px-1 scrollbar-thin">
+            <ScrollArea className="max-h-[220px] pr-2 -mx-1 px-1 scrollbar-thin">
               <div className="space-y-3">
                 {lastTrip?.participants
                   ?.filter((p: any) => p.userId !== user?.uid && !ignoredReuseIds.has(p.id))
@@ -779,9 +779,9 @@ export default function CreateTrip() {
                           isSelected ? "border-primary bg-primary/5 shadow-sm" : "border-muted/10 bg-muted/5 opacity-60"
                         )}
                       >
-                        <div className="p-3 space-y-3">
+                        <div className="p-3 space-y-2">
                           <div className="flex items-center justify-between">
-                            <div className="flex items-center gap-3">
+                            <div className="flex items-center gap-2">
                               <Checkbox 
                                 id={`reuse-${p.id}`} 
                                 checked={isSelected} 
@@ -811,7 +811,7 @@ export default function CreateTrip() {
                             </Button>
                           </div>
 
-                          <div className="flex flex-wrap gap-1.5 pl-7">
+                          <div className="flex flex-wrap gap-1 pl-7">
                             <Badge variant="outline" className="px-2 py-0.5 rounded-lg bg-white border-muted/20 text-[9px] font-semibold text-foreground/70">
                               {headName}
                             </Badge>
@@ -855,7 +855,7 @@ export default function CreateTrip() {
 
             <div className="grid gap-2 pt-1">
               <Button 
-                className="w-full h-12 rounded-xl bg-primary text-white font-bold text-sm shadow-lg shadow-primary/20 transition-all"
+                className="w-full h-11 rounded-xl bg-primary text-white font-bold text-sm shadow-lg shadow-primary/20 transition-all"
                 onClick={handleReuseMembers}
                 disabled={selectedReuseIds.size === 0}
               >
@@ -863,7 +863,7 @@ export default function CreateTrip() {
               </Button>
               <Button 
                 variant="ghost" 
-                className="w-full h-10 rounded-xl font-bold text-muted-foreground text-[11px] hover:bg-muted"
+                className="w-full h-9 rounded-xl font-bold text-muted-foreground text-[10px] hover:bg-muted"
                 onClick={() => {
                   setShowReuseDialog(false);
                   setHasInteractedWithReuse(true);
