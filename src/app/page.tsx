@@ -222,10 +222,10 @@ export default function Home() {
                 href="/trips/new" 
                 className="col-span-4 bg-white shadow-lg rounded-[2.5rem] flex flex-col items-center justify-center p-4 transition-all duration-300 transform hover:-translate-y-1 active:scale-95 border border-primary/5 group hover:bg-accent"
               >
-                <div className="h-14 w-14 rounded-[1.5rem] bg-primary/5 flex items-center justify-center text-primary group-hover:bg-white/20 group-hover:text-white transition-all shadow-sm shrink-0 mb-3">
-                  <MapPinPlus className="h-8 w-8" />
+                <div className="h-16 w-16 rounded-[1.5rem] bg-primary/5 flex items-center justify-center text-primary group-hover:bg-white/20 group-hover:text-white transition-all shadow-sm shrink-0 mb-3">
+                  <MapPinPlus className="h-10 w-10" />
                 </div>
-                <span className="text-xl font-bold tracking-tight text-foreground group-hover:text-white transition-colors text-center leading-tight">
+                <span className="text-sm font-bold tracking-tight text-primary group-hover:text-white transition-colors text-center leading-tight">
                   New trip
                 </span>
               </Link>
