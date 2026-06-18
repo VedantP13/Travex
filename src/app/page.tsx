@@ -1,4 +1,3 @@
-
 "use client";
 
 import Link from "next/link";
@@ -299,10 +298,12 @@ export default function Home() {
                         className="h-full w-full object-cover group-hover:scale-105 transition-transform duration-500"
                       />
                       <Badge className={cn(
-                        "absolute top-4 right-4 text-foreground border-none backdrop-blur-md font-bold text-[10px] shadow-sm px-3",
+                        "absolute top-4 right-4 border-none backdrop-blur-md font-bold text-[10px] shadow-sm px-3 py-1",
                         tripPastDue ? "bg-accent text-white" : 
                         trip.status === 'Active' ? 'bg-primary/90 text-white' : 
-                        trip.status === 'Settled' ? 'bg-muted/80' : 'bg-white/90'
+                        trip.status === 'Completed' ? 'bg-secondary text-white' :
+                        trip.status === 'Settled' ? 'bg-muted text-muted-foreground' : 
+                        'bg-white/90 text-foreground'
                       )}>
                         {tripPastDue ? "Ended" : (trip.status || "Upcoming")}
                       </Badge>
