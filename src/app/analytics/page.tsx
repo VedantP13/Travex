@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState, useMemo, useEffect } from "react";
@@ -109,15 +108,13 @@ export default function AnalyticsPage() {
     return () => unsub();
   }, [selectedView, firestore]);
 
-  // Fetch All Expenses for Global Category DNA (One-time fetch when 'global' is selected)
+  // Fetch All Expenses for Global Category Breakdown
   useEffect(() => {
     if (selectedView !== 'global' || !firestore || !user?.uid || trips.length === 0) return;
 
     const fetchAllCategories = async () => {
       const counts: Record<string, number> = {};
       
-      // We fetch all expenses across all trips the user is in
-      // Note: This is an intensive fetch for global insights
       for (const trip of trips) {
         const q = query(collection(firestore, "trips", trip.id, "expenses"));
         const snap = await getDocs(q);
@@ -148,7 +145,7 @@ export default function AnalyticsPage() {
         acc.maxTrip = { name: trip.name, amount: trip.totalSpent };
       }
 
-      // Track Persona (Style)
+      // Track Style
       const hint = trip.imageHint?.toLowerCase() || "";
       if (hint.includes('beach') || hint.includes('tropical')) acc.styleCounts.Beach++;
       else if (hint.includes('mountain') || hint.includes('trek')) acc.styleCounts.Mountain++;
@@ -216,7 +213,7 @@ export default function AnalyticsPage() {
     const highestExpense = tripExpenses.reduce((prev, curr) => 
       (parseFloat(curr.amount) > parseFloat(prev.amount) ? curr : prev), tripExpenses[0]);
 
-    // Payment DNA
+    // Payment methods
     const pCounts: Record<string, number> = {};
     tripExpenses.forEach(e => {
       const pType = e.paymentType || 'Other';
@@ -234,7 +231,7 @@ export default function AnalyticsPage() {
     };
   }, [selectedTrip, tripExpenses, user?.uid]);
 
-  // Chart Data: Category Mix
+  // Chart Data: Category Breakdown
   const categoryData = useMemo(() => {
     if (selectedView === 'global') {
       return globalCategoryData;
@@ -342,7 +339,7 @@ export default function AnalyticsPage() {
         
         <p className="text-xs opacity-60 font-medium text-background leading-relaxed pr-10">
           {selectedView === 'global' 
-            ? `Lifetime spending across ${trips.length} journeys.` 
+            ? `Total spending across ${trips.length} journeys.` 
             : `Deep dive into ${selectedTrip?.name || 'this journey'}.`}
         </p>
       </header>
@@ -410,7 +407,7 @@ export default function AnalyticsPage() {
                          <Crown className="h-4 w-4 text-primary" />
                       </div>
                       <div className="min-w-0">
-                         <p className="text-[8px] font-black uppercase text-primary/60 tracking-wider">Style</p>
+                         <p className="text-[8px] font-black uppercase text-primary/60 tracking-wider">Travel style</p>
                          <p className="text-xs font-bold text-primary truncate">{travelPersona}</p>
                       </div>
                    </CardContent>
@@ -421,7 +418,7 @@ export default function AnalyticsPage() {
                          <Flame className="h-4 w-4 text-accent" />
                       </div>
                       <div className="min-w-0">
-                         <p className="text-[8px] font-black uppercase text-accent/60 tracking-wider">Peak Spend</p>
+                         <p className="text-[8px] font-black uppercase text-accent/60 tracking-wider">Highest spend</p>
                          <p className="text-xs font-bold text-accent truncate">₹{globalStats.maxTrip.amount.toLocaleString()}</p>
                       </div>
                    </CardContent>
@@ -454,7 +451,7 @@ export default function AnalyticsPage() {
               <Card className="border-none shadow-sm bg-white rounded-3xl overflow-hidden">
                 <CardHeader className="pb-0 pt-6">
                   <CardTitle className="text-xs font-black uppercase tracking-widest text-foreground/40 text-center">
-                    Spending DNA
+                    Spending breakdown
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="p-6">
@@ -492,19 +489,19 @@ export default function AnalyticsPage() {
                   ) : (
                     <div className="h-48 flex flex-col items-center justify-center bg-muted/5 rounded-2xl border-2 border-dashed border-muted/20">
                        <PieChartIcon className="h-8 w-8 text-muted-foreground/20 mb-2" />
-                       <p className="text-[10px] text-muted-foreground font-bold uppercase">Calculating patterns...</p>
+                       <p className="text-[10px] text-muted-foreground font-bold uppercase">Analyzing data...</p>
                     </div>
                   )}
                 </CardContent>
               </Card>
 
-              {/* Behavioral Details (Specific View) */}
+              {/* Quick Details (Specific View) */}
               {selectedView !== 'global' && tripStats && (
                 <div className="grid grid-cols-2 gap-3">
                   <Card className="border-none shadow-sm bg-white rounded-3xl p-5">
                     <div className="flex items-center gap-2 mb-3">
                        <Zap className="h-3.5 w-3.5 text-accent" />
-                       <span className="text-[9px] font-black uppercase text-muted-foreground tracking-wider">Peak Moment</span>
+                       <span className="text-[9px] font-black uppercase text-muted-foreground tracking-wider">Largest expense</span>
                     </div>
                     <p className="text-xl font-black text-foreground">₹{tripStats.highestBill.toLocaleString()}</p>
                     <p className="text-[8px] text-muted-foreground mt-1 font-bold">Highest single bill</p>
@@ -512,7 +509,7 @@ export default function AnalyticsPage() {
                   <Card className="border-none shadow-sm bg-white rounded-3xl p-5">
                     <div className="flex items-center gap-2 mb-3">
                        <CreditCard className="h-3.5 w-3.5 text-primary" />
-                       <span className="text-[9px] font-black uppercase text-muted-foreground tracking-wider">Payment DNA</span>
+                       <span className="text-[9px] font-black uppercase text-muted-foreground tracking-wider">Payment types</span>
                     </div>
                     <p className="text-xl font-black text-foreground">{tripStats.topPayment}</p>
                     <p className="text-[8px] text-muted-foreground mt-1 font-bold">Most used method</p>
@@ -524,7 +521,7 @@ export default function AnalyticsPage() {
               <Card className="border-none shadow-sm bg-white rounded-3xl overflow-hidden">
                 <CardHeader className="pb-2 pt-6">
                   <CardTitle className="text-xs font-black uppercase tracking-widest text-foreground/40 text-center">
-                    {selectedView === 'global' ? 'Top Companions' : 'Contribution Rank'}
+                    {selectedView === 'global' ? 'Top companions' : 'Contribution ranking'}
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="p-6">
@@ -573,7 +570,7 @@ export default function AnalyticsPage() {
                   ) : (
                     <div className="text-center py-6 opacity-30">
                        <Award className="h-8 w-8 mx-auto mb-2 text-muted-foreground" />
-                       <p className="text-[10px] font-bold uppercase tracking-widest">Awaiting connections</p>
+                       <p className="text-[10px] font-bold uppercase tracking-widest">No data yet</p>
                     </div>
                   )}
                 </CardContent>
@@ -583,7 +580,7 @@ export default function AnalyticsPage() {
               <Card className="border-none shadow-sm bg-white rounded-3xl overflow-hidden">
                 <CardHeader className="pb-2 pt-6">
                   <CardTitle className="text-xs font-black uppercase tracking-widest text-foreground/40 text-center">
-                    {selectedView === 'global' ? 'Budget Distribution' : 'Spending Timeline'}
+                    {selectedView === 'global' ? 'Spend distribution' : 'Spending timeline'}
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="p-6">
@@ -658,7 +655,7 @@ export default function AnalyticsPage() {
                       ) : (
                         <div className="h-full flex flex-col items-center justify-center bg-muted/5 rounded-2xl border-2 border-dashed border-muted/20">
                           <BarChart3 className="h-8 w-8 text-muted-foreground/20 mb-2" />
-                          <p className="text-[10px] text-muted-foreground font-bold uppercase">History being made...</p>
+                          <p className="text-[10px] text-muted-foreground font-bold uppercase">No data yet</p>
                         </div>
                       )}
                     </div>
