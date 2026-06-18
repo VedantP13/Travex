@@ -172,14 +172,35 @@ export default function AnalyticsPage() {
   }, [trips, user?.uid]);
 
   const travelPersona = useMemo(() => {
+    if (trips.length === 0) return "World Explorer";
+
+    // 1. Analyze by Spending (Behavioral)
+    const topCategory = globalCategoryData[0];
+    if (topCategory && topCategory.value > (globalStats.totalSpent * 0.35)) {
+      if (topCategory.name === 'Food') return "Foodie Explorer";
+      if (topCategory.name === 'Transport') return "Road Tripper";
+      if (topCategory.name === 'Stay') return "Comfort Seeker";
+      if (topCategory.name === 'Shopping') return "Big Shopper";
+      if (topCategory.name === 'Sightseeing') return "Culture Hunter";
+    }
+
+    // 2. Analyze by Social Dynamics
+    const totalParticipants = trips.reduce((sum, t) => sum + (t.participants?.length || 0), 0);
+    const avgGroupSize = totalParticipants / trips.length;
+    if (avgGroupSize > 4) return "Group Soul";
+    if (avgGroupSize <= 1.5 && trips.length > 1) return "Solo Voyager";
+
+    // 3. Analyze by Destination History
     const styles = globalStats.styleCounts;
     const max = Math.max(styles.Beach, styles.Mountain, styles.Urban);
-    if (max === 0) return "Explorer";
-    if (styles.Beach === max) return "Beach Soul";
-    if (styles.Mountain === max) return "Summit Seeker";
-    if (styles.Urban === max) return "City Nomad";
-    return "Explorer";
-  }, [globalStats]);
+    if (max > 0) {
+      if (styles.Beach === max) return "Beach Lover";
+      if (styles.Mountain === max) return "Summit Seeker";
+      if (styles.Urban === max) return "City Nomad";
+    }
+
+    return "World Explorer";
+  }, [globalStats, globalCategoryData, trips]);
 
   // Chart Data: Global - Spend per Trip
   const globalComparisonData = useMemo(() => {
