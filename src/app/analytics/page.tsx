@@ -15,7 +15,9 @@ import {
   Loader2,
   Trophy,
   Award,
-  Star
+  Star,
+  Receipt,
+  Zap
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { BottomNav } from "@/components/bottom-nav";
@@ -289,17 +291,19 @@ export default function AnalyticsPage() {
                 <div className="bg-white/50 border border-muted/20 p-3 rounded-2xl flex flex-col items-center justify-center text-center">
                    <Users className="h-3 w-3 text-muted-foreground mb-1" />
                    <p className="text-[10px] font-black leading-none">{tripStats.memberCount}</p>
-                   <p className="text-[7px] font-bold text-muted-foreground uppercase mt-0.5">Members</p>
+                   <p className="text-[7px] font-bold text-muted-foreground uppercase mt-0.5">Size</p>
                 </div>
                 <div className="bg-white/50 border border-muted/20 p-3 rounded-2xl flex flex-col items-center justify-center text-center">
-                   <Calendar className="h-3 w-3 text-muted-foreground mb-1" />
-                   <p className="text-[10px] font-black leading-none truncate w-full px-1">{tripStats.date.split('-')[0]}</p>
-                   <p className="text-[7px] font-bold text-muted-foreground uppercase mt-0.5">Start</p>
+                   <Receipt className="h-3 w-3 text-muted-foreground mb-1" />
+                   <p className="text-[10px] font-black leading-none">{tripExpenses.length}</p>
+                   <p className="text-[7px] font-bold text-muted-foreground uppercase mt-0.5">Activity</p>
                 </div>
                 <div className="bg-white/50 border border-muted/20 p-3 rounded-2xl flex flex-col items-center justify-center text-center">
-                   <div className="h-1.5 w-1.5 rounded-full bg-primary mb-1 animate-pulse" />
-                   <p className="text-[10px] font-black leading-none uppercase">{selectedTrip?.status}</p>
-                   <p className="text-[7px] font-bold text-muted-foreground uppercase mt-0.5">Status</p>
+                   <Zap className="h-3 w-3 text-muted-foreground mb-1" />
+                   <p className="text-[10px] font-black leading-none uppercase">
+                     ₹{(tripStats.totalSpent / (tripExpenses.length || 1)).toFixed(0)}
+                   </p>
+                   <p className="text-[7px] font-bold text-muted-foreground uppercase mt-0.5">Pace</p>
                 </div>
               </div>
             )}
