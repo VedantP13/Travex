@@ -693,13 +693,13 @@ export default function EditExpensePage() {
 
              <div className="grid grid-cols-2 gap-4">
                {[
-                 { id: "equal_person", label: "Per person", icon: Users, desc: "Include all members" },
-                 { id: "equal_family", label: "Per family", icon: Home, desc: "One per family unit" },
-                 { id: "custom", label: "Custom amount", icon: Calculator, desc: "Specific ₹ per person" },
-                 { id: "just_me", label: "Just you", icon: User, desc: "100% to you" }
+                 { id: "equal_person", label: "Per person", icon: Users, desc: "Split equally among everyone" },
+                 { id: "equal_family", label: "Per family", icon: Home, desc: "One equal share for each family" },
+                 { id: "custom", label: "Custom amount", icon: Calculator, desc: "Enter amounts for each person" },
+                 { id: "just_me", label: "Just you", icon: User, desc: "Assign full amount to me" }
                ].map(mode => (
                  <Card key={mode.id} className={cn("p-5 rounded-3xl border-2 transition-all cursor-pointer flex flex-col gap-2 bg-white shadow-sm", formData.splitType === mode.id ? "border-primary bg-primary/5 shadow-md" : "border-transparent hover:border-muted/20")} onClick={() => setFormData(prev => ({ ...prev, splitType: mode.id }))}>
-                    <div className={cn("h-10 w-10 rounded-xl flex items-center justify-center transition-colors", formData.splitType === mode.id ? "bg-primary text-white" : "bg-muted text-muted-foreground/50")}><mode.icon className="h-5 w-5" /></div>
+                    <div className={cn("h-10 w-10 rounded-xl flex items-center justify-center transition-colors", formData.splitType === mode.id ? "bg-primary text-white" : "text-muted-foreground/40")}><mode.icon className="h-5 w-5" /></div>
                     <div className="mt-2"><p className="font-semibold text-sm tracking-tight">{mode.label}</p><p className="text-[10px] text-muted-foreground/60 font-medium leading-tight">{mode.desc}</p></div>
                  </Card>
                ))}

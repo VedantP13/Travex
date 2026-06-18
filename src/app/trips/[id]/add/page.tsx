@@ -603,7 +603,7 @@ export default function AddExpenseWizard() {
                             <Minus className="h-4 w-4" />
                           </div>
                         ) : (
-                          <div className="h-7 w-7 rounded-full flex items-center justify-center bg-white/50 shadow-sm text-muted-foreground">
+                          <div className={cn("h-7 w-7 rounded-full flex items-center justify-center bg-white/50 shadow-sm text-muted-foreground")}>
                             <Plus className="h-4 w-4" />
                           </div>
                         )
@@ -1038,10 +1038,10 @@ export default function AddExpenseWizard() {
 
             <div className="grid grid-cols-2 gap-4">
               {[
-                { id: "equal_person", label: "Per person", icon: Users, desc: "Include all members" },
-                { id: "equal_family", label: "Per family", icon: Home, desc: "One per family unit" },
-                { id: "custom", label: "Custom amount", icon: Calculator, desc: "Specific ₹ per person" },
-                { id: "just_me", label: "Just you", icon: User, desc: "100% to you" }
+                { id: "equal_person", label: "Per person", icon: Users, desc: "Split equally among all members" },
+                { id: "equal_family", label: "Per family", icon: Home, desc: "One equal share for each family" },
+                { id: "custom", label: "Custom amount", icon: Calculator, desc: "Enter amounts for each person" },
+                { id: "just_me", label: "Just you", icon: User, desc: "Assign full amount to me" }
               ].map(mode => {
                 const isSelected = formData.splitType === mode.id;
                 const isDefault = currentTrip?.defaultSplitType === mode.id;
@@ -1062,7 +1062,7 @@ export default function AddExpenseWizard() {
                     <div className="flex justify-between items-start">
                       <div className={cn(
                         "h-10 w-10 rounded-xl flex items-center justify-center transition-colors",
-                        isSelected ? "bg-primary text-white" : "bg-muted text-muted-foreground/50"
+                        isSelected ? "bg-primary text-white" : "text-muted-foreground/40"
                       )}>
                         <mode.icon className="h-5 w-5" />
                       </div>
