@@ -128,8 +128,11 @@ export default function AddExpenseWizard() {
 
   useEffect(() => {
     if (!selectedTripId && trips.length > 0) {
-      const active = trips.find(t => t.status === 'Active');
-      setSelectedTripId(active ? active.id : trips[0].id);
+      const availableTrips = trips.filter(t => t.status !== 'Settled');
+      if (availableTrips.length > 0) {
+        const active = availableTrips.find(t => t.status === 'Active');
+        setSelectedTripId(active ? active.id : availableTrips[0].id);
+      }
     }
   }, [selectedTripId, trips]);
 
@@ -733,7 +736,7 @@ export default function AddExpenseWizard() {
                     </div>
                   </SelectTrigger>
                   <SelectContent className="rounded-[1.5rem] border-none shadow-[0_20px_50px_rgba(0,0,0,0.15)] bg-white p-2">
-                    {trips.map(trip => (
+                    {trips.filter(t => t.status !== 'Settled').map(trip => (
                       <SelectItem key={trip.id} value={trip.id} className="rounded-xl text-xs font-semibold py-3 focus:bg-primary/10 focus:text-primary transition-colors cursor-pointer">
                         {trip.name}
                       </SelectItem>
