@@ -1,7 +1,6 @@
-
 'use client';
 
-import { ArrowLeft, Settings, Pencil, Trash2, Camera, Calendar as CalendarIcon, RefreshCw } from "lucide-react";
+import { ArrowLeft, Settings, Pencil, Trash2, Camera, Calendar as CalendarIcon, RefreshCw, FileSpreadsheet } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -22,9 +21,10 @@ interface TripHeaderProps {
   onDelete: () => void;
   onChangeCover: () => void;
   onResync: () => void;
+  onDownloadExcel: () => void;
 }
 
-export function TripHeader({ trip, onBack, onEdit, onDelete, onChangeCover, onResync }: TripHeaderProps) {
+export function TripHeader({ trip, onBack, onEdit, onDelete, onChangeCover, onResync, onDownloadExcel }: TripHeaderProps) {
   return (
     <div className="relative h-[280px] w-full overflow-hidden shrink-0 rounded-b-[2.5rem] shadow-xl shadow-black/10">
       <img 
@@ -55,7 +55,7 @@ export function TripHeader({ trip, onBack, onEdit, onDelete, onChangeCover, onRe
               <Settings className="h-5 w-5" strokeWidth={2.5} />
             </Button>
           </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className="rounded-2xl min-w-[180px] p-1 shadow-[0_10px_40px_rgba(0,0,0,0.15)] border-none bg-white">
+          <DropdownMenuContent align="end" className="rounded-2xl min-w-[200px] p-1 shadow-[0_10px_40px_rgba(0,0,0,0.15)] border-none bg-white">
             <DropdownMenuItem 
               className="group rounded-xl py-2 px-3 flex items-center gap-3 cursor-pointer text-primary focus:bg-primary/10 focus:text-primary active:scale-[0.98] transition-all"
               onClick={onEdit}
@@ -74,6 +74,16 @@ export function TripHeader({ trip, onBack, onEdit, onDelete, onChangeCover, onRe
                 <RefreshCw className="h-4 w-4" />
               </div>
               <span className="font-semibold text-sm">Sync balances</span>
+            </DropdownMenuItem>
+
+            <DropdownMenuItem 
+              className="group rounded-xl py-2 px-3 flex items-center gap-3 cursor-pointer text-green-600 focus:bg-green-50 active:scale-[0.98] transition-all"
+              onClick={onDownloadExcel}
+            >
+              <div className="h-8 w-8 rounded-full bg-green-50 group-focus:bg-white/20 flex items-center justify-center shrink-0">
+                <FileSpreadsheet className="h-4 w-4" />
+              </div>
+              <span className="font-semibold text-sm">Export to Excel</span>
             </DropdownMenuItem>
 
             <DropdownMenuSeparator className="my-1 mx-3 bg-muted/30" />

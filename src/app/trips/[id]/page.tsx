@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState, useEffect, useMemo, useRef } from "react";
@@ -12,6 +11,7 @@ import { doc, onSnapshot, collection, query, orderBy, updateDoc, deleteDoc, serv
 import { errorEmitter } from "@/firebase/error-emitter";
 import { FirestorePermissionError } from "@/firebase/errors";
 import { useToast } from "@/hooks/use-toast";
+import { exportTripToExcel } from "@/lib/excel-export";
 
 // Sub-components
 import { TripHeader } from "./_components/trip-header";
@@ -73,7 +73,7 @@ export default function TripDetails() {
       errorEmitter.emit('permission-error', new FirestorePermissionError({ path: `trips/${id}`, operation: 'get' }));
     });
 
-    const expensesQuery = query(collection(firestore, "trips", id as string, "expenses"), orderBy("createdAt", "desc"));
+    const expensesQuery = query(collection(firestore, "trips", id as string, "expenses"), orderBy("date", "asc"));
     const expensesUnsubscribe = onSnapshot(expensesQuery, (snapshot) => {
       setExpenses(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })));
       setLoading(false);
@@ -107,10 +107,18 @@ export default function TripDetails() {
         const { splitType, selectedIndividuals, customAmounts, payerId } = data;
 
         if (splitType === 'custom') {
-          selectedIndividuals?.forEach((pid: string) => { deltas[pid] = (deltas[pid] || 0) - (parseFloat(customAmounts?.[pid]) || 0); });
+          selectedIndividuals?.forEach((pid: string) => { 
+            const share = parseFloat(customAmounts?.[pid]) || 0;
+            const parentId = pid.split('-')[0];
+            const numSelectedInFamily = selectedIndividuals.filter((sid: string) => sid.startsWith(parentId)).length;
+            // Distribute custom share to the individual
+            deltas[pid] = (deltas[pid] || 0) - share;
+          });
         } else if (splitType === 'equal_person') {
           const share = amount / (selectedIndividuals?.length || 1);
-          selectedIndividuals?.forEach((pid: string) => { deltas[pid] = (deltas[pid] || 0) - share; });
+          selectedIndividuals?.forEach((pid: string) => { 
+            deltas[pid] = (deltas[pid] || 0) - share; 
+          });
         } else if (splitType === 'equal_family') {
           const familyGroups: Record<string, string[]> = {};
           selectedIndividuals?.forEach((pid: string) => {
@@ -145,6 +153,15 @@ export default function TripDetails() {
       console.error(e);
       toast({ title: "Sync failed", variant: "destructive" });
     }
+  };
+
+  const handleExportToExcel = () => {
+    if (!trip || !expenses || expenses.length === 0) {
+      toast({ title: "No data to export", description: "Add some expenses first." });
+      return;
+    }
+    toast({ title: "Preparing Excel...", description: "Formatting data into the standard layout." });
+    exportTripToExcel(trip, expenses);
   };
 
   const handleDeleteTrip = async () => {
@@ -285,6 +302,7 @@ export default function TripDetails() {
         onDelete={() => setIsDeleteDialogOpen(true)} 
         onChangeCover={() => setIsImagePickerOpen(true)} 
         onResync={handleResyncBalances}
+        onDownloadExcel={handleExportToExcel}
       />
 
       <div className="px-safe-pad pt-8 flex-1">
