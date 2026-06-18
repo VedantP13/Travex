@@ -182,7 +182,7 @@ export function TripBalances({ groupedStandings, suggestedPayments, expenses }: 
                                       "font-bold",
                                       bPos ? "text-primary" : bNeg ? "text-accent" : "text-muted-foreground/40"
                                     )}>
-                                      {bPos ? '+' : bNeg ? '-' : ''}₹{Math.abs(b.balance).toFixed(0)}
+                                      {bPos ? '+' : bNeg ? '-' : ''}₹{Math.abs(b.balance).toFixed(2)}
                                     </span>
                                   </div>
                                 );
@@ -211,7 +211,7 @@ export function TripBalances({ groupedStandings, suggestedPayments, expenses }: 
                   <p className="text-[10px] font-black text-accent truncate w-full">{insights.topCategory}</p>
                </div>
                <div className="bg-muted/30 rounded-2xl p-3 flex flex-col items-center text-center">
-                  <Receipt className="h-3.5 w-3.5 text-muted-foreground/60 mb-1.5" />
+                  <RefreshCw className="h-3.5 w-3.5 text-muted-foreground/60 mb-1.5" />
                   <p className="text-[8px] font-bold text-muted-foreground uppercase leading-none mb-1">Total Bills</p>
                   <p className="text-[10px] font-black text-foreground">{insights.totalCount}</p>
                </div>
@@ -222,7 +222,7 @@ export function TripBalances({ groupedStandings, suggestedPayments, expenses }: 
             <div className="flex items-start gap-3">
               <Info className="h-4 w-4 text-muted-foreground mt-0.5 shrink-0" />
               <p className="text-[11px] text-muted-foreground leading-relaxed font-medium">
-                Calculations are optimized for simplicity. The primary family leader is responsible for coordinating payments for their unit.
+                Calculations are optimized for simplicity. Use the "Sync balances" tool in settings to repair historical split issues.
               </p>
             </div>
           </div>

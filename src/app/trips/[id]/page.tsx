@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Alert } from "@/components/ui/alert";
 import { useFirestore, useUser } from "@/firebase";
-import { doc, onSnapshot, collection, query, orderBy, updateDoc, deleteDoc, serverTimestamp, getDoc, increment } from "firebase/firestore";
+import { doc, onSnapshot, collection, query, orderBy, updateDoc, deleteDoc, serverTimestamp, getDocs, getDoc, increment } from "firebase/firestore";
 import { errorEmitter } from "@/firebase/error-emitter";
 import { FirestorePermissionError } from "@/firebase/errors";
 import { useToast } from "@/hooks/use-toast";
@@ -46,14 +46,11 @@ export default function TripDetails() {
   const nudgeCountedForId = useRef<string | null>(null);
   useEffect(() => {
     if (user?.isAnonymous && !loading && trip && nudgeCountedForId.current !== trip.id) {
-      // Mark this specific trip ID as counted for this component lifecycle
       nudgeCountedForId.current = trip.id;
-      
       const currentCount = parseInt(localStorage.getItem('travex_secure_nudge_total_opens') || '0', 10);
       const nextCount = currentCount + 1;
       localStorage.setItem('travex_secure_nudge_total_opens', nextCount.toString());
 
-      // Show nudge on 3rd, 6th, 9th... visit
       if (nextCount > 0 && nextCount % 3 === 0) {
         const timer = setTimeout(() => {
           setIsSecureNudgeOpen(true);
@@ -73,24 +70,15 @@ export default function TripDetails() {
         router.push('/');
       }
     }, async (serverError) => {
-      errorEmitter.emit('permission-error', new FirestorePermissionError({
-        path: `trips/${id}`,
-        operation: 'get',
-      }));
+      errorEmitter.emit('permission-error', new FirestorePermissionError({ path: `trips/${id}`, operation: 'get' }));
     });
 
-    const expensesQuery = query(
-      collection(firestore, "trips", id as string, "expenses"),
-      orderBy("createdAt", "desc")
-    );
+    const expensesQuery = query(collection(firestore, "trips", id as string, "expenses"), orderBy("createdAt", "desc"));
     const expensesUnsubscribe = onSnapshot(expensesQuery, (snapshot) => {
       setExpenses(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })));
       setLoading(false);
     }, async (serverError) => {
-      errorEmitter.emit('permission-error', new FirestorePermissionError({
-        path: `trips/${id}/expenses`,
-        operation: 'list',
-      }));
+      errorEmitter.emit('permission-error', new FirestorePermissionError({ path: `trips/${id}/expenses`, operation: 'list' }));
     });
 
     return () => {
@@ -99,16 +87,75 @@ export default function TripDetails() {
     };
   }, [id, firestore, router]);
 
+  const handleResyncBalances = async () => {
+    if (!id || !firestore || !trip) return;
+    toast({ title: "Syncing balances...", description: "Rebuilding your ledger from history." });
+    
+    try {
+      const expensesSnap = await getDocs(collection(firestore, "trips", id as string, "expenses"));
+      const newBalances: Record<string, number> = {};
+      let totalSpent = 0;
+
+      expensesSnap.docs.forEach(snap => {
+        const data = snap.data();
+        const amount = parseFloat(data.amount) || 0;
+        totalSpent += amount;
+        
+        if (data.splitType === 'unsplit') return;
+
+        const deltas: Record<string, number> = {};
+        const { splitType, selectedIndividuals, customAmounts, payerId } = data;
+
+        if (splitType === 'custom') {
+          selectedIndividuals?.forEach((pid: string) => { deltas[pid] = (deltas[pid] || 0) - (parseFloat(customAmounts?.[pid]) || 0); });
+        } else if (splitType === 'equal_person') {
+          const share = amount / (selectedIndividuals?.length || 1);
+          selectedIndividuals?.forEach((pid: string) => { deltas[pid] = (deltas[pid] || 0) - share; });
+        } else if (splitType === 'equal_family') {
+          const familyGroups: Record<string, string[]> = {};
+          selectedIndividuals?.forEach((pid: string) => {
+            const fid = pid.split('-')[0];
+            if (!familyGroups[fid]) familyGroups[fid] = [];
+            familyGroups[fid].push(pid);
+          });
+          const numFamilies = Object.keys(familyGroups).length;
+          if (numFamilies > 0) {
+            const sharePerFamily = amount / numFamilies;
+            Object.values(familyGroups).forEach(members => {
+              const sharePerMember = sharePerFamily / members.length;
+              members.forEach(mId => { deltas[mId] = (deltas[mId] || 0) - sharePerMember; });
+            });
+          }
+        } else if (splitType === 'just_me') {
+          deltas[payerId] = (deltas[payerId] || 0) - amount;
+        }
+        deltas[payerId] = (deltas[payerId] || 0) + amount;
+
+        Object.entries(deltas).forEach(([pid, val]) => { newBalances[pid] = (newBalances[pid] || 0) + val; });
+      });
+
+      await updateDoc(doc(firestore, "trips", id as string), {
+        totalSpent,
+        netBalances: newBalances,
+        updatedAt: serverTimestamp()
+      });
+
+      toast({ title: "Balances repaired!", description: "Standing cards are now perfectly synced." });
+    } catch (e) {
+      console.error(e);
+      toast({ title: "Sync failed", variant: "destructive" });
+    }
+  };
+
   const handleDeleteTrip = async () => {
     if (!id || !firestore) return;
     setIsDeletingTrip(true);
-    const tripRef = doc(firestore, "trips", id as string);
     try {
-      await deleteDoc(tripRef);
+      await deleteDoc(doc(firestore, "trips", id as string));
       toast({ title: "Trip deleted" });
       router.push('/');
     } catch (error: any) {
-      errorEmitter.emit('permission-error', new FirestorePermissionError({ path: tripRef.path, operation: 'delete' }));
+      errorEmitter.emit('permission-error', new FirestorePermissionError({ path: `trips/${id}`, operation: 'delete' }));
       setIsDeletingTrip(false);
     }
   };
@@ -131,9 +178,6 @@ export default function TripDetails() {
     if (!id || !firestore || !selectedExpenseDetail) return;
     const expenseData = selectedExpenseDetail;
     const amount = parseFloat(expenseData.amount);
-    const tripRef = doc(firestore, "trips", id as string);
-    const expenseRef = doc(firestore, "trips", id as string, "expenses", expenseId);
-
     const deltas: Record<string, number> = {};
     const payerId = expenseData.payerId;
     const selected = expenseData.selectedIndividuals || [];
@@ -155,9 +199,7 @@ export default function TripDetails() {
         const sharePerFamily = amount / numFamilies;
         Object.values(familyGroups).forEach(members => {
           const sharePerMember = sharePerFamily / members.length;
-          members.forEach(mId => {
-            deltas[mId] = (deltas[mId] || 0) + sharePerMember;
-          });
+          members.forEach(mId => { deltas[mId] = (deltas[mId] || 0) + sharePerMember; });
         });
       }
     } else if (expenseData.splitType === 'just_me') {
@@ -166,11 +208,11 @@ export default function TripDetails() {
     deltas[payerId] = (deltas[payerId] || 0) - amount;
 
     try {
-      const tripSnap = await getDoc(tripRef);
+      const tripSnap = await getDoc(doc(firestore, "trips", id as string));
       const newBalances = { ...(tripSnap.data()?.netBalances || {}) };
       Object.entries(deltas).forEach(([pid, delta]) => { newBalances[pid] = (newBalances[pid] || 0) + delta; });
-      await updateDoc(tripRef, { totalSpent: increment(-amount), netBalances: newBalances, updatedAt: serverTimestamp() });
-      await deleteDoc(expenseRef);
+      await updateDoc(doc(firestore, "trips", id as string), { totalSpent: increment(-amount), netBalances: newBalances, updatedAt: serverTimestamp() });
+      await deleteDoc(doc(firestore, "trips", id as string, "expenses", expenseId));
       setSelectedExpenseDetail(null);
       toast({ title: "Expense deleted" });
     } catch (e) {
@@ -242,6 +284,7 @@ export default function TripDetails() {
         onEdit={() => setIsEditDialogOpen(true)} 
         onDelete={() => setIsDeleteDialogOpen(true)} 
         onChangeCover={() => setIsImagePickerOpen(true)} 
+        onResync={handleResyncBalances}
       />
 
       <div className="px-safe-pad pt-8 flex-1">
