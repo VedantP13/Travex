@@ -12,7 +12,10 @@ import {
   Calendar,
   Wallet,
   Users,
-  Loader2
+  Loader2,
+  Trophy,
+  Award,
+  Star
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { BottomNav } from "@/components/bottom-nav";
@@ -25,6 +28,7 @@ import {
   SelectTrigger, 
   SelectValue 
 } from "@/components/ui/select";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { cn } from "@/lib/utils";
 import { 
   PieChart, 
@@ -133,7 +137,6 @@ export default function AnalyticsPage() {
   // Chart Data: Specific Trip - Category Mix
   const categoryData = useMemo(() => {
     if (selectedView === 'global') {
-      // For global, we could show a fallback or calculate if we had aggregated data
       return [];
     }
     const counts: Record<string, number> = {};
@@ -156,6 +159,35 @@ export default function AnalyticsPage() {
     });
     return Object.entries(dayMap).map(([name, amount]) => ({ name, amount }));
   }, [tripExpenses, selectedView]);
+
+  // Phase 3: Social Insights Logic
+  const socialInsights = useMemo(() => {
+    if (selectedView === 'global') {
+      // Find top travel partners across all trips
+      const partnerCounts: Record<string, { count: number, avatar: string, name: string }> = {};
+      trips.forEach(trip => {
+        trip.participants?.forEach((p: any) => {
+          if (p.isUser && p.userId === user?.uid) return;
+          if (!partnerCounts[p.name]) {
+            partnerCounts[p.name] = { count: 0, avatar: p.avatar, name: p.name };
+          }
+          partnerCounts[p.name].count += 1;
+        });
+      });
+      return Object.values(partnerCounts).sort((a, b) => b.count - a.count).slice(0, 3);
+    } else {
+      // Find top payers in this specific trip
+      const payerTotals: Record<string, { amount: number, avatar: string, name: string }> = {};
+      tripExpenses.forEach(exp => {
+        if (!payerTotals[exp.payerName]) {
+          const p = selectedTrip?.participants?.find((part: any) => part.name === exp.payerName);
+          payerTotals[exp.payerName] = { amount: 0, avatar: p?.avatar || "", name: exp.payerName };
+        }
+        payerTotals[exp.payerName].amount += (parseFloat(exp.amount) || 0);
+      });
+      return Object.values(payerTotals).sort((a, b) => b.amount - a.amount).slice(0, 3);
+    }
+  }, [selectedView, trips, tripExpenses, user?.uid, selectedTrip]);
 
   const displayTotal = selectedView === 'global' ? globalStats.totalSpent : (tripStats?.totalSpent || 0);
   const displayBalance = selectedView === 'global' ? globalStats.netStanding : (tripStats?.netStanding || 0);
@@ -257,7 +289,7 @@ export default function AnalyticsPage() {
                 <div className="bg-white/50 border border-muted/20 p-3 rounded-2xl flex flex-col items-center justify-center text-center">
                    <Users className="h-3 w-3 text-muted-foreground mb-1" />
                    <p className="text-[10px] font-black leading-none">{tripStats.memberCount}</p>
-                   <p className="text-[7px] font-bold text-muted-foreground uppercase mt-0.5">Groups</p>
+                   <p className="text-[7px] font-bold text-muted-foreground uppercase mt-0.5">Members</p>
                 </div>
                 <div className="bg-white/50 border border-muted/20 p-3 rounded-2xl flex flex-col items-center justify-center text-center">
                    <Calendar className="h-3 w-3 text-muted-foreground mb-1" />
@@ -273,6 +305,57 @@ export default function AnalyticsPage() {
             )}
 
             <div className="space-y-6">
+              {/* Social Insights Section (Phase 3) */}
+              <Card className="border-none shadow-sm bg-white rounded-3xl overflow-hidden">
+                <CardHeader className="pb-2 pt-6">
+                  <CardTitle className="text-xs font-black uppercase tracking-widest text-foreground/40 text-center">
+                    {selectedView === 'global' ? 'Top Travel Partners' : 'Payer Dominance'}
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="p-6">
+                  {socialInsights.length > 0 ? (
+                    <div className="space-y-4">
+                      {socialInsights.map((item: any, idx: number) => (
+                        <div key={idx} className="flex items-center justify-between group">
+                          <div className="flex items-center gap-3">
+                            <div className="relative">
+                              <Avatar className="h-10 w-10 border-2 border-white shadow-sm">
+                                <AvatarImage src={item.avatar} />
+                                <AvatarFallback className="text-[10px] font-bold bg-muted text-foreground">{item.name[0]}</AvatarFallback>
+                              </Avatar>
+                              {idx === 0 && (
+                                <div className="absolute -top-1 -right-1 bg-accent rounded-full p-0.5 border-2 border-white shadow-sm">
+                                  <Trophy className="h-2.5 w-2.5 text-white" />
+                                </div>
+                              )}
+                            </div>
+                            <div>
+                              <p className="text-sm font-bold text-foreground leading-tight">{item.name}</p>
+                              <p className="text-[10px] text-muted-foreground font-medium">
+                                {selectedView === 'global' ? `${item.count} adventures shared` : 'Top contributor'}
+                              </p>
+                            </div>
+                          </div>
+                          <div className="text-right">
+                             <p className="text-xs font-black text-primary">
+                               {selectedView === 'global' ? `Trip Mate` : `₹${item.amount.toLocaleString()}`}
+                             </p>
+                             {selectedView !== 'global' && (
+                               <p className="text-[8px] font-bold text-muted-foreground uppercase">Spent</p>
+                             )}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="text-center py-6 opacity-30">
+                       <Award className="h-8 w-8 mx-auto mb-2 text-muted-foreground" />
+                       <p className="text-[10px] font-bold uppercase tracking-widest">Awaiting more data</p>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+
               {/* Category Breakdown Chart (Only for Specific Trip) */}
               {selectedView !== 'global' && (
                 <Card className="border-none shadow-sm bg-white rounded-3xl overflow-hidden">
