@@ -186,7 +186,7 @@ export default function AnalyticsPage() {
   }, [tripExpenses, selectedView]);
 
   // Phase 3: Social Insights Logic
-  const socialInsights = useMemo(() => {
+  const { socialInsights, maxVal } = useMemo(() => {
     if (selectedView === 'global') {
       // Find top travel partners across all trips
       const partnerCounts: Record<string, { count: number, avatar: string, name: string }> = {};
@@ -199,7 +199,9 @@ export default function AnalyticsPage() {
           partnerCounts[p.name].count += 1;
         });
       });
-      return Object.values(partnerCounts).sort((a, b) => b.count - a.count).slice(0, 3);
+      const items = Object.values(partnerCounts).sort((a, b) => b.count - a.count).slice(0, 3);
+      const maxVal = items.length > 0 ? items[0].count : 0;
+      return { socialInsights: items, maxVal };
     } else {
       // Find top payers in this specific trip
       const payerTotals: Record<string, { amount: number, avatar: string, name: string }> = {};
@@ -210,7 +212,9 @@ export default function AnalyticsPage() {
         }
         payerTotals[exp.payerName].amount += (parseFloat(exp.amount) || 0);
       });
-      return Object.values(payerTotals).sort((a, b) => b.amount - a.amount).slice(0, 3);
+      const items = Object.values(payerTotals).sort((a, b) => b.amount - a.amount).slice(0, 3);
+      const maxVal = items.length > 0 ? items[0].amount : 0;
+      return { socialInsights: items, maxVal };
     }
   }, [selectedView, trips, tripExpenses, user?.uid, selectedTrip]);
 
@@ -342,37 +346,45 @@ export default function AnalyticsPage() {
                 <CardContent className="p-6">
                   {socialInsights.length > 0 ? (
                     <div className="space-y-4">
-                      {socialInsights.map((item: any, idx: number) => (
-                        <div key={idx} className="flex items-center justify-between group">
-                          <div className="flex items-center gap-3">
-                            <div className="relative">
-                              <Avatar className="h-10 w-10 border-2 border-white shadow-sm">
-                                <AvatarImage src={item.avatar} />
-                                <AvatarFallback className="text-[10px] font-bold bg-muted text-foreground">{item.name[0]}</AvatarFallback>
-                              </Avatar>
-                              {idx === 0 && (
-                                <div className="absolute -top-1 -right-1 bg-accent rounded-full p-0.5 border-2 border-white shadow-sm">
-                                  <Trophy className="h-2.5 w-2.5 text-white" />
-                                </div>
-                              )}
+                      {socialInsights.map((item: any, idx: number) => {
+                        const isWinner = selectedView === 'global' 
+                          ? item.count === maxVal 
+                          : item.amount === maxVal;
+
+                        return (
+                          <div key={idx} className="flex items-center justify-between group">
+                            <div className="flex items-center gap-3">
+                              <div className="relative">
+                                <Avatar className="h-10 w-10 border-2 border-white shadow-sm">
+                                  <AvatarImage src={item.avatar} />
+                                  <AvatarFallback className="text-[10px] font-bold bg-muted text-foreground">{item.name[0]}</AvatarFallback>
+                                </Avatar>
+                                {isWinner && (
+                                  <div className="absolute -top-1 -right-1 bg-accent rounded-full p-0.5 border-2 border-white shadow-sm">
+                                    <Trophy className="h-2.5 w-2.5 text-white" />
+                                  </div>
+                                )}
+                              </div>
+                              <div>
+                                <p className="text-sm font-bold text-foreground leading-tight">{item.name}</p>
+                                <p className="text-[10px] text-muted-foreground font-medium">
+                                  {selectedView === 'global' ? 'Frequent companion' : 'Key contributor'}
+                                </p>
+                              </div>
                             </div>
-                            <div>
-                              <p className="text-sm font-bold text-foreground leading-tight">{item.name}</p>
-                              <p className="text-[10px] text-muted-foreground font-medium">
-                                {selectedView === 'global' ? `${item.count} adventures shared` : 'Top contributor'}
-                              </p>
+                            <div className="text-right">
+                               <p className="text-xs font-black text-primary">
+                                 {selectedView === 'global' 
+                                   ? `${item.count} Trips` 
+                                   : `₹${item.amount.toLocaleString()}`}
+                               </p>
+                               <p className="text-[8px] font-bold text-muted-foreground uppercase tracking-widest">
+                                 {selectedView === 'global' ? 'Shared' : 'Spent'}
+                               </p>
                             </div>
                           </div>
-                          <div className="text-right">
-                             <p className="text-xs font-black text-primary">
-                               {selectedView === 'global' ? `Trip Mate` : `₹${item.amount.toLocaleString()}`}
-                             </p>
-                             {selectedView !== 'global' && (
-                               <p className="text-[8px] font-bold text-muted-foreground uppercase">Spent</p>
-                             )}
-                          </div>
-                        </div>
-                      ))}
+                        );
+                      })}
                     </div>
                   ) : (
                     <div className="text-center py-6 opacity-30">
