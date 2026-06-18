@@ -446,25 +446,52 @@ export default function AnalyticsPage() {
                 </Card>
               </div>
             ) : tripStats && (
-              <div className="grid grid-cols-3 gap-3 mb-6 animate-in zoom-in-95 duration-300">
-                <div className="bg-white/50 border border-muted/20 p-3 rounded-2xl flex flex-col items-center justify-center text-center">
-                   <Users className="h-4 w-4 text-muted-foreground mb-1" />
-                   <p className="text-sm font-black leading-none">{tripStats.memberCount}</p>
-                   <p className="text-[8px] font-bold text-muted-foreground uppercase mt-1">People</p>
+              <>
+                <div className="grid grid-cols-3 gap-3 mb-6 animate-in zoom-in-95 duration-300">
+                  <div className="bg-white/50 border border-muted/20 p-3 rounded-2xl flex flex-col items-center justify-center text-center">
+                    <Users className="h-4 w-4 text-muted-foreground mb-1" />
+                    <p className="text-sm font-black leading-none">{tripStats.memberCount}</p>
+                    <p className="text-[8px] font-bold text-muted-foreground uppercase mt-1">People</p>
+                  </div>
+                  <div className="bg-white/50 border border-muted/20 p-3 rounded-2xl flex flex-col items-center justify-center text-center">
+                    <Receipt className="h-4 w-4 text-muted-foreground mb-1" />
+                    <p className="text-sm font-black leading-none">{tripStats.billsCount}</p>
+                    <p className="text-[8px] font-bold text-muted-foreground uppercase mt-1">Bills</p>
+                  </div>
+                  <div className="bg-white/50 border border-muted/20 p-3 rounded-2xl flex flex-col items-center justify-center text-center">
+                    <Calculator className="h-4 w-4 text-muted-foreground mb-1" />
+                    <p className="text-sm font-black leading-none">
+                      ₹{(tripStats.totalSpent / (tripStats.billsCount || 1)).toFixed(0)}
+                    </p>
+                    <p className="text-[8px] font-bold text-muted-foreground uppercase mt-1 whitespace-nowrap">Avg. Bill</p>
+                  </div>
                 </div>
-                <div className="bg-white/50 border border-muted/20 p-3 rounded-2xl flex flex-col items-center justify-center text-center">
-                   <Receipt className="h-4 w-4 text-muted-foreground mb-1" />
-                   <p className="text-sm font-black leading-none">{tripStats.billsCount}</p>
-                   <p className="text-[8px] font-bold text-muted-foreground uppercase mt-1">Bills</p>
+
+                <div className="grid grid-cols-2 gap-3 mb-6">
+                  <Card className="border-none shadow-sm bg-accent/5 rounded-3xl overflow-hidden">
+                    <CardContent className="p-4 flex items-center gap-3">
+                        <div className="h-9 w-9 rounded-2xl bg-accent/10 flex items-center justify-center shrink-0">
+                          <Zap className="h-4 w-4 text-accent" />
+                        </div>
+                        <div className="min-w-0">
+                          <p className="text-[8px] font-black uppercase text-accent/60 tracking-wider">Largest expense</p>
+                          <p className="text-xs font-bold text-accent truncate">₹{tripStats.highestBill.toLocaleString()}</p>
+                        </div>
+                    </CardContent>
+                  </Card>
+                  <Card className="border-none shadow-sm bg-primary/5 rounded-3xl overflow-hidden">
+                    <CardContent className="p-4 flex items-center gap-3">
+                        <div className="h-9 w-9 rounded-2xl bg-primary/10 flex items-center justify-center shrink-0">
+                          <CreditCard className="h-4 w-4 text-primary" />
+                        </div>
+                        <div className="min-w-0">
+                          <p className="text-[8px] font-black uppercase text-primary/60 tracking-wider">Payment types</p>
+                          <p className="text-xs font-bold text-primary truncate">{tripStats.topPayment}</p>
+                        </div>
+                    </CardContent>
+                  </Card>
                 </div>
-                <div className="bg-white/50 border border-muted/20 p-3 rounded-2xl flex flex-col items-center justify-center text-center">
-                   <Calculator className="h-4 w-4 text-muted-foreground mb-1" />
-                   <p className="text-sm font-black leading-none">
-                     ₹{(tripStats.totalSpent / (tripStats.billsCount || 1)).toFixed(0)}
-                   </p>
-                   <p className="text-[8px] font-bold text-muted-foreground uppercase mt-1 whitespace-nowrap">Avg. Bill</p>
-                </div>
-              </div>
+              </>
             )}
 
             <div className="space-y-6">
@@ -515,28 +542,6 @@ export default function AnalyticsPage() {
                   )}
                 </CardContent>
               </Card>
-
-              {/* Quick Details (Specific View) */}
-              {selectedView !== 'global' && tripStats && (
-                <div className="grid grid-cols-2 gap-3">
-                  <Card className="border-none shadow-sm bg-white rounded-3xl p-5">
-                    <div className="flex items-center gap-2 mb-3">
-                       <Zap className="h-3.5 w-3.5 text-accent" />
-                       <span className="text-[9px] font-black uppercase text-muted-foreground tracking-wider">Largest expense</span>
-                    </div>
-                    <p className="text-xl font-black text-foreground">₹{tripStats.highestBill.toLocaleString()}</p>
-                    <p className="text-[8px] text-muted-foreground mt-1 font-bold">Highest single bill</p>
-                  </Card>
-                  <Card className="border-none shadow-sm bg-white rounded-3xl p-5">
-                    <div className="flex items-center gap-2 mb-3">
-                       <CreditCard className="h-3.5 w-3.5 text-primary" />
-                       <span className="text-[9px] font-black uppercase text-muted-foreground tracking-wider">Payment types</span>
-                    </div>
-                    <p className="text-xl font-black text-foreground">{tripStats.topPayment}</p>
-                    <p className="text-[8px] text-muted-foreground mt-1 font-bold">Most used method</p>
-                  </Card>
-                </div>
-              )}
 
               {/* Social Insights Section */}
               <Card className="border-none shadow-sm bg-white rounded-3xl overflow-hidden">
