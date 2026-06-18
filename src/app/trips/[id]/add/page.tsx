@@ -736,18 +736,15 @@ export default function AddExpenseWizard() {
           <div className="space-y-8 animate-in fade-in slide-in-from-right-4 duration-300">
             <div className="flex justify-between items-center">
               <h1 className="text-2xl font-bold">Details</h1>
-              <div className="flex items-center gap-2">
-                <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Adding to</span>
+              <div className="flex items-center gap-1.5">
+                <span className="text-xs font-semibold text-muted-foreground">Adding to</span>
                 <Select value={selectedTripId} onValueChange={(val) => setSelectedTripId(val)}>
-                  <SelectTrigger className="w-auto min-w-[120px] max-w-[160px] h-9 rounded-xl border-none bg-primary/5 text-primary font-bold text-[10px] hover:bg-primary/10 transition-all focus:ring-0 px-3 uppercase tracking-tight">
-                    <div className="flex items-center gap-1.5 truncate">
-                      <MapPin className="h-3 w-3 shrink-0" />
-                      <SelectValue placeholder="Trip" />
-                    </div>
+                  <SelectTrigger className="w-auto h-8 rounded-lg border-none bg-transparent text-primary font-bold text-xs hover:bg-black/5 transition-all focus:ring-0 px-2 shadow-none gap-1">
+                    <SelectValue placeholder="Trip" />
                   </SelectTrigger>
                   <SelectContent className="rounded-2xl border-none shadow-2xl bg-white p-2">
                     {trips.filter(t => t.status !== 'Settled').map(trip => (
-                      <SelectItem key={trip.id} value={trip.id} className="rounded-xl text-[10px] font-bold py-3 uppercase tracking-tight cursor-pointer">
+                      <SelectItem key={trip.id} value={trip.id} className="rounded-xl text-xs font-bold py-3 cursor-pointer">
                         {trip.name}
                       </SelectItem>
                     ))}
