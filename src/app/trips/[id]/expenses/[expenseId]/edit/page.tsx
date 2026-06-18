@@ -440,31 +440,50 @@ export default function EditExpensePage() {
                     )} 
                     onClick={(e) => isFamilyView ? toggleFamilySelection(family.id) : setExpandedFamilies(prev => ({ ...prev, [family.id]: !prev[family.id] }))}
                   >
-                    <div className="flex items-center gap-3">
-                      <Avatar className="h-10 w-10 border-2 border-white shadow-sm">
+                    <div className="flex items-center gap-3 flex-1 min-w-0">
+                      <Avatar className="h-10 w-10 border-2 border-white shadow-sm flex-shrink-0">
                         <AvatarImage src={family.avatar} />
                         <AvatarFallback>{family.name?.[0]}</AvatarFallback>
                       </Avatar>
-                      <div>
+                      <div className="min-w-0 flex-1">
                         <p className="text-sm font-semibold truncate leading-tight">{family.familyName}</p>
                         <div className="flex items-center gap-1 mt-0.5" onClick={(e) => { e.stopPropagation(); setExpandedFamilies(prev => ({ ...prev, [family.id]: !prev[family.id] })); }}>
                           <span className="text-[10px] text-muted-foreground font-semibold">{members.length} members</span>
-                          {!isFamilyView && <ChevronDown className={cn("h-3 w-3 text-muted-foreground transition-transform", isExpanded && "rotate-180")} />}
+                          {selectedMembers.length > 0 && (
+                            <>
+                              <span className="text-[10px] text-muted-foreground/30">•</span>
+                              <span className={cn("text-[10px] font-bold", family.scheme.text)}>
+                                {selectedMembers.length} selected
+                              </span>
+                            </>
+                          )}
+                          {!isFamilyView && <ChevronDown className={cn("h-3 w-3 text-muted-foreground transition-transform ml-0.5", isExpanded && "rotate-180")} />}
                         </div>
                       </div>
                     </div>
-                    <div className="flex items-center gap-3">
-                      {hasAnySelected && <span className={cn("text-[10px] font-semibold whitespace-nowrap mr-1", family.scheme.text)}>{selectedMembers.length}/{members.length} selected</span>}
-                      {isFamilyView && (
-                        <div className="flex items-center gap-3">
-                          {allSelected && isCustom && (
-                            <div className="flex items-center gap-2" onClick={e => e.stopPropagation()}>
-                              <span className="text-xs font-semibold text-muted-foreground">₹</span>
-                              <Input type="number" placeholder="0" className={cn("h-9 w-24 rounded-lg text-right font-semibold text-sm border-none shadow-inner bg-black/5 focus-visible:ring-1", family.scheme.focus)} value={formData.customAmounts[family.id] || ""} onChange={e => setFormData(prev => ({ ...prev, customAmounts: { ...prev.customAmounts, [family.id]: e.target.value } }))} />
-                            </div>
-                          )}
-                          <div className={cn("h-7 w-7 rounded-full flex items-center justify-center bg-white shadow-sm", allSelected ? family.scheme.text : "text-muted-foreground")}>{allSelected ? <Minus className="h-4 w-4" /> : <Plus className="h-4 w-4" />}</div>
+                    <div className="flex items-center gap-2 flex-shrink-0">
+                      {isFamilyView && allSelected && isCustom && (
+                        <div className="flex items-center gap-1.5" onClick={e => e.stopPropagation()}>
+                          <span className="text-xs font-semibold text-muted-foreground">₹</span>
+                          <Input 
+                            type="number" 
+                            placeholder="0" 
+                            className={cn("h-9 w-20 rounded-lg text-right font-semibold text-sm border-none shadow-inner bg-black/5 focus-visible:ring-1", family.scheme.focus)} 
+                            value={formData.customAmounts[family.id] || ""} 
+                            onChange={e => setFormData(prev => ({ ...prev, customAmounts: { ...prev.customAmounts, [family.id]: e.target.value } }))} 
+                          />
                         </div>
+                      )}
+                      {isFamilyView && (
+                        allSelected ? (
+                          <div className={cn("h-7 w-7 rounded-full flex items-center justify-center bg-white shadow-sm", family.scheme.text)}>
+                            <Minus className="h-4 w-4" />
+                          </div>
+                        ) : (
+                          <div className={cn("h-7 w-7 rounded-full flex items-center justify-center bg-white/50 shadow-sm text-muted-foreground")}>
+                            <Plus className="h-4 w-4" />
+                          </div>
+                        )
                       )}
                     </div>
                   </div>
