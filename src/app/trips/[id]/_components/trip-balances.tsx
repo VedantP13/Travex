@@ -1,4 +1,3 @@
-
 'use client';
 
 import { 
@@ -10,7 +9,8 @@ import {
   Info,
   Crown,
   Tag,
-  Receipt
+  Receipt,
+  RefreshCw
 } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -69,7 +69,7 @@ export function TripBalances({ groupedStandings, suggestedPayments, expenses }: 
                 <TrendingUp className="h-3 w-3" />
                 <span className="text-[9px] font-bold uppercase tracking-widest">Debt</span>
               </div>
-              <p className="text-lg font-bold">₹{Math.abs(groupedStandings.reduce((acc, s) => s.netTotal < 0 ? acc + s.netTotal : acc, 0)).toFixed(2)}</p>
+              <p className="text-lg font-bold">₹{Math.abs(groupedStandings.reduce((acc, s) => s.netTotal < -0.01 ? acc + s.netTotal : acc, 0)).toFixed(2)}</p>
             </div>
           </div>
 
