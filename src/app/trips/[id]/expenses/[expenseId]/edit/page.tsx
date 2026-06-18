@@ -699,7 +699,7 @@ export default function EditExpensePage() {
                  { id: "just_me", label: "Just you", icon: User, desc: "Assign full amount to me" }
                ].map(mode => (
                  <Card key={mode.id} className={cn("p-5 rounded-3xl border-2 transition-all cursor-pointer flex flex-col gap-2 bg-white shadow-sm", formData.splitType === mode.id ? "border-primary bg-primary/5 shadow-md" : "border-transparent hover:border-muted/20")} onClick={() => setFormData(prev => ({ ...prev, splitType: mode.id }))}>
-                    <div className={cn("h-10 w-10 rounded-xl flex items-center justify-center transition-colors", formData.splitType === mode.id ? "bg-primary text-white" : "text-muted-foreground/40")}><mode.icon className="h-5 w-5" /></div>
+                    <div className={cn("h-10 w-10 rounded-xl flex items-center justify-center transition-colors", formData.splitType === mode.id ? "bg-primary text-white" : "text-muted-foreground/60")}><mode.icon className="h-5 w-5" /></div>
                     <div className="mt-2"><p className="font-semibold text-sm tracking-tight">{mode.label}</p><p className="text-[10px] text-muted-foreground/60 font-medium leading-tight">{mode.desc}</p></div>
                  </Card>
                ))}

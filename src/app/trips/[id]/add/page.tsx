@@ -1038,7 +1038,7 @@ export default function AddExpenseWizard() {
 
             <div className="grid grid-cols-2 gap-4">
               {[
-                { id: "equal_person", label: "Per person", icon: Users, desc: "Split equally among all members" },
+                { id: "equal_person", label: "Per person", icon: Users, desc: "Split equally among everyone" },
                 { id: "equal_family", label: "Per family", icon: Home, desc: "One equal share for each family" },
                 { id: "custom", label: "Custom amount", icon: Calculator, desc: "Enter amounts for each person" },
                 { id: "just_me", label: "Just you", icon: User, desc: "Assign full amount to me" }
@@ -1062,7 +1062,7 @@ export default function AddExpenseWizard() {
                     <div className="flex justify-between items-start">
                       <div className={cn(
                         "h-10 w-10 rounded-xl flex items-center justify-center transition-colors",
-                        isSelected ? "bg-primary text-white" : "text-muted-foreground/40"
+                        isSelected ? "bg-primary text-white" : "text-muted-foreground/60"
                       )}>
                         <mode.icon className="h-5 w-5" />
                       </div>
