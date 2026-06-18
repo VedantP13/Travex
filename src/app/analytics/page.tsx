@@ -234,7 +234,7 @@ export default function AnalyticsPage() {
           <Select value={selectedView} onValueChange={setSelectedView}>
             <SelectTrigger className="w-auto min-w-[140px] h-10 rounded-2xl border-none bg-white/10 text-white font-bold text-[10px] hover:bg-white/20 transition-all shadow-sm focus:ring-0 px-4 uppercase tracking-widest">
               <div className="flex items-center gap-2">
-                {selectedView === 'global' ? <Globe className="h-3 w-3 text-accent" /> : <MapPin className="h-3 w-3 text-accent" />}
+                {selectedView === 'global' ? <Globe className="h-3 w-3 text-accent" /> : < MapPin className="h-3 w-3 text-accent" />}
                 <SelectValue placeholder="View" />
               </div>
             </SelectTrigger>
@@ -368,14 +368,16 @@ export default function AnalyticsPage() {
                               <div>
                                 <p className="text-sm font-bold text-foreground leading-tight">{item.name}</p>
                                 <p className="text-[10px] text-muted-foreground font-medium">
-                                  {selectedView === 'global' ? 'Frequent companion' : 'Key contributor'}
+                                  {selectedView === 'global' 
+                                    ? (idx === 0 ? 'Main travel buddy' : 'Frequent companion') 
+                                    : (idx === 0 ? 'Top payer' : 'Key contributor')}
                                 </p>
                               </div>
                             </div>
                             <div className="text-right">
                                <p className="text-xs font-black text-primary">
                                  {selectedView === 'global' 
-                                   ? `${item.count} Trips` 
+                                   ? `${item.count} ${item.count === 1 ? 'Trip' : 'Trips'}` 
                                    : `₹${item.amount.toLocaleString()}`}
                                </p>
                                <p className="text-[8px] font-bold text-muted-foreground uppercase tracking-widest">
