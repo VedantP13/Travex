@@ -360,6 +360,9 @@ export default function AddExpenseWizard() {
         if (finalSplitType === 'custom') {
           selected.forEach(id => {
             const share = parseFloat(formData.customAmounts[id]) || 0;
+            const pid = id.split('-')[0];
+            const numSelectedInFamily = selected.filter(sid => sid.startsWith(pid)).length;
+            const distributedShare = share / numSelectedInFamily;
             deltas[id] = (deltas[id] || 0) - share;
           });
         } else if (finalSplitType === 'equal_person') {
@@ -638,7 +641,7 @@ export default function AddExpenseWizard() {
                                 <span className="text-xs font-semibold text-muted-foreground">₹</span>
                                 <Input 
                                   type="number" 
-                                  placeholder="0"
+                                  placeholder="0" 
                                   className={cn(
                                     "h-8 w-20 rounded-lg text-right font-semibold text-xs border-none shadow-inner bg-black/5 focus-visible:ring-1",
                                     family.scheme.focus
@@ -731,28 +734,26 @@ export default function AddExpenseWizard() {
       <main className="flex-1 px-safe-pad py-8 overflow-y-auto pb-32">
         {step === 1 && (
           <div className="space-y-8 animate-in fade-in slide-in-from-right-4 duration-300">
-            <div className="space-y-3">
-              <div className="flex justify-between items-center">
-                <h1 className="text-2xl font-bold">Details</h1>
+            <div className="flex justify-between items-center">
+              <h1 className="text-2xl font-bold">Details</h1>
+              <div className="flex items-center gap-2">
+                <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Adding to</span>
                 <Select value={selectedTripId} onValueChange={(val) => setSelectedTripId(val)}>
-                  <SelectTrigger className="w-auto min-w-[140px] h-10 rounded-2xl border-2 border-primary/10 bg-white text-foreground font-semibold text-xs hover:border-primary/30 hover:bg-primary/5 transition-all shadow-sm focus:ring-0 px-4">
-                    <div className="flex items-center gap-2">
-                      <MapPin className="h-3.5 w-3.5 text-primary" />
-                      <SelectValue placeholder="Select trip" />
+                  <SelectTrigger className="w-auto min-w-[120px] max-w-[160px] h-9 rounded-xl border-none bg-primary/5 text-primary font-bold text-[10px] hover:bg-primary/10 transition-all focus:ring-0 px-3 uppercase tracking-tight">
+                    <div className="flex items-center gap-1.5 truncate">
+                      <MapPin className="h-3 w-3 shrink-0" />
+                      <SelectValue placeholder="Trip" />
                     </div>
                   </SelectTrigger>
-                  <SelectContent className="rounded-[1.5rem] border-none shadow-[0_20px_50px_rgba(0,0,0,0.15)] bg-white p-2">
+                  <SelectContent className="rounded-2xl border-none shadow-2xl bg-white p-2">
                     {trips.filter(t => t.status !== 'Settled').map(trip => (
-                      <SelectItem key={trip.id} value={trip.id} className="rounded-xl text-xs font-semibold py-3 focus:bg-primary/10 focus:text-primary transition-colors cursor-pointer">
+                      <SelectItem key={trip.id} value={trip.id} className="rounded-xl text-[10px] font-bold py-3 uppercase tracking-tight cursor-pointer">
                         {trip.name}
                       </SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
               </div>
-              <p className="text-sm text-muted-foreground">
-                Adding to <span className="text-primary font-semibold">{currentTrip?.name || "..."}</span>
-              </p>
             </div>
 
             <div className="space-y-6">
