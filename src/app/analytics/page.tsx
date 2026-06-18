@@ -48,6 +48,28 @@ import { collection, query, onSnapshot, orderBy } from "firebase/firestore";
 
 const COLORS = ['#0B6E82', '#F5A623', '#5B9EAD', '#112240', '#FF7043', '#4DB6AC', '#7986CB'];
 
+const renderCustomizedLabel = ({ cx, cy, midAngle, innerRadius, outerRadius, percent, index }: any) => {
+  const RADIAN = Math.PI / 180;
+  const radius = innerRadius + (outerRadius - innerRadius) * 0.5;
+  const x = cx + radius * Math.cos(-midAngle * RADIAN);
+  const y = cy + radius * Math.sin(-midAngle * RADIAN);
+
+  if (percent < 0.05) return null; // Don't show labels for very small slices
+
+  return (
+    <text 
+      x={x} 
+      y={y} 
+      fill="white" 
+      textAnchor={x > cx ? 'start' : 'end'} 
+      dominantBaseline="central"
+      className="text-[9px] font-black"
+    >
+      {`${(percent * 100).toFixed(0)}%`}
+    </text>
+  );
+};
+
 export default function AnalyticsPage() {
   const { trips, loading: tripsLoading } = useTrips();
   const { user } = useUser();
@@ -374,27 +396,29 @@ export default function AnalyticsPage() {
                         <Loader2 className="h-6 w-6 animate-spin text-primary" />
                       </div>
                     ) : categoryData.length > 0 ? (
-                      <div className="h-60 w-full">
+                      <div className="h-72 w-full">
                         <ResponsiveContainer width="100%" height="100%">
-                          <PieChart>
+                          <PieChart margin={{ top: 10, right: 10, bottom: 10, left: 10 }}>
                             <Pie
                               data={categoryData}
                               cx="50%"
-                              cy="50%"
-                              innerRadius={60}
-                              outerRadius={80}
-                              paddingAngle={5}
+                              cy="45%"
+                              innerRadius={65}
+                              outerRadius={95}
+                              paddingAngle={4}
                               dataKey="value"
-                              label={({ name, percent }) => `${(percent * 100).toFixed(0)}%`}
+                              stroke="none"
+                              labelLine={false}
+                              label={renderCustomizedLabel}
                             >
                               {categoryData.map((entry, index) => (
                                 <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                               ))}
                             </Pie>
                             <ReTooltip 
-                              contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)' }}
+                              contentStyle={{ borderRadius: '16px', border: 'none', boxShadow: '0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1)' }}
                             />
-                            <Legend verticalAlign="bottom" height={36}/>
+                            <Legend verticalAlign="bottom" height={36} iconType="circle" wrapperStyle={{ paddingTop: '20px' }} />
                           </PieChart>
                         </ResponsiveContainer>
                       </div>
