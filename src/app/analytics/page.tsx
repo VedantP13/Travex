@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState, useMemo, useEffect } from "react";
@@ -214,7 +213,7 @@ export default function AnalyticsPage() {
             </SelectTrigger>
             <SelectContent className="rounded-[1.5rem] border-none shadow-2xl bg-white p-2">
               <SelectItem value="global" className="rounded-xl text-[10px] font-bold py-3 uppercase tracking-widest cursor-pointer">
-                Global Pulse
+                All Trips
               </SelectItem>
               {trips.map(trip => (
                 <SelectItem key={trip.id} value={trip.id} className="rounded-xl text-[10px] font-bold py-3 uppercase tracking-widest cursor-pointer">
@@ -227,8 +226,8 @@ export default function AnalyticsPage() {
         
         <p className="text-xs opacity-60 font-medium text-background leading-relaxed pr-10">
           {selectedView === 'global' 
-            ? "Your consolidated travel economy across all adventures." 
-            : `Deep dive into ${selectedTrip?.name || 'this journey'}'s patterns.`}
+            ? "Your total spending and balance across all adventures." 
+            : `Details for ${selectedTrip?.name || 'this journey'}.`}
         </p>
       </header>
 
@@ -310,11 +309,11 @@ export default function AnalyticsPage() {
             )}
 
             <div className="space-y-6">
-              {/* Social Insights Section (Phase 3) */}
+              {/* Social Insights Section */}
               <Card className="border-none shadow-sm bg-white rounded-3xl overflow-hidden">
                 <CardHeader className="pb-2 pt-6">
                   <CardTitle className="text-xs font-black uppercase tracking-widest text-foreground/40 text-center">
-                    {selectedView === 'global' ? 'Top Travel Partners' : 'Payer Dominance'}
+                    {selectedView === 'global' ? 'Top Companions' : 'Top Contributors'}
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="p-6">
@@ -366,7 +365,7 @@ export default function AnalyticsPage() {
                 <Card className="border-none shadow-sm bg-white rounded-3xl overflow-hidden">
                   <CardHeader className="pb-0 pt-6">
                     <CardTitle className="text-xs font-black uppercase tracking-widest text-foreground/40 text-center">
-                      Category Mix
+                      Expense Categories
                     </CardTitle>
                   </CardHeader>
                   <CardContent className="p-6">
@@ -413,7 +412,7 @@ export default function AnalyticsPage() {
               <Card className="border-none shadow-sm bg-white rounded-3xl overflow-hidden">
                 <CardHeader className="pb-2 pt-6">
                   <CardTitle className="text-xs font-black uppercase tracking-widest text-foreground/40 text-center">
-                    {selectedView === 'global' ? 'Trip Comparison' : 'Spending Velocity'}
+                    {selectedView === 'global' ? 'Spending per Trip' : 'Spending Timeline'}
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="p-6">
