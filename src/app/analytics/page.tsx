@@ -474,8 +474,9 @@ export default function AnalyticsPage() {
                           <Zap className="h-4 w-4 text-accent" />
                         </div>
                         <div className="min-w-0">
-                          <p className="text-[8px] font-black uppercase text-accent/60 tracking-wider">Largest expense</p>
+                          <p className="text-[8px] font-black uppercase text-accent/60 tracking-wider">Peak Spend</p>
                           <p className="text-xs font-bold text-accent truncate">₹{tripStats.highestBill.toLocaleString()}</p>
+                          <p className="text-[7px] text-accent/40 font-medium leading-none mt-0.5">Highest single bill</p>
                         </div>
                     </CardContent>
                   </Card>
@@ -485,8 +486,9 @@ export default function AnalyticsPage() {
                           <CreditCard className="h-4 w-4 text-primary" />
                         </div>
                         <div className="min-w-0">
-                          <p className="text-[8px] font-black uppercase text-primary/60 tracking-wider">Payment types</p>
+                          <p className="text-[8px] font-black uppercase text-primary/60 tracking-wider">Main Payment</p>
                           <p className="text-xs font-bold text-primary truncate">{tripStats.topPayment}</p>
+                          <p className="text-[7px] text-primary/40 font-medium leading-none mt-0.5">Most used method</p>
                         </div>
                     </CardContent>
                   </Card>
@@ -674,7 +676,7 @@ export default function AnalyticsPage() {
                                 offset={8}
                                 style={{ fill: '#112240', fontSize: 9, fontWeight: 900 }}
                                 formatter={(val: number) => `₹${val.toLocaleString()}`}
-                              />
+                            />
                             </Bar>
                           </BarChart>
                         </ResponsiveContainer>
