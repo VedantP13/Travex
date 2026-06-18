@@ -265,11 +265,20 @@ export default function EditExpensePage() {
         });
       }
     } else if (splitType === 'equal_family') {
-      const familyIds = Array.from(new Set(selectedIndividuals.map((id: string) => id.split('-')[0])));
-      if (familyIds.length > 0) {
-        const sharePerFamily = amount / familyIds.length;
-        familyIds.forEach((fid: string) => {
-          deltas[fid] = (deltas[fid] || 0) - sharePerFamily;
+      const familyGroups: Record<string, string[]> = {};
+      selectedIndividuals.forEach((id: string) => {
+        const fid = id.split('-')[0];
+        if (!familyGroups[fid]) familyGroups[fid] = [];
+        familyGroups[fid].push(id);
+      });
+      const numFamilies = Object.keys(familyGroups).length;
+      if (numFamilies > 0) {
+        const sharePerFamily = amount / numFamilies;
+        Object.values(familyGroups).forEach(members => {
+          const sharePerMember = sharePerFamily / members.length;
+          members.forEach(mId => {
+            deltas[mId] = (deltas[mId] || 0) - sharePerMember;
+          });
         });
       }
     } else if (splitType === 'just_me') {
@@ -417,7 +426,6 @@ export default function EditExpensePage() {
             
             return (
               <div key={family.id} className="space-y-2">
-                {/* The "Selected" Card */}
                 <div 
                   className={cn(
                     "rounded-2xl border-2 transition-all overflow-hidden shadow-sm", 
@@ -483,7 +491,6 @@ export default function EditExpensePage() {
                   )}
                 </div>
 
-                {/* The "Unselected" List (Outside the colored box) */}
                 {isExpanded && !isFamilyView && unselectedMembers.length > 0 && (
                   <div className="space-y-1 pl-4 animate-in slide-in-from-top-1 duration-200">
                     {unselectedMembers.map((member) => (

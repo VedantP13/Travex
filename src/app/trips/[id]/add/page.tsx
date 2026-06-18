@@ -353,10 +353,8 @@ export default function AddExpenseWizard() {
     };
 
     try {
-      // Calculate Balance Deltas for the Math Engine
       const deltas: Record<string, number> = {};
       if (finalSplitType !== 'unsplit') {
-        const payers = [formData.payerId];
         const selected = formData.selectedIndividuals;
         
         if (finalSplitType === 'custom') {
@@ -370,17 +368,26 @@ export default function AddExpenseWizard() {
             deltas[id] = (deltas[id] || 0) - share;
           });
         } else if (finalSplitType === 'equal_family') {
-          // Equal by family unit (selected units)
-          const familyIds = Array.from(new Set(selected.map(id => id.split('-')[0])));
-          const sharePerFamily = amount / familyIds.length;
-          familyIds.forEach(fid => {
-            deltas[fid] = (deltas[fid] || 0) - sharePerFamily;
+          const familyGroups: Record<string, string[]> = {};
+          selected.forEach(id => {
+            const fid = id.split('-')[0];
+            if (!familyGroups[fid]) familyGroups[fid] = [];
+            familyGroups[fid].push(id);
           });
+          const numFamilies = Object.keys(familyGroups).length;
+          if (numFamilies > 0) {
+            const sharePerFamily = amount / numFamilies;
+            Object.values(familyGroups).forEach(members => {
+              const sharePerMember = sharePerFamily / members.length;
+              members.forEach(mId => {
+                deltas[mId] = (deltas[mId] || 0) - sharePerMember;
+              });
+            });
+          }
         } else if (finalSplitType === 'just_me') {
           deltas[formData.payerId] = (deltas[formData.payerId] || 0) - amount;
         }
 
-        // Add the credit for the payer
         deltas[formData.payerId] = (deltas[formData.payerId] || 0) + amount;
       }
 
@@ -391,7 +398,6 @@ export default function AddExpenseWizard() {
       const tripData = tripSnap.data();
       const currentBalances = tripData?.netBalances || {};
       
-      // Update global ledger
       const newBalances = { ...currentBalances };
       Object.entries(deltas).forEach(([id, delta]) => {
         newBalances[id] = (newBalances[id] || 0) + delta;
@@ -535,7 +541,6 @@ export default function AddExpenseWizard() {
 
             return (
               <div key={family.id} className="space-y-2">
-                {/* The "Selected" Card (or Header if none selected) */}
                 <div 
                   className={cn(
                     "rounded-2xl border-2 transition-all overflow-hidden shadow-sm",
@@ -651,7 +656,6 @@ export default function AddExpenseWizard() {
                   )}
                 </div>
 
-                {/* The "Unselected" List (Outside the colored box) */}
                 {isExpanded && !isFamilyView && unselectedMembers.length > 0 && (
                   <div className="space-y-1 pl-4 animate-in slide-in-from-top-1 duration-200">
                     {unselectedMembers.map((member) => (

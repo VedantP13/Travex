@@ -176,10 +176,22 @@ export default function CompleteSplitPage() {
           deltas[id] = (deltas[id] || 0) - share;
         });
       } else if (formData.splitType === 'equal_family') {
-        const sharePerFamily = amount / selected.length;
+        const familyGroups: Record<string, string[]> = {};
         selected.forEach(id => {
-          deltas[id] = (deltas[id] || 0) - sharePerFamily;
+          const fid = id.split('-')[0];
+          if (!familyGroups[fid]) familyGroups[fid] = [];
+          familyGroups[fid].push(id);
         });
+        const numFamilies = Object.keys(familyGroups).length;
+        if (numFamilies > 0) {
+          const sharePerFamily = amount / numFamilies;
+          Object.values(familyGroups).forEach(members => {
+            const sharePerMember = sharePerFamily / members.length;
+            members.forEach(mId => {
+              deltas[mId] = (deltas[mId] || 0) - sharePerMember;
+            });
+          });
+        }
       } else if (formData.splitType === 'just_me') {
         deltas[payerId] = (deltas[payerId] || 0) - amount;
       }
@@ -262,7 +274,6 @@ export default function CompleteSplitPage() {
             
             return (
               <div key={family.id} className="space-y-2">
-                {/* The "Selected" Card (or Header if none selected) */}
                 <div 
                   className={cn(
                     "rounded-2xl border-2 transition-all overflow-hidden shadow-sm", 
@@ -330,7 +341,6 @@ export default function CompleteSplitPage() {
                   )}
                 </div>
 
-                {/* The "Unselected" List (Outside the colored box) */}
                 {isExpanded && !isFamilyView && unselectedMembers.length > 0 && (
                   <div className="space-y-1 pl-4 animate-in slide-in-from-top-1 duration-200">
                     {unselectedMembers.map((member) => (

@@ -144,9 +144,22 @@ export default function TripDetails() {
       const share = amount / selected.length;
       selected.forEach((pid: string) => { deltas[pid] = (deltas[pid] || 0) + share; });
     } else if (expenseData.splitType === 'equal_family') {
-      const familyIds = Array.from(new Set(selected.map((pid: string) => pid.split('-')[0])));
-      const sharePerFamily = amount / familyIds.length;
-      familyIds.forEach((fid: any) => { deltas[fid] = (deltas[fid] || 0) + sharePerFamily; });
+      const familyGroups: Record<string, string[]> = {};
+      selected.forEach((pid: string) => {
+        const fid = pid.split('-')[0];
+        if (!familyGroups[fid]) familyGroups[fid] = [];
+        familyGroups[fid].push(pid);
+      });
+      const numFamilies = Object.keys(familyGroups).length;
+      if (numFamilies > 0) {
+        const sharePerFamily = amount / numFamilies;
+        Object.values(familyGroups).forEach(members => {
+          const sharePerMember = sharePerFamily / members.length;
+          members.forEach(mId => {
+            deltas[mId] = (deltas[mId] || 0) + sharePerMember;
+          });
+        });
+      }
     } else if (expenseData.splitType === 'just_me') {
       deltas[payerId] = (deltas[payerId] || 0) + amount;
     }
