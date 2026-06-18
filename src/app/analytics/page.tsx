@@ -188,7 +188,6 @@ export default function AnalyticsPage() {
   // Phase 3: Social Insights Logic
   const { socialInsights, maxVal } = useMemo(() => {
     if (selectedView === 'global') {
-      // Find top travel partners across all trips
       const partnerCounts: Record<string, { count: number, avatar: string, name: string }> = {};
       trips.forEach(trip => {
         trip.participants?.forEach((p: any) => {
@@ -201,20 +200,34 @@ export default function AnalyticsPage() {
       });
       const items = Object.values(partnerCounts).sort((a, b) => b.count - a.count).slice(0, 3);
       const maxVal = items.length > 0 ? items[0].count : 0;
-      return { socialInsights: items, maxVal };
+
+      // Add smart detail
+      const insights = items.map(item => ({
+        ...item,
+        smartDetail: `${((item.count / (trips.length || 1)) * 100).toFixed(0)}% of your journeys`
+      }));
+
+      return { socialInsights: insights, maxVal };
     } else {
-      // Find top payers in this specific trip
-      const payerTotals: Record<string, { amount: number, avatar: string, name: string }> = {};
+      const payerTotals: Record<string, { amount: number, avatar: string, name: string, bills: number }> = {};
       tripExpenses.forEach(exp => {
         if (!payerTotals[exp.payerName]) {
           const p = selectedTrip?.participants?.find((part: any) => part.name === exp.payerName);
-          payerTotals[exp.payerName] = { amount: 0, avatar: p?.avatar || "", name: exp.payerName };
+          payerTotals[exp.payerName] = { amount: 0, avatar: p?.avatar || "", name: exp.payerName, bills: 0 };
         }
         payerTotals[exp.payerName].amount += (parseFloat(exp.amount) || 0);
+        payerTotals[exp.payerName].bills += 1;
       });
       const items = Object.values(payerTotals).sort((a, b) => b.amount - a.amount).slice(0, 3);
       const maxVal = items.length > 0 ? items[0].amount : 0;
-      return { socialInsights: items, maxVal };
+      
+      const tripTotal = selectedTrip?.totalSpent || 1;
+      const insights = items.map(item => ({
+        ...item,
+        smartDetail: `Paid for ${((item.amount / tripTotal) * 100).toFixed(0)}% of expenses`
+      }));
+
+      return { socialInsights: insights, maxVal };
     }
   }, [selectedView, trips, tripExpenses, user?.uid, selectedTrip]);
 
@@ -368,9 +381,7 @@ export default function AnalyticsPage() {
                               <div>
                                 <p className="text-sm font-bold text-foreground leading-tight">{item.name}</p>
                                 <p className="text-[10px] text-muted-foreground font-medium">
-                                  {selectedView === 'global' 
-                                    ? (idx === 0 ? 'Main travel buddy' : 'Frequent companion') 
-                                    : (idx === 0 ? 'Top payer' : 'Key contributor')}
+                                  {item.smartDetail}
                                 </p>
                               </div>
                             </div>
