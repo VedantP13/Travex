@@ -42,7 +42,8 @@ import {
   XAxis, 
   YAxis, 
   Tooltip as ReTooltip,
-  Legend
+  Legend,
+  LabelList
 } from "recharts";
 import { collection, query, onSnapshot, orderBy } from "firebase/firestore";
 
@@ -441,9 +442,9 @@ export default function AnalyticsPage() {
                 </CardHeader>
                 <CardContent className="p-6">
                   {selectedView === 'global' ? (
-                    <div className="h-60 w-full">
+                    <div className="h-64 w-full">
                       <ResponsiveContainer width="100%" height="100%">
-                        <BarChart data={globalComparisonData}>
+                        <BarChart data={globalComparisonData} margin={{ top: 20, right: 0, left: 0, bottom: 0 }}>
                           <XAxis 
                             dataKey="name" 
                             axisLine={false} 
@@ -460,19 +461,27 @@ export default function AnalyticsPage() {
                             fill="#0B6E82" 
                             radius={[8, 8, 0, 0]}
                             barSize={30}
-                          />
+                          >
+                            <LabelList 
+                              dataKey="amount" 
+                              position="top" 
+                              offset={8}
+                              style={{ fill: '#112240', fontSize: 9, fontWeight: 900 }}
+                              formatter={(val: number) => `₹${val.toLocaleString()}`}
+                            />
+                          </Bar>
                         </BarChart>
                       </ResponsiveContainer>
                     </div>
                   ) : (
-                    <div className="h-60 w-full">
+                    <div className="h-64 w-full">
                       {isExpensesLoading ? (
                         <div className="h-full flex items-center justify-center">
                            <Loader2 className="h-6 w-6 animate-spin text-primary" />
                         </div>
                       ) : timeTrendData.length > 0 ? (
                         <ResponsiveContainer width="100%" height="100%">
-                          <BarChart data={timeTrendData}>
+                          <BarChart data={timeTrendData} margin={{ top: 20, right: 0, left: 0, bottom: 0 }}>
                             <XAxis 
                               dataKey="name" 
                               axisLine={false} 
@@ -489,7 +498,15 @@ export default function AnalyticsPage() {
                               fill="#F5A623" 
                               radius={[8, 8, 0, 0]}
                               barSize={20}
-                            />
+                            >
+                              <LabelList 
+                                dataKey="amount" 
+                                position="top" 
+                                offset={8}
+                                style={{ fill: '#112240', fontSize: 9, fontWeight: 900 }}
+                                formatter={(val: number) => `₹${val.toLocaleString()}`}
+                              />
+                            </Bar>
                           </BarChart>
                         </ResponsiveContainer>
                       ) : (
