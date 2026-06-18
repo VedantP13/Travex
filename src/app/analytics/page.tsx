@@ -17,7 +17,8 @@ import {
   Award,
   Star,
   Receipt,
-  Zap
+  Zap,
+  Calculator
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { BottomNav } from "@/components/bottom-nav";
@@ -289,21 +290,21 @@ export default function AnalyticsPage() {
             {selectedView !== 'global' && tripStats && (
               <div className="grid grid-cols-3 gap-3 mb-6 animate-in zoom-in-95 duration-300">
                 <div className="bg-white/50 border border-muted/20 p-3 rounded-2xl flex flex-col items-center justify-center text-center">
-                   <Users className="h-3 w-3 text-muted-foreground mb-1" />
-                   <p className="text-[10px] font-black leading-none">{tripStats.memberCount}</p>
-                   <p className="text-[7px] font-bold text-muted-foreground uppercase mt-0.5">Size</p>
+                   <Users className="h-4 w-4 text-muted-foreground mb-1" />
+                   <p className="text-sm font-black leading-none">{tripStats.memberCount}</p>
+                   <p className="text-[8px] font-bold text-muted-foreground uppercase mt-1">People</p>
                 </div>
                 <div className="bg-white/50 border border-muted/20 p-3 rounded-2xl flex flex-col items-center justify-center text-center">
-                   <Receipt className="h-3 w-3 text-muted-foreground mb-1" />
-                   <p className="text-[10px] font-black leading-none">{tripExpenses.length}</p>
-                   <p className="text-[7px] font-bold text-muted-foreground uppercase mt-0.5">Activity</p>
+                   <Receipt className="h-4 w-4 text-muted-foreground mb-1" />
+                   <p className="text-sm font-black leading-none">{tripExpenses.length}</p>
+                   <p className="text-[8px] font-bold text-muted-foreground uppercase mt-1">Bills</p>
                 </div>
                 <div className="bg-white/50 border border-muted/20 p-3 rounded-2xl flex flex-col items-center justify-center text-center">
-                   <Zap className="h-3 w-3 text-muted-foreground mb-1" />
-                   <p className="text-[10px] font-black leading-none uppercase">
+                   <Calculator className="h-4 w-4 text-muted-foreground mb-1" />
+                   <p className="text-sm font-black leading-none">
                      ₹{(tripStats.totalSpent / (tripExpenses.length || 1)).toFixed(0)}
                    </p>
-                   <p className="text-[7px] font-bold text-muted-foreground uppercase mt-0.5">Pace</p>
+                   <p className="text-[8px] font-bold text-muted-foreground uppercase mt-1 whitespace-nowrap">Avg. Bill</p>
                 </div>
               </div>
             )}
