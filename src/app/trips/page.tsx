@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useMemo } from "react";
@@ -16,21 +17,32 @@ import { getTripImage } from "@/lib/image-utils";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useUser } from "@/firebase";
 
+const FILTERS = [
+  { id: 'all', label: 'All' },
+  { id: 'Active', label: 'Active' },
+  { id: 'Upcoming', label: 'Upcoming' },
+  { id: 'Completed', label: 'Completed' },
+  { id: 'Settled', label: 'Settled' },
+];
+
 export default function AllTripsPage() {
   const router = useRouter();
   const { trips, loading, error } = useTrips();
   const { user } = useUser();
   const [searchQuery, setSearchQuery] = useState("");
+  const [statusFilter, setStatusFilter] = useState("all");
 
   const filteredTrips = useMemo(() => {
-    return trips.filter(t => 
-      t.name.toLowerCase().includes(searchQuery.toLowerCase())
-    );
-  }, [trips, searchQuery]);
+    return trips.filter(t => {
+      const matchesSearch = t.name.toLowerCase().includes(searchQuery.toLowerCase());
+      const matchesStatus = statusFilter === 'all' || t.status === statusFilter;
+      return matchesSearch && matchesStatus;
+    });
+  }, [trips, searchQuery, statusFilter]);
 
   return (
     <div className="max-w-md mx-auto min-h-screen flex flex-col bg-background pb-32">
-      <header className="px-safe-pad pt-10 pb-6 bg-white border-b rounded-b-[2rem] shadow-sm">
+      <header className="px-safe-pad pt-10 pb-6 bg-white border-b rounded-b-[2rem] shadow-sm sticky top-0 z-20">
         <div className="flex items-center gap-4 mb-6">
           <Button variant="ghost" size="icon" onClick={() => router.back()} className="rounded-xl">
             <ArrowLeft className="h-6 w-6" />
@@ -38,14 +50,33 @@ export default function AllTripsPage() {
           <h1 className="text-2xl font-bold tracking-tight">Your Trips</h1>
         </div>
         
-        <div className="relative">
-          <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
-          <Input 
-            placeholder="Search your adventures..." 
-            className="h-14 pl-12 rounded-2xl bg-muted border-none shadow-sm focus-visible:ring-primary placeholder:text-muted-foreground/50"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-          />
+        <div className="space-y-4">
+          <div className="relative">
+            <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+            <Input 
+              placeholder="Search your adventures..." 
+              className="h-14 pl-12 rounded-2xl bg-muted border-none shadow-sm focus-visible:ring-primary placeholder:text-muted-foreground/50"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+            />
+          </div>
+
+          <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-hide -mx-1 px-1">
+            {FILTERS.map((filter) => (
+              <button
+                key={filter.id}
+                onClick={() => setStatusFilter(filter.id)}
+                className={cn(
+                  "px-5 py-2 rounded-xl text-xs font-bold transition-all border shrink-0",
+                  statusFilter === filter.id 
+                    ? "bg-primary text-white border-primary shadow-md shadow-primary/20 scale-105" 
+                    : "bg-white text-muted-foreground border-muted hover:border-primary/30"
+                )}
+              >
+                {filter.label}
+              </button>
+            ))}
+          </div>
         </div>
       </header>
 
@@ -88,9 +119,9 @@ export default function AllTripsPage() {
                       <Badge className={cn(
                         "absolute top-4 right-4 border-none backdrop-blur-md font-bold text-[10px] shadow-sm px-3 py-1",
                         tripPastDue ? "bg-accent text-white" : 
-                        trip.status === 'Active' ? 'bg-primary/90 text-white' : 
-                        trip.status === 'Completed' ? 'bg-secondary text-white' :
-                        trip.status === 'Settled' ? 'bg-muted text-muted-foreground' : 
+                        trip.status === 'Active' ? "bg-primary/90 text-white" : 
+                        trip.status === 'Completed' ? "bg-secondary text-white" :
+                        trip.status === 'Settled' ? "bg-muted text-muted-foreground" : 
                         'bg-white/90 text-foreground'
                       )}>
                         {tripPastDue ? "Ended" : (trip.status || "Upcoming")}
