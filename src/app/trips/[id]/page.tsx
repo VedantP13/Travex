@@ -267,7 +267,11 @@ export default function TripDetails() {
           </TabsContent>
 
           <TabsContent value="balances" className="mt-6">
-            <TripBalances groupedStandings={groupedStandings} suggestedPayments={suggestedPayments} />
+            <TripBalances 
+              groupedStandings={groupedStandings} 
+              suggestedPayments={suggestedPayments} 
+              expenses={expenses}
+            />
           </TabsContent>
         </Tabs>
       </div>

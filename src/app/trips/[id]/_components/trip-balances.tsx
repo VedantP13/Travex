@@ -1,18 +1,57 @@
 
 'use client';
 
-import { TrendingDown, TrendingUp, ArrowRight, TrendingUp as TrendingUpIcon, Activity, Info } from "lucide-react";
+import { 
+  TrendingDown, 
+  TrendingUp, 
+  ArrowRight, 
+  TrendingUp as TrendingUpIcon, 
+  Activity, 
+  Info,
+  Crown,
+  Tag,
+  Receipt
+} from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { cn } from "@/lib/utils";
+import { useMemo } from "react";
 
 interface TripBalancesProps {
   groupedStandings: any[];
   suggestedPayments: any[];
+  expenses: any[];
 }
 
-export function TripBalances({ groupedStandings, suggestedPayments }: TripBalancesProps) {
+export function TripBalances({ groupedStandings, suggestedPayments, expenses }: TripBalancesProps) {
+  const insights = useMemo(() => {
+    if (!expenses.length) return null;
+
+    // Top Payer
+    const payerTotals: Record<string, { amount: number, name: string }> = {};
+    expenses.forEach(e => {
+      payerTotals[e.payerId] = {
+        amount: (payerTotals[e.payerId]?.amount || 0) + (parseFloat(e.amount) || 0),
+        name: e.payerName
+      };
+    });
+    const topPayer = Object.values(payerTotals).sort((a, b) => b.amount - a.amount)[0];
+
+    // Top Category
+    const categoryTotals: Record<string, number> = {};
+    expenses.forEach(e => {
+      categoryTotals[e.category] = (categoryTotals[e.category] || 0) + (parseFloat(e.amount) || 0);
+    });
+    const topCategory = Object.entries(categoryTotals).sort((a, b) => b[1] - a[1])[0];
+
+    return {
+      topPayer: topPayer?.name?.split(' ')[0] || "N/A",
+      topCategory: topCategory?.[0] || "N/A",
+      totalCount: expenses.length
+    };
+  }, [expenses]);
+
   return (
     <div className="mt-6 space-y-6 pb-24">
       {groupedStandings.length > 0 ? (
@@ -158,6 +197,26 @@ export function TripBalances({ groupedStandings, suggestedPayments }: TripBalanc
               );
             })}
           </div>
+
+          {insights && (
+            <div className="grid grid-cols-3 gap-2 mt-6 pt-4 border-t border-muted/30">
+               <div className="bg-primary/5 rounded-2xl p-3 flex flex-col items-center text-center">
+                  <Crown className="h-3.5 w-3.5 text-primary mb-1.5" />
+                  <p className="text-[8px] font-bold text-muted-foreground uppercase leading-none mb-1">Top Payer</p>
+                  <p className="text-[10px] font-black text-primary truncate w-full">{insights.topPayer}</p>
+               </div>
+               <div className="bg-accent/5 rounded-2xl p-3 flex flex-col items-center text-center">
+                  <Tag className="h-3.5 w-3.5 text-accent mb-1.5" />
+                  <p className="text-[8px] font-bold text-muted-foreground uppercase leading-none mb-1">Main Category</p>
+                  <p className="text-[10px] font-black text-accent truncate w-full">{insights.topCategory}</p>
+               </div>
+               <div className="bg-muted/30 rounded-2xl p-3 flex flex-col items-center text-center">
+                  <Receipt className="h-3.5 w-3.5 text-muted-foreground/60 mb-1.5" />
+                  <p className="text-[8px] font-bold text-muted-foreground uppercase leading-none mb-1">Total Bills</p>
+                  <p className="text-[10px] font-black text-foreground">{insights.totalCount}</p>
+               </div>
+            </div>
+          )}
 
           <div className="mt-8 bg-muted/20 rounded-3xl p-5 border border-dashed border-muted/50">
             <div className="flex items-start gap-3">
