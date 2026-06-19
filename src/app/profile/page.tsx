@@ -46,6 +46,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
+import { getInitials, getAvatarFallbackClasses } from "@/lib/avatar-utils";
 
 const GUEST_AVATARS = [
   "https://picsum.photos/seed/avatar1/150/150",
@@ -367,8 +368,8 @@ export default function ProfilePage() {
                 src={displayPhoto} 
                 className="object-cover"
               />
-              <AvatarFallback className="text-3xl font-bold bg-primary/10 text-primary">
-                {displayName[0]}
+              <AvatarFallback className={cn("text-3xl font-bold", getAvatarFallbackClasses(displayName))}>
+                {getInitials(displayName)}
               </AvatarFallback>
             </Avatar>
             <div className="absolute -bottom-1 -right-1 h-8 w-8 rounded-full border-4 border-white flex items-center justify-center shadow-lg bg-primary text-white">

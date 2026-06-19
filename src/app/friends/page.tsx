@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState, useEffect, useMemo } from "react";
@@ -36,6 +35,7 @@ import { FirestorePermissionError } from "@/firebase/errors";
 import { useTrips } from "@/context/trips-context";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { getInitials, getAvatarFallbackClasses } from "@/lib/avatar-utils";
 
 export default function FriendsPage() {
   const router = useRouter();
@@ -312,7 +312,9 @@ export default function FriendsPage() {
                   <div className="flex items-center gap-3">
                     <Avatar className="h-11 w-11 border shadow-sm">
                       <AvatarImage src={result.photoURL} className="object-cover" />
-                      <AvatarFallback className="text-foreground font-bold">{result.displayName?.[0]}</AvatarFallback>
+                      <AvatarFallback className={getAvatarFallbackClasses(result.displayName || "U")}>
+                        {getInitials(result.displayName || "U")}
+                      </AvatarFallback>
                     </Avatar>
                     <div className="min-w-0">
                       <div className="flex items-center gap-2">
@@ -356,7 +358,9 @@ export default function FriendsPage() {
                     <div className="flex items-center gap-4">
                       <Avatar className="h-10 w-10">
                         <AvatarImage src={request.senderPhoto} />
-                        <AvatarFallback>{request.senderName[0]}</AvatarFallback>
+                        <AvatarFallback className={getAvatarFallbackClasses(request.senderName)}>
+                          {getInitials(request.senderName)}
+                        </AvatarFallback>
                       </Avatar>
                       <div>
                         <h3 className="font-bold text-sm text-foreground">{request.senderName}</h3>
@@ -391,7 +395,9 @@ export default function FriendsPage() {
                     <div className="flex items-center gap-4">
                       <Avatar className="h-10 w-10 border">
                         <AvatarImage src={invitation.friendPhoto} />
-                        <AvatarFallback>{invitation.friendName[0]}</AvatarFallback>
+                        <AvatarFallback className={getAvatarFallbackClasses(invitation.friendName)}>
+                          {getInitials(invitation.friendName)}
+                        </AvatarFallback>
                       </Avatar>
                       <div>
                         <h3 className="font-bold text-sm text-foreground">{invitation.friendName}</h3>
@@ -435,7 +441,9 @@ export default function FriendsPage() {
                       <div className="flex items-center gap-4">
                         <Avatar className="h-12 w-12 border shadow-sm">
                           <AvatarImage src={friend.friendPhoto} />
-                          <AvatarFallback>{friend.friendName[0]}</AvatarFallback>
+                          <AvatarFallback className={getAvatarFallbackClasses(friend.friendName)}>
+                            {getInitials(friend.friendName)}
+                          </AvatarFallback>
                         </Avatar>
                         <div>
                           <h3 className="font-bold text-base text-foreground">{friend.friendName}</h3>

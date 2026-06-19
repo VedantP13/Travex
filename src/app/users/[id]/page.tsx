@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState, useEffect } from "react";
@@ -26,6 +25,7 @@ import { useToast } from "@/hooks/use-toast";
 import Link from "next/link";
 import { getTripImage } from "@/lib/image-utils";
 import { BottomNav } from "@/components/bottom-nav";
+import { getInitials, getAvatarFallbackClasses } from "@/lib/avatar-utils";
 
 export default function UserProfilePage() {
   const router = useRouter();
@@ -90,6 +90,8 @@ export default function UserProfilePage() {
     );
   }
 
+  const targetName = targetUser?.displayName || "Explorer";
+
   return (
     <div className="max-w-md mx-auto min-h-screen bg-background pb-32">
       <header className="px-safe-pad pt-10 pb-6 bg-white border-b sticky top-0 z-20 flex items-center gap-4">
@@ -105,8 +107,8 @@ export default function UserProfilePage() {
         <section className="flex flex-col items-center gap-4">
           <Avatar className="h-32 w-32 border-[6px] border-white shadow-2xl ring-1 ring-black/5">
             <AvatarImage src={targetUser?.photoURL} className="object-cover" />
-            <AvatarFallback className="text-4xl font-bold bg-primary/10 text-primary">
-              {targetUser?.displayName?.[0]}
+            <AvatarFallback className={cn("text-4xl font-bold", getAvatarFallbackClasses(targetName))}>
+              {getInitials(targetName)}
             </AvatarFallback>
           </Avatar>
 

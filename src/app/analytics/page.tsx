@@ -50,6 +50,7 @@ import {
   LabelList
 } from "recharts";
 import { collection, query, onSnapshot, orderBy, getDocs } from "firebase/firestore";
+import { getInitials, getAvatarFallbackClasses } from "@/lib/avatar-utils";
 
 const COLORS = ['#0B6E82', '#F5A623', '#5B9EAD', '#112240', '#FF7043', '#4DB6AC', '#7986CB'];
 
@@ -566,7 +567,9 @@ export default function AnalyticsPage() {
                               <div className="relative">
                                 <Avatar className="h-10 w-10 border-2 border-white shadow-sm">
                                   <AvatarImage src={item.avatar} />
-                                  <AvatarFallback className="text-[10px] font-bold bg-muted text-foreground">{item.name[0]}</AvatarFallback>
+                                  <AvatarFallback className={getAvatarFallbackClasses(item.name)}>
+                                    {getInitials(item.name)}
+                                  </AvatarFallback>
                                 </Avatar>
                                 {isWinner && (
                                   <div className="absolute -top-1 -right-1 bg-accent rounded-full p-0.5 border-2 border-white shadow-sm">
