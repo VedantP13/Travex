@@ -342,18 +342,18 @@ export default function AnalyticsPage() {
           </h1>
           
           <Select value={selectedView} onValueChange={setSelectedView}>
-            <SelectTrigger className="w-auto min-w-[140px] h-10 rounded-2xl border-none bg-white/10 text-white font-bold text-[10px] hover:bg-white/20 transition-all shadow-sm focus:ring-0 px-4 uppercase tracking-widest">
+            <SelectTrigger className="w-auto min-w-[140px] h-10 rounded-2xl border-none bg-white/10 text-white font-bold text-xs hover:bg-white/20 transition-all shadow-sm focus:ring-0 px-4">
               <div className="flex items-center gap-2">
                 {selectedView === 'global' ? <Globe className="h-3 w-3 text-accent" /> : < MapPin className="h-3 w-3 text-accent" />}
                 <SelectValue placeholder="View" />
               </div>
             </SelectTrigger>
             <SelectContent className="rounded-[1.5rem] border-none shadow-2xl bg-white p-2">
-              <SelectItem value="global" className="rounded-xl text-[10px] font-bold py-3 uppercase tracking-widest cursor-pointer">
+              <SelectItem value="global" className="rounded-xl font-bold py-3 cursor-pointer">
                 All Trips
               </SelectItem>
               {trips.map(trip => (
-                <SelectItem key={trip.id} value={trip.id} className="rounded-xl text-[10px] font-bold py-3 uppercase tracking-widest cursor-pointer">
+                <SelectItem key={trip.id} value={trip.id} className="rounded-xl font-bold py-3 cursor-pointer">
                   {trip.name}
                 </SelectItem>
               ))}
