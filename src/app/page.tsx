@@ -57,23 +57,32 @@ export default function Home() {
     return () => unsub();
   }, [user?.uid, firestore, user?.displayName, user?.photoURL, user?.email, user?.isAnonymous]);
 
-  // Aggregate Balances Logic
+  // Aggregate Balances Logic for the Dashboard Cards
   const { totalOwe, totalOwed } = useMemo(() => {
-    return trips.reduce((acc, trip) => {
+    return (trips || []).reduce((acc, trip) => {
       // Exclude Settled trips from active standing
-      if (trip.status === 'Settled') return acc;
+      if (trip.status === 'Settled' || !trip.netBalances) return acc;
 
       const me = trip.participants?.find((p: any) => p.isUser && p.userId === user?.uid);
       if (!me) return acc;
 
       // Net Balance = (User's personal balance) + (Sum of family member balances)
-      let balance = trip.netBalances?.[me.id] || 0;
-      me.familyMembers?.forEach((fm: string) => {
-        balance += (trip.netBalances?.[`${me.id}-${fm}`] || 0);
-      });
+      let tripNetBalance = (trip.netBalances[me.id] || 0);
+      
+      if (me.familyMembers && Array.isArray(me.familyMembers)) {
+        me.familyMembers.forEach((fm: string) => {
+          const familyMemberId = `${me.id}-${fm}`;
+          tripNetBalance += (trip.netBalances[familyMemberId] || 0);
+        });
+      }
 
-      if (balance < 0) acc.totalOwe += Math.abs(balance);
-      if (balance > 0) acc.totalOwed += balance;
+      // Add to aggregate summaries
+      // Use small epsilon to avoid precision jitter
+      if (tripNetBalance < -0.01) {
+        acc.totalOwe += Math.abs(tripNetBalance);
+      } else if (tripNetBalance > 0.01) {
+        acc.totalOwed += tripNetBalance;
+      }
 
       return acc;
     }, { totalOwe: 0, totalOwed: 0 });
@@ -281,11 +290,13 @@ export default function Home() {
               // Per-trip balance calculation for user (+ family)
               const me = trip.participants?.find((p: any) => p.isUser && p.userId === user?.uid);
               let balance = 0;
-              if (me) {
-                balance = trip.netBalances?.[me.id] || 0;
-                me.familyMembers?.forEach((fm: string) => {
-                  balance += (trip.netBalances?.[`${me.id}-${fm}`] || 0);
-                });
+              if (me && trip.netBalances) {
+                balance = (trip.netBalances[me.id] || 0);
+                if (me.familyMembers && Array.isArray(me.familyMembers)) {
+                  me.familyMembers.forEach((fm: string) => {
+                    balance += (trip.netBalances[`${me.id}-${fm}`] || 0);
+                  });
+                }
               }
 
               const tripPastDue = trip.status === 'Active' && trip.endDate && new Date(trip.endDate) < new Date(new Date().setHours(0,0,0,0));
@@ -345,9 +356,9 @@ export default function Home() {
                         <p className="text-[9px] text-muted-foreground font-bold uppercase tracking-widest mb-0.5">Your balance</p>
                         <p className={cn(
                           "text-base font-bold",
-                          balance < 0 ? "text-destructive" : balance > 0 ? "text-primary" : "text-muted-foreground"
+                          balance < -0.01 ? "text-destructive" : balance > 0.01 ? "text-primary" : "text-muted-foreground"
                         )}>
-                          {balance < 0 ? "-" : balance > 0 ? "+" : ""}
+                          {balance < -0.01 ? "-" : balance > 0.01 ? "+" : ""}
                           <span className="font-bold">₹</span>
                           <span className="font-bold">{Math.abs(balance).toFixed(2)}</span>
                         </p>

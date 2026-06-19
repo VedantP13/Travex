@@ -94,14 +94,16 @@ export default function AllTripsPage() {
         ) : filteredTrips.length > 0 ? (
           <div className="grid gap-5">
             {filteredTrips.map((trip) => {
-              // Per-trip balance calculation (+ family)
+              // Per-trip balance calculation for user (+ family)
               const me = trip.participants?.find((p: any) => p.isUser && p.userId === user?.uid);
               let balance = 0;
-              if (me) {
-                balance = trip.netBalances?.[me.id] || 0;
-                me.familyMembers?.forEach((fm: string) => {
-                  balance += (trip.netBalances?.[`${me.id}-${fm}`] || 0);
-                });
+              if (me && trip.netBalances) {
+                balance = (trip.netBalances[me.id] || 0);
+                if (me.familyMembers && Array.isArray(me.familyMembers)) {
+                  me.familyMembers.forEach((fm: string) => {
+                    balance += (trip.netBalances[`${me.id}-${fm}`] || 0);
+                  });
+                }
               }
 
               const tripPastDue = trip.status === 'Active' && trip.endDate && new Date(trip.endDate) < new Date(new Date().setHours(0,0,0,0));
@@ -161,9 +163,9 @@ export default function AllTripsPage() {
                         <p className="text-[10px] text-muted-foreground font-bold mb-1 uppercase tracking-wider">Your balance</p>
                         <p className={cn(
                           "text-base font-bold",
-                          balance < 0 ? "text-destructive" : balance > 0 ? "text-primary" : "text-muted-foreground"
+                          balance < -0.01 ? "text-destructive" : balance > 0.01 ? "text-primary" : "text-muted-foreground"
                         )}>
-                          {balance < 0 ? "-" : balance > 0 ? "+" : ""}
+                          {balance < -0.01 ? "-" : balance > 0.01 ? "+" : ""}
                           <span className="font-bold">₹</span>
                           <span className="font-bold">{Math.abs(balance).toFixed(2)}</span>
                         </p>
