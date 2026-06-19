@@ -248,7 +248,6 @@ export default function TripDetails() {
   const groupedStandings = useMemo(() => {
     if (!trip?.participants || !trip?.netBalances) return [];
     
-    // Calculate Total Paid and Total Share per participant identifier (id or id-memberName)
     const paidMap: Record<string, number> = {};
     const shareMap: Record<string, number> = {};
     
@@ -256,10 +255,8 @@ export default function TripDetails() {
       if (exp.splitType === 'unsplit') return;
       const amount = parseFloat(exp.amount) || 0;
       
-      // Accumulate Paid totals
       paidMap[exp.payerId] = (paidMap[exp.payerId] || 0) + amount;
       
-      // Accumulate Share totals based on split type
       const selected = exp.selectedIndividuals || [];
       if (exp.splitType === 'equal_person') {
         const share = amount / (selected.length || 1);
@@ -287,7 +284,6 @@ export default function TripDetails() {
       let totalPaid = paidMap[p.id] || 0;
       let totalShare = shareMap[p.id] || 0;
       
-      // Construct breakdown starting with the family head
       const breakdown = [{ 
         name: headName, 
         balance: (paidMap[p.id] || 0) - (shareMap[p.id] || 0),
@@ -295,7 +291,6 @@ export default function TripDetails() {
         share: shareMap[p.id] || 0
       }];
 
-      // Add family members to the breakdown
       p.familyMembers?.forEach((fm: string) => {
         const mid = `${p.id}-${fm}`;
         const mPaid = paidMap[mid] || 0;
@@ -326,15 +321,41 @@ export default function TripDetails() {
   }, [trip, user?.uid, expenses]);
 
   const suggestedPayments = useMemo(() => {
-    const debtors = groupedStandings.filter(s => s.netTotal < -0.01).map(s => ({ name: s.name, avatar: s.avatar, balance: Math.abs(s.netTotal) }));
-    const creditors = groupedStandings.filter(s => s.netTotal > 0.01).map(s => ({ name: s.name, avatar: s.avatar, balance: s.netTotal }));
+    // Correct algorithmic approach: Greedy Settlement
+    const debtors = groupedStandings
+      .filter(s => s.netTotal < -0.01)
+      .map(s => ({ name: s.name, avatar: s.avatar, balance: Math.abs(s.netTotal) }))
+      .sort((a, b) => b.balance - a.balance); // Prioritize settling large debts
+      
+    const creditors = groupedStandings
+      .filter(s => s.netTotal > 0.01)
+      .map(s => ({ name: s.name, avatar: s.avatar, balance: s.netTotal }))
+      .sort((a, b) => b.balance - a.balance);
+      
     const transactions: any[] = [];
     let dIdx = 0, cIdx = 0;
-    const dList = JSON.parse(JSON.stringify(debtors)), cList = JSON.parse(JSON.stringify(creditors));
+    
+    // Use working copies of balances
+    const dList = JSON.parse(JSON.stringify(debtors));
+    const cList = JSON.parse(JSON.stringify(creditors));
+    
     while (dIdx < dList.length && cIdx < cList.length) {
-      const d = dList[dIdx], c = cList[cIdx], amount = Math.min(d.balance, c.balance);
-      transactions.push({ from: d.name, fromAvatar: d.avatar, to: c.name, toAvatar: c.avatar, amount });
-      d.balance -= amount; c.balance -= amount;
+      const d = dList[dIdx], c = cList[cIdx];
+      const amount = Math.min(d.balance, c.balance);
+      
+      if (amount > 0.01) {
+        transactions.push({ 
+          from: d.name, 
+          fromAvatar: d.avatar, 
+          to: c.name, 
+          toAvatar: c.avatar, 
+          amount 
+        });
+      }
+      
+      d.balance -= amount; 
+      c.balance -= amount;
+      
       if (d.balance < 0.01) dIdx++;
       if (c.balance < 0.01) cIdx++;
     }
