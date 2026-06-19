@@ -32,6 +32,7 @@ import { collection, doc, updateDoc, serverTimestamp, getDocs, getDoc } from "fi
 import { cn } from "@/lib/utils";
 import { format } from "date-fns";
 import { DateRange } from "react-day-picker";
+import { getInitials, getAvatarFallbackClasses } from "@/lib/avatar-utils";
 
 interface EditTripDialogProps {
   isOpen: boolean;
@@ -157,7 +158,7 @@ export function EditTripDialog({ isOpen, onOpenChange, trip, user }: EditTripDia
       name: friend.friendName,
       isUser: true,
       userId: friendId,
-      avatar: friend.friendPhoto || `https://picsum.photos/seed/${friendId}/50/50`,
+      avatar: friend.friendPhoto || "",
       familyMembers: [],
       suggestedFamily: familyFromProfile
     };
@@ -172,7 +173,7 @@ export function EditTripDialog({ isOpen, onOpenChange, trip, user }: EditTripDia
       id: Math.random().toString(36).substr(2, 9),
       name: newParticipantName.trim(),
       isUser: false,
-      avatar: `https://picsum.photos/seed/${Math.random()}/50/50`,
+      avatar: "", // Guests start with empty avatar to trigger initial fallback
       familyMembers: []
     };
     setEditParticipants([...editParticipants, newP]);
@@ -285,7 +286,7 @@ export function EditTripDialog({ isOpen, onOpenChange, trip, user }: EditTripDia
                   <Card className="absolute top-full left-0 right-0 z-30 mt-2 border-none shadow-2xl bg-white rounded-2xl overflow-hidden divide-y">
                     {friendSearchResults.map((friend) => (
                       <div key={friend.id} className="p-3 flex items-center justify-between hover:bg-primary/5 cursor-pointer" onClick={() => handleSelectFriend(friend)}>
-                        <div className="flex items-center gap-3"><Avatar className="h-8 w-8"><AvatarImage src={friend.friendPhoto} /><AvatarFallback>{friend.friendName[0]}</AvatarFallback></Avatar><span className="text-sm font-semibold">{friend.friendName}</span></div>
+                        <div className="flex items-center gap-3"><Avatar className="h-8 w-8"><AvatarImage src={friend.friendPhoto} /><AvatarFallback className={getAvatarFallbackClasses(friend.friendName)}>{getInitials(friend.friendName)}</AvatarFallback></Avatar><span className="text-sm font-semibold">{friend.friendName}</span></div>
                         <Plus className="h-4 w-4 text-primary" />
                       </div>
                     ))}
@@ -296,15 +297,16 @@ export function EditTripDialog({ isOpen, onOpenChange, trip, user }: EditTripDia
               <div className="space-y-4 pt-2">
                 {editParticipants.map((p) => {
                   const isMe = p.isUser && p.userId === user?.uid;
+                  const headName = p.name.replace(" (You)", "");
                   return (
                     <Card key={p.id} className="rounded-2xl border-none shadow-sm overflow-hidden bg-white/50">
                       <CardContent className="p-4 space-y-4">
                         <div className="flex justify-between items-start">
-                          <div className="flex items-center gap-3"><Avatar className="h-8 w-8"><AvatarImage src={p.avatar} /><AvatarFallback>{p.name[0]}</AvatarFallback></Avatar><span className="font-semibold text-sm">{isMe ? "Your family" : `${p.name}'s family`}</span></div>
+                          <div className="flex items-center gap-3"><Avatar className="h-8 w-8"><AvatarImage src={p.avatar} /><AvatarFallback className={getAvatarFallbackClasses(headName)}>{getInitials(headName)}</AvatarFallback></Avatar><span className="font-semibold text-sm">{isMe ? "Your family" : `${headName}'s family`}</span></div>
                           {!isMe && <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive" onClick={() => setEditParticipants(prev => prev.filter(part => part.id !== p.id))}><X className="h-4 w-4" /></Button>}
                         </div>
                         <div className="flex flex-wrap gap-2 items-center">
-                          <Badge variant="outline" className="px-3 py-1.5 rounded-full bg-primary/5 border-primary/30 text-primary font-semibold text-[10px]">{p.name}</Badge>
+                          <Badge variant="outline" className="px-3 py-1.5 rounded-full bg-primary/5 border-primary/30 text-primary font-semibold text-[10px]">{headName}</Badge>
                           {p.familyMembers?.map((fm: string) => (
                             <Badge key={fm} variant="outline" className="pl-3 pr-2 py-1.5 rounded-full flex items-center gap-2 bg-white border-primary/30 text-primary font-semibold text-[10px]">
                               {fm}<X className="h-3.5 w-3.5 cursor-pointer" onClick={() => setEditParticipants(prev => prev.map(pt => pt.id === p.id ? { ...pt, familyMembers: pt.familyMembers.filter((m: string) => m !== fm) } : pt))} />

@@ -39,6 +39,7 @@ import { format } from "date-fns";
 import { DateRange } from "react-day-picker";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Checkbox } from "@/components/ui/checkbox";
+import { getInitials, getAvatarFallbackClasses } from "@/lib/avatar-utils";
 
 type Participant = {
   id: string;
@@ -111,7 +112,7 @@ export default function CreateTrip() {
           name: `${user.displayName?.split(' ')[0] || "You"} (You)`, 
           isUser: true, 
           userId: user.uid,
-          avatar: user.photoURL || `https://picsum.photos/seed/${user.uid}/50/50`, 
+          avatar: user.photoURL || "", 
           familyMembers: savedFamily
         };
         return [me, ...prev];
@@ -223,7 +224,7 @@ export default function CreateTrip() {
       id: Math.random().toString(36).substr(2, 9),
       name: newParticipantName.trim(),
       isUser: false,
-      avatar: `https://picsum.photos/seed/${Math.random()}/50/50`,
+      avatar: "", // Guests start with empty avatar to trigger initial fallback
       familyMembers: []
     };
     setParticipants([...participants, newP]);
@@ -252,7 +253,7 @@ export default function CreateTrip() {
       name: friend.friendName,
       isUser: true,
       userId: friendId,
-      avatar: friend.friendPhoto || `https://picsum.photos/seed/${friendId}/50/50`,
+      avatar: friend.friendPhoto || "",
       familyMembers: [],
       suggestedFamily: familyFromProfile
     };
@@ -615,7 +616,7 @@ export default function CreateTrip() {
                       <div className="flex items-center gap-3">
                         <Avatar className="h-8 w-8">
                           <AvatarImage src={friend.friendPhoto} />
-                          <AvatarFallback>{friend.friendName[0]}</AvatarFallback>
+                          <AvatarFallback className={getAvatarFallbackClasses(friend.friendName)}>{getInitials(friend.friendName)}</AvatarFallback>
                         </Avatar>
                         <span className="text-sm font-semibold">{friend.friendName}</span>
                       </div>
@@ -646,7 +647,7 @@ export default function CreateTrip() {
                         <div className="flex items-center gap-3">
                           <Avatar className="h-8 w-8">
                             <AvatarImage src={p.avatar} />
-                            <AvatarFallback>{headName[0]}</AvatarFallback>
+                            <AvatarFallback className={getAvatarFallbackClasses(headName)}>{getInitials(headName)}</AvatarFallback>
                           </Avatar>
                           <div className="space-y-0.5">
                             <span className="font-semibold text-sm tracking-tight block">{familyDisplayName}</span>
@@ -795,7 +796,7 @@ export default function CreateTrip() {
                               <div className="flex items-center gap-2">
                                 <Avatar className="h-7 w-7 border border-white shadow-sm">
                                   <AvatarImage src={p.avatar} />
-                                  <AvatarFallback className="text-[10px]">{headName[0]}</AvatarFallback>
+                                  <AvatarFallback className={getAvatarFallbackClasses(headName)}>{getInitials(headName)}</AvatarFallback>
                                 </Avatar>
                                 <Label htmlFor={`reuse-${p.id}`} className="text-xs font-bold text-foreground cursor-pointer">
                                   {familyDisplayName}
