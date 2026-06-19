@@ -101,8 +101,8 @@ export default function MorePage() {
             <CardContent className="p-6">
               <div className="space-y-4">
                 <div className="space-y-1">
-                  <h3 className="text-xl font-black text-white leading-tight tracking-tight">Don't lose your trips</h3>
-                  <p className="text-[11px] text-white/90 font-bold leading-relaxed">
+                  <h3 className="text-xl font-black text-foreground leading-tight tracking-tight">Don't lose your trips</h3>
+                  <p className="text-[11px] text-foreground/80 font-bold leading-relaxed">
                     You're using a guest account. Connect to Google to safely sync your travel data and access it from any device.
                   </p>
                 </div>
