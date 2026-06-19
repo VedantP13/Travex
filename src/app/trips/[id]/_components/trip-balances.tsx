@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState, useMemo } from "react";
@@ -16,7 +15,8 @@ import {
   Search,
   ChevronRight,
   ReceiptText,
-  Clock
+  Clock,
+  X
 } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -292,7 +292,7 @@ export function TripBalances({ groupedStandings, suggestedPayments, expenses }: 
                <div className="bg-primary/5 rounded-2xl p-3 flex flex-col items-center text-center">
                   <Crown className="h-3.5 w-3.5 text-primary mb-1.5" />
                   <p className="text-[8px] font-bold text-muted-foreground uppercase leading-none mb-1">Top Payer</p>
-                  <p className="text-[10px] font-black text-primary truncate w-full">{insights.topPayer}</p>
+                  <p className="text-column font-black text-primary truncate w-full">{insights.topPayer}</p>
                </div>
                <div className="bg-accent/5 rounded-2xl p-3 flex flex-col items-center text-center">
                   <Tag className="h-3.5 w-3.5 text-accent mb-1.5" />
