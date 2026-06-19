@@ -286,6 +286,7 @@ export default function TripDetails() {
       
       const breakdown = [{ 
         name: headName, 
+        id: p.id,
         balance: (paidMap[p.id] || 0) - (shareMap[p.id] || 0),
         paid: paidMap[p.id] || 0,
         share: shareMap[p.id] || 0
@@ -299,6 +300,7 @@ export default function TripDetails() {
         totalShare += mShare;
         breakdown.push({ 
           name: fm, 
+          id: mid,
           balance: mPaid - mShare,
           paid: mPaid,
           share: mShare
