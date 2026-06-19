@@ -51,6 +51,8 @@ import {
 } from "recharts";
 import { collection, query, onSnapshot, orderBy, getDocs } from "firebase/firestore";
 import { getInitials, getAvatarFallbackClasses } from "@/lib/avatar-utils";
+import { Button } from "@/components/ui/button";
+import Link from "next/link";
 
 const COLORS = ['#0B6E82', '#F5A623', '#5B9EAD', '#112240', '#FF7043', '#4DB6AC', '#7986CB'];
 
@@ -368,14 +370,19 @@ export default function AnalyticsPage() {
 
       <main className="px-safe-pad pt-6 space-y-6">
         {!hasTrips && !tripsLoading ? (
-          <div className="text-center py-20 space-y-4">
-            <div className="h-20 w-20 bg-muted rounded-full flex items-center justify-center mx-auto opacity-20">
-              <BarChart3 className="h-10 w-10" />
+          <div className="text-center py-16 bg-white rounded-[2.5rem] border-2 border-dashed border-muted/50 px-10 animate-in fade-in slide-in-from-bottom-4 duration-500">
+            <div className="h-16 w-16 bg-muted/20 rounded-full flex items-center justify-center mx-auto mb-6 shadow-sm">
+              <BarChart3 className="h-7 w-7 text-muted-foreground/40" />
             </div>
-            <h2 className="text-xl font-bold">No data yet</h2>
-            <p className="text-sm text-muted-foreground px-10 leading-relaxed">
-              Create your first trip and add expenses to see your analytics.
+            <h2 className="text-xl font-bold text-foreground tracking-tight">Insights await</h2>
+            <p className="text-sm text-muted-foreground mt-2 mb-8 leading-relaxed">
+              Create your first trip and add expenses to see detailed spending breakdowns and travel stats.
             </p>
+            <Link href="/trips/new" className="inline-block w-full">
+              <Button className="w-full h-14 rounded-2xl font-bold bg-primary text-white shadow-xl shadow-primary/20 hover:bg-primary/90 transition-all active:scale-95">
+                Start your first trip
+              </Button>
+            </Link>
           </div>
         ) : (
           <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
