@@ -1,3 +1,4 @@
+
 'use client';
 
 import { 
@@ -9,7 +10,6 @@ import {
   Info,
   Crown,
   Tag,
-  Receipt,
   RefreshCw
 } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
@@ -32,6 +32,7 @@ export function TripBalances({ groupedStandings, suggestedPayments, expenses }: 
     // Top Payer
     const payerTotals: Record<string, { amount: number, name: string }> = {};
     expenses.forEach(e => {
+      if (e.splitType === 'unsplit') return;
       payerTotals[e.payerId] = {
         amount: (payerTotals[e.payerId]?.amount || 0) + (parseFloat(e.amount) || 0),
         name: e.payerName
@@ -42,6 +43,7 @@ export function TripBalances({ groupedStandings, suggestedPayments, expenses }: 
     // Top Category
     const categoryTotals: Record<string, number> = {};
     expenses.forEach(e => {
+      if (e.splitType === 'unsplit') return;
       categoryTotals[e.category] = (categoryTotals[e.category] || 0) + (parseFloat(e.amount) || 0);
     });
     const topCategory = Object.entries(categoryTotals).sort((a, b) => b[1] - a[1])[0];
@@ -49,7 +51,7 @@ export function TripBalances({ groupedStandings, suggestedPayments, expenses }: 
     return {
       topPayer: topPayer?.name?.split(' ')[0] || "N/A",
       topCategory: topCategory?.[0] || "N/A",
-      totalCount: expenses.length
+      totalCount: expenses.filter(e => e.splitType !== 'unsplit').length
     };
   }, [expenses]);
 
@@ -63,14 +65,14 @@ export function TripBalances({ groupedStandings, suggestedPayments, expenses }: 
                 <TrendingDown className="h-3 w-3" />
                 <span className="text-[9px] font-bold uppercase tracking-widest">Owed</span>
               </div>
-              <p className="text-lg font-bold">₹{groupedStandings.reduce((acc, s) => s.netTotal > 0 ? acc + s.netTotal : acc, 0).toFixed(2)}</p>
+              <p className="text-lg font-bold">₹{groupedStandings.reduce((acc, s) => s.netTotal > 0 ? acc + s.netTotal : acc, 0).toFixed(0)}</p>
             </div>
             <div className="bg-white p-5 rounded-3xl shadow-sm border border-destructive/5">
               <div className="flex items-center gap-1.5 text-destructive mb-1">
                 <TrendingUp className="h-3 w-3" />
                 <span className="text-[9px] font-bold uppercase tracking-widest">Debt</span>
               </div>
-              <p className="text-lg font-bold">₹{Math.abs(groupedStandings.reduce((acc, s) => s.netTotal < -0.01 ? acc + s.netTotal : acc, 0)).toFixed(2)}</p>
+              <p className="text-lg font-bold">₹{Math.abs(groupedStandings.reduce((acc, s) => s.netTotal < -0.01 ? acc + s.netTotal : acc, 0)).toFixed(0)}</p>
             </div>
           </div>
 
@@ -122,9 +124,9 @@ export function TripBalances({ groupedStandings, suggestedPayments, expenses }: 
               const isNegative = standing.netTotal < -0.01;
               const isZero = !isPositive && !isNegative;
               
-              const familyDisplayName = standing.isMe 
-                ? "Your family" 
-                : `${standing.name}'s family`;
+              const displayName = standing.isMe 
+                ? (standing.isSolo ? "You" : "Your family") 
+                : (standing.isSolo ? standing.name : `${standing.name}'s family`);
 
               return (
                 <Card key={standing.id} className="border-none shadow-sm bg-white rounded-[2rem] overflow-hidden group hover:shadow-md transition-shadow">
@@ -140,7 +142,7 @@ export function TripBalances({ groupedStandings, suggestedPayments, expenses }: 
                           </Avatar>
                         </div>
                         <div className="min-w-0">
-                          <h3 className="font-bold text-base truncate text-foreground">{familyDisplayName}</h3>
+                          <h3 className="font-bold text-base truncate text-foreground">{displayName}</h3>
                           <p className={cn(
                             "text-[10px] font-extrabold uppercase tracking-widest mt-0.5 flex items-center gap-1",
                             isPositive ? "text-primary" : isNegative ? "text-accent" : "text-muted-foreground"
@@ -156,49 +158,62 @@ export function TripBalances({ groupedStandings, suggestedPayments, expenses }: 
                           "text-lg font-black tracking-tight",
                           isPositive ? "text-primary" : isZero ? "text-muted-foreground" : "text-foreground"
                         )}>
-                          {isZero ? '—' : `₹${Math.abs(standing.netTotal).toFixed(2)}`}
+                          {isZero ? '—' : `₹${Math.abs(standing.netTotal).toFixed(0)}`}
                         </p>
-                        {standing.familyCount > 1 && (
-                          <p className="text-[9px] font-bold text-muted-foreground/50 uppercase">
-                            {standing.familyCount} members
-                          </p>
-                        )}
                       </div>
                     </div>
 
-                    {standing.familyCount > 1 && (
-                      <Accordion type="single" collapsible className="border-t border-muted/20">
-                        <AccordionItem value="breakdown" className="border-none">
-                          <AccordionTrigger className="px-5 py-3 hover:no-underline hover:bg-muted/10 group">
-                            <span className="text-[10px] font-bold text-muted-foreground/60 uppercase tracking-widest group-hover:text-primary transition-colors">
-                              View breakdown
-                            </span>
-                          </AccordionTrigger>
-                          <AccordionContent className="px-5 pb-5">
-                            <div className="space-y-3 pt-1">
-                              {standing.breakdown.map((b: any, idx: number) => {
-                                const bPos = b.balance > 0.01;
-                                const bNeg = b.balance < -0.01;
-                                return (
-                                  <div key={idx} className="flex justify-between items-center text-xs">
-                                    <div className="flex items-center gap-2">
-                                      <div className="h-1.5 w-1.5 rounded-full bg-muted-foreground/30" />
-                                      <span className="font-semibold text-foreground/80">{b.name}</span>
-                                    </div>
-                                    <span className={cn(
-                                      "font-bold",
-                                      bPos ? "text-primary" : bNeg ? "text-accent" : "text-muted-foreground/40"
-                                    )}>
-                                      {bPos ? '+' : bNeg ? '-' : ''}₹{Math.abs(b.balance).toFixed(2)}
-                                    </span>
-                                  </div>
-                                );
-                              })}
+                    <Accordion type="single" collapsible className="border-t border-muted/20">
+                      <AccordionItem value="breakdown" className="border-none">
+                        <AccordionTrigger className="px-5 py-3 hover:no-underline hover:bg-muted/10 group">
+                          <span className="text-[10px] font-bold text-muted-foreground/60 uppercase tracking-widest group-hover:text-primary transition-colors">
+                            View settlement breakdown
+                          </span>
+                        </AccordionTrigger>
+                        <AccordionContent className="px-5 pb-5">
+                          <div className="space-y-4">
+                            <div className="flex justify-between bg-muted/30 p-4 rounded-2xl border border-muted/20">
+                                <div className="text-center flex-1">
+                                   <p className="text-[8px] font-bold text-muted-foreground uppercase mb-0.5 tracking-tighter">Total Paid</p>
+                                   <p className="text-sm font-black text-foreground">₹{standing.totalPaid.toFixed(0)}</p>
+                                </div>
+                                <div className="w-px bg-muted/40 my-1 mx-2" />
+                                <div className="text-center flex-1">
+                                   <p className="text-[8px] font-bold text-muted-foreground uppercase mb-0.5 tracking-tighter">Total Share</p>
+                                   <p className="text-sm font-black text-foreground">₹{standing.totalShare.toFixed(0)}</p>
+                                </div>
                             </div>
-                          </AccordionContent>
-                        </AccordionItem>
-                      </Accordion>
-                    )}
+
+                            {standing.familyCount > 1 && (
+                              <div className="space-y-3 pt-1 border-t border-muted/10 mt-4">
+                                <p className="text-[9px] font-bold text-muted-foreground/50 uppercase tracking-widest px-1">Member breakdown</p>
+                                {standing.breakdown.map((b: any, idx: number) => {
+                                  const bPos = b.balance > 0.01;
+                                  const bNeg = b.balance < -0.01;
+                                  return (
+                                    <div key={idx} className="flex justify-between items-center text-xs p-2 rounded-xl hover:bg-muted/10 transition-colors">
+                                      <div className="flex items-center gap-2">
+                                        <div className="h-1.5 w-1.5 rounded-full bg-muted-foreground/30" />
+                                        <span className="font-semibold text-foreground/80">{b.name}</span>
+                                      </div>
+                                      <div className="text-right">
+                                        <span className={cn(
+                                          "font-bold block leading-none",
+                                          bPos ? "text-primary" : bNeg ? "text-accent" : "text-muted-foreground/40"
+                                        )}>
+                                          {bPos ? '+' : bNeg ? '-' : ''}₹{Math.abs(b.balance).toFixed(0)}
+                                        </span>
+                                        <p className="text-[8px] text-muted-foreground/40 font-medium mt-1">Paid ₹{b.paid.toFixed(0)} • Share ₹{b.share.toFixed(0)}</p>
+                                      </div>
+                                    </div>
+                                  );
+                                })}
+                              </div>
+                            )}
+                          </div>
+                        </AccordionContent>
+                      </AccordionItem>
+                    </Accordion>
                   </CardContent>
                 </Card>
               );
@@ -229,7 +244,7 @@ export function TripBalances({ groupedStandings, suggestedPayments, expenses }: 
             <div className="flex items-start gap-3">
               <Info className="h-4 w-4 text-muted-foreground mt-0.5 shrink-0" />
               <p className="text-[11px] text-muted-foreground leading-relaxed font-medium">
-                Calculations are optimized for simplicity. Use the "Sync balances" tool in settings to repair historical split issues.
+                Net Balance is calculated as Total Paid (Out-of-pocket) minus Total Share (Personal usage). Use the "Sync balances" tool in settings to repair historical split issues.
               </p>
             </div>
           </div>

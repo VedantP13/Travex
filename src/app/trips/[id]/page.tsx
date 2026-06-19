@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useEffect, useMemo, useRef } from "react";
@@ -109,9 +110,6 @@ export default function TripDetails() {
         if (splitType === 'custom') {
           selectedIndividuals?.forEach((pid: string) => { 
             const share = parseFloat(customAmounts?.[pid]) || 0;
-            const parentId = pid.split('-')[0];
-            const numSelectedInFamily = selectedIndividuals.filter((sid: string) => sid.startsWith(parentId)).length;
-            // Distribute custom share to the individual
             deltas[pid] = (deltas[pid] || 0) - share;
           });
         } else if (splitType === 'equal_person') {
@@ -249,19 +247,83 @@ export default function TripDetails() {
 
   const groupedStandings = useMemo(() => {
     if (!trip?.participants || !trip?.netBalances) return [];
+    
+    // Calculate Total Paid and Total Share per participant identifier (id or id-memberName)
+    const paidMap: Record<string, number> = {};
+    const shareMap: Record<string, number> = {};
+    
+    expenses.forEach(exp => {
+      if (exp.splitType === 'unsplit') return;
+      const amount = parseFloat(exp.amount) || 0;
+      
+      // Accumulate Paid totals
+      paidMap[exp.payerId] = (paidMap[exp.payerId] || 0) + amount;
+      
+      // Accumulate Share totals based on split type
+      const selected = exp.selectedIndividuals || [];
+      if (exp.splitType === 'equal_person') {
+        const share = amount / (selected.length || 1);
+        selected.forEach(id => shareMap[id] = (shareMap[id] || 0) + share);
+      } else if (exp.splitType === 'equal_family') {
+        const families = new Set(selected.map(sid => sid.split('-')[0]));
+        const sharePerFamily = amount / (families.size || 1);
+        families.forEach(fid => {
+           const membersInFamily = selected.filter(sid => sid.startsWith(fid));
+           const sharePerMember = sharePerFamily / (membersInFamily.length || 1);
+           membersInFamily.forEach(mid => shareMap[mid] = (shareMap[mid] || 0) + sharePerMember);
+        });
+      } else if (exp.splitType === 'custom') {
+        const custom = exp.customAmounts || {};
+        selected.forEach(id => shareMap[id] = (shareMap[id] || 0) + (parseFloat(custom[id]) || 0));
+      } else if (exp.splitType === 'just_me') {
+        shareMap[exp.payerId] = (shareMap[exp.payerId] || 0) + amount;
+      }
+    });
+
     return trip.participants.map((p: any) => {
       const isMe = p.isUser && p.userId === user?.uid;
       const headName = p.name.replace(" (You)", "");
-      let total = trip.netBalances[p.id] || 0;
-      const breakdown = [{ name: headName, balance: trip.netBalances[p.id] || 0 }];
+      
+      let totalPaid = paidMap[p.id] || 0;
+      let totalShare = shareMap[p.id] || 0;
+      
+      // Construct breakdown starting with the family head
+      const breakdown = [{ 
+        name: headName, 
+        balance: (paidMap[p.id] || 0) - (shareMap[p.id] || 0),
+        paid: paidMap[p.id] || 0,
+        share: shareMap[p.id] || 0
+      }];
+
+      // Add family members to the breakdown
       p.familyMembers?.forEach((fm: string) => {
-        const val = trip.netBalances[`${p.id}-${fm}`] || 0;
-        total += val;
-        breakdown.push({ name: fm, balance: val });
+        const mid = `${p.id}-${fm}`;
+        const mPaid = paidMap[mid] || 0;
+        const mShare = shareMap[mid] || 0;
+        totalPaid += mPaid;
+        totalShare += mShare;
+        breakdown.push({ 
+          name: fm, 
+          balance: mPaid - mShare,
+          paid: mPaid,
+          share: mShare
+        });
       });
-      return { id: p.id, name: headName, isMe, avatar: p.avatar, netTotal: total, breakdown, familyCount: breakdown.length };
+
+      return { 
+        id: p.id, 
+        name: headName, 
+        isMe, 
+        avatar: p.avatar, 
+        netTotal: totalPaid - totalShare, 
+        totalPaid,
+        totalShare,
+        breakdown, 
+        familyCount: breakdown.length,
+        isSolo: !p.familyMembers || p.familyMembers.length === 0
+      };
     }).sort((a: any, b: any) => b.netTotal - a.netTotal);
-  }, [trip, user?.uid]);
+  }, [trip, user?.uid, expenses]);
 
   const suggestedPayments = useMemo(() => {
     const debtors = groupedStandings.filter(s => s.netTotal < -0.01).map(s => ({ name: s.name, avatar: s.avatar, balance: Math.abs(s.netTotal) }));
