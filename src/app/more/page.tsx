@@ -9,7 +9,6 @@ import {
   ChevronRight, 
   MessageSquare, 
   ShieldCheck,
-  Zap,
   ArrowRight,
   Heart
 } from "lucide-react";
@@ -98,23 +97,21 @@ export default function MorePage() {
       <main className="px-safe-pad pt-6 space-y-8">
         {/* Guest Nudge */}
         {isGuest && (
-          <Card className="border-none shadow-xl bg-accent rounded-3xl overflow-hidden animate-in fade-in slide-in-from-top-2 duration-500">
+          <Card className="border-none shadow-2xl bg-accent rounded-[2rem] overflow-hidden animate-in fade-in slide-in-from-top-2 duration-500">
             <CardContent className="p-6">
-              <div className="flex items-start gap-4">
-                <div className="h-12 w-12 rounded-2xl bg-white/20 backdrop-blur-md flex items-center justify-center shrink-0">
-                  <Zap className="h-6 w-6 text-white" />
-                </div>
+              <div className="space-y-4">
                 <div className="space-y-1">
-                  <h3 className="font-bold text-white leading-tight">Secure your adventure</h3>
-                  <p className="text-[11px] text-white/80 font-medium leading-relaxed">
-                    You're using a guest account. Link to Google to ensure you never lose your trip history.
+                  <h3 className="text-xl font-black text-white leading-tight tracking-tight">Don't lose your trips</h3>
+                  <p className="text-[11px] text-white/90 font-bold leading-relaxed">
+                    You're using a guest account. Connect to Google to safely sync your travel data and access it from any device.
                   </p>
-                  <Link href="/profile" className="block pt-2">
-                    <Button variant="secondary" size="sm" className="h-8 rounded-xl px-4 font-bold text-[10px] bg-white text-accent hover:bg-white/90">
-                      Link Now <ArrowRight className="ml-1 h-3 w-3" />
-                    </Button>
-                  </Link>
                 </div>
+                <Link href="/profile" className="block">
+                  <Button className="w-full h-14 rounded-2xl bg-white text-foreground hover:bg-slate-50 border-none font-bold flex items-center justify-center gap-3 shadow-xl active:scale-[0.98] transition-all">
+                    <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" className="h-6 w-6" alt="Google" />
+                    Connect Google Account
+                  </Button>
+                </Link>
               </div>
             </CardContent>
           </Card>
