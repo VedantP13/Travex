@@ -17,6 +17,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { cn } from "@/lib/utils";
 import { useMemo } from "react";
+import { getInitials, getAvatarFallbackClasses } from "@/lib/avatar-utils";
 
 interface TripBalancesProps {
   groupedStandings: any[];
@@ -83,7 +84,9 @@ export function TripBalances({ groupedStandings, suggestedPayments, expenses }: 
                       <div className="flex items-center gap-2 min-w-0 flex-1">
                         <Avatar className="h-8 w-8 border shadow-sm">
                           <AvatarImage src={p.fromAvatar} />
-                          <AvatarFallback className="text-[10px] font-bold">{p.from[0]}</AvatarFallback>
+                          <AvatarFallback className={getAvatarFallbackClasses(p.from)}>
+                            {getInitials(p.from)}
+                          </AvatarFallback>
                         </Avatar>
                         <p className="text-xs font-bold truncate">{p.from.split(' ')[0]}</p>
                       </div>
@@ -97,7 +100,9 @@ export function TripBalances({ groupedStandings, suggestedPayments, expenses }: 
                         <p className="text-xs font-bold truncate">{p.to.split(' ')[0]}</p>
                         <Avatar className="h-8 w-8 border shadow-sm">
                           <AvatarImage src={p.toAvatar} />
-                          <AvatarFallback className="text-[10px] font-bold">{p.to[0]}</AvatarFallback>
+                          <AvatarFallback className={getAvatarFallbackClasses(p.to)}>
+                            {getInitials(p.to)}
+                          </AvatarFallback>
                         </Avatar>
                       </div>
                     </div>
@@ -129,7 +134,9 @@ export function TripBalances({ groupedStandings, suggestedPayments, expenses }: 
                         <div className="relative">
                           <Avatar className="h-14 w-14 border-2 border-white shadow-md shrink-0">
                             <AvatarImage src={standing.avatar} className="object-cover" />
-                            <AvatarFallback className="bg-muted text-foreground font-bold">{standing.name[0]}</AvatarFallback>
+                            <AvatarFallback className={getAvatarFallbackClasses(standing.name)}>
+                              {getInitials(standing.name)}
+                            </AvatarFallback>
                           </Avatar>
                         </div>
                         <div className="min-w-0">

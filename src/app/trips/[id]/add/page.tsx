@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState, useEffect, useMemo, useRef } from "react";
@@ -58,6 +57,7 @@ import {
 } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
 import { format } from "date-fns";
+import { getInitials, getAvatarFallbackClasses } from "@/lib/avatar-utils";
 
 const FAMILY_SCHEMES = [
   { border: "border-primary", bg: "bg-primary/5", text: "text-primary", badge: "bg-primary/10 text-primary", darkBg: "bg-primary/10", focus: "focus-visible:ring-primary" },
@@ -360,9 +360,6 @@ export default function AddExpenseWizard() {
         if (finalSplitType === 'custom') {
           selected.forEach(id => {
             const share = parseFloat(formData.customAmounts[id]) || 0;
-            const pid = id.split('-')[0];
-            const numSelectedInFamily = selected.filter(sid => sid.startsWith(pid)).length;
-            const distributedShare = share / numSelectedInFamily;
             deltas[id] = (deltas[id] || 0) - share;
           });
         } else if (finalSplitType === 'equal_person') {
@@ -561,7 +558,9 @@ export default function AddExpenseWizard() {
                     <div className="flex items-center gap-3 flex-1 min-w-0">
                       <Avatar className="h-10 w-10 border-2 border-white shadow-sm flex-shrink-0">
                         <AvatarImage src={family.avatar} />
-                        <AvatarFallback>{family.name?.[0]}</AvatarFallback>
+                        <AvatarFallback className={getAvatarFallbackClasses(family.name)}>
+                          {getInitials(family.name)}
+                        </AvatarFallback>
                       </Avatar>
                       <div className="min-w-0 flex-1">
                         <p className="text-sm font-semibold truncate leading-tight">{family.familyName}</p>
@@ -627,7 +626,9 @@ export default function AddExpenseWizard() {
                           <div className="flex items-center gap-3">
                             <Avatar className="h-8 w-8">
                               <AvatarImage src={member.avatar} />
-                              <AvatarFallback>{member.name?.[0]}</AvatarFallback>
+                              <AvatarFallback className={getAvatarFallbackClasses(member.name)}>
+                                {getInitials(member.name)}
+                              </AvatarFallback>
                             </Avatar>
                             <div>
                               <span className="text-xs font-semibold block leading-none">{member.name}</span>
@@ -672,7 +673,9 @@ export default function AddExpenseWizard() {
                         <div className="flex items-center gap-3">
                           <Avatar className="h-8 w-8">
                             <AvatarImage src={member.avatar} />
-                            <AvatarFallback>{member.name?.[0]}</AvatarFallback>
+                            <AvatarFallback className={getAvatarFallbackClasses(member.name)}>
+                              {getInitials(member.name)}
+                            </AvatarFallback>
                           </Avatar>
                           <div>
                             <span className="text-xs font-semibold block leading-none">{member.name}</span>
@@ -999,7 +1002,9 @@ export default function AddExpenseWizard() {
                       >
                         <Avatar className="h-8 w-8 shadow-sm">
                           <AvatarImage src={p.avatar} />
-                          <AvatarFallback>{p.name?.[0]}</AvatarFallback>
+                          <AvatarFallback className={getAvatarFallbackClasses(p.name)}>
+                            {getInitials(p.name)}
+                          </AvatarFallback>
                         </Avatar>
                         <span className={cn(
                           "font-semibold text-xs truncate",

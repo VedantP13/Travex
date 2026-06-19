@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState, useEffect } from "react";
@@ -286,7 +285,15 @@ export function EditTripDialog({ isOpen, onOpenChange, trip, user }: EditTripDia
                   <Card className="absolute top-full left-0 right-0 z-30 mt-2 border-none shadow-2xl bg-white rounded-2xl overflow-hidden divide-y">
                     {friendSearchResults.map((friend) => (
                       <div key={friend.id} className="p-3 flex items-center justify-between hover:bg-primary/5 cursor-pointer" onClick={() => handleSelectFriend(friend)}>
-                        <div className="flex items-center gap-3"><Avatar className="h-8 w-8"><AvatarImage src={friend.friendPhoto} /><AvatarFallback className={getAvatarFallbackClasses(friend.friendName)}>{getInitials(friend.friendName)}</AvatarFallback></Avatar><span className="text-sm font-semibold">{friend.friendName}</span></div>
+                        <div className="flex items-center gap-3">
+                          <Avatar className="h-8 w-8">
+                            <AvatarImage src={friend.friendPhoto} />
+                            <AvatarFallback className={getAvatarFallbackClasses(friend.friendName)}>
+                              {getInitials(friend.friendName)}
+                            </AvatarFallback>
+                          </Avatar>
+                          <span className="text-sm font-semibold">{friend.friendName}</span>
+                        </div>
                         <Plus className="h-4 w-4 text-primary" />
                       </div>
                     ))}
@@ -302,7 +309,15 @@ export function EditTripDialog({ isOpen, onOpenChange, trip, user }: EditTripDia
                     <Card key={p.id} className="rounded-2xl border-none shadow-sm overflow-hidden bg-white/50">
                       <CardContent className="p-4 space-y-4">
                         <div className="flex justify-between items-start">
-                          <div className="flex items-center gap-3"><Avatar className="h-8 w-8"><AvatarImage src={p.avatar} /><AvatarFallback className={getAvatarFallbackClasses(headName)}>{getInitials(headName)}</AvatarFallback></Avatar><span className="font-semibold text-sm">{isMe ? "Your family" : `${headName}'s family`}</span></div>
+                          <div className="flex items-center gap-3">
+                            <Avatar className="h-8 w-8">
+                              <AvatarImage src={p.avatar} />
+                              <AvatarFallback className={getAvatarFallbackClasses(headName)}>
+                                {getInitials(headName)}
+                              </AvatarFallback>
+                            </Avatar>
+                            <span className="font-semibold text-sm">{isMe ? "Your family" : `${headName}'s family`}</span>
+                          </div>
                           {!isMe && <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive" onClick={() => setEditParticipants(prev => prev.filter(part => part.id !== p.id))}><X className="h-4 w-4" /></Button>}
                         </div>
                         <div className="flex flex-wrap gap-2 items-center">

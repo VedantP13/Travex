@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useMemo, useState } from "react";
@@ -45,6 +44,7 @@ import { cn } from "@/lib/utils";
 import { format, parseISO } from "date-fns";
 import { Timestamp } from "firebase/firestore";
 import { useUser } from "@/firebase";
+import { getInitials, getAvatarFallbackClasses } from "@/lib/avatar-utils";
 
 interface ExpenseDetailDialogProps {
   expense: any;
@@ -360,7 +360,9 @@ export function ExpenseDetailDialog({ expense, trip, onClose, onDelete, onEdit, 
                             <div className="flex items-center gap-3">
                               <Avatar className="h-9 w-9 border-2 border-white shadow-sm ring-1 ring-black/5">
                                 <AvatarImage src={group.avatar} className="object-cover" />
-                                <AvatarFallback className="text-[10px] font-bold bg-muted text-foreground">{group.name[0]}</AvatarFallback>
+                                <AvatarFallback className={getAvatarFallbackClasses(group.name)}>
+                                  {getInitials(group.name)}
+                                </AvatarFallback>
                               </Avatar>
                               <p className="text-sm font-semibold text-foreground">
                                 {group.members.length > 1 ? familyDisplayName : group.name}

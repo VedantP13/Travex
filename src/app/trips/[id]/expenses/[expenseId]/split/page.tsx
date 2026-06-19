@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState, useEffect, useMemo } from "react";
@@ -29,6 +28,7 @@ import { AnimatedCompass } from "@/components/animated-compass";
 import { errorEmitter } from "@/firebase/error-emitter";
 import { FirestorePermissionError } from "@/firebase/errors";
 import { cn } from "@/lib/utils";
+import { getInitials, getAvatarFallbackClasses } from "@/lib/avatar-utils";
 
 const FAMILY_SCHEMES = [
   { border: "border-primary", bg: "bg-primary/5", text: "text-primary", badge: "bg-primary/10 text-primary", darkBg: "bg-primary/10", focus: "focus-visible:ring-primary" },
@@ -291,7 +291,9 @@ export default function CompleteSplitPage() {
                     <div className="flex items-center gap-3 flex-1 min-w-0">
                       <Avatar className="h-10 w-10 border-2 border-white shadow-sm flex-shrink-0">
                         <AvatarImage src={family.avatar} />
-                        <AvatarFallback>{family.name?.[0]}</AvatarFallback>
+                        <AvatarFallback className={getAvatarFallbackClasses(family.name)}>
+                          {getInitials(family.name)}
+                        </AvatarFallback>
                       </Avatar>
                       <div className="min-w-0 flex-1">
                         <p className="text-sm font-semibold truncate leading-tight">{family.familyName}</p>
@@ -340,7 +342,12 @@ export default function CompleteSplitPage() {
                       {selectedMembers.map((member) => (
                         <div key={member.id} className="flex items-center justify-between p-3 pl-8 transition-colors cursor-pointer bg-white/50" onClick={() => toggleSelection(member.id)}>
                           <div className="flex items-center gap-3">
-                            <Avatar className="h-8 w-8"><AvatarImage src={member.avatar} /><AvatarFallback>{member.name?.[0]}</AvatarFallback></Avatar>
+                            <Avatar className="h-8 w-8">
+                              <AvatarImage src={member.avatar} />
+                              <AvatarFallback className={getAvatarFallbackClasses(member.name)}>
+                                {getInitials(member.name)}
+                              </AvatarFallback>
+                            </Avatar>
                             <div><span className="text-xs font-semibold block leading-none">{member.name}</span><span className="text-[9px] text-muted-foreground font-medium">{family.familyName}</span></div>
                           </div>
                           <div className="flex items-center gap-3">
@@ -369,7 +376,9 @@ export default function CompleteSplitPage() {
                         <div className="flex items-center gap-3">
                           <Avatar className="h-8 w-8">
                             <AvatarImage src={member.avatar} />
-                            <AvatarFallback>{member.name?.[0]}</AvatarFallback>
+                            <AvatarFallback className={getAvatarFallbackClasses(member.name)}>
+                              {getInitials(member.name)}
+                            </AvatarFallback>
                           </Avatar>
                           <div>
                             <span className="text-xs font-semibold block leading-none">{member.name}</span>

@@ -13,6 +13,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { cn } from "@/lib/utils";
 import { getTripImage } from "@/lib/image-utils";
+import { getInitials, getAvatarFallbackClasses } from "@/lib/avatar-utils";
 
 interface TripHeaderProps {
   trip: any;
@@ -135,7 +136,9 @@ export function TripHeader({ trip, onBack, onEdit, onDelete, onChangeCover, onRe
             {trip?.participants?.slice(0, 4).map((p: any, idx: number) => (
               <Avatar key={idx} className="h-6 w-6 border-2 border-white shadow-lg">
                 <AvatarImage src={p.avatar} />
-                <AvatarFallback className="text-[8px] font-bold bg-white/10 text-white">{p.name?.[0]}</AvatarFallback>
+                <AvatarFallback className={getAvatarFallbackClasses(p.name, true)}>
+                  {getInitials(p.name)}
+                </AvatarFallback>
               </Avatar>
             ))}
           </div>
