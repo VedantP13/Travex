@@ -329,7 +329,6 @@ export default function MorePage() {
               <Heart className="h-2.5 w-2.5 fill-current" />
               <span>for travelers</span>
             </div>
-            <p className="text-[9px] font-bold text-muted-foreground/20">Version 1.2.0 • Travex App</p>
           </div>
         </div>
       </main>
