@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState, useMemo } from "react";
@@ -16,6 +15,7 @@ import { useTrips } from "@/context/trips-context";
 import { getTripImage } from "@/lib/image-utils";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useUser } from "@/firebase";
+import { getInitials, getAvatarFallbackClasses } from "@/lib/avatar-utils";
 
 const FILTERS = [
   { id: 'all', label: 'All' },
@@ -140,7 +140,9 @@ export default function AllTripsPage() {
                           {trip.participants?.slice(0, 3).map((p: any, idx: number) => (
                             <Avatar key={idx} className="h-4 w-4 border border-white shadow-sm">
                               <AvatarImage src={p.avatar} />
-                              <AvatarFallback className="text-[6px] bg-primary text-white font-bold">{p.name?.[0]}</AvatarFallback>
+                              <AvatarFallback className={getAvatarFallbackClasses(p.name)}>
+                                {getInitials(p.name)}
+                              </AvatarFallback>
                             </Avatar>
                           ))}
                         </div>

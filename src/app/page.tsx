@@ -14,6 +14,7 @@ import { useUser, useFirestore } from "@/firebase";
 import { useEffect, useState, useMemo } from "react";
 import { doc, onSnapshot, setDoc, serverTimestamp } from "firebase/firestore";
 import { getTripImage } from "@/lib/image-utils";
+import { getInitials, getAvatarFallbackClasses } from "@/lib/avatar-utils";
 
 export default function Home() {
   const { trips, loading, error } = useTrips();
@@ -94,10 +95,10 @@ export default function Home() {
   const isAnonymous = user?.isAnonymous;
 
   const displayPhoto = firestoreProfile?.photoURL || user?.photoURL || "";
-  const welcomeName = firestoreProfile?.displayName || user?.displayName;
-  const greetingName = welcomeName?.split(' ')[0] || (isAnonymous ? 'Guest' : 'Explorer');
+  const welcomeName = firestoreProfile?.displayName || user?.displayName || (isAnonymous ? 'Guest' : 'Explorer');
+  const greetingName = welcomeName.split(' ')[0];
   
-  const displayNameForFallback = welcomeName || (isAnonymous ? "Guest" : "User");
+  const displayNameForFallback = welcomeName;
 
   return (
     <div className="max-w-md mx-auto min-h-screen flex flex-col bg-background pb-56">
@@ -117,8 +118,8 @@ export default function Home() {
           <Link href="/profile" className="relative group">
             <Avatar className="h-12 w-12 border-2 border-white/10 hover:border-accent hover:scale-110 transition-all duration-300 shadow-xl shadow-black/20">
               <AvatarImage src={displayPhoto} className="object-cover" />
-              <AvatarFallback className="bg-white/10 text-white font-bold text-sm">
-                {displayNameForFallback[0]}
+              <AvatarFallback className={getAvatarFallbackClasses(displayNameForFallback, true)}>
+                {getInitials(displayNameForFallback)}
               </AvatarFallback>
             </Avatar>
           </Link>
@@ -189,7 +190,9 @@ export default function Home() {
                         {activeTrip.participants?.slice(0, 3).map((p: any, idx: number) => (
                           <Avatar key={idx} className={cn("h-4 w-4 border shadow-sm", isPastDue ? "border-accent ring-1 ring-white/20" : "border-primary ring-1 ring-white/10")}>
                             <AvatarImage src={p.avatar} />
-                            <AvatarFallback className="text-[6px] bg-white/10 text-white font-bold">{p.name?.[0]}</AvatarFallback>
+                            <AvatarFallback className={getAvatarFallbackClasses(p.name, true)}>
+                              {getInitials(p.name)}
+                            </AvatarFallback>
                           </Avatar>
                         ))}
                       </div>
@@ -321,7 +324,9 @@ export default function Home() {
                           {trip.participants?.slice(0, 3).map((p: any, idx: number) => (
                             <Avatar key={idx} className="h-4 w-4 border border-white shadow-sm">
                               <AvatarImage src={p.avatar} />
-                              <AvatarFallback className="text-[6px] bg-primary text-white font-bold">{p.name?.[0]}</AvatarFallback>
+                              <AvatarFallback className={getAvatarFallbackClasses(p.name)}>
+                                {getInitials(p.name)}
+                              </AvatarFallback>
                             </Avatar>
                           ))}
                         </div>
