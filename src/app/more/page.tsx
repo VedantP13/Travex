@@ -13,7 +13,8 @@ import {
   Trash2,
   AlertTriangle,
   X,
-  Loader2
+  Loader2,
+  Share2
 } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { BottomNav } from "@/components/bottom-nav";
@@ -49,6 +50,30 @@ export default function MorePage() {
   const handleSignOut = async () => {
     await signOut(auth);
     router.push("/login");
+  };
+
+  const handleShareApp = async () => {
+    const shareData = {
+      title: 'Travex: Smart Travel Expenses',
+      text: 'Check out Travex - it makes splitting travel costs with friends so easy!',
+      url: window.location.origin,
+    };
+
+    if (navigator.share && navigator.canShare && navigator.canShare(shareData)) {
+      try {
+        await navigator.share(shareData);
+      } catch (err) {
+        console.log('Share failed:', err);
+      }
+    } else {
+      // Fallback: Copy to clipboard
+      try {
+        await navigator.clipboard.writeText(window.location.origin);
+        toast({ title: "Link copied!", description: "Share it with your travel buddies." });
+      } catch (err) {
+        toast({ variant: "destructive", title: "Share failed", description: "Could not copy link." });
+      }
+    }
   };
 
   const handleDeleteAccount = async () => {
@@ -120,6 +145,13 @@ export default function MorePage() {
           href: "/explore",
           color: "bg-orange-100 text-orange-600"
         },
+        { 
+          title: "Share Travex", 
+          description: "Invite your buddies to the app", 
+          icon: Share2, 
+          onClick: handleShareApp,
+          color: "bg-pink-100 text-pink-600"
+        },
       ]
     },
     {
@@ -129,7 +161,7 @@ export default function MorePage() {
           title: "Send Feedback", 
           description: "Help us make Travex better", 
           icon: MessageSquare, 
-          href: "mailto:hello@travex.app",
+          href: "mailto:hello@travex.app?subject=Feedback for Travex App",
           color: "bg-teal-100 text-teal-600"
         },
       ]
@@ -172,12 +204,11 @@ export default function MorePage() {
               {section.title}
             </h3>
             <div className="space-y-3">
-              {section.items.map((option) => (
-                <Link 
-                  key={option.title} 
-                  href={option.href}
-                  className="block transition-all active:scale-[0.98]"
-                >
+              {section.items.map((option) => {
+                const isAction = !!option.onClick;
+                const isExternal = option.href?.startsWith('mailto:');
+                
+                const Content = (
                   <Card className="border-none shadow-sm hover:shadow-md transition-shadow bg-white rounded-2xl overflow-hidden">
                     <CardContent className="p-4 flex items-center justify-between">
                       <div className="flex items-center gap-4">
@@ -192,8 +223,34 @@ export default function MorePage() {
                       <ChevronRight className="h-4 w-4 text-muted-foreground/40" />
                     </CardContent>
                   </Card>
-                </Link>
-              ))}
+                );
+
+                if (isAction) {
+                  return (
+                    <button key={option.title} onClick={option.onClick} className="w-full text-left transition-all active:scale-[0.98]">
+                      {Content}
+                    </button>
+                  );
+                }
+
+                if (isExternal) {
+                  return (
+                    <a key={option.title} href={option.href} className="block transition-all active:scale-[0.98]">
+                      {Content}
+                    </a>
+                  );
+                }
+
+                return (
+                  <Link 
+                    key={option.title} 
+                    href={option.href || "#"}
+                    className="block transition-all active:scale-[0.98]"
+                  >
+                    {Content}
+                  </Link>
+                );
+              })}
             </div>
           </div>
         ))}
