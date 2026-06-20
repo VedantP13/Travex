@@ -1,7 +1,6 @@
-
 'use client';
 
-import { Utensils, Car, Home, ShoppingBag, Plane, Camera, Box, Timer, Sparkles } from "lucide-react";
+import { Utensils, Car, Home, ShoppingBag, Plane, Camera, Box, Timer, ReceiptText } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
@@ -12,6 +11,7 @@ interface TripFeedProps {
   loading: boolean;
   onSelectExpense: (expense: any) => void;
   onSplitNow: (expenseId: string) => void;
+  onAddExpense: () => void;
   isSettled?: boolean;
 }
 
@@ -39,7 +39,7 @@ const getCategoryColor = (cat: string) => {
   }
 };
 
-export function TripFeed({ unsplitExpenses, finalizedExpenses, loading, onSelectExpense, onSplitNow, isSettled }: TripFeedProps) {
+export function TripFeed({ unsplitExpenses, finalizedExpenses, loading, onSelectExpense, onSplitNow, onAddExpense, isSettled }: TripFeedProps) {
   return (
     <div className="space-y-4 pb-24">
       {unsplitExpenses.length > 0 && (
@@ -107,12 +107,22 @@ export function TripFeed({ unsplitExpenses, finalizedExpenses, loading, onSelect
       )}
 
       {!loading && unsplitExpenses.length === 0 && finalizedExpenses.length === 0 && (
-        <div className="text-center py-16 bg-white rounded-[2rem] border-2 border-dashed border-muted/50 px-8">
-          <div className="h-14 w-14 bg-muted/20 rounded-full flex items-center justify-center mx-auto mb-4">
-            <Sparkles className="h-6 w-6 text-muted-foreground/40" />
+        <div className="text-center py-16 bg-white rounded-[2rem] border-2 border-dashed border-muted/50 px-10 animate-in fade-in slide-in-from-bottom-4 duration-500">
+          <div className="h-16 w-16 bg-muted/20 rounded-full flex items-center justify-center mx-auto mb-6 shadow-sm">
+            <ReceiptText className="h-7 w-7 text-muted-foreground/40" />
           </div>
-          <p className="text-sm font-bold text-foreground">No expenses yet</p>
-          <p className="text-[10px] text-muted-foreground mt-1">Tap the + button to add your first transaction.</p>
+          <h2 className="text-xl font-bold text-foreground tracking-tight">No expenses yet</h2>
+          <p className="text-sm text-muted-foreground mt-2 mb-8 leading-relaxed">
+            Start tracking your spending by adding your first transaction for this trip.
+          </p>
+          {!isSettled && (
+            <Button 
+              className="w-full h-14 rounded-2xl font-bold bg-primary text-white shadow-xl shadow-primary/20 hover:bg-primary/90 transition-all active:scale-95"
+              onClick={onAddExpense}
+            >
+              Add first expense
+            </Button>
+          )}
         </div>
       )}
     </div>

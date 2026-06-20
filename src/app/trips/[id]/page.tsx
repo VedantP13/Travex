@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState, useEffect, useMemo, useRef } from "react";
@@ -421,6 +420,7 @@ export default function TripDetails() {
               loading={loading} 
               onSelectExpense={setSelectedExpenseDetail}
               onSplitNow={(expenseId) => router.push(`/trips/${id}/expenses/${expenseId}/split`)}
+              onAddExpense={() => router.push(`/trips/${id}/add`)}
               isSettled={isSettled}
             />
           </TabsContent>
