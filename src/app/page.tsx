@@ -368,12 +368,6 @@ export default function Home() {
                       )}>
                         {trip.status || "Upcoming"}
                       </Badge>
-                      {tripPastDue && (
-                        <div className="absolute top-4 left-4 bg-white/20 backdrop-blur-md rounded-lg px-2 py-1 flex items-center gap-1.5 animate-in fade-in zoom-in duration-500">
-                          <AlertCircle className="h-3 w-3 text-white" />
-                          <span className="text-[8px] font-bold text-white uppercase tracking-tighter">Review required</span>
-                        </div>
-                      )}
                     </div>
                     <CardHeader className="p-5 space-y-1">
                       <div className="flex justify-between items-start">
