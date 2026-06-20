@@ -1,9 +1,9 @@
 "use client";
 
 import Link from "next/link";
-import { Plus, ChevronRight, Compass, MapPinPlus, Users, Calendar, AlertCircle } from "lucide-react";
+import { Plus, ChevronRight, Compass, MapPinPlus, Users, Calendar, AlertCircle, Sparkles, PlaneTakeoff, Heart } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Card, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { cn } from "@/lib/utils";
@@ -15,6 +15,7 @@ import { useEffect, useState, useMemo } from "react";
 import { doc, onSnapshot, setDoc, serverTimestamp } from "firebase/firestore";
 import { getTripImage } from "@/lib/image-utils";
 import { getInitials, getAvatarFallbackClasses } from "@/lib/avatar-utils";
+import { OnboardingDialog } from "@/components/onboarding-dialog";
 
 export default function Home() {
   const { trips, loading, error } = useTrips();
@@ -22,6 +23,8 @@ export default function Home() {
   const firestore = useFirestore();
   const [firestoreProfile, setFirestoreProfile] = useState<any>(null);
   const [greetingPrefix, setGreetingPrefix] = useState("Hi,");
+  const [showOnboarding, setShowOnboarding] = useState(false);
+  const [onboardingComplete, setOnboardingComplete] = useState(false);
 
   useEffect(() => {
     const updateGreeting = () => {
@@ -57,16 +60,27 @@ export default function Home() {
     return () => unsub();
   }, [user?.uid, firestore, user?.displayName, user?.photoURL, user?.email, user?.isAnonymous]);
 
-  // Aggregate Balances Logic for the Dashboard Cards
+  // Phase 1: New User Detection Logic
+  useEffect(() => {
+    if (!loading && trips.length === 0 && firestoreProfile && !onboardingComplete) {
+      const hasFamily = firestoreProfile.familyMembers && firestoreProfile.familyMembers.length > 0;
+      const seen = sessionStorage.getItem('travex_onboarding_shown');
+      
+      if (!hasFamily && !seen) {
+        setShowOnboarding(true);
+        sessionStorage.setItem('travex_onboarding_shown', 'true');
+      }
+    }
+  }, [loading, trips.length, firestoreProfile, onboardingComplete]);
+
+  // Aggregate Balances Logic
   const { totalOwe, totalOwed } = useMemo(() => {
     return (trips || []).reduce((acc, trip) => {
-      // Exclude Settled trips from active standing
       if (trip.status === 'Settled' || !trip.netBalances) return acc;
 
       const me = trip.participants?.find((p: any) => p.isUser && p.userId === user?.uid);
       if (!me) return acc;
 
-      // Net Balance = (User's personal balance) + (Sum of family member balances)
       let tripNetBalance = (trip.netBalances[me.id] || 0);
       
       if (me.familyMembers && Array.isArray(me.familyMembers)) {
@@ -76,8 +90,6 @@ export default function Home() {
         });
       }
 
-      // Add to aggregate summaries
-      // Use small epsilon to avoid precision jitter
       if (tripNetBalance < -0.01) {
         acc.totalOwe += Math.abs(tripNetBalance);
       } else if (tripNetBalance > 0.01) {
@@ -88,7 +100,6 @@ export default function Home() {
     }, { totalOwe: 0, totalOwed: 0 });
   }, [trips, user?.uid]);
 
-  // Select the most relevant non-settled trip to feature
   const activeTrip = trips.find(t => t.status === "Active") || 
                      trips.find(t => t.status === "Upcoming") || 
                      trips.find(t => t.status !== "Settled") || 
@@ -101,13 +112,11 @@ export default function Home() {
     return new Date(activeTrip.endDate) < today;
   }, [activeTrip]);
 
-  const isAnonymous = user?.isAnonymous;
-
   const displayPhoto = firestoreProfile?.photoURL || user?.photoURL || "";
-  const welcomeName = firestoreProfile?.displayName || user?.displayName || (isAnonymous ? 'Guest' : 'Explorer');
+  const welcomeName = firestoreProfile?.displayName || user?.displayName || (user?.isAnonymous ? 'Guest' : 'Explorer');
   const greetingName = welcomeName.split(' ')[0];
   
-  const displayNameForFallback = welcomeName;
+  const hasFamily = firestoreProfile?.familyMembers && firestoreProfile.familyMembers.length > 0;
 
   return (
     <div className="max-w-md mx-auto min-h-screen flex flex-col bg-background pb-56">
@@ -127,8 +136,8 @@ export default function Home() {
           <Link href="/profile" className="relative group">
             <Avatar className="h-12 w-12 border-2 border-white/10 hover:border-accent hover:scale-110 transition-all duration-300 shadow-xl shadow-black/20">
               <AvatarImage src={displayPhoto} className="object-cover" />
-              <AvatarFallback className={getAvatarFallbackClasses(displayNameForFallback, true)}>
-                {getInitials(displayNameForFallback)}
+              <AvatarFallback className={getAvatarFallbackClasses(welcomeName, true)}>
+                {getInitials(welcomeName)}
               </AvatarFallback>
             </Avatar>
           </Link>
@@ -160,7 +169,9 @@ export default function Home() {
         ) : (
           <div className="animate-in fade-in slide-in-from-bottom-2 duration-500 py-1">
             <p className="text-xs font-medium text-white/40 leading-relaxed">
-              Start your journey by creating a trip group.
+              {hasFamily || onboardingComplete 
+                ? "Your travel group is ready for adventure!" 
+                : "Start your journey by creating a trip group."}
             </p>
           </div>
         )}
@@ -243,21 +254,64 @@ export default function Home() {
               </Link>
             </>
           ) : (
-            <Link 
-              href="/trips/new" 
-              className="col-span-12 bg-white shadow-md hover:shadow-xl rounded-[2.5rem] flex items-center p-5 gap-5 transition-all duration-300 transform hover:-translate-y-1 active:scale-95 border border-primary/5 group hover:bg-accent"
-            >
-              <div className="h-16 w-16 rounded-2xl bg-primary/5 flex items-center justify-center text-primary shrink-0 transition-all group-hover:bg-white/20 group-hover:text-white">
-                <MapPinPlus className="h-8 w-8" />
-              </div>
-              <div className="flex-1 min-w-0">
-                <h3 className="text-lg font-bold text-foreground tracking-tight group-hover:text-white">Create New Trip</h3>
-                <p className="text-[10px] text-muted-foreground font-medium mt-0.5 group-hover:text-white/70">
-                  Plan journeys and split expenses effortlessly
-                </p>
-              </div>
-              <ChevronRight className="h-5 w-5 text-muted-foreground group-hover:text-white" />
-            </Link>
+            // Phase 1 Launchpad UI: Replaces standard empty state when onboarding is complete or family exists
+            (hasFamily || onboardingComplete) ? (
+              <Card className="col-span-12 border-none shadow-2xl rounded-[3rem] bg-primary overflow-hidden relative group">
+                <div className="absolute top-0 right-0 p-8 opacity-10 group-hover:scale-110 transition-transform duration-700">
+                  <PlaneTakeoff className="h-40 w-40 text-white -rotate-12" />
+                </div>
+                <CardContent className="p-8 sm:p-10 flex flex-col items-center text-center space-y-6 relative z-10">
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-center gap-2 mb-2">
+                      <Sparkles className="h-5 w-5 text-accent animate-pulse" />
+                      <span className="text-[10px] font-black text-white/60 uppercase tracking-[0.2em]">Ready for liftoff</span>
+                    </div>
+                    <h3 className="text-3xl font-black text-white tracking-tight leading-tight">
+                      Where are we going first?
+                    </h3>
+                    <p className="text-xs text-white/70 font-medium max-w-[240px] mx-auto leading-relaxed">
+                      Your travel group is set up. Create your first trip to start splitting expenses effortlessly.
+                    </p>
+                  </div>
+                  
+                  <Link href="/trips/new" className="w-full">
+                    <Button className="w-full h-16 rounded-[1.5rem] bg-white text-primary hover:bg-white/90 text-lg font-black shadow-xl shadow-black/20 gap-3 group/btn transition-all active:scale-95">
+                      Plan your first adventure
+                      <ChevronRight className="h-5 w-5 transition-transform group-hover/btn:translate-x-1" />
+                    </Button>
+                  </Link>
+
+                  <div className="flex items-center gap-2 pt-2">
+                    <div className="flex -space-x-2">
+                      {firestoreProfile?.familyMembers?.slice(0, 3).map((fm: string) => (
+                        <div key={fm} className="h-6 w-6 rounded-full border-2 border-primary bg-white flex items-center justify-center shadow-sm">
+                          <span className="text-[8px] font-black text-primary">{fm[0]}</span>
+                        </div>
+                      ))}
+                    </div>
+                    <span className="text-[10px] font-bold text-white/50">
+                      {firestoreProfile?.familyMembers?.length || 0} frequent flyers added
+                    </span>
+                  </div>
+                </CardContent>
+              </Card>
+            ) : (
+              <Link 
+                href="/trips/new" 
+                className="col-span-12 bg-white shadow-md hover:shadow-xl rounded-[2.5rem] flex items-center p-5 gap-5 transition-all duration-300 transform hover:-translate-y-1 active:scale-95 border border-primary/5 group hover:bg-accent"
+              >
+                <div className="h-16 w-16 rounded-2xl bg-primary/5 flex items-center justify-center text-primary shrink-0 transition-all group-hover:bg-white/20 group-hover:text-white">
+                  <MapPinPlus className="h-8 w-8" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <h3 className="text-lg font-bold text-foreground tracking-tight group-hover:text-white">Create New Trip</h3>
+                  <p className="text-[10px] text-muted-foreground font-medium mt-0.5 group-hover:text-white/70">
+                    Plan journeys and split expenses effortlessly
+                  </p>
+                </div>
+                <ChevronRight className="h-5 w-5 text-muted-foreground group-hover:text-white" />
+              </Link>
+            )
           )}
         </div>
       </section>
@@ -287,7 +341,6 @@ export default function Home() {
         ) : (
           <div className="grid gap-5">
             {trips.length > 0 ? trips.slice(0, 3).map((trip) => {
-              // Per-trip balance calculation for user (+ family)
               const me = trip.participants?.find((p: any) => p.isUser && p.userId === user?.uid);
               let balance = 0;
               if (me && trip.netBalances) {
@@ -368,22 +421,36 @@ export default function Home() {
                 </Link>
               );
             }) : (
-              <div className="text-center py-14 bg-white rounded-[2rem] border-2 border-dashed border-muted/50 px-10">
-                 <div className="h-14 w-14 bg-muted/20 rounded-full flex items-center justify-center mx-auto mb-5 shadow-sm">
-                   <Plus className="h-6 w-6 text-muted-foreground/40" />
-                 </div>
-                 <p className="text-lg font-bold text-foreground">No trips yet</p>
-                 <p className="text-xs text-muted-foreground mt-1 mb-6">Start splitting on your next trip.</p>
-                 <Link href="/trips/new">
-                   <Button variant="default" className="font-bold rounded-2xl px-8 h-12 shadow-xl shadow-primary/20 bg-primary">
-                     Create your first trip
-                   </Button>
-                 </Link>
-              </div>
+              // Phase 1 Footer logic: Encouragement footer for launchpad
+              (hasFamily || onboardingComplete) ? (
+                <div className="text-center py-10 opacity-30 select-none animate-in fade-in duration-1000">
+                   <Heart className="h-10 w-10 mx-auto mb-3 text-muted-foreground fill-current" />
+                   <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Adventures start with family</p>
+                </div>
+              ) : (
+                <div className="text-center py-14 bg-white rounded-[2rem] border-2 border-dashed border-muted/50 px-10">
+                   <div className="h-14 w-14 bg-muted/20 rounded-full flex items-center justify-center mx-auto mb-5 shadow-sm">
+                     <Plus className="h-6 w-6 text-muted-foreground/40" />
+                   </div>
+                   <p className="text-lg font-bold text-foreground">No trips yet</p>
+                   <p className="text-xs text-muted-foreground mt-1 mb-6">Start splitting on your next trip.</p>
+                   <Link href="/trips/new">
+                     <Button variant="default" className="font-bold rounded-2xl px-8 h-12 shadow-xl shadow-primary/20 bg-primary">
+                       Create your first trip
+                     </Button>
+                   </Link>
+                </div>
+              )
             )}
           </div>
         )}
       </main>
+
+      <OnboardingDialog 
+        isOpen={showOnboarding} 
+        onOpenChange={setShowOnboarding}
+        onComplete={() => setOnboardingComplete(true)}
+      />
 
       <BottomNav />
     </div>
