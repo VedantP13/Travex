@@ -126,11 +126,13 @@ export default function ProfilePage() {
     const userDocRef = doc(firestore, "users", userId);
 
     try {
-      const highResPhoto = editedPhotoURL.startsWith('data:') 
+      const isBase64 = editedPhotoURL.startsWith('data:');
+      
+      const highResPhoto = isBase64 
         ? await resizeImage(editedPhotoURL, 400, 0.8)
         : editedPhotoURL;
 
-      const lowResPhoto = editedPhotoURL.startsWith('data:')
+      const lowResPhoto = isBase64
         ? await resizeImage(editedPhotoURL, 60, 0.5)
         : editedPhotoURL;
 
@@ -141,6 +143,7 @@ export default function ProfilePage() {
         updatedAt: serverTimestamp(),
       };
 
+      // Firestore is our PRIMARY source of truth for high-res profile images
       await setDoc(userDocRef, profileData, { merge: true })
         .catch(async (error) => {
           const permissionError = new FirestorePermissionError({
@@ -151,9 +154,13 @@ export default function ProfilePage() {
           errorEmitter.emit('permission-error', permissionError);
         });
 
+      // Firebase Auth photoURL has character limits (~2KB), so we only sync small strings or stable URLs
+      // We skip base64 data for Auth and rely on Firestore profile lookup elsewhere in the app.
+      const authPhotoValue = (isBase64 && lowResPhoto.length < 2000) ? lowResPhoto : (!isBase64 ? editedPhotoURL : "");
+
       await updateProfile(auth.currentUser, {
         displayName: editedName.trim(),
-        photoURL: lowResPhoto.length < 2000 ? lowResPhoto : ""
+        photoURL: authPhotoValue
       });
 
       toast({
@@ -346,6 +353,7 @@ export default function ProfilePage() {
   }
 
   const isGuest = user?.isAnonymous;
+  // Firestore is the PRIMARY source of truth for photos to avoid Auth character limits
   const displayPhoto = isEditing ? editedPhotoURL : (firestoreProfile?.photoURL || user?.photoURL || "");
   const displayName = isEditing ? editedName : (firestoreProfile?.displayName || user?.displayName || (isGuest ? "Guest Explorer" : "Explorer"));
   const familyMembers = firestoreProfile?.familyMembers || [];

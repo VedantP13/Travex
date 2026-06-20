@@ -42,23 +42,32 @@ export default function Home() {
   useEffect(() => {
     if (!user?.uid || !firestore) return;
 
-    const profileData = {
+    // Background sync logic: Only update fields that should reflect Auth state
+    // CRITICAL: We do NOT sync photoURL here for guests because Firestore is the primary storage for their images.
+    // Overwriting with user.photoURL (which is empty for guests) would delete their custom avatar.
+    const isGoogleUser = user.providerData.some(p => p.providerId === 'google.com');
+    
+    const profileSyncData: any = {
       displayName: user.displayName || (user.isAnonymous ? "Guest Explorer" : "Explorer"),
       searchName: (user.displayName || (user.isAnonymous ? "guest explorer" : "explorer")).toLowerCase(),
-      photoURL: user.photoURL || "",
       email: (user.email || "").toLowerCase(),
       isAnonymous: user.isAnonymous,
       updatedAt: serverTimestamp(),
     };
+
+    // Only sync photo from Auth if it's a reliable Google URL
+    if (isGoogleUser && user.photoURL) {
+      profileSyncData.photoURL = user.photoURL;
+    }
     
-    setDoc(doc(firestore, "users", user.uid), profileData, { merge: true })
+    setDoc(doc(firestore, "users", user.uid), profileSyncData, { merge: true })
       .catch(err => console.error("Profile sync failed:", err));
 
     const unsub = onSnapshot(doc(firestore, "users", user.uid), (snap) => {
       if (snap.exists()) setFirestoreProfile(snap.data());
     });
     return () => unsub();
-  }, [user?.uid, firestore, user?.displayName, user?.photoURL, user?.email, user?.isAnonymous]);
+  }, [user?.uid, firestore, user?.displayName, user?.photoURL, user?.email, user?.isAnonymous, user?.providerData]);
 
   // Persistent Onboarding Logic: Show dialog if no trips AND no family members
   useEffect(() => {
