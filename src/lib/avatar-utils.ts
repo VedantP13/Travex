@@ -40,11 +40,11 @@ export function getAvatarFallbackClasses(name: string, onDarkBg: boolean = false
   
   if (theme === 'primary') {
     return onDarkBg 
-      ? "bg-[#0B6E82] text-white" 
+      ? "bg-primary text-white" 
       : "bg-primary/10 text-primary";
   }
   
   return onDarkBg 
-    ? "bg-[#F5A623] text-white" 
+    ? "bg-accent text-white" 
     : "bg-accent/10 text-accent";
 }
