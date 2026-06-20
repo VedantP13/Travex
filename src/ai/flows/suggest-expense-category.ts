@@ -31,13 +31,10 @@ export async function suggestExpenseCategory(input: SuggestExpenseCategoryInput)
   const maxRetries = 2;
   let attempt = 0;
 
-  // We no longer use a manual keyword map to avoid limiting the AI's reasoning.
-  // This allows the model to handle "Bhojan", "Pav Bhaji", "Tempo Traveller", etc., 
-  // using its internal general knowledge of languages and cultures.
-
   while (attempt <= maxRetries) {
     try {
-      const { output } = await suggestExpenseCategoryFlow(input);
+      // FIX: The flow returns the result object directly, not wrapped in { output }
+      const output = await suggestExpenseCategoryFlow(input);
       if (!output) throw new Error('AI returned no output');
       return output;
     } catch (error: any) {
@@ -55,16 +52,14 @@ export async function suggestExpenseCategory(input: SuggestExpenseCategoryInput)
       }
 
       console.warn('AI categorization failed:', errorMessage);
-      return { 
-        category: input.availableCategories.includes("Other") ? "Other" : input.availableCategories[0] || "Other",
-        reasoning: "Fallback due to system error."
-      };
+      break;
     }
   }
 
+  // Fallback if all attempts fail
   return { 
     category: input.availableCategories.includes("Other") ? "Other" : input.availableCategories[0] || "Other",
-    reasoning: "Fallback after retries."
+    reasoning: "Fallback due to system error."
   };
 }
 
@@ -72,20 +67,20 @@ const prompt = ai.definePrompt({
   name: 'suggestExpenseCategoryPrompt',
   input: { schema: SuggestExpenseCategoryInputSchema },
   output: { schema: SuggestExpenseCategoryOutputSchema },
-  prompt: `You are an expert global travel expense classifier with deep knowledge of world languages, cuisines, transport systems, and brands.
+  prompt: `You are an expert global travel expense classifier with deep knowledge of all world languages, cuisines, transport systems, and local brands.
 Your goal is to analyze a transaction description and pick the BEST matching category from the provided list.
 
 CRITICAL REASONING RULES:
-1. Multilingual Support: You understand terms in many languages. (e.g., "Bhojan" in Hindi is Food, "Almuerzo" in Spanish is Food).
-2. Cultural Awareness: You recognize local items and regional services. (e.g., "Pav Bhaji" is Food, "Tempo Traveller" is a vehicle for Transport, "Tuk-Tuk" is Transport).
+1. Multilingual Support: You MUST understand terms in any language (e.g., "Bhojan" in Hindi is Food, "Almuerzo" in Spanish is Food, "Khana" is Food).
+2. Cultural & Regional Intelligence: You recognize local items and regional services instantly. (e.g., "Pav Bhaji" is Food, "Tempo Traveller" is a vehicle for Transport, "Tuk-Tuk" or "Rickshaw" is Transport).
 3. Semantic Intent: Focus on the PURPOSE of the spend:
-   - TRANSPORT: Anything related to moving places (Uber, Ola, Taxi, Metro, Train, Bus, Gas/Petrol, Parking, Tolls, Vehicle rentals, Tempo Travellers, Vans).
-   - FOOD: Meals, drinks, snacks, cafes, delivery apps (Zomato, Swiggy, Starbucks, Bhojan, Restaurant bills).
+   - TRANSPORT: Anything related to moving people or things (Uber, Ola, Taxi, Metro, Train, Bus, Gas/Petrol, Parking, Tolls, Vehicle rentals, Tempo Travellers, Vans, Ferries).
+   - FOOD: Meals, drinks, snacks, cafes, delivery apps (Zomato, Swiggy, Starbucks, Bhojan, Restaurant bills, Groceries for cooking).
    - SIGHTSEEING: Activities, tours, entry fees, monuments, and safaris (e.g., "Safari ticket" is SIGHTSEEING, not Flights).
-   - STAY: Accommodation (Hotels, Airbnbs, Resorts).
-   - FLIGHTS: ONLY for air travel and airline companies.
-4. Brand Recognition: Use your knowledge of brands (e.g., "Grab" is Transport, "Hard Rock Cafe" is Food, "Vistara" is Flights).
-5. Specificity: If a specific category like "Safari" is in the list and the description matches a safari, use that specific one. Otherwise, use the broader standard categories.
+   - STAY: Accommodation (Hotels, Airbnbs, Resorts, Hostels, Camping fees).
+   - FLIGHTS: ONLY for air travel and airline companies (Indigo, Emirates, Air India).
+4. Brand Recognition: Use your knowledge of brands globally (e.g., "Grab" is Transport, "Hard Rock Cafe" is Food, "Vistara" is Flights).
+5. Specificity & Logic: If a specific category like "Safari" is in the list and the description matches a safari, use that specific one. Otherwise, use the broader standard categories. NEVER default to "Other" if there is a reasonable match in the list.
 
 AVAILABLE CATEGORIES:
 {{#each availableCategories}}
