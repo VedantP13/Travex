@@ -168,9 +168,10 @@ export default function AddExpenseWizard() {
     return () => unsubscribe();
   }, [selectedTripId, user, firestore, router, toast]);
 
+  // AI Categorization Effect
   useEffect(() => {
     const trimmedDesc = formData.description.trim();
-    if (trimmedDesc.length < 3 || trimmedDesc === lastAnalyzedDescription.current) return;
+    if (trimmedDesc.length < 3 || trimmedDesc === lastAnalyzedDescription.current || categoriesList.length === 0) return;
 
     const timer = setTimeout(async () => {
       setIsAnalyzing(true);
@@ -188,7 +189,7 @@ export default function AddExpenseWizard() {
       } finally {
         setIsAnalyzing(false);
       }
-    }, 800);
+    }, 1000);
 
     return () => clearTimeout(timer);
   }, [formData.description, categoriesList]);

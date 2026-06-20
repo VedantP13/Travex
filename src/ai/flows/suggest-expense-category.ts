@@ -22,9 +22,49 @@ const SuggestExpenseCategoryOutputSchema = z.object({
 });
 export type SuggestExpenseCategoryOutput = z.infer<typeof SuggestExpenseCategoryOutputSchema>;
 
+// 1. Define Prompt First
+const suggestPrompt = ai.definePrompt({
+  name: 'suggestExpenseCategoryPrompt',
+  input: { schema: SuggestExpenseCategoryInputSchema },
+  output: { schema: SuggestExpenseCategoryOutputSchema },
+  prompt: `You are an expert global travel expense classifier. 
+Your goal is to analyze a transaction description and pick the BEST matching category from the provided list.
+
+REASONING RULES:
+1. Multilingual: Understand terms in any language (e.g., "Bhojan" is Food, "Manger" is Food, "Almuerzo" is Food).
+2. Regional Items: Recognize local items (e.g., "Pav Bhaji" is Food, "Tuk Tuk" or "Tempo Traveller" is Transport).
+3. Intent: Focus on the PURPOSE (e.g., "Safari ticket" is Sightseeing, not Flights).
+4. Brands: Recognize brands (e.g., "Grab" is Transport, "Uber" is Transport, "Zomato" is Food).
+
+AVAILABLE CATEGORIES:
+{{#each availableCategories}}
+- {{{this}}}
+{{/each}}
+
+EXPENSE DESCRIPTION: {{{description}}}
+
+IMPORTANT: You MUST return a JSON object. The category name should ideally match one from the list exactly. Avoid "Other" if any other category is even remotely applicable.`,
+});
+
+// 2. Define Flow
+const suggestExpenseCategoryFlow = ai.defineFlow(
+  {
+    name: 'suggestExpenseCategoryFlow',
+    inputSchema: SuggestExpenseCategoryInputSchema,
+    outputSchema: SuggestExpenseCategoryOutputSchema,
+  },
+  async (input) => {
+    const { output } = await suggestPrompt(input);
+    if (!output) {
+      throw new Error('AI returned no output');
+    }
+    return output;
+  }
+);
+
 /**
  * Suggests an expense category based on the description and available categories.
- * Utilizes the full cultural and linguistic capabilities of the AI model.
+ * This is the primary entry point called by the UI.
  */
 export async function suggestExpenseCategory(input: SuggestExpenseCategoryInput): Promise<SuggestExpenseCategoryOutput> {
   const maxRetries = 2;
@@ -32,16 +72,16 @@ export async function suggestExpenseCategory(input: SuggestExpenseCategoryInput)
 
   while (attempt <= maxRetries) {
     try {
-      // In Genkit 1.x, calling the flow returns the result directly.
       const result = await suggestExpenseCategoryFlow(input);
       
       if (!result || !result.category) {
-        throw new Error('AI returned invalid or empty output');
+        throw new Error('Invalid AI response');
       }
 
-      // Ensure the returned category is actually in the available list (case-insensitive check)
+      // Robust matching logic: trim and case-insensitive
+      const target = result.category.trim().toLowerCase();
       const matchedCategory = input.availableCategories.find(
-        c => c.toLowerCase() === result.category.toLowerCase()
+        c => c.trim().toLowerCase() === target
       );
 
       if (matchedCategory) {
@@ -51,74 +91,22 @@ export async function suggestExpenseCategory(input: SuggestExpenseCategoryInput)
         };
       }
 
-      throw new Error(`AI suggested a category not in the list: ${result.category}`);
-    } catch (error: any) {
-      const errorMessage = error.message || '';
-      const isTransient = errorMessage.includes('503') || 
-                          errorMessage.includes('UNAVAILABLE') || 
-                          errorMessage.includes('high demand') ||
-                          error.status === 503;
-
-      if (isTransient && attempt < maxRetries) {
-        attempt++;
-        await new Promise(resolve => setTimeout(resolve, 1000 * attempt));
-        continue;
-      }
-
-      console.warn('AI categorization attempt failed:', errorMessage);
+      // If no exact match, try partial match or just return the AI's first pick if it seems valid
+      console.warn(`AI suggested "${result.category}" which wasn't in list:`, input.availableCategories);
       break;
+    } catch (error: any) {
+      console.error('Categorization attempt failed:', error.message);
+      attempt++;
+      if (attempt <= maxRetries) {
+        await new Promise(resolve => setTimeout(resolve, 500 * attempt));
+      }
     }
   }
 
-  // Final Fallback
+  // Final Fallback: Return "Other" if it exists, else the first category
+  const fallback = input.availableCategories.find(c => c.toLowerCase() === 'other') || input.availableCategories[0] || "Other";
   return { 
-    category: input.availableCategories.includes("Other") ? "Other" : input.availableCategories[0] || "Other",
-    reasoning: "Fallback due to matching failure or system error."
+    category: fallback,
+    reasoning: "System default due to matching failure."
   };
 }
-
-const prompt = ai.definePrompt({
-  name: 'suggestExpenseCategoryPrompt',
-  input: { schema: SuggestExpenseCategoryInputSchema },
-  output: { schema: SuggestExpenseCategoryOutputSchema },
-  prompt: `You are an expert global travel expense classifier with deep knowledge of all world languages, cuisines, transport systems, and local brands.
-Your goal is to analyze a transaction description and pick the BEST matching category from the provided list.
-
-CRITICAL REASONING RULES:
-1. Multilingual Support: You MUST understand terms in any language. 
-   - Examples: "Bhojan" (Hindi) is Food. "Almuerzo" (Spanish) is Food. "Khana" (Urdu/Hindi) is Food. "Manger" (French) is Food.
-2. Cultural & Regional Intelligence: You recognize local items and regional services instantly.
-   - Examples: "Pav Bhaji" or "Biryani" is Food. "Tempo Traveller", "Rickshaw", "Tuk-Tuk", "Auto", or "Toll" is Transport.
-3. Semantic Intent: Focus on the PURPOSE of the spend:
-   - TRANSPORT: Anything related to moving people (Uber, Ola, Taxi, Metro, Train, Bus, Gas, Parking, Tolls, Vehicle rentals, Vans).
-   - FOOD: Meals, drinks, snacks, cafes, delivery apps (Zomato, Swiggy, Starbucks, Bhojan, Restaurant bills, Groceries).
-   - SIGHTSEEING: Activities, tours, entry fees, monuments, and safaris (e.g., "Safari ticket" is SIGHTSEEING, not Flights).
-   - STAY: Accommodation (Hotels, Airbnbs, Resorts, Hostels, Camping).
-   - FLIGHTS: ONLY for air travel and airline companies (Indigo, Emirates, Air India, Vistara).
-4. Brand Recognition: Use your knowledge of brands globally (e.g., "Grab" is Transport, "Hard Rock Cafe" is Food).
-5. Logic: NEVER default to "Other" if there is a reasonable match in the list. Be decisive.
-
-AVAILABLE CATEGORIES:
-{{#each availableCategories}}
-- {{{this}}}
-{{/each}}
-
-EXPENSE DESCRIPTION: {{{description}}}
-
-Respond with a JSON object containing the chosen category and a short reasoning. The category name must match the casing and spelling in the list exactly.`,
-});
-
-const suggestExpenseCategoryFlow = ai.defineFlow(
-  {
-    name: 'suggestExpenseCategoryFlow',
-    inputSchema: SuggestExpenseCategoryInputSchema,
-    outputSchema: SuggestExpenseCategoryOutputSchema,
-  },
-  async (input) => {
-    const { output } = await prompt(input);
-    if (!output) {
-      throw new Error('AI returned no output');
-    }
-    return output;
-  }
-);
