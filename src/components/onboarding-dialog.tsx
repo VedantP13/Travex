@@ -85,7 +85,7 @@ export function OnboardingDialog({ isOpen, onOpenChange, onComplete }: Onboardin
           <div className="space-y-2 text-center">
             <DialogTitle className="text-2xl font-bold text-foreground tracking-tight">Who do you travel with?</DialogTitle>
             <DialogDescription className="text-sm font-medium leading-relaxed text-muted-foreground px-2">
-              Add the family members or friends you travel with most. We'll auto-fill them for your future trips.
+              Add the family members you travel with most. We'll auto-fill them for your future trips.
             </DialogDescription>
           </div>
 
