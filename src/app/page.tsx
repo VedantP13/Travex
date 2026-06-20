@@ -171,7 +171,7 @@ export default function Home() {
           <div className="animate-in fade-in slide-in-from-bottom-2 duration-500 py-1">
             <p className="text-xs font-medium text-white/40 leading-relaxed">
               {hasFamily || onboardingComplete 
-                ? "Your travel group is ready for adventure!" 
+                ? "Your travel group is ready for takeoff!" 
                 : "Start your journey by creating a trip group."}
             </p>
           </div>
@@ -257,43 +257,23 @@ export default function Home() {
           ) : (
             // Phase 1 Launchpad UI: Show prominent CTA if onboarding is complete or family exists
             (hasFamily || onboardingComplete) ? (
-              <Card className="col-span-12 border-none shadow-2xl rounded-[3rem] bg-primary overflow-hidden relative group">
-                <div className="absolute top-0 right-0 p-8 opacity-10 group-hover:scale-110 transition-transform duration-700">
-                  <PlaneTakeoff className="h-40 w-40 text-white -rotate-12" />
-                </div>
-                <CardContent className="p-8 sm:p-10 flex flex-col items-center text-center space-y-6 relative z-10">
-                  <div className="space-y-2">
-                    <div className="flex items-center justify-center gap-2 mb-2">
-                      <Sparkles className="h-5 w-5 text-accent animate-pulse" />
-                      <span className="text-[10px] font-black text-white/60 uppercase tracking-[0.2em]">Ready for liftoff</span>
-                    </div>
-                    <h3 className="text-3xl font-black text-white tracking-tight leading-tight">
-                      Where are we going first?
+              <Card className="col-span-12 border-none shadow-xl rounded-[2.5rem] bg-primary overflow-hidden relative">
+                <CardContent className="p-10 flex flex-col items-center text-center space-y-8 relative z-10">
+                  <div className="space-y-3">
+                    <h3 className="text-3xl font-bold text-white tracking-tight leading-tight">
+                      Ready to start?
                     </h3>
-                    <p className="text-xs text-white/70 font-medium max-w-[240px] mx-auto leading-relaxed">
-                      Your travel group is set up. Create your first trip to start splitting expenses effortlessly.
+                    <p className="text-sm text-white/80 font-medium max-w-[260px] mx-auto leading-relaxed">
+                      Your travel group is set up. Create your first trip to start tracking and splitting expenses effortlessly.
                     </p>
                   </div>
                   
                   <Link href="/trips/new" className="w-full">
-                    <Button className="w-full h-16 rounded-[1.5rem] bg-white text-primary hover:bg-white/90 text-lg font-black shadow-xl shadow-black/20 gap-3 group/btn transition-all active:scale-95">
-                      Plan your first adventure
-                      <ChevronRight className="h-5 w-5 transition-transform group-hover/btn:translate-x-1" />
+                    <Button className="w-full h-16 rounded-2xl bg-white text-primary hover:bg-white/95 text-lg font-bold shadow-lg shadow-black/10 gap-3 transition-all active:scale-[0.98]">
+                      Create your first trip
+                      <ChevronRight className="h-5 w-5" />
                     </Button>
                   </Link>
-
-                  <div className="flex items-center gap-2 pt-2">
-                    <div className="flex -space-x-2">
-                      {firestoreProfile?.familyMembers?.slice(0, 3).map((fm: string) => (
-                        <div key={fm} className="h-6 w-6 rounded-full border-2 border-primary bg-white flex items-center justify-center shadow-sm">
-                          <span className="text-[8px] font-black text-primary">{fm[0]}</span>
-                        </div>
-                      ))}
-                    </div>
-                    <span className="text-[10px] font-bold text-white/50">
-                      {firestoreProfile?.familyMembers?.length || 0} frequent flyers added
-                    </span>
-                  </div>
                 </CardContent>
               </Card>
             ) : (
