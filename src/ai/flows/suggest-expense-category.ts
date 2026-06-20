@@ -33,17 +33,27 @@ export async function suggestExpenseCategory(input: SuggestExpenseCategoryInput)
   // Pre-check for exact matches or common keywords to speed up and improve reliability
   const lowerDesc = input.description.toLowerCase();
   
-  // Quick keyword map for common travel scenarios
+  // Quick keyword map for common travel scenarios - expanded for better accuracy
   const keywordMap: Record<string, string> = {
-    'lunch': 'Food', 'dinner': 'Food', 'breakfast': 'Food', 'coffee': 'Food', 'starbucks': 'Food', 'pizza': 'Food', 'restaurant': 'Food', 'cafe': 'Food', 'burger': 'Food',
-    'uber': 'Transport', 'taxi': 'Transport', 'gas': 'Transport', 'petrol': 'Transport', 'fuel': 'Transport', 'bus': 'Transport', 'train': 'Transport', 'metro': 'Transport',
-    'hotel': 'Stay', 'airbnb': 'Stay', 'hostel': 'Stay', 'resort': 'Stay',
-    'flight': 'Flights', 'airline': 'Flights', 'ticket': 'Flights',
-    'safari': 'Safari', 'zoo': 'Sightseeing', 'museum': 'Sightseeing', 'tour': 'Sightseeing'
+    // Food
+    'lunch': 'Food', 'dinner': 'Food', 'breakfast': 'Food', 'coffee': 'Food', 'starbucks': 'Food', 'pizza': 'Food', 'restaurant': 'Food', 'cafe': 'Food', 'burger': 'Food', 'mcdonalds': 'Food', 'kfc': 'Food', 'zomato': 'Food', 'swiggy': 'Food',
+    // Transport
+    'uber': 'Transport', 'taxi': 'Transport', 'gas': 'Transport', 'petrol': 'Transport', 'fuel': 'Transport', 'bus': 'Transport', 'train': 'Transport', 'metro': 'Transport', 'tempo': 'Transport', 'traveller': 'Transport', 'van': 'Transport', 'ola': 'Transport', 'auto': 'Transport', 'toll': 'Transport', 'parking': 'Transport', 'rental': 'Transport',
+    // Stay
+    'hotel': 'Stay', 'airbnb': 'Stay', 'hostel': 'Stay', 'resort': 'Stay', 'homestay': 'Stay', 'lodge': 'Stay', 'booking.com': 'Stay',
+    // Flights
+    'flight': 'Flights', 'airline': 'Flights', 'indigo': 'Flights', 'spicejet': 'Flights', 'airasia': 'Flights', 'vistara': 'Flights', 'emirates': 'Flights', 'boarding': 'Flights',
+    // Sightseeing
+    'safari': 'Sightseeing', 'zoo': 'Sightseeing', 'museum': 'Sightseeing', 'tour': 'Sightseeing', 'entry': 'Sightseeing', 'monument': 'Sightseeing', 'guide': 'Sightseeing', 'aquarium': 'Sightseeing', 'palace': 'Sightseeing'
   };
 
+  // Check keyword map
   for (const [kw, cat] of Object.entries(keywordMap)) {
     if (lowerDesc.includes(kw) && input.availableCategories.includes(cat)) {
+      // Specialized check for "ticket": don't auto-map to Flights if it contains sightseeing terms
+      if (kw === 'ticket' && (lowerDesc.includes('safari') || lowerDesc.includes('zoo') || lowerDesc.includes('museum'))) {
+        continue; 
+      }
       return { category: cat };
     }
   }
@@ -83,20 +93,22 @@ const prompt = ai.definePrompt({
   name: 'suggestExpenseCategoryPrompt',
   input: { schema: SuggestExpenseCategoryInputSchema },
   output: { schema: SuggestExpenseCategoryOutputSchema },
-  prompt: `You are an expert expense classifier for a travel app.
-Your goal is to look at a transaction description and pick the BEST matching category from a specific list provided by the user.
+  prompt: `You are an expert travel expense classifier with deep general knowledge of global and local travel services.
+Your goal is to analyze a transaction description and pick the BEST matching category from the provided list.
 
-RULES:
-1. You MUST ONLY pick a category from the provided list.
-2. Direct Keywords: If a word in the description matches a category name EXACTLY (case-insensitive), you MUST pick that category.
-3. Semantic matching Examples:
-   - "lunch", "dinner", "pizza", "coffee", "starbucks", "burger", "mcdonalds" -> "Food"
-   - "uber", "taxi", "gas", "petrol", "parking", "grab", "bolt", "bus", "train" -> "Transport"
-   - "shopping", "mall", "clothes", "zara", "souvenir", "gift" -> "Shopping"
-   - "hotel", "hostel", "airbnb", "booking.com", "resort" -> "Stay"
-   - "flight", "boarding pass", "indigo", "air asia", "emirates" -> "Flights"
-   - "safari", "tour", "museum", "entry ticket", "zoo", "guide" -> "Sightseeing" (unless "Safari" is its own category)
-4. If a custom category exists that matches specifically (like "Safari" for a safari description), pick that instead of a generic one.
+CRITICAL REASONING RULES:
+1. Intent over Keyword: Look at the whole description. 
+   - "Safari ticket" or "Museum entry" is SIGHTSEEING, not "Flights" or "Other".
+   - "Tempo Traveller" or "Van hire" is TRANSPORT, as these are vehicles.
+   - "Airport taxi" is TRANSPORT, not "Flights".
+2. Semantic Matching:
+   - "Transport": Covers anything related to moving between places (Uber, Ola, Taxi, Metro, Bus, Train, Gas/Petrol, Parking, Tolls, Vehicle rentals, Tempo Travellers, Vans).
+   - "Food": Covers meals, drinks, snacks, cafes, and delivery apps (Zomato, Swiggy, Starbucks).
+   - "Sightseeing": Covers activities, tours, entry fees, monuments, and safaris.
+   - "Stay": Covers accommodation (Hotels, Airbnbs, Resorts).
+   - "Flights": ONLY for air travel and airline companies.
+3. Brand Recognition: Use your knowledge of brands (e.g., "Vistara" is Flights, "Hard Rock Cafe" is Food, "Grab" is Transport).
+4. If a specific category like "Safari" is in the list and the description mentions a safari, use that specific one.
 5. If no clear match exists, default to "Other" if it's in the list.
 
 AVAILABLE CATEGORIES:
