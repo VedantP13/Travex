@@ -126,7 +126,7 @@ export default function AllTripsPage() {
                         trip.status === 'Settled' ? "bg-muted text-muted-foreground" : 
                         'bg-white/90 text-foreground'
                       )}>
-                        {tripPastDue ? "Ended" : (trip.status || "Upcoming")}
+                        {trip.status || "Upcoming"}
                       </Badge>
                       {tripPastDue && (
                         <div className="absolute top-4 left-4 bg-white/20 backdrop-blur-md rounded-lg px-2 py-1 flex items-center gap-1.5">

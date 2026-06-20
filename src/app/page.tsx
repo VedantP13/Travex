@@ -204,7 +204,7 @@ export default function Home() {
                         "border-none text-[10px] font-bold rounded-lg px-2.5 py-1 mb-1 shadow-sm backdrop-blur-md",
                         isPastDue ? "bg-white text-accent" : "bg-white/10 text-white/80"
                       )}>
-                        {isPastDue ? 'Ended' : activeTrip.status || 'Ongoing'}
+                        {activeTrip.status || 'Ongoing'}
                       </Badge>
                       {isPastDue && (
                         <div className="animate-pulse bg-white/20 p-1 rounded-full">
@@ -366,7 +366,7 @@ export default function Home() {
                         trip.status === 'Settled' ? 'bg-muted text-muted-foreground' : 
                         'bg-white/90 text-foreground'
                       )}>
-                        {tripPastDue ? "Ended" : (trip.status || "Upcoming")}
+                        {trip.status || "Upcoming"}
                       </Badge>
                       {tripPastDue && (
                         <div className="absolute top-4 left-4 bg-white/20 backdrop-blur-md rounded-lg px-2 py-1 flex items-center gap-1.5 animate-in fade-in zoom-in duration-500">
