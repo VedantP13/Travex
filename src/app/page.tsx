@@ -12,7 +12,7 @@ import { AnimatedCompass } from "@/components/animated-compass";
 import { useTrips } from "@/context/trips-context";
 import { useUser, useFirestore } from "@/firebase";
 import { useEffect, useState, useMemo } from "react";
-import { doc, onSnapshot, setDoc, serverTimestamp } from "firebase/firestore";
+import { doc, onSnapshot, getDoc, setDoc, serverTimestamp } from "firebase/firestore";
 import { getTripImage } from "@/lib/image-utils";
 import { getInitials, getAvatarFallbackClasses } from "@/lib/avatar-utils";
 import { OnboardingDialog } from "@/components/onboarding-dialog";
@@ -39,35 +39,38 @@ export default function Home() {
     return () => clearInterval(interval);
   }, []);
 
+  // Optimized Profile Sync & Fetching
   useEffect(() => {
     if (!user?.uid || !firestore) return;
 
-    // Background sync logic: Only update fields that should reflect Auth state
-    // CRITICAL: We do NOT sync photoURL here for guests because Firestore is the primary storage for their images.
-    // Overwriting with user.photoURL (which is empty for guests) would delete their custom avatar.
-    const isGoogleUser = user.providerData.some(p => p.providerId === 'google.com');
-    
-    const profileSyncData: any = {
-      displayName: user.displayName || (user.isAnonymous ? "Guest Explorer" : "Explorer"),
-      searchName: (user.displayName || (user.isAnonymous ? "guest explorer" : "explorer")).toLowerCase(),
-      email: (user.email || "").toLowerCase(),
-      isAnonymous: user.isAnonymous,
-      updatedAt: serverTimestamp(),
-    };
-
-    // Only sync photo from Auth if it's a reliable Google URL
-    if (isGoogleUser && user.photoURL) {
-      profileSyncData.photoURL = user.photoURL;
-    }
-    
-    setDoc(doc(firestore, "users", user.uid), profileSyncData, { merge: true })
-      .catch(err => console.error("Profile sync failed:", err));
-
+    // 1. Setup real-time listener for profile
     const unsub = onSnapshot(doc(firestore, "users", user.uid), (snap) => {
-      if (snap.exists()) setFirestoreProfile(snap.data());
+      if (snap.exists()) {
+        const data = snap.data();
+        setFirestoreProfile(data);
+      } else {
+        // 2. Initial sync if profile doesn't exist yet
+        const isGoogleUser = user.providerData.some(p => p.providerId === 'google.com');
+        const initialProfile: any = {
+          displayName: user.displayName || (user.isAnonymous ? "Guest Explorer" : "Explorer"),
+          searchName: (user.displayName || (user.isAnonymous ? "guest explorer" : "explorer")).toLowerCase(),
+          email: (user.email || "").toLowerCase(),
+          isAnonymous: user.isAnonymous,
+          updatedAt: serverTimestamp(),
+        };
+        
+        // Only set photoURL from Auth for Google users if it's the very first time
+        if (isGoogleUser && user.photoURL) {
+          initialProfile.photoURL = user.photoURL;
+        }
+
+        setDoc(doc(firestore, "users", user.uid), initialProfile)
+          .catch(err => console.error("Initial profile sync failed:", err));
+      }
     });
+
     return () => unsub();
-  }, [user?.uid, firestore, user?.displayName, user?.photoURL, user?.email, user?.isAnonymous, user?.providerData]);
+  }, [user?.uid, firestore, user?.displayName, user?.email, user?.isAnonymous, user?.providerData]);
 
   // Persistent Onboarding Logic: Show dialog if no trips AND no family members
   useEffect(() => {
@@ -120,6 +123,7 @@ export default function Home() {
     return new Date(activeTrip.endDate) < today;
   }, [activeTrip]);
 
+  // CRITICAL: Prioritize Firestore Profile photo to avoid Auth limits and sync loops
   const displayPhoto = firestoreProfile?.photoURL || user?.photoURL || "";
   const welcomeName = firestoreProfile?.displayName || user?.displayName || (user?.isAnonymous ? 'Guest' : 'Explorer');
   const greetingName = welcomeName.split(' ')[0];

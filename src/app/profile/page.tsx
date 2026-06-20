@@ -132,10 +132,6 @@ export default function ProfilePage() {
         ? await resizeImage(editedPhotoURL, 400, 0.8)
         : editedPhotoURL;
 
-      const lowResPhoto = isBase64
-        ? await resizeImage(editedPhotoURL, 60, 0.5)
-        : editedPhotoURL;
-
       const profileData = {
         displayName: editedName.trim(),
         photoURL: highResPhoto,
@@ -154,9 +150,9 @@ export default function ProfilePage() {
           errorEmitter.emit('permission-error', permissionError);
         });
 
-      // Firebase Auth photoURL has character limits (~2KB), so we only sync small strings or stable URLs
-      // We skip base64 data for Auth and rely on Firestore profile lookup elsewhere in the app.
-      const authPhotoValue = (isBase64 && lowResPhoto.length < 2000) ? lowResPhoto : (!isBase64 ? editedPhotoURL : "");
+      // Firebase Auth photoURL has character limits (~2KB), so we only sync stable external URLs.
+      // We skip Base64 data for Auth to avoid it being cleared/corrupted.
+      const authPhotoValue = isBase64 ? "" : editedPhotoURL;
 
       await updateProfile(auth.currentUser, {
         displayName: editedName.trim(),
@@ -353,7 +349,7 @@ export default function ProfilePage() {
   }
 
   const isGuest = user?.isAnonymous;
-  // Firestore is the PRIMARY source of truth for photos to avoid Auth character limits
+  // Firestore is the PRIMARY source of truth for photos to avoid Auth character limits and sync conflicts
   const displayPhoto = isEditing ? editedPhotoURL : (firestoreProfile?.photoURL || user?.photoURL || "");
   const displayName = isEditing ? editedName : (firestoreProfile?.displayName || user?.displayName || (isGuest ? "Guest Explorer" : "Explorer"));
   const familyMembers = firestoreProfile?.familyMembers || [];
@@ -406,7 +402,7 @@ export default function ProfilePage() {
                     </div>
                     {GUEST_AVATARS.map((url, idx) => (
                       <div 
-                        key={idx} 
+                        key={url} 
                         onClick={() => setEditedPhotoURL(url)}
                         className={cn(
                           "h-12 w-12 rounded-xl border-2 transition-all cursor-pointer flex-shrink-0 overflow-hidden",
