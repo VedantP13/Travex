@@ -60,15 +60,16 @@ export default function Home() {
     return () => unsub();
   }, [user?.uid, firestore, user?.displayName, user?.photoURL, user?.email, user?.isAnonymous]);
 
-  // Phase 1: New User Detection Logic
+  // Persistent Onboarding Logic: Show dialog if no trips AND no family members
   useEffect(() => {
     if (!loading && trips.length === 0 && firestoreProfile && !onboardingComplete) {
       const hasFamily = firestoreProfile.familyMembers && firestoreProfile.familyMembers.length > 0;
-      const seen = sessionStorage.getItem('travex_onboarding_shown');
       
-      if (!hasFamily && !seen) {
+      // If they don't have family set up and no trips, show the dialog to prompt setup
+      // We don't use sessionStorage here because we want it to show "each time app opened" 
+      // until they actually add someone or create a trip.
+      if (!hasFamily) {
         setShowOnboarding(true);
-        sessionStorage.setItem('travex_onboarding_shown', 'true');
       }
     }
   }, [loading, trips.length, firestoreProfile, onboardingComplete]);
@@ -254,7 +255,7 @@ export default function Home() {
               </Link>
             </>
           ) : (
-            // Phase 1 Launchpad UI: Replaces standard empty state when onboarding is complete or family exists
+            // Phase 1 Launchpad UI: Show prominent CTA if onboarding is complete or family exists
             (hasFamily || onboardingComplete) ? (
               <Card className="col-span-12 border-none shadow-2xl rounded-[3rem] bg-primary overflow-hidden relative group">
                 <div className="absolute top-0 right-0 p-8 opacity-10 group-hover:scale-110 transition-transform duration-700">
