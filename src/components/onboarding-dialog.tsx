@@ -70,7 +70,7 @@ export function OnboardingDialog({ isOpen, onOpenChange, onComplete }: Onboardin
           </div>
           <div className="relative z-10 flex flex-col items-center text-center px-6">
             <div className="h-16 w-16 rounded-full bg-accent/20 flex items-center justify-center mb-4">
-              <Sparkles className="h-8 w-8 text-accent animate-pulse" />
+              {/* Prepared space for manual logo placement */}
             </div>
             <h2 className="text-xl font-bold text-white tracking-tight leading-tight">Welcome to Travex</h2>
           </div>
@@ -83,7 +83,7 @@ export function OnboardingDialog({ isOpen, onOpenChange, onComplete }: Onboardin
 
         <div className="p-8 space-y-6">
           <div className="space-y-2 text-center">
-            <DialogTitle className="text-2xl font-bold text-foreground tracking-tight">Build your circle</DialogTitle>
+            <DialogTitle className="text-2xl font-bold text-foreground tracking-tight">Who do you travel with?</DialogTitle>
             <DialogDescription className="text-sm font-medium leading-relaxed text-muted-foreground px-2">
               Add the family members or friends you travel with most. We'll auto-fill them for your future trips.
             </DialogDescription>
