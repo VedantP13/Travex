@@ -134,9 +134,9 @@ export default function AllTripsPage() {
                         <CardTitle className="text-lg font-bold">{trip.name}</CardTitle>
                         <div className="flex -space-x-1.5 bg-muted/40 p-1.5 rounded-full">
                           {trip.participants?.slice(0, 3).map((p: any, idx: number) => (
-                            <Avatar key={idx} className="h-4 w-4 border border-white shadow-sm">
+                            <Avatar key={idx} className="h-6 w-6 border border-white shadow-sm shrink-0 bg-background">
                               <AvatarImage src={p.avatar} />
-                              <AvatarFallback className={getAvatarFallbackClasses(p.name)}>
+                              <AvatarFallback className={cn("text-[8px] font-bold", getAvatarFallbackClasses(p.name, true))}>
                                 {getInitials(p.name)}
                               </AvatarFallback>
                             </Avatar>

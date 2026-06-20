@@ -220,9 +220,9 @@ export default function Home() {
                       </p>
                       <div className="flex -space-x-1.5">
                         {activeTrip.participants?.slice(0, 3).map((p: any, idx: number) => (
-                          <Avatar key={idx} className={cn("h-4 w-4 border shadow-sm", isPastDue ? "border-accent ring-1 ring-white/20" : "border-primary ring-1 ring-white/10")}>
+                          <Avatar key={idx} className={cn("h-6 w-6 border shadow-sm shrink-0 bg-background", isPastDue ? "border-accent ring-1 ring-white/20" : "border-primary ring-1 ring-white/10")}>
                             <AvatarImage src={p.avatar} />
-                            <AvatarFallback className={getAvatarFallbackClasses(p.name, true)}>
+                            <AvatarFallback className={cn("text-[8px] font-bold", getAvatarFallbackClasses(p.name, true))}>
                               {getInitials(p.name)}
                             </AvatarFallback>
                           </Avatar>
@@ -374,9 +374,9 @@ export default function Home() {
                         <CardTitle className="text-lg font-bold">{trip.name}</CardTitle>
                         <div className="flex -space-x-1.5 bg-muted/40 p-1.5 rounded-full">
                           {trip.participants?.slice(0, 3).map((p: any, idx: number) => (
-                            <Avatar key={idx} className="h-4 w-4 border border-white shadow-sm">
+                            <Avatar key={idx} className="h-6 w-6 border border-white shadow-sm shrink-0 bg-background">
                               <AvatarImage src={p.avatar} />
-                              <AvatarFallback className={getAvatarFallbackClasses(p.name)}>
+                              <AvatarFallback className={cn("text-[8px] font-bold", getAvatarFallbackClasses(p.name, true))}>
                                 {getInitials(p.name)}
                               </AvatarFallback>
                             </Avatar>

@@ -134,7 +134,7 @@ export function TripHeader({ trip, onBack, onEdit, onDelete, onChangeCover, onRe
         <div className="flex items-center gap-3">
           <div className="flex -space-x-2">
             {trip?.participants?.slice(0, 4).map((p: any, idx: number) => (
-              <Avatar key={idx} className="h-7 w-7 border-2 border-white shadow-lg shrink-0">
+              <Avatar key={idx} className="h-7 w-7 border-2 border-white shadow-lg shrink-0 bg-background">
                 <AvatarImage src={p.avatar} className="object-cover" />
                 <AvatarFallback className={cn("text-[10px] font-bold", getAvatarFallbackClasses(p.name, true))}>
                   {getInitials(p.name)}

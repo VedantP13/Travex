@@ -32,19 +32,19 @@ export function getAvatarTheme(name: string): 'primary' | 'accent' {
 
 /**
  * Standard classes for the Avatar Fallback based on the theme.
- * When onDarkBg is true (like in headers), we use solid colors to prevent
- * stacked avatars from bleeding through each other.
+ * When isOpaque is true (like in stacked headers or tiny cards), we use solid colors 
+ * to prevent transparency bleed-through.
  */
-export function getAvatarFallbackClasses(name: string, onDarkBg: boolean = false) {
+export function getAvatarFallbackClasses(name: string, isOpaque: boolean = false) {
   const theme = getAvatarTheme(name);
   
   if (theme === 'primary') {
-    return onDarkBg 
-      ? "bg-primary text-white" 
+    return isOpaque 
+      ? "bg-primary text-white border-none" 
       : "bg-primary/10 text-primary";
   }
   
-  return onDarkBg 
-    ? "bg-accent text-white" 
+  return isOpaque 
+    ? "bg-accent text-white border-none" 
     : "bg-accent/10 text-accent";
 }
