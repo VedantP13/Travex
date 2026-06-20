@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { Plus, ChevronRight, Compass, MapPinPlus, Users, Calendar, AlertCircle, Sparkles, PlaneTakeoff, Heart } from "lucide-react";
+import { Plus, ChevronRight, Compass, MapPinPlus, Users, Calendar, AlertCircle, Sparkles, PlaneTakeoff } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -405,8 +405,8 @@ export default function Home() {
               // Phase 1 Footer logic: Encouragement footer for launchpad
               (hasFamily || onboardingComplete) ? (
                 <div className="text-center py-10 opacity-30 select-none animate-in fade-in duration-1000">
-                   <Heart className="h-10 w-10 mx-auto mb-3 text-muted-foreground fill-current" />
-                   <p className="text-xs font-bold text-muted-foreground italic">Adventures start with family</p>
+                   <PlaneTakeoff className="h-10 w-10 mx-auto mb-3 text-muted-foreground" />
+                   <p className="text-xs font-bold text-muted-foreground">Adventures start with family</p>
                 </div>
               ) : (
                 <div className="text-center py-14 bg-white rounded-[2rem] border-2 border-dashed border-muted/50 px-10">
