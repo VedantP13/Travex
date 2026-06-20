@@ -1,4 +1,3 @@
-
 'use server';
 /**
  * @fileOverview An AI agent that suggests expense categories based on expense descriptions.
@@ -33,10 +32,26 @@ export async function suggestExpenseCategory(input: SuggestExpenseCategoryInput)
 
   while (attempt <= maxRetries) {
     try {
-      // FIX: The flow returns the result object directly, not wrapped in { output }
-      const output = await suggestExpenseCategoryFlow(input);
-      if (!output) throw new Error('AI returned no output');
-      return output;
+      // In Genkit 1.x, calling the flow returns the result directly.
+      const result = await suggestExpenseCategoryFlow(input);
+      
+      if (!result || !result.category) {
+        throw new Error('AI returned invalid or empty output');
+      }
+
+      // Ensure the returned category is actually in the available list (case-insensitive check)
+      const matchedCategory = input.availableCategories.find(
+        c => c.toLowerCase() === result.category.toLowerCase()
+      );
+
+      if (matchedCategory) {
+        return {
+          category: matchedCategory,
+          reasoning: result.reasoning
+        };
+      }
+
+      throw new Error(`AI suggested a category not in the list: ${result.category}`);
     } catch (error: any) {
       const errorMessage = error.message || '';
       const isTransient = errorMessage.includes('503') || 
@@ -46,20 +61,19 @@ export async function suggestExpenseCategory(input: SuggestExpenseCategoryInput)
 
       if (isTransient && attempt < maxRetries) {
         attempt++;
-        // Exponential backoff: 1s, 2s
         await new Promise(resolve => setTimeout(resolve, 1000 * attempt));
         continue;
       }
 
-      console.warn('AI categorization failed:', errorMessage);
+      console.warn('AI categorization attempt failed:', errorMessage);
       break;
     }
   }
 
-  // Fallback if all attempts fail
+  // Final Fallback
   return { 
     category: input.availableCategories.includes("Other") ? "Other" : input.availableCategories[0] || "Other",
-    reasoning: "Fallback due to system error."
+    reasoning: "Fallback due to matching failure or system error."
   };
 }
 
@@ -71,16 +85,18 @@ const prompt = ai.definePrompt({
 Your goal is to analyze a transaction description and pick the BEST matching category from the provided list.
 
 CRITICAL REASONING RULES:
-1. Multilingual Support: You MUST understand terms in any language (e.g., "Bhojan" in Hindi is Food, "Almuerzo" in Spanish is Food, "Khana" is Food).
-2. Cultural & Regional Intelligence: You recognize local items and regional services instantly. (e.g., "Pav Bhaji" is Food, "Tempo Traveller" is a vehicle for Transport, "Tuk-Tuk" or "Rickshaw" is Transport).
+1. Multilingual Support: You MUST understand terms in any language. 
+   - Examples: "Bhojan" (Hindi) is Food. "Almuerzo" (Spanish) is Food. "Khana" (Urdu/Hindi) is Food. "Manger" (French) is Food.
+2. Cultural & Regional Intelligence: You recognize local items and regional services instantly.
+   - Examples: "Pav Bhaji" or "Biryani" is Food. "Tempo Traveller", "Rickshaw", "Tuk-Tuk", "Auto", or "Toll" is Transport.
 3. Semantic Intent: Focus on the PURPOSE of the spend:
-   - TRANSPORT: Anything related to moving people or things (Uber, Ola, Taxi, Metro, Train, Bus, Gas/Petrol, Parking, Tolls, Vehicle rentals, Tempo Travellers, Vans, Ferries).
-   - FOOD: Meals, drinks, snacks, cafes, delivery apps (Zomato, Swiggy, Starbucks, Bhojan, Restaurant bills, Groceries for cooking).
+   - TRANSPORT: Anything related to moving people (Uber, Ola, Taxi, Metro, Train, Bus, Gas, Parking, Tolls, Vehicle rentals, Vans).
+   - FOOD: Meals, drinks, snacks, cafes, delivery apps (Zomato, Swiggy, Starbucks, Bhojan, Restaurant bills, Groceries).
    - SIGHTSEEING: Activities, tours, entry fees, monuments, and safaris (e.g., "Safari ticket" is SIGHTSEEING, not Flights).
-   - STAY: Accommodation (Hotels, Airbnbs, Resorts, Hostels, Camping fees).
-   - FLIGHTS: ONLY for air travel and airline companies (Indigo, Emirates, Air India).
-4. Brand Recognition: Use your knowledge of brands globally (e.g., "Grab" is Transport, "Hard Rock Cafe" is Food, "Vistara" is Flights).
-5. Specificity & Logic: If a specific category like "Safari" is in the list and the description matches a safari, use that specific one. Otherwise, use the broader standard categories. NEVER default to "Other" if there is a reasonable match in the list.
+   - STAY: Accommodation (Hotels, Airbnbs, Resorts, Hostels, Camping).
+   - FLIGHTS: ONLY for air travel and airline companies (Indigo, Emirates, Air India, Vistara).
+4. Brand Recognition: Use your knowledge of brands globally (e.g., "Grab" is Transport, "Hard Rock Cafe" is Food).
+5. Logic: NEVER default to "Other" if there is a reasonable match in the list. Be decisive.
 
 AVAILABLE CATEGORIES:
 {{#each availableCategories}}

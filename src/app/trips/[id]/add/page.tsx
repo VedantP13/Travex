@@ -180,7 +180,7 @@ export default function AddExpenseWizard() {
           description: trimmedDesc,
           availableCategories: categoriesList
         });
-        if (result.category) {
+        if (result && result.category) {
           setFormData(prev => ({ ...prev, category: result.category }));
         }
       } catch (e) {
