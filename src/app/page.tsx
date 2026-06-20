@@ -406,7 +406,7 @@ export default function Home() {
               (hasFamily || onboardingComplete) ? (
                 <div className="text-center py-10 opacity-30 select-none animate-in fade-in duration-1000">
                    <Heart className="h-10 w-10 mx-auto mb-3 text-muted-foreground fill-current" />
-                   <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Adventures start with family</p>
+                   <p className="text-xs font-bold text-muted-foreground italic">Adventures start with family</p>
                 </div>
               ) : (
                 <div className="text-center py-14 bg-white rounded-[2rem] border-2 border-dashed border-muted/50 px-10">
