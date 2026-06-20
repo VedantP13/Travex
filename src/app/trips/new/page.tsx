@@ -105,6 +105,7 @@ export default function CreateTrip() {
     setParticipants(prev => {
       const meExists = prev.find(p => p.isUser && p.userId === user.uid);
       const savedFamily = firestoreProfile?.familyMembers || [];
+      const currentAvatar = firestoreProfile?.photoURL || user.photoURL || "";
 
       if (!meExists) {
         const me: Participant = { 
@@ -112,17 +113,23 @@ export default function CreateTrip() {
           name: `${user.displayName?.split(' ')[0] || "You"} (You)`, 
           isUser: true, 
           userId: user.uid,
-          avatar: user.photoURL || "", 
+          avatar: currentAvatar, 
           familyMembers: savedFamily
         };
         return [me, ...prev];
       }
       
-      if (meExists.familyMembers.length === 0 && savedFamily.length > 0) {
-        return prev.map(p => p.id === "me" ? { ...p, familyMembers: savedFamily } : p);
-      }
-      
-      return prev;
+      // Ensure the "me" avatar and family members stay synced with the profile
+      return prev.map(p => {
+        if (p.id === "me") {
+          return {
+            ...p,
+            avatar: currentAvatar,
+            familyMembers: p.familyMembers.length === 0 && savedFamily.length > 0 ? savedFamily : p.familyMembers
+          };
+        }
+        return p;
+      });
     });
   }, [user, firestoreProfile]);
 
