@@ -120,7 +120,10 @@ export function OnboardingDialog({ isOpen, onOpenChange, onComplete }: Onboardin
             <Button className="w-full h-14 rounded-2xl bg-primary text-white font-bold text-base gap-3 shadow-xl shadow-primary/20 transition-all active:scale-95" onClick={handleSave} disabled={isSaving}>
               {isSaving ? <Loader2 className="h-5 w-5 animate-spin" /> : <>Continue to dashboard <ChevronRight className="h-5 w-5" /></>}
             </Button>
-            <Button variant="ghost" className="w-full h-12 rounded-xl font-bold text-muted-foreground text-xs hover:bg-muted" onClick={() => onOpenChange(false)}>
+            <Button variant="ghost" className="w-full h-12 rounded-xl font-bold text-muted-foreground text-xs hover:bg-muted" onClick={() => {
+              onComplete();
+              onOpenChange(false);
+            }}>
               I'll add them later
             </Button>
           </div>

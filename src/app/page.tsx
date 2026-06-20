@@ -66,8 +66,6 @@ export default function Home() {
       const hasFamily = firestoreProfile.familyMembers && firestoreProfile.familyMembers.length > 0;
       
       // If they don't have family set up and no trips, show the dialog to prompt setup
-      // We don't use sessionStorage here because we want it to show "each time app opened" 
-      // until they actually add someone or create a trip.
       if (!hasFamily) {
         setShowOnboarding(true);
       }
@@ -264,7 +262,9 @@ export default function Home() {
                       Ready to start?
                     </h3>
                     <p className="text-sm text-white/80 font-medium max-w-[260px] mx-auto leading-relaxed">
-                      Your travel group is set up. Create your first trip to start tracking and splitting expenses effortlessly.
+                      {hasFamily 
+                        ? "Your travel group is set up. Create your first trip to start tracking and splitting expenses effortlessly." 
+                        : "Ready to start tracking and splitting expenses? Create your first trip in seconds."}
                     </p>
                   </div>
                   
@@ -429,7 +429,10 @@ export default function Home() {
 
       <OnboardingDialog 
         isOpen={showOnboarding} 
-        onOpenChange={setShowOnboarding}
+        onOpenChange={(open) => {
+          setShowOnboarding(open);
+          if (!open) setOnboardingComplete(true); // Treat dismissal as completion to show the Launchpad card
+        }}
         onComplete={() => setOnboardingComplete(true)}
       />
 
