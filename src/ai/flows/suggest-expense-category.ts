@@ -19,54 +19,27 @@ export type SuggestExpenseCategoryInput = z.infer<typeof SuggestExpenseCategoryI
 
 const SuggestExpenseCategoryOutputSchema = z.object({
   category: z.string().describe('The suggested expense category from the provided list.'),
+  reasoning: z.string().optional().describe('Brief reasoning for the categorization.'),
 });
 export type SuggestExpenseCategoryOutput = z.infer<typeof SuggestExpenseCategoryOutputSchema>;
 
 /**
  * Suggests an expense category based on the description and available categories.
- * Includes a retry mechanism for transient 503 errors.
+ * Utilizes the full cultural and linguistic capabilities of the AI model.
  */
 export async function suggestExpenseCategory(input: SuggestExpenseCategoryInput): Promise<SuggestExpenseCategoryOutput> {
   const maxRetries = 2;
   let attempt = 0;
 
-  // Pre-check for exact matches or common keywords to speed up and improve reliability
-  const lowerDesc = input.description.toLowerCase();
-  
-  // Quick keyword map for common travel scenarios - expanded for better accuracy
-  const keywordMap: Record<string, string> = {
-    // Food
-    'lunch': 'Food', 'dinner': 'Food', 'breakfast': 'Food', 'coffee': 'Food', 'starbucks': 'Food', 'pizza': 'Food', 'restaurant': 'Food', 'cafe': 'Food', 'burger': 'Food', 'mcdonalds': 'Food', 'kfc': 'Food', 'zomato': 'Food', 'swiggy': 'Food',
-    // Transport
-    'uber': 'Transport', 'taxi': 'Transport', 'gas': 'Transport', 'petrol': 'Transport', 'fuel': 'Transport', 'bus': 'Transport', 'train': 'Transport', 'metro': 'Transport', 'tempo': 'Transport', 'traveller': 'Transport', 'van': 'Transport', 'ola': 'Transport', 'auto': 'Transport', 'toll': 'Transport', 'parking': 'Transport', 'rental': 'Transport',
-    // Stay
-    'hotel': 'Stay', 'airbnb': 'Stay', 'hostel': 'Stay', 'resort': 'Stay', 'homestay': 'Stay', 'lodge': 'Stay', 'booking.com': 'Stay',
-    // Flights
-    'flight': 'Flights', 'airline': 'Flights', 'indigo': 'Flights', 'spicejet': 'Flights', 'airasia': 'Flights', 'vistara': 'Flights', 'emirates': 'Flights', 'boarding': 'Flights',
-    // Sightseeing
-    'safari': 'Sightseeing', 'zoo': 'Sightseeing', 'museum': 'Sightseeing', 'tour': 'Sightseeing', 'entry': 'Sightseeing', 'monument': 'Sightseeing', 'guide': 'Sightseeing', 'aquarium': 'Sightseeing', 'palace': 'Sightseeing'
-  };
-
-  // Check keyword map
-  for (const [kw, cat] of Object.entries(keywordMap)) {
-    if (lowerDesc.includes(kw) && input.availableCategories.includes(cat)) {
-      // Specialized check for "ticket": don't auto-map to Flights if it contains sightseeing terms
-      if (kw === 'ticket' && (lowerDesc.includes('safari') || lowerDesc.includes('zoo') || lowerDesc.includes('museum'))) {
-        continue; 
-      }
-      return { category: cat };
-    }
-  }
-
-  // Exact matches
-  const directMatch = input.availableCategories.find(cat => lowerDesc.includes(cat.toLowerCase()));
-  if (directMatch) {
-    return { category: directMatch };
-  }
+  // We no longer use a manual keyword map to avoid limiting the AI's reasoning.
+  // This allows the model to handle "Bhojan", "Pav Bhaji", "Tempo Traveller", etc., 
+  // using its internal general knowledge of languages and cultures.
 
   while (attempt <= maxRetries) {
     try {
-      return await suggestExpenseCategoryFlow(input);
+      const { output } = await suggestExpenseCategoryFlow(input);
+      if (!output) throw new Error('AI returned no output');
+      return output;
     } catch (error: any) {
       const errorMessage = error.message || '';
       const isTransient = errorMessage.includes('503') || 
@@ -82,34 +55,37 @@ export async function suggestExpenseCategory(input: SuggestExpenseCategoryInput)
       }
 
       console.warn('AI categorization failed:', errorMessage);
-      return { category: input.availableCategories.includes("Other") ? "Other" : input.availableCategories[0] || "Other" };
+      return { 
+        category: input.availableCategories.includes("Other") ? "Other" : input.availableCategories[0] || "Other",
+        reasoning: "Fallback due to system error."
+      };
     }
   }
 
-  return { category: input.availableCategories.includes("Other") ? "Other" : input.availableCategories[0] || "Other" };
+  return { 
+    category: input.availableCategories.includes("Other") ? "Other" : input.availableCategories[0] || "Other",
+    reasoning: "Fallback after retries."
+  };
 }
 
 const prompt = ai.definePrompt({
   name: 'suggestExpenseCategoryPrompt',
   input: { schema: SuggestExpenseCategoryInputSchema },
   output: { schema: SuggestExpenseCategoryOutputSchema },
-  prompt: `You are an expert travel expense classifier with deep general knowledge of global and local travel services.
+  prompt: `You are an expert global travel expense classifier with deep knowledge of world languages, cuisines, transport systems, and brands.
 Your goal is to analyze a transaction description and pick the BEST matching category from the provided list.
 
 CRITICAL REASONING RULES:
-1. Intent over Keyword: Look at the whole description. 
-   - "Safari ticket" or "Museum entry" is SIGHTSEEING, not "Flights" or "Other".
-   - "Tempo Traveller" or "Van hire" is TRANSPORT, as these are vehicles.
-   - "Airport taxi" is TRANSPORT, not "Flights".
-2. Semantic Matching:
-   - "Transport": Covers anything related to moving between places (Uber, Ola, Taxi, Metro, Bus, Train, Gas/Petrol, Parking, Tolls, Vehicle rentals, Tempo Travellers, Vans).
-   - "Food": Covers meals, drinks, snacks, cafes, and delivery apps (Zomato, Swiggy, Starbucks).
-   - "Sightseeing": Covers activities, tours, entry fees, monuments, and safaris.
-   - "Stay": Covers accommodation (Hotels, Airbnbs, Resorts).
-   - "Flights": ONLY for air travel and airline companies.
-3. Brand Recognition: Use your knowledge of brands (e.g., "Vistara" is Flights, "Hard Rock Cafe" is Food, "Grab" is Transport).
-4. If a specific category like "Safari" is in the list and the description mentions a safari, use that specific one.
-5. If no clear match exists, default to "Other" if it's in the list.
+1. Multilingual Support: You understand terms in many languages. (e.g., "Bhojan" in Hindi is Food, "Almuerzo" in Spanish is Food).
+2. Cultural Awareness: You recognize local items and regional services. (e.g., "Pav Bhaji" is Food, "Tempo Traveller" is a vehicle for Transport, "Tuk-Tuk" is Transport).
+3. Semantic Intent: Focus on the PURPOSE of the spend:
+   - TRANSPORT: Anything related to moving places (Uber, Ola, Taxi, Metro, Train, Bus, Gas/Petrol, Parking, Tolls, Vehicle rentals, Tempo Travellers, Vans).
+   - FOOD: Meals, drinks, snacks, cafes, delivery apps (Zomato, Swiggy, Starbucks, Bhojan, Restaurant bills).
+   - SIGHTSEEING: Activities, tours, entry fees, monuments, and safaris (e.g., "Safari ticket" is SIGHTSEEING, not Flights).
+   - STAY: Accommodation (Hotels, Airbnbs, Resorts).
+   - FLIGHTS: ONLY for air travel and airline companies.
+4. Brand Recognition: Use your knowledge of brands (e.g., "Grab" is Transport, "Hard Rock Cafe" is Food, "Vistara" is Flights).
+5. Specificity: If a specific category like "Safari" is in the list and the description matches a safari, use that specific one. Otherwise, use the broader standard categories.
 
 AVAILABLE CATEGORIES:
 {{#each availableCategories}}
@@ -118,7 +94,7 @@ AVAILABLE CATEGORIES:
 
 EXPENSE DESCRIPTION: {{{description}}}
 
-Respond with a JSON object containing the chosen category. The category name must match the casing and spelling in the list exactly.`,
+Respond with a JSON object containing the chosen category and a short reasoning. The category name must match the casing and spelling in the list exactly.`,
 });
 
 const suggestExpenseCategoryFlow = ai.defineFlow(
