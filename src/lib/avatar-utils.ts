@@ -32,17 +32,19 @@ export function getAvatarTheme(name: string): 'primary' | 'accent' {
 
 /**
  * Standard classes for the Avatar Fallback based on the theme.
+ * When onDarkBg is true (like in headers), we use solid colors to prevent
+ * stacked avatars from bleeding through each other.
  */
 export function getAvatarFallbackClasses(name: string, onDarkBg: boolean = false) {
   const theme = getAvatarTheme(name);
   
   if (theme === 'primary') {
     return onDarkBg 
-      ? "bg-white/20 text-white" 
+      ? "bg-[#0B6E82] text-white" 
       : "bg-primary/10 text-primary";
   }
   
   return onDarkBg 
-    ? "bg-white/20 text-white" 
+    ? "bg-[#F5A623] text-white" 
     : "bg-accent/10 text-accent";
 }
