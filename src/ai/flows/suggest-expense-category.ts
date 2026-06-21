@@ -2,7 +2,7 @@
 /**
  * @fileOverview An AI agent that suggests expense categories based on expense descriptions.
  *
- * - suggestExpenseCategory - A function that suggests an expense category with retry logic.
+ * - suggestExpenseCategory - A function that suggests an expense category with deep reasoning and fuzzy matching.
  * - SuggestExpenseCategoryInput - The input type for the suggestExpenseCategory function.
  * - SuggestExpenseCategoryOutput - The return type for the suggestExpenseCategory function.
  */
@@ -22,26 +22,26 @@ const SuggestExpenseCategoryOutputSchema = z.object({
 });
 export type SuggestExpenseCategoryOutput = z.infer<typeof SuggestExpenseCategoryOutputSchema>;
 
-// 1. Define Prompt First
 const suggestPrompt = ai.definePrompt({
   name: 'suggestExpenseCategoryPrompt',
   input: { schema: SuggestExpenseCategoryInputSchema },
   output: { schema: SuggestExpenseCategoryOutputSchema },
-  prompt: `You are an expert global travel expense classifier with advanced cultural and linguistic knowledge.
+  prompt: `You are a world-class multilingual travel expense analyst with advanced cultural knowledge.
 
 YOUR TASK:
-Analyze the provided EXPENSE DESCRIPTION and select the single most appropriate category from the AVAILABLE CATEGORIES list.
+Analyze the EXPENSE DESCRIPTION and select the best matching category from the AVAILABLE CATEGORIES list.
 
 BRAIN & REASONING RULES:
-1. WORLD KNOWLEDGE: Use your knowledge of global languages, brands, and regional terms.
-   - "Bhojan", "Pav Bhaji", "Zomato", "Dinner", "Lunch" -> FOOD
-   - "Tempo Traveller", "Uber", "Grab", "Tuk Tuk", "Auto", "Taxi", "Gas", "Petrol" -> TRANSPORT
-   - "Safari", "Museum", "Tickets", "Entry Fee", "Tour Guide" -> SIGHTSEEING
-   - "Indigo", "AirIndia", "Emirates", "Flight", "Airport" -> FLIGHTS
-   - "Airbnb", "Hotel", "Hostel", "Stay", "Resort" -> STAY
-2. LINGUISTIC FLEXIBILITY: Understand terms in Hindi, Spanish, French, etc. (e.g., "Manger" is Food).
-3. INTENT OVER KEYWORD: If the description is "Safari ticket", the intent is a tourist activity (SIGHTSEEING), not a transportation ticket (FLIGHTS/TRANSPORT).
-4. STRICT VOCABULARY: You MUST choose a category from the provided list. Do NOT invent new categories.
+1. GLOBAL KNOWLEDGE: Use your full database of global languages, brands, and regional services.
+   - Recognize terms in Hindi (e.g., "Bhojan" -> FOOD, "Vahan" -> TRANSPORT), Spanish (e.g., "Manger" -> FOOD), etc.
+   - Recognize regional vehicles (e.g., "Tempo Traveller", "Auto Rickshaw", "Tuk Tuk" -> TRANSPORT).
+   - Recognize global brands (e.g., "Zomato", "Grab", "Starbucks" -> FOOD; "Uber", "Lyft", "Shell" -> TRANSPORT).
+2. SEMANTIC INTENT:
+   - "Safari tickets" or "Museum entry" are SIGHTSEEING.
+   - "Toll tax" or "Petrol" or "Taxi" are TRANSPORT.
+   - "Hostel" or "Airbnb" or "Resort" are STAY.
+3. NO INVENTING: You MUST pick from the provided list. Do NOT return a category that isn't in the list.
+4. BE DECISIVE: Avoid choosing "Other" if there is any reasonable relationship to another category.
 
 AVAILABLE CATEGORIES:
 {{#each availableCategories}}
@@ -53,7 +53,6 @@ EXPENSE DESCRIPTION: {{{description}}}
 Output your choice and reasoning in JSON format.`,
 });
 
-// 2. Define Flow
 const suggestExpenseCategoryFlow = ai.defineFlow(
   {
     name: 'suggestExpenseCategoryFlow',
@@ -71,7 +70,7 @@ const suggestExpenseCategoryFlow = ai.defineFlow(
 
 /**
  * Suggests an expense category based on the description and available categories.
- * This is the primary entry point called by the UI.
+ * Implements intelligent semantic mapping and fuzzy matching.
  */
 export async function suggestExpenseCategory(input: SuggestExpenseCategoryInput): Promise<SuggestExpenseCategoryOutput> {
   try {
@@ -83,19 +82,46 @@ export async function suggestExpenseCategory(input: SuggestExpenseCategoryInput)
 
     const target = result.category.trim().toLowerCase();
     
-    // 1. Try exact match (case-insensitive)
+    // 1. Exact Match
     let matchedCategory = input.availableCategories.find(
       c => c.trim().toLowerCase() === target
     );
 
-    // 2. Try partial/fuzzy match if no exact match
+    // 2. Semantic/Fuzzy Match
     if (!matchedCategory) {
-      matchedCategory = input.availableCategories.find(
-        c => {
-          const listCat = c.trim().toLowerCase();
-          return target.includes(listCat) || listCat.includes(target);
+      matchedCategory = input.availableCategories.find(c => {
+        const listCat = c.trim().toLowerCase();
+        // Check if one contains the other (e.g., "Food & Drink" contains "Food")
+        return target.includes(listCat) || listCat.includes(target);
+      });
+    }
+
+    // 3. Fallback Map for common synonyms if still no match
+    if (!matchedCategory) {
+      const synonymMap: Record<string, string> = {
+        'dining': 'food',
+        'cafe': 'food',
+        'restaurant': 'food',
+        'meal': 'food',
+        'drinks': 'food',
+        'taxi': 'transport',
+        'fuel': 'transport',
+        'gas': 'transport',
+        'commute': 'transport',
+        'accommodation': 'stay',
+        'hotel': 'stay',
+        'attractions': 'sightseeing',
+        'tours': 'sightseeing',
+        'shopping': 'shopping',
+        'purchases': 'shopping',
+      };
+
+      for (const [synonym, base] of Object.entries(synonymMap)) {
+        if (target.includes(synonym)) {
+          matchedCategory = input.availableCategories.find(c => c.toLowerCase() === base);
+          if (matchedCategory) break;
         }
-      );
+      }
     }
 
     if (matchedCategory) {
@@ -104,13 +130,11 @@ export async function suggestExpenseCategory(input: SuggestExpenseCategoryInput)
         reasoning: result.reasoning
       };
     }
-
-    console.warn(`AI suggested "${result.category}" but it didn't match any in:`, input.availableCategories);
   } catch (error: any) {
-    console.error('Categorization attempt failed:', error.message);
+    console.error('Categorization Brain Error:', error.message);
   }
 
-  // Fallback to "Other" or the first category
+  // Final reliable fallback
   const fallback = input.availableCategories.find(c => c.toLowerCase() === 'other') || input.availableCategories[0] || "Other";
   return { 
     category: fallback,

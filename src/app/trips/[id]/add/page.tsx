@@ -168,7 +168,7 @@ export default function AddExpenseWizard() {
     return () => unsubscribe();
   }, [selectedTripId, user, firestore, router, toast]);
 
-  // AI Categorization Effect with improved brain response handling
+  // AI Categorization Effect - THE "HAND"
   useEffect(() => {
     const trimmedDesc = formData.description.trim();
     if (trimmedDesc.length < 3 || trimmedDesc === lastAnalyzedDescription.current || categoriesList.length === 0) return;
@@ -181,16 +181,17 @@ export default function AddExpenseWizard() {
           description: trimmedDesc,
           availableCategories: categoriesList
         });
+        
         if (result && result.category) {
-          // Explicitly update category to the suggestion
+          // Precise update to the detected category
           setFormData(prev => ({ ...prev, category: result.category }));
         }
       } catch (e) {
-        console.warn("AI categorization failed", e);
+        console.warn("AI categorization failed:", e);
       } finally {
         setIsAnalyzing(false);
       }
-    }, 600); // Faster debounce for better "live" feel
+    }, 600);
 
     return () => clearTimeout(timer);
   }, [formData.description, categoriesList]);

@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState, useEffect, useMemo, useRef } from "react";
@@ -52,6 +51,7 @@ import { Calendar } from "@/components/ui/calendar";
 import { format } from "date-fns";
 import { suggestExpenseCategory } from "@/ai/flows/suggest-expense-category";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { getInitials, getAvatarFallbackClasses } from "@/lib/avatar-utils";
 
 const FAMILY_SCHEMES = [
   { border: "border-primary", bg: "bg-primary/5", text: "text-primary", badge: "bg-primary/10 text-primary", darkBg: "bg-primary/10", focus: "focus-visible:ring-primary" },
@@ -165,9 +165,10 @@ export default function EditExpensePage() {
     return Array.from(new Set([...base, ...customOnes]));
   }, [trip?.customCategories]);
 
+  // AI Categorization Logic - Consistency with Add Page
   useEffect(() => {
     const trimmedDesc = formData.description.trim();
-    if (trimmedDesc.length < 3 || trimmedDesc === lastAnalyzedDescription.current) return;
+    if (trimmedDesc.length < 3 || trimmedDesc === lastAnalyzedDescription.current || categoriesList.length === 0) return;
 
     const timer = setTimeout(async () => {
       setIsAnalyzing(true);
@@ -177,15 +178,15 @@ export default function EditExpensePage() {
           description: trimmedDesc,
           availableCategories: categoriesList
         });
-        if (result.category) {
+        if (result && result.category) {
           setFormData(prev => ({ ...prev, category: result.category }));
         }
       } catch (e) {
-        console.warn("AI categorization failed", e);
+        console.warn("AI categorization failed:", e);
       } finally {
         setIsAnalyzing(false);
       }
-    }, 800);
+    }, 600);
 
     return () => clearTimeout(timer);
   }, [formData.description, categoriesList]);
@@ -443,7 +444,7 @@ export default function EditExpensePage() {
                     <div className="flex items-center gap-3 flex-1 min-w-0">
                       <Avatar className="h-10 w-10 border-2 border-white shadow-sm flex-shrink-0">
                         <AvatarImage src={family.avatar} />
-                        <AvatarFallback>{family.name?.[0]}</AvatarFallback>
+                        <AvatarFallback className={getAvatarFallbackClasses(family.name)}>{getInitials(family.name)}</AvatarFallback>
                       </Avatar>
                       <div className="min-w-0 flex-1">
                         <p className="text-sm font-semibold truncate leading-tight">{family.familyName}</p>
@@ -492,7 +493,10 @@ export default function EditExpensePage() {
                       {selectedMembers.map((member) => (
                         <div key={member.id} className="flex items-center justify-between p-3 pl-8 transition-colors cursor-pointer bg-white/50" onClick={() => toggleSelection(member.id)}>
                           <div className="flex items-center gap-3">
-                            <Avatar className="h-8 w-8"><AvatarImage src={member.avatar} /><AvatarFallback>{member.name?.[0]}</AvatarFallback></Avatar>
+                            <Avatar className="h-8 w-8">
+                              <AvatarImage src={member.avatar} />
+                              <AvatarFallback className={getAvatarFallbackClasses(member.name)}>{getInitials(member.name)}</AvatarFallback>
+                            </Avatar>
                             <div><span className="text-xs font-semibold block leading-none">{member.name}</span><span className="text-[9px] text-muted-foreground font-medium">{family.familyName}</span></div>
                           </div>
                           <div className="flex items-center gap-3">
@@ -521,7 +525,7 @@ export default function EditExpensePage() {
                         <div className="flex items-center gap-3">
                           <Avatar className="h-8 w-8">
                             <AvatarImage src={member.avatar} />
-                            <AvatarFallback>{member.name?.[0]}</AvatarFallback>
+                            <AvatarFallback className={getAvatarFallbackClasses(member.name)}>{getInitials(member.name)}</AvatarFallback>
                           </Avatar>
                           <div>
                             <span className="text-xs font-semibold block leading-none">{member.name}</span>
@@ -687,7 +691,7 @@ export default function EditExpensePage() {
                     const isSelected = formData.payerId === p.id;
                     return (
                       <Card key={p.id} className={cn("p-3 rounded-2xl border-2 transition-all cursor-pointer flex items-center gap-3", isSelected ? 'border-primary bg-primary/5 shadow-sm' : 'border-transparent bg-white shadow-sm hover:border-muted/20')} onClick={() => setFormData(prev => ({ ...prev, payerId: p.id, payerName: p.name }))}>
-                        <Avatar className="h-8 w-8 shadow-sm"><AvatarImage src={p.avatar} /><AvatarFallback>{p.name?.[0]}</AvatarFallback></Avatar>
+                        <Avatar className="h-8 w-8 shadow-sm"><AvatarImage src={p.avatar} /><AvatarFallback className={getAvatarFallbackClasses(p.name)}>{getInitials(p.name)}</AvatarFallback></Avatar>
                         <span className={cn("font-semibold text-xs truncate", isSelected ? "text-foreground" : "text-foreground/80")}>{isMe ? "You" : p.name}</span>
                       </Card>
                     );
