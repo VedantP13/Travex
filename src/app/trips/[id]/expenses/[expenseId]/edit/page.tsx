@@ -49,9 +49,9 @@ import { cn } from "@/lib/utils";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
 import { format } from "date-fns";
-import { suggestExpenseCategory } from "@/ai/flows/suggest-expense-category";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { getInitials, getAvatarFallbackClasses } from "@/lib/avatar-utils";
+import { useExpenseAICategorization } from "@/hooks/use-expense-ai";
 
 const FAMILY_SCHEMES = [
   { border: "border-primary", bg: "bg-primary/5", text: "text-primary", badge: "bg-primary/10 text-primary", darkBg: "bg-primary/10", focus: "focus-visible:ring-primary" },
@@ -88,7 +88,6 @@ export default function EditExpensePage() {
   const [step, setStep] = useState(1);
   const [loading, setLoading] = useState(true);
   const [isUpdating, setIsUpdating] = useState(false);
-  const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [isManagingCategories, setIsManagingCategories] = useState(false);
   const [newCategoryName, setNewCategoryName] = useState("");
   const [trip, setTrip] = useState<any>(null);
@@ -96,8 +95,6 @@ export default function EditExpensePage() {
   const [viewMode, setViewMode] = useState<'person' | 'family'>('person');
   const [expandedFamilies, setExpandedFamilies] = useState<Record<string, boolean>>({});
   const [isCalendarOpen, setIsCalendarOpen] = useState(false);
-
-  const lastAnalyzedInput = useRef({ description: "", categoriesCount: 0 });
 
   const [formData, setFormData] = useState({
     description: "",
@@ -165,34 +162,12 @@ export default function EditExpensePage() {
     return Array.from(new Set([...base, ...customOnes]));
   }, [trip?.customCategories]);
 
-  // AI Categorization Logic - Consistency with Add Page
-  useEffect(() => {
-    const trimmedDesc = formData.description.trim();
-    const categoriesCount = categoriesList.length;
-    
-    if (trimmedDesc.length < 3 || categoriesCount === 0) return;
-    if (trimmedDesc === lastAnalyzedInput.current.description && categoriesCount === lastAnalyzedInput.current.categoriesCount) return;
-
-    const timer = setTimeout(async () => {
-      setIsAnalyzing(true);
-      lastAnalyzedInput.current = { description: trimmedDesc, categoriesCount };
-      try {
-        const result = await suggestExpenseCategory({ 
-          description: trimmedDesc,
-          availableCategories: categoriesList
-        });
-        if (result && result.category) {
-          setFormData(prev => ({ ...prev, category: result.category }));
-        }
-      } catch (e) {
-        console.warn("AI categorization failed:", e);
-      } finally {
-        setIsAnalyzing(false);
-      }
-    }, 600);
-
-    return () => clearTimeout(timer);
-  }, [formData.description, categoriesList]);
+  // AI Brain & Hand: Extracted to a reusable hook for consistency across Add/Edit pages
+  const { isAnalyzing } = useExpenseAICategorization(
+    formData.description, 
+    categoriesList, 
+    setFormData
+  );
 
   const familyList = useMemo(() => {
     if (!trip?.participants) return [];

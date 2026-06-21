@@ -40,7 +40,6 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { suggestExpenseCategory } from "@/ai/flows/suggest-expense-category";
 import { useToast } from "@/hooks/use-toast";
 import { useFirestore, useUser } from "@/firebase";
 import { collection, addDoc, doc, updateDoc, increment, serverTimestamp, onSnapshot, getDoc } from "firebase/firestore";
@@ -58,6 +57,7 @@ import {
 import { Calendar } from "@/components/ui/calendar";
 import { format } from "date-fns";
 import { getInitials, getAvatarFallbackClasses } from "@/lib/avatar-utils";
+import { useExpenseAICategorization } from "@/hooks/use-expense-ai";
 
 const FAMILY_SCHEMES = [
   { border: "border-primary", bg: "bg-primary/5", text: "text-primary", badge: "bg-primary/10 text-primary", darkBg: "bg-primary/10", focus: "focus-visible:ring-primary" },
@@ -93,14 +93,12 @@ export default function AddExpenseWizard() {
   const { trips, loading: tripsLoading } = useTrips();
   
   const [step, setStep] = useState(1);
-  const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [isPosting, setIsPosting] = useState(false);
   const [selectedTripId, setSelectedTripId] = useState<string>((params?.id as string) || "");
   const [currentTrip, setCurrentTrip] = useState<any>(null);
   const [viewMode, setViewMode] = useState<'person' | 'family'>('person');
   const [expandedFamilies, setExpandedFamilies] = useState<Record<string, boolean>>({});
   const isSplitTypeManuallyChanged = useRef(false);
-  const lastAnalyzedInput = useRef({ description: "", categoriesCount: 0 });
   
   const [newCategoryName, setNewCategoryName] = useState("");
   const [isManagingCategories, setIsManagingCategories] = useState(false);
@@ -125,6 +123,13 @@ export default function AddExpenseWizard() {
     const base = DEFAULT_CATEGORIES.map(c => c.name);
     return Array.from(new Set([...base, ...customOnes]));
   }, [currentTrip?.customCategories]);
+
+  // AI Brain & Hand: Extracted to a clean, isolated custom hook
+  const { isAnalyzing } = useExpenseAICategorization(
+    formData.description, 
+    categoriesList, 
+    setFormData
+  );
 
   useEffect(() => {
     if (!selectedTripId && trips.length > 0) {
@@ -167,39 +172,6 @@ export default function AddExpenseWizard() {
     });
     return () => unsubscribe();
   }, [selectedTripId, user, firestore, router, toast]);
-
-  // AI Categorization Effect - THE HAND
-  useEffect(() => {
-    const trimmedDesc = formData.description.trim();
-    const categoriesCount = categoriesList.length;
-    
-    // Safety check for skipping analysis
-    if (trimmedDesc.length < 3 || categoriesCount === 0) return;
-    
-    // Only skip if both the description and the category list context are unchanged
-    if (trimmedDesc === lastAnalyzedInput.current.description && categoriesCount === lastAnalyzedInput.current.categoriesCount) return;
-
-    const timer = setTimeout(async () => {
-      setIsAnalyzing(true);
-      lastAnalyzedInput.current = { description: trimmedDesc, categoriesCount };
-      try {
-        const result = await suggestExpenseCategory({ 
-          description: trimmedDesc,
-          availableCategories: categoriesList
-        });
-        
-        if (result && result.category) {
-          setFormData(prev => ({ ...prev, category: result.category }));
-        }
-      } catch (e) {
-        console.warn("AI categorization failed:", e);
-      } finally {
-        setIsAnalyzing(false);
-      }
-    }, 600);
-
-    return () => clearTimeout(timer);
-  }, [formData.description, categoriesList]);
 
   const familyList = useMemo(() => {
     if (!currentTrip?.participants) return [];
