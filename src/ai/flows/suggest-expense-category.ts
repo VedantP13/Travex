@@ -26,29 +26,28 @@ const suggestPrompt = ai.definePrompt({
   name: 'suggestExpenseCategoryPrompt',
   input: { schema: SuggestExpenseCategoryInputSchema },
   output: { schema: SuggestExpenseCategoryOutputSchema },
-  prompt: `You are a world-class multilingual travel expense analyst with advanced cultural knowledge.
+  prompt: `You are a world-class travel expense analyst with advanced multilingual and cultural intelligence.
 
 YOUR TASK:
-Analyze the EXPENSE DESCRIPTION and select the best matching category from the AVAILABLE CATEGORIES list.
+Analyze the EXPENSE DESCRIPTION and select the best matching category from the AVAILABLE CATEGORIES list provided below.
 
-BRAIN & REASONING RULES:
-1. GLOBAL KNOWLEDGE: Use your full database of global languages, brands, and regional services.
-   - Recognize terms in Hindi (e.g., "Bhojan" -> FOOD, "Vahan" -> TRANSPORT), Spanish (e.g., "Manger" -> FOOD), etc.
-   - Recognize regional vehicles (e.g., "Tempo Traveller", "Auto Rickshaw", "Tuk Tuk" -> TRANSPORT).
-   - Recognize global brands (e.g., "Zomato", "Grab", "Starbucks" -> FOOD; "Uber", "Lyft", "Shell" -> TRANSPORT).
-2. SEMANTIC INTENT:
-   - "Safari tickets" or "Museum entry" are SIGHTSEEING.
-   - "Toll tax" or "Petrol" or "Taxi" are TRANSPORT.
-   - "Hostel" or "Airbnb" or "Resort" are STAY.
-3. NO INVENTING: You MUST pick from the provided list. Do NOT return a category that isn't in the list.
-4. BE DECISIVE: Avoid choosing "Other" if there is any reasonable relationship to another category.
+### BRAIN & REASONING RULES:
+1. **Global Knowledge**: Use your full database of global languages, brands, and regional services.
+   - **FOOD**: Recognize terms like "Bhojan" (Hindi), "Pav Bhaji", "Thali", "Zomato", "Starbucks", "Manger", "Dinner", "Snacks".
+   - **TRANSPORT**: Recognize regional vehicles like "Tempo Traveller", "Auto Rickshaw", "Tuk Tuk", "Uber", "Grab", "Petrol", "Fuel", "Gas", "Toll".
+   - **SIGHTSEEING**: Recognize "Safari tickets", "Museum entry", "Tours", "Entry fee", "Guide", "Attraction".
+   - **STAY**: Recognize "Airbnb", "Hotel", "Resort", "Hostel", "Lodge", "Booking".
+2. **Semantic Intent**: Focus on the *intent* of the spend. If someone buys "Safari tickets," they are doing Sightseeing, not buying a Flight.
+3. **No Inventing**: You MUST pick a string exactly as it appears in the AVAILABLE CATEGORIES list.
+4. **Be Decisive**: Avoid choosing "Other" if there is any reasonable relationship to another category in the list.
 
+### CONTEXT:
 AVAILABLE CATEGORIES:
 {{#each availableCategories}}
 - {{{this}}}
 {{/each}}
 
-EXPENSE DESCRIPTION: {{{description}}}
+EXPENSE DESCRIPTION: "{{{description}}}"
 
 Output your choice and reasoning in JSON format.`,
 });
@@ -80,47 +79,54 @@ export async function suggestExpenseCategory(input: SuggestExpenseCategoryInput)
       throw new Error('Invalid AI response');
     }
 
-    const target = result.category.trim().toLowerCase();
+    const target = result.category.trim();
     
-    // 1. Exact Match
+    // 1. Exact/Precise Match (Case-insensitive)
     let matchedCategory = input.availableCategories.find(
-      c => c.trim().toLowerCase() === target
+      c => c.trim().toLowerCase() === target.toLowerCase()
     );
 
-    // 2. Semantic/Fuzzy Match
+    // 2. Semantic/Fuzzy Match (Contains)
     if (!matchedCategory) {
       matchedCategory = input.availableCategories.find(c => {
         const listCat = c.trim().toLowerCase();
-        // Check if one contains the other (e.g., "Food & Drink" contains "Food")
-        return target.includes(listCat) || listCat.includes(target);
+        const resCat = target.toLowerCase();
+        return resCat.includes(listCat) || listCat.includes(resCat);
       });
     }
 
-    // 3. Fallback Map for common synonyms if still no match
+    // 3. Robust Mapping for common AI synonyms
     if (!matchedCategory) {
-      const synonymMap: Record<string, string> = {
-        'dining': 'food',
-        'cafe': 'food',
-        'restaurant': 'food',
-        'meal': 'food',
-        'drinks': 'food',
-        'taxi': 'transport',
-        'fuel': 'transport',
-        'gas': 'transport',
-        'commute': 'transport',
-        'accommodation': 'stay',
-        'hotel': 'stay',
-        'attractions': 'sightseeing',
-        'tours': 'sightseeing',
-        'shopping': 'shopping',
-        'purchases': 'shopping',
+      const mapping: Record<string, string> = {
+        'dining': 'Food',
+        'meal': 'Food',
+        'restaurant': 'Food',
+        'cafe': 'Food',
+        'drinks': 'Food',
+        'taxi': 'Transport',
+        'fuel': 'Transport',
+        'gas': 'Transport',
+        'petrol': 'Transport',
+        'commute': 'Transport',
+        'cab': 'Transport',
+        'accommodation': 'Stay',
+        'hotel': 'Stay',
+        'resort': 'Stay',
+        'stay': 'Stay',
+        'attractions': 'Sightseeing',
+        'tours': 'Sightseeing',
+        'tickets': 'Sightseeing',
+        'museum': 'Sightseeing',
+        'safari': 'Sightseeing',
+        'shopping': 'Shopping',
+        'flights': 'Flights',
+        'airfare': 'Flights',
       };
 
-      for (const [synonym, base] of Object.entries(synonymMap)) {
-        if (target.includes(synonym)) {
-          matchedCategory = input.availableCategories.find(c => c.toLowerCase() === base);
-          if (matchedCategory) break;
-        }
+      const mappedKey = Object.keys(mapping).find(k => target.toLowerCase().includes(k));
+      if (mappedKey) {
+        const targetName = mapping[mappedKey];
+        matchedCategory = input.availableCategories.find(c => c.toLowerCase() === targetName.toLowerCase());
       }
     }
 
@@ -134,7 +140,7 @@ export async function suggestExpenseCategory(input: SuggestExpenseCategoryInput)
     console.error('Categorization Brain Error:', error.message);
   }
 
-  // Final reliable fallback
+  // Final fallback to the list's 'Other' or first item
   const fallback = input.availableCategories.find(c => c.toLowerCase() === 'other') || input.availableCategories[0] || "Other";
   return { 
     category: fallback,

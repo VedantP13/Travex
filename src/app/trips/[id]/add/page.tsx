@@ -168,9 +168,10 @@ export default function AddExpenseWizard() {
     return () => unsubscribe();
   }, [selectedTripId, user, firestore, router, toast]);
 
-  // AI Categorization Effect - THE "HAND"
+  // AI Categorization Effect - THE HAND
   useEffect(() => {
     const trimmedDesc = formData.description.trim();
+    // Start analyzing once description has meaningful length
     if (trimmedDesc.length < 3 || trimmedDesc === lastAnalyzedDescription.current || categoriesList.length === 0) return;
 
     const timer = setTimeout(async () => {
@@ -191,7 +192,7 @@ export default function AddExpenseWizard() {
       } finally {
         setIsAnalyzing(false);
       }
-    }, 600);
+    }, 600); // Responsive debounce
 
     return () => clearTimeout(timer);
   }, [formData.description, categoriesList]);
