@@ -2,7 +2,7 @@
 /**
  * @fileOverview An AI agent that suggests expense categories based on expense descriptions.
  *
- * - suggestExpenseCategory - A function that suggests an expense category with deep reasoning and fuzzy matching.
+ * - suggestExpenseCategory - A function that suggests an expense category with deep reasoning and fuzzy mapping.
  * - SuggestExpenseCategoryInput - The input type for the suggestExpenseCategory function.
  * - SuggestExpenseCategoryOutput - The return type for the suggestExpenseCategory function.
  */
@@ -14,73 +14,54 @@ const SuggestExpenseCategoryInputSchema = z.object({
   description: z.string().describe('The name or description of the expense.'),
   availableCategories: z.array(z.string()).describe('The list of categories to choose from.'),
 });
+
 export type SuggestExpenseCategoryInput = z.infer<typeof SuggestExpenseCategoryInputSchema>;
 
 const SuggestExpenseCategoryOutputSchema = z.object({
   category: z.string().describe('The suggested expense category from the provided list.'),
   reasoning: z.string().optional().describe('Brief reasoning for the categorization.'),
 });
+
 export type SuggestExpenseCategoryOutput = z.infer<typeof SuggestExpenseCategoryOutputSchema>;
-
-const suggestPrompt = ai.definePrompt({
-  name: 'suggestExpenseCategoryPrompt',
-  input: { schema: SuggestExpenseCategoryInputSchema },
-  output: { schema: SuggestExpenseCategoryOutputSchema },
-  prompt: `You are a world-class travel expense analyst with advanced multilingual and cultural intelligence.
-
-YOUR TASK:
-Analyze the EXPENSE DESCRIPTION and select the best matching category from the AVAILABLE CATEGORIES list provided below.
-
-### BRAIN & REASONING RULES:
-1. **Global Knowledge**: Use your full database of global languages, brands, and regional services.
-   - **FOOD**: Recognize terms like "Bhojan" (Hindi), "Pav Bhaji", "Thali", "Zomato", "Starbucks", "Manger", "Dinner", "Snacks".
-   - **TRANSPORT**: Recognize regional vehicles like "Tempo Traveller", "Auto Rickshaw", "Tuk Tuk", "Uber", "Grab", "Petrol", "Fuel", "Gas", "Toll".
-   - **SIGHTSEEING**: Recognize "Safari tickets", "Museum entry", "Tours", "Entry fee", "Guide", "Attraction".
-   - **STAY**: Recognize "Airbnb", "Hotel", "Resort", "Hostel", "Lodge", "Booking".
-2. **Semantic Intent**: Focus on the *intent* of the spend. If someone buys "Safari tickets," they are doing Sightseeing, not buying a Flight.
-3. **No Inventing**: You MUST pick a string exactly as it appears in the AVAILABLE CATEGORIES list.
-4. **Be Decisive**: Avoid choosing "Other" if there is any reasonable relationship to another category in the list.
-
-### CONTEXT:
-AVAILABLE CATEGORIES:
-{{#each availableCategories}}
-- {{{this}}}
-{{/each}}
-
-EXPENSE DESCRIPTION: "{{{description}}}"
-
-Output your choice and reasoning in JSON format.`,
-});
-
-const suggestExpenseCategoryFlow = ai.defineFlow(
-  {
-    name: 'suggestExpenseCategoryFlow',
-    inputSchema: SuggestExpenseCategoryInputSchema,
-    outputSchema: SuggestExpenseCategoryOutputSchema,
-  },
-  async (input) => {
-    const { output } = await suggestPrompt(input);
-    if (!output) {
-      throw new Error('AI returned no output');
-    }
-    return output;
-  }
-);
 
 /**
  * Suggests an expense category based on the description and available categories.
- * Implements intelligent semantic mapping and fuzzy matching.
+ * Implements intelligent semantic mapping and fuzzy matching natively.
  */
 export async function suggestExpenseCategory(input: SuggestExpenseCategoryInput): Promise<SuggestExpenseCategoryOutput> {
   try {
-    const result = await suggestExpenseCategoryFlow(input);
-    
-    if (!result || !result.category) {
-      throw new Error('Invalid AI response');
+    const { output } = await ai.generate({
+      model: 'googleai/gemini-1.5-flash',
+      // System instructions explicitly define the global/local intelligence you want
+      system: `You are a world-class travel expense analyst with advanced multilingual and cultural intelligence.
+      YOUR TASK: Analyze the user's EXPENSE DESCRIPTION and select the absolute best matching category from the AVAILABLE CATEGORIES list.
+      
+      ### BRAIN & REASONING RULES:
+      1. **Global & Local Context**: Use your deep knowledge of global languages, local cuisines, vehicle types, and regional services.
+         - If it's a local dish, snack, or drink anywhere in the world (e.g., "Pav Bhaji", "Sushi", "Croissant", "Boba"), map it to "Food".
+         - If it's a vehicle, ride service, or fuel (e.g., "Tuk Tuk", "Auto Rickshaw", "Shinkansen", "Uber", "Petrol"), map it to "Transport".
+      2. **Semantic Intent**: Focus on the *intent* of the spend. (e.g., "Museum tickets" -> "Sightseeing").
+      3. **No Inventing**: You MUST pick a string exactly as it appears in the AVAILABLE CATEGORIES list. Never create a new category.
+      4. **Be Decisive**: Only select "Other" if the expense is completely obscure and has absolutely zero relation to the existing categories.`,
+      
+      // Inject the dynamic variables straight into the prompt string
+      prompt: `AVAILABLE CATEGORIES:\n${input.availableCategories.map(c => `- ${c}`).join('\n')}\n\nEXPENSE DESCRIPTION: "${input.description}"`,
+      
+      output: {
+        schema: SuggestExpenseCategoryOutputSchema,
+      },
+      config: {
+        // Critical: Low temperature ensures strict classification rather than creative writing
+        temperature: 0.1, 
+      }
+    });
+
+    if (!output || !output.category) {
+      throw new Error('Invalid AI response payload');
     }
 
-    const target = result.category.trim();
-    
+    const target = output.category.trim();
+
     // 1. Exact/Precise Match (Case-insensitive)
     let matchedCategory = input.availableCategories.find(
       c => c.trim().toLowerCase() === target.toLowerCase()
@@ -133,16 +114,19 @@ export async function suggestExpenseCategory(input: SuggestExpenseCategoryInput)
     if (matchedCategory) {
       return {
         category: matchedCategory,
-        reasoning: result.reasoning
+        reasoning: output.reasoning
       };
     }
+
   } catch (error: any) {
+    // Check your server console for this exact error log if it still fails
     console.error('Categorization Brain Error:', error.message);
   }
 
   // Final fallback to the list's 'Other' or first item
   const fallback = input.availableCategories.find(c => c.toLowerCase() === 'other') || input.availableCategories[0] || "Other";
-  return { 
+  
+  return {
     category: fallback,
     reasoning: "System default due to matching failure."
   };
