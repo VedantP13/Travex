@@ -27,14 +27,21 @@ const suggestPrompt = ai.definePrompt({
   name: 'suggestExpenseCategoryPrompt',
   input: { schema: SuggestExpenseCategoryInputSchema },
   output: { schema: SuggestExpenseCategoryOutputSchema },
-  prompt: `You are an expert global travel expense classifier. 
-Your goal is to analyze a transaction description and pick the BEST matching category from the provided list.
+  prompt: `You are an expert global travel expense classifier with advanced cultural and linguistic knowledge.
 
-REASONING RULES:
-1. Multilingual: Understand terms in any language (e.g., "Bhojan" is Food, "Manger" is Food, "Almuerzo" is Food).
-2. Regional Items: Recognize local items (e.g., "Pav Bhaji" is Food, "Tuk Tuk" or "Tempo Traveller" is Transport).
-3. Intent: Focus on the PURPOSE (e.g., "Safari ticket" is Sightseeing, not Flights).
-4. Brands: Recognize brands (e.g., "Grab" is Transport, "Uber" is Transport, "Zomato" is Food).
+YOUR TASK:
+Analyze the provided EXPENSE DESCRIPTION and select the single most appropriate category from the AVAILABLE CATEGORIES list.
+
+BRAIN & REASONING RULES:
+1. WORLD KNOWLEDGE: Use your knowledge of global languages, brands, and regional terms.
+   - "Bhojan", "Pav Bhaji", "Zomato", "Dinner", "Lunch" -> FOOD
+   - "Tempo Traveller", "Uber", "Grab", "Tuk Tuk", "Auto", "Taxi", "Gas", "Petrol" -> TRANSPORT
+   - "Safari", "Museum", "Tickets", "Entry Fee", "Tour Guide" -> SIGHTSEEING
+   - "Indigo", "AirIndia", "Emirates", "Flight", "Airport" -> FLIGHTS
+   - "Airbnb", "Hotel", "Hostel", "Stay", "Resort" -> STAY
+2. LINGUISTIC FLEXIBILITY: Understand terms in Hindi, Spanish, French, etc. (e.g., "Manger" is Food).
+3. INTENT OVER KEYWORD: If the description is "Safari ticket", the intent is a tourist activity (SIGHTSEEING), not a transportation ticket (FLIGHTS/TRANSPORT).
+4. STRICT VOCABULARY: You MUST choose a category from the provided list. Do NOT invent new categories.
 
 AVAILABLE CATEGORIES:
 {{#each availableCategories}}
@@ -43,7 +50,7 @@ AVAILABLE CATEGORIES:
 
 EXPENSE DESCRIPTION: {{{description}}}
 
-IMPORTANT: You MUST return a JSON object. The category name should ideally match one from the list exactly. Avoid "Other" if any other category is even remotely applicable.`,
+Output your choice and reasoning in JSON format.`,
 });
 
 // 2. Define Flow
@@ -67,43 +74,43 @@ const suggestExpenseCategoryFlow = ai.defineFlow(
  * This is the primary entry point called by the UI.
  */
 export async function suggestExpenseCategory(input: SuggestExpenseCategoryInput): Promise<SuggestExpenseCategoryOutput> {
-  const maxRetries = 2;
-  let attempt = 0;
-
-  while (attempt <= maxRetries) {
-    try {
-      const result = await suggestExpenseCategoryFlow(input);
-      
-      if (!result || !result.category) {
-        throw new Error('Invalid AI response');
-      }
-
-      // Robust matching logic: trim and case-insensitive
-      const target = result.category.trim().toLowerCase();
-      const matchedCategory = input.availableCategories.find(
-        c => c.trim().toLowerCase() === target
-      );
-
-      if (matchedCategory) {
-        return {
-          category: matchedCategory,
-          reasoning: result.reasoning
-        };
-      }
-
-      // If no exact match, try partial match or just return the AI's first pick if it seems valid
-      console.warn(`AI suggested "${result.category}" which wasn't in list:`, input.availableCategories);
-      break;
-    } catch (error: any) {
-      console.error('Categorization attempt failed:', error.message);
-      attempt++;
-      if (attempt <= maxRetries) {
-        await new Promise(resolve => setTimeout(resolve, 500 * attempt));
-      }
+  try {
+    const result = await suggestExpenseCategoryFlow(input);
+    
+    if (!result || !result.category) {
+      throw new Error('Invalid AI response');
     }
+
+    const target = result.category.trim().toLowerCase();
+    
+    // 1. Try exact match (case-insensitive)
+    let matchedCategory = input.availableCategories.find(
+      c => c.trim().toLowerCase() === target
+    );
+
+    // 2. Try partial/fuzzy match if no exact match
+    if (!matchedCategory) {
+      matchedCategory = input.availableCategories.find(
+        c => {
+          const listCat = c.trim().toLowerCase();
+          return target.includes(listCat) || listCat.includes(target);
+        }
+      );
+    }
+
+    if (matchedCategory) {
+      return {
+        category: matchedCategory,
+        reasoning: result.reasoning
+      };
+    }
+
+    console.warn(`AI suggested "${result.category}" but it didn't match any in:`, input.availableCategories);
+  } catch (error: any) {
+    console.error('Categorization attempt failed:', error.message);
   }
 
-  // Final Fallback: Return "Other" if it exists, else the first category
+  // Fallback to "Other" or the first category
   const fallback = input.availableCategories.find(c => c.toLowerCase() === 'other') || input.availableCategories[0] || "Other";
   return { 
     category: fallback,
