@@ -29,29 +29,36 @@ export type SuggestExpenseCategoryOutput = z.infer<typeof SuggestExpenseCategory
  * Implements intelligent semantic mapping and fuzzy matching natively.
  */
 export async function suggestExpenseCategory(input: SuggestExpenseCategoryInput): Promise<SuggestExpenseCategoryOutput> {
+  // Defensive check for API key
+  const apiKey = process.env.GOOGLE_GENAI_API_KEY || process.env.GOOGLE_API_KEY;
+  if (!apiKey) {
+    console.error('CRITICAL: AI API Key is missing from environment variables.');
+    return {
+      category: "Other",
+      reasoning: "API Configuration Error: Please check your environment variables."
+    };
+  }
+
   try {
     const { output } = await ai.generate({
       model: 'googleai/gemini-1.5-flash',
-      // System instructions explicitly define the global/local intelligence you want
       system: `You are a world-class travel expense analyst with advanced multilingual and cultural intelligence.
       YOUR TASK: Analyze the user's EXPENSE DESCRIPTION and select the absolute best matching category from the AVAILABLE CATEGORIES list.
       
       ### BRAIN & REASONING RULES:
       1. **Global & Local Context**: Use your deep knowledge of global languages, local cuisines, vehicle types, and regional services.
-         - If it's a local dish, snack, or drink anywhere in the world (e.g., "Pav Bhaji", "Sushi", "Croissant", "Boba"), map it to "Food".
-         - If it's a vehicle, ride service, or fuel (e.g., "Tuk Tuk", "Auto Rickshaw", "Shinkansen", "Uber", "Petrol"), map it to "Transport".
-      2. **Semantic Intent**: Focus on the *intent* of the spend. (e.g., "Museum tickets" -> "Sightseeing").
+         - If it's a local dish, snack, or drink anywhere in the world (e.g., "Pav Bhaji", "Sushi", "Croissant", "Bhojan", "Boba"), map it to "Food".
+         - If it's a vehicle, ride service, or fuel (e.g., "Tuk Tuk", "Auto Rickshaw", "Shinkansen", "Uber", "Petrol", "Tempo Traveller"), map it to "Transport".
+      2. **Semantic Intent**: Focus on the *intent* of the spend. (e.g., "Museum tickets" -> "Sightseeing", "Safari entry" -> "Sightseeing").
       3. **No Inventing**: You MUST pick a string exactly as it appears in the AVAILABLE CATEGORIES list. Never create a new category.
       4. **Be Decisive**: Only select "Other" if the expense is completely obscure and has absolutely zero relation to the existing categories.`,
       
-      // Inject the dynamic variables straight into the prompt string
       prompt: `AVAILABLE CATEGORIES:\n${input.availableCategories.map(c => `- ${c}`).join('\n')}\n\nEXPENSE DESCRIPTION: "${input.description}"`,
       
       output: {
         schema: SuggestExpenseCategoryOutputSchema,
       },
       config: {
-        // Critical: Low temperature ensures strict classification rather than creative writing
         temperature: 0.1, 
       }
     });
@@ -90,6 +97,7 @@ export async function suggestExpenseCategory(input: SuggestExpenseCategoryInput)
         'petrol': 'Transport',
         'commute': 'Transport',
         'cab': 'Transport',
+        'vehicle': 'Transport',
         'accommodation': 'Stay',
         'hotel': 'Stay',
         'resort': 'Stay',
@@ -119,11 +127,14 @@ export async function suggestExpenseCategory(input: SuggestExpenseCategoryInput)
     }
 
   } catch (error: any) {
-    // Check your server console for this exact error log if it still fails
     console.error('Categorization Brain Error:', error.message);
+    return {
+      category: "Other",
+      reasoning: `AI Error: ${error.message}`
+    };
   }
 
-  // Final fallback to the list's 'Other' or first item
+  // Final fallback
   const fallback = input.availableCategories.find(c => c.toLowerCase() === 'other') || input.availableCategories[0] || "Other";
   
   return {

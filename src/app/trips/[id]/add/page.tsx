@@ -100,7 +100,7 @@ export default function AddExpenseWizard() {
   const [viewMode, setViewMode] = useState<'person' | 'family'>('person');
   const [expandedFamilies, setExpandedFamilies] = useState<Record<string, boolean>>({});
   const isSplitTypeManuallyChanged = useRef(false);
-  const lastAnalyzedDescription = useRef("");
+  const lastAnalyzedInput = useRef({ description: "", categoriesCount: 0 });
   
   const [newCategoryName, setNewCategoryName] = useState("");
   const [isManagingCategories, setIsManagingCategories] = useState(false);
@@ -171,12 +171,17 @@ export default function AddExpenseWizard() {
   // AI Categorization Effect - THE HAND
   useEffect(() => {
     const trimmedDesc = formData.description.trim();
-    // Start analyzing once description has meaningful length
-    if (trimmedDesc.length < 3 || trimmedDesc === lastAnalyzedDescription.current || categoriesList.length === 0) return;
+    const categoriesCount = categoriesList.length;
+    
+    // Safety check for skipping analysis
+    if (trimmedDesc.length < 3 || categoriesCount === 0) return;
+    
+    // Only skip if both the description and the category list context are unchanged
+    if (trimmedDesc === lastAnalyzedInput.current.description && categoriesCount === lastAnalyzedInput.current.categoriesCount) return;
 
     const timer = setTimeout(async () => {
       setIsAnalyzing(true);
-      lastAnalyzedDescription.current = trimmedDesc;
+      lastAnalyzedInput.current = { description: trimmedDesc, categoriesCount };
       try {
         const result = await suggestExpenseCategory({ 
           description: trimmedDesc,
@@ -184,7 +189,6 @@ export default function AddExpenseWizard() {
         });
         
         if (result && result.category) {
-          // Precise update to the detected category
           setFormData(prev => ({ ...prev, category: result.category }));
         }
       } catch (e) {
@@ -192,7 +196,7 @@ export default function AddExpenseWizard() {
       } finally {
         setIsAnalyzing(false);
       }
-    }, 600); // Responsive debounce
+    }, 600);
 
     return () => clearTimeout(timer);
   }, [formData.description, categoriesList]);

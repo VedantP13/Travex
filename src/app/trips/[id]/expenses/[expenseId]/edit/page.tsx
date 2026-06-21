@@ -97,7 +97,7 @@ export default function EditExpensePage() {
   const [expandedFamilies, setExpandedFamilies] = useState<Record<string, boolean>>({});
   const [isCalendarOpen, setIsCalendarOpen] = useState(false);
 
-  const lastAnalyzedDescription = useRef("");
+  const lastAnalyzedInput = useRef({ description: "", categoriesCount: 0 });
 
   const [formData, setFormData] = useState({
     description: "",
@@ -168,11 +168,14 @@ export default function EditExpensePage() {
   // AI Categorization Logic - Consistency with Add Page
   useEffect(() => {
     const trimmedDesc = formData.description.trim();
-    if (trimmedDesc.length < 3 || trimmedDesc === lastAnalyzedDescription.current || categoriesList.length === 0) return;
+    const categoriesCount = categoriesList.length;
+    
+    if (trimmedDesc.length < 3 || categoriesCount === 0) return;
+    if (trimmedDesc === lastAnalyzedInput.current.description && categoriesCount === lastAnalyzedInput.current.categoriesCount) return;
 
     const timer = setTimeout(async () => {
       setIsAnalyzing(true);
-      lastAnalyzedDescription.current = trimmedDesc;
+      lastAnalyzedInput.current = { description: trimmedDesc, categoriesCount };
       try {
         const result = await suggestExpenseCategory({ 
           description: trimmedDesc,
