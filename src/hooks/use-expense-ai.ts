@@ -4,13 +4,8 @@ import { useState, useEffect, useRef } from "react";
 import { suggestExpenseCategory } from "@/ai/flows/suggest-expense-category";
 
 /**
- * Custom hook to handle AI-powered expense categorization.
- * Encapsulates the "Brain" and "Hand" synchronization logic.
- * 
- * @param description - Current expense description.
- * @param categoriesList - List of available categories to map to.
- * @param setFormData - State setter to update the category in the form.
- * @returns { isAnalyzing: boolean } - Loading state for the AI analysis.
+ * The "Hand" mechanism that auto-selects categories.
+ * Now includes browser logging for debugging.
  */
 export function useExpenseAICategorization(
   description: string,
@@ -18,41 +13,34 @@ export function useExpenseAICategorization(
   setFormData: (update: (prev: any) => any) => void
 ) {
   const [isAnalyzing, setIsAnalyzing] = useState(false);
-  const lastAnalyzedInput = useRef({ description: "", categoriesCount: 0 });
+  const lastInput = useRef("");
 
   useEffect(() => {
-    const trimmedDesc = description.trim();
-    const categoriesCount = categoriesList.length;
-    
-    // Safety check for skipping analysis: min 3 chars and must have categories to map to
-    if (trimmedDesc.length < 3 || categoriesCount === 0) return;
-    
-    // Prevent duplicate analysis for the same input state
-    if (
-      trimmedDesc === lastAnalyzedInput.current.description && 
-      categoriesCount === lastAnalyzedInput.current.categoriesCount
-    ) return;
+    const query = description.trim();
+    if (query.length < 3 || query === lastInput.current) return;
 
     const timer = setTimeout(async () => {
       setIsAnalyzing(true);
-      lastAnalyzedInput.current = { description: trimmedDesc, categoriesCount };
+      lastInput.current = query;
+      
+      console.log(`[Categorization] Analyzing: "${query}"...`);
       
       try {
         const result = await suggestExpenseCategory({ 
-          description: trimmedDesc,
+          description: query,
           availableCategories: categoriesList
         });
         
         if (result && result.category) {
-          console.log(`AI categorization success: "${trimmedDesc}" -> "${result.category}"`);
+          console.log(`[Categorization] Success: "${query}" -> "${result.category}" (${result.reasoning})`);
           setFormData(prev => ({ ...prev, category: result.category }));
         }
       } catch (e) {
-        console.warn("AI categorization failed:", e);
+        console.warn("[Categorization] Communication error with Brain:", e);
       } finally {
         setIsAnalyzing(false);
       }
-    }, 600);
+    }, 700); // Slight delay for smoother typing
 
     return () => clearTimeout(timer);
   }, [description, categoriesList, setFormData]);
