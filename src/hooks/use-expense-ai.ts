@@ -5,7 +5,7 @@ import { suggestExpenseCategory } from "@/ai/flows/suggest-expense-category";
 
 /**
  * The "Hand" mechanism that applies AI thoughts to the UI state.
- * Fixed to allow dynamic updates as the user retypes descriptions.
+ * Fixed to allow dynamic re-categorization while protecting manual user choices.
  */
 export function useExpenseAICategorization(
   description: string,
@@ -14,17 +14,16 @@ export function useExpenseAICategorization(
 ) {
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const lastAnalyzedInput = useRef("");
-  const lastAISuggestion = useRef<string | null>(null); // Track AI's last action
+  const lastAISuggestion = useRef<string | null>(null);
   const analysisTimer = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
     const query = description.trim();
     
-    // Reset timer if user keeps typing
     if (analysisTimer.current) clearTimeout(analysisTimer.current);
 
-    // Skip if input is too short or hasn't changed since last successful analysis
-    if (query.length < 3 || query === lastAnalyzedInput.current) return;
+    // Skip if input is too short or hasn't changed since last analysis
+    if (query.length < 2 || query === lastAnalyzedInput.current) return;
 
     analysisTimer.current = setTimeout(async () => {
       setIsAnalyzing(true);
@@ -36,15 +35,15 @@ export function useExpenseAICategorization(
         });
         
         if (result && result.category) {
-          console.log(`[AI Hand] Brain suggested "${result.category}" for "${query}"`);
+          console.log(`[AI Hand] Suggestion: "${result.category}" for "${query}"`);
           lastAnalyzedInput.current = query;
           
           setFormData(prev => {
             const currentCategory = prev.category;
             
-            // LOGIC: Allow the AI to change the category if:
-            // 1. The current category is default ('Other', empty, or null)
-            // 2. The current category matches our LAST AI suggestion (meaning the user hasn't manually picked something else)
+            // LOGIC: Overwrite the category if:
+            // 1. It's the first time ('Other' or empty)
+            // 2. The CURRENT category was the one we (the AI) suggested last time
             const isDefault = !currentCategory || currentCategory === 'Other' || currentCategory === '';
             const wasSetByAI = currentCategory === lastAISuggestion.current;
 
@@ -53,16 +52,16 @@ export function useExpenseAICategorization(
                return { ...prev, category: result.category };
             }
             
-            // If the user manually selected something else, we respect their choice and don't overwrite.
+            // If the user manually picked a category, we don't touch it.
             return prev;
           });
         }
       } catch (e) {
-        console.warn("[AI Hand] Brain communication failed:", e);
+        console.warn("[AI Hand] Brain failed to communicate:", e);
       } finally {
         setIsAnalyzing(false);
       }
-    }, 600); // Snappier 600ms debounce
+    }, 600); // 600ms debounce for snappiness
 
     return () => {
       if (analysisTimer.current) clearTimeout(analysisTimer.current);
