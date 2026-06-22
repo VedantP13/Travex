@@ -1,8 +1,8 @@
 
 'use client';
 
-import { useRef, useState } from "react";
-import { X, Upload, Loader2 } from "lucide-react";
+import { useRef, useState, useEffect } from "react";
+import { X, Upload, Loader2, Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -20,7 +20,14 @@ interface ImagePickerDialogProps {
 
 export function ImagePickerDialog({ isOpen, onOpenChange, currentImage, onSave, isUploading }: ImagePickerDialogProps) {
   const imageInputRef = useRef<HTMLInputElement>(null);
-  const [stagedCoverImage, setStagedCoverImage] = useState<string | null>(currentImage);
+  const [stagedCoverImage, setStagedCoverImage] = useState<string>(currentImage || "");
+
+  // Sync staged image when the dialog opens or currentImage changes
+  useEffect(() => {
+    if (isOpen) {
+      setStagedCoverImage(currentImage || "");
+    }
+  }, [isOpen, currentImage]);
 
   const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -30,6 +37,8 @@ export function ImagePickerDialog({ isOpen, onOpenChange, currentImage, onSave, 
       reader.readAsDataURL(file);
     }
   };
+
+  const presetImages = PlaceHolderImages.filter(img => img.id.startsWith('trip-'));
 
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
@@ -46,15 +55,18 @@ export function ImagePickerDialog({ isOpen, onOpenChange, currentImage, onSave, 
           <div className="p-6 space-y-6">
             {stagedCoverImage && (
               <div className="space-y-2">
-                <Label className="text-sm font-semibold text-foreground/60 ml-1">Preview</Label>
-                <div className="h-32 w-full rounded-2xl overflow-hidden shadow-md border-4 border-white">
+                <Label className="text-[10px] font-black uppercase tracking-widest text-foreground/40 ml-1">Current selection</Label>
+                <div className="h-36 w-full rounded-2xl overflow-hidden shadow-md border-4 border-white relative">
                   <img src={stagedCoverImage} className="h-full w-full object-cover" alt="Preview" />
+                  <div className="absolute top-2 right-2 bg-primary text-white p-1 rounded-full shadow-lg">
+                    <Check className="h-3 w-3" />
+                  </div>
                 </div>
               </div>
             )}
 
             <div className="space-y-3">
-              <Label className="text-sm font-semibold text-foreground/60 ml-1">Upload custom image</Label>
+              <Label className="text-[10px] font-black uppercase tracking-widest text-foreground/40 ml-1">Upload custom</Label>
               <div 
                 onClick={() => imageInputRef.current?.click()}
                 className="h-28 w-full rounded-2xl border-2 border-dashed border-primary/20 bg-white flex flex-col items-center justify-center text-primary cursor-pointer hover:bg-primary/5 transition-all shadow-sm group"
@@ -62,42 +74,52 @@ export function ImagePickerDialog({ isOpen, onOpenChange, currentImage, onSave, 
                 <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center mb-2 group-hover:scale-110 transition-transform">
                   <Upload className="h-5 w-5" />
                 </div>
-                <span className="text-xs font-semibold">Pick from device</span>
+                <span className="text-xs font-bold">Pick from device</span>
                 <input type="file" ref={imageInputRef} className="hidden" accept="image/*" onChange={handleImageUpload} />
               </div>
             </div>
 
             <div className="space-y-3 pb-4">
-              <Label className="text-sm font-semibold text-foreground/60 ml-1">Predefined styles</Label>
-              <div className="grid grid-cols-2 gap-3">
-                 {PlaceHolderImages.filter(img => img.id.startsWith('trip-')).map((img) => (
-                   <div 
-                     key={img.id}
-                     className={cn(
-                       "relative aspect-video rounded-2xl overflow-hidden cursor-pointer group shadow-sm border-2 transition-all",
-                       stagedCoverImage === img.imageUrl ? "border-primary scale-[1.02] ring-2 ring-primary/20" : "border-transparent"
-                     )}
-                     onClick={() => setStagedCoverImage(img.imageUrl)}
-                   >
-                     <img src={img.imageUrl} className="h-full w-full object-cover group-hover:scale-110 transition-transform duration-500" />
-                     <div className="absolute inset-0 bg-black/20 group-hover:bg-black/0 transition-colors" />
-                   </div>
-                 ))}
-              </div>
+              <Label className="text-[10px] font-black uppercase tracking-widest text-foreground/40 ml-1">Preset styles</Label>
+              {presetImages.length > 0 ? (
+                <div className="grid grid-cols-2 gap-3">
+                   {presetImages.map((img) => (
+                     <div 
+                       key={img.id}
+                       className={cn(
+                         "relative aspect-video rounded-2xl overflow-hidden cursor-pointer group shadow-sm border-2 transition-all",
+                         stagedCoverImage === img.imageUrl ? "border-primary scale-[1.02] ring-2 ring-primary/20" : "border-transparent opacity-80 hover:opacity-100"
+                       )}
+                       onClick={() => setStagedCoverImage(img.imageUrl)}
+                     >
+                       <img src={img.imageUrl} className="h-full w-full object-cover group-hover:scale-110 transition-transform duration-500" alt={img.description} />
+                       {stagedCoverImage === img.imageUrl && (
+                         <div className="absolute inset-0 bg-primary/20 flex items-center justify-center">
+                            <Check className="h-6 w-6 text-white drop-shadow-md" />
+                         </div>
+                       )}
+                     </div>
+                   ))}
+                </div>
+              ) : (
+                <p className="text-xs text-center py-8 text-muted-foreground italic bg-muted/20 rounded-2xl font-medium">
+                  Loading preset library...
+                </p>
+              )}
             </div>
           </div>
         </ScrollArea>
 
         <DialogFooter className="p-6 bg-muted/30 border-t flex flex-col gap-2 shrink-0">
           <Button 
-            className="w-full h-14 rounded-2xl bg-primary text-white font-bold text-base shadow-lg shadow-primary/20"
+            className="w-full h-14 rounded-2xl bg-primary text-white font-bold text-base shadow-lg shadow-primary/20 transition-all active:scale-95"
             onClick={() => stagedCoverImage && onSave(stagedCoverImage)}
-            disabled={isUploading || !stagedCoverImage}
+            disabled={isUploading || !stagedCoverImage || stagedCoverImage === currentImage}
           >
-            {isUploading ? <Loader2 className="h-5 w-5 animate-spin" /> : "Save cover"}
+            {isUploading ? <Loader2 className="h-5 w-5 animate-spin" /> : "Save changes"}
           </Button>
           <DialogClose asChild>
-            <Button variant="ghost" className="w-full h-12 rounded-xl font-semibold text-muted-foreground">Cancel</Button>
+            <Button variant="ghost" className="w-full h-12 rounded-xl font-bold text-muted-foreground text-xs hover:bg-muted">Discard changes</Button>
           </DialogClose>
         </DialogFooter>
       </DialogContent>
