@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useRef, useState, useEffect } from "react";
@@ -32,21 +33,22 @@ export function ImagePickerDialog({ isOpen, onOpenChange, currentImage, onSave, 
   const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) {
+      // 1. Check file type
       if (!file.type.startsWith('image/')) {
         toast({
           variant: "destructive",
-          title: "File Not Supported",
-          description: "Please select a valid image file (PNG, JPG, or WEBP)."
+          title: "Format Not Supported",
+          description: "Please select a standard image file (PNG, JPG, or WEBP)."
         });
         return;
       }
 
-      // Check size (Firestore has limits for base64 strings in documents)
+      // 2. Check file size (Firestore base64 strings should stay under 800KB for safety)
       if (file.size > 800000) {
         toast({
           variant: "destructive",
           title: "File Too Large",
-          description: "Please pick a smaller image or use a preset style."
+          description: "This image exceeds the mobile limit. Try a smaller file or a preset style."
         });
         return;
       }
@@ -54,6 +56,11 @@ export function ImagePickerDialog({ isOpen, onOpenChange, currentImage, onSave, 
       const reader = new FileReader();
       reader.onloadend = () => setStagedCoverImage(reader.result as string);
       reader.readAsDataURL(file);
+      
+      toast({
+        title: "Image Uploaded",
+        description: "Preview updated. Remember to save changes below."
+      });
     }
   };
 
@@ -100,7 +107,7 @@ export function ImagePickerDialog({ isOpen, onOpenChange, currentImage, onSave, 
                 <div className="h-9 w-9 rounded-full bg-primary/10 flex items-center justify-center mb-1 group-hover:scale-110 transition-transform">
                   <Upload className="h-4 w-4" />
                 </div>
-                <span className="text-[10px] font-bold">Pick from device</span>
+                <span className="text-[10px] font-bold">Pick From Device</span>
                 <input type="file" ref={imageInputRef} className="hidden" accept="image/*" onChange={handleImageUpload} />
               </div>
             </div>
@@ -124,13 +131,16 @@ export function ImagePickerDialog({ isOpen, onOpenChange, currentImage, onSave, 
                             <Check className="h-8 w-8 text-white drop-shadow-lg" strokeWidth={3} />
                          </div>
                        )}
+                       <div className="absolute bottom-0 left-0 right-0 p-2 bg-black/20 backdrop-blur-sm">
+                          <p className="text-[8px] font-bold text-white truncate">{img.description}</p>
+                       </div>
                      </div>
                    ))}
                 </div>
               ) : (
                 <div className="h-32 w-full rounded-2xl bg-muted/10 border-2 border-dashed border-muted/20 flex items-center justify-center">
                   <p className="text-[10px] text-muted-foreground font-bold animate-pulse">
-                    Loading preset library...
+                    Loading Preset Styles...
                   </p>
                 </div>
               )}

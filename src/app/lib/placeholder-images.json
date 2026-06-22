@@ -1,11 +1,6 @@
+
 {
   "placeholderImages": [
-    {
-      "id": "hero-travel",
-      "description": "Aerial view of a coastal city at sunset",
-      "imageUrl": "https://picsum.photos/seed/travel-sunset-coastal/1200/600",
-      "imageHint": "travel sunset coastal"
-    },
     {
       "id": "trip-bali",
       "description": "Lush tropical jungle and villa in Bali",
@@ -40,19 +35,25 @@
       "id": "trip-london",
       "description": "Big Ben and Westminster Bridge",
       "imageUrl": "https://picsum.photos/seed/london-bridge-bigben/600/400",
-      "imageHint": "london bridge bigben"
+      "imageHint": "london bridge"
     },
     {
       "id": "trip-ny",
       "description": "Manhattan skyline at dusk",
       "imageUrl": "https://picsum.photos/seed/newyork-skyline-city/600/400",
-      "imageHint": "newyork skyline city"
+      "imageHint": "new york"
     },
     {
       "id": "trip-singapore",
       "description": "Gardens by the Bay in Singapore",
       "imageUrl": "https://picsum.photos/seed/singapore-marina/600/400",
-      "imageHint": "singapore marina"
+      "imageHint": "singapore"
+    },
+    {
+      "id": "hero-travel",
+      "description": "Aerial view of a coastal city at sunset",
+      "imageUrl": "https://picsum.photos/seed/travel-sunset-coastal/1200/600",
+      "imageHint": "travel sunset"
     }
   ]
 }

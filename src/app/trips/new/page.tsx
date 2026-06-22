@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useEffect, useMemo } from "react";
@@ -546,7 +547,7 @@ export default function CreateTrip() {
               >
                 <CalendarIcon className={cn(
                   "mr-4 h-5 w-5 transition-all",
-                  dateRange ? "text-foreground stroke-[2px]" : "text-muted-foreground/60"
+                  dateRange ? "text-foreground stroke-[2px]" : "text-muted-foreground/40"
                 )} />
                 {dateRange?.from ? (
                   dateRange.to ? (
@@ -773,9 +774,11 @@ export default function CreateTrip() {
             </div>
 
             <div className="relative">
-              <div className="absolute top-0 left-0 right-0 h-6 bg-gradient-to-b from-white to-transparent z-10 pointer-events-none opacity-60" />
-              <ScrollArea className="max-h-[280px] pr-3 -mx-2 px-2 scrollbar-thin">
-                <div className="space-y-3 py-4">
+              {/* Fade Overlays */}
+              <div className="absolute top-0 left-0 right-0 h-10 bg-gradient-to-b from-white via-white/80 to-transparent z-20 pointer-events-none" />
+              
+              <ScrollArea className="h-[300px] w-full pr-4 -mx-2 px-2 scrollbar-thin">
+                <div className="space-y-3 py-10">
                   {lastTrip?.participants
                     ?.filter((p: any) => p.userId !== user?.uid && !ignoredReuseIds.has(p.id))
                     ?.map((p: any) => {
@@ -865,7 +868,8 @@ export default function CreateTrip() {
                     })}
                 </div>
               </ScrollArea>
-              <div className="absolute bottom-0 left-0 right-0 h-6 bg-gradient-to-t from-white to-transparent z-10 pointer-events-none opacity-60" />
+
+              <div className="absolute bottom-0 left-0 right-0 h-10 bg-gradient-to-t from-white via-white/80 to-transparent z-20 pointer-events-none" />
             </div>
 
             <div className="grid gap-2 pt-1">
@@ -880,7 +884,7 @@ export default function CreateTrip() {
                 variant="ghost" 
                 className="w-full h-9 rounded-xl font-bold text-muted-foreground text-[10px] hover:bg-muted"
                 onClick={() => {
-                  setShowReuseDialog(true);
+                  setShowReuseDialog(false);
                   setHasInteractedWithReuse(true);
                 }}
               >
