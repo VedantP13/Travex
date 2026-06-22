@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState, useEffect, useMemo } from "react";
@@ -773,97 +772,101 @@ export default function CreateTrip() {
               </AlertDialogDescription>
             </div>
 
-            <ScrollArea className="max-h-[220px] pr-2 -mx-1 px-1 scrollbar-thin">
-              <div className="space-y-3">
-                {lastTrip?.participants
-                  ?.filter((p: any) => p.userId !== user?.uid && !ignoredReuseIds.has(p.id))
-                  ?.map((p: any) => {
-                    const isSelected = selectedReuseIds.has(p.id);
-                    const headName = p.name.replace(" (You)", "");
-                    const familyDisplayName = `${headName}'s family`;
-                    const excluded = excludedFamilyMembers[p.id] || [];
-                    
-                    return (
-                      <div 
-                        key={p.id}
-                        className={cn(
-                          "rounded-[1.25rem] border-2 transition-all overflow-hidden relative",
-                          isSelected ? "border-primary bg-primary/5 shadow-sm" : "border-muted/10 bg-muted/5 opacity-60"
-                        )}
-                      >
-                        <div className="p-3 space-y-2">
-                          <div className="flex items-center justify-between">
-                            <div className="flex items-center gap-2">
-                              <Checkbox 
-                                id={`reuse-${p.id}`} 
-                                checked={isSelected} 
-                                onCheckedChange={() => toggleReuseId(p.id)}
-                                className="rounded-md h-4 w-4 border-2"
-                              />
+            <div className="relative">
+              <div className="absolute top-0 left-0 right-0 h-6 bg-gradient-to-b from-white to-transparent z-10 pointer-events-none opacity-60" />
+              <ScrollArea className="max-h-[280px] pr-3 -mx-2 px-2 scrollbar-thin">
+                <div className="space-y-3 py-4">
+                  {lastTrip?.participants
+                    ?.filter((p: any) => p.userId !== user?.uid && !ignoredReuseIds.has(p.id))
+                    ?.map((p: any) => {
+                      const isSelected = selectedReuseIds.has(p.id);
+                      const headName = p.name.replace(" (You)", "");
+                      const familyDisplayName = `${headName}'s family`;
+                      const excluded = excludedFamilyMembers[p.id] || [];
+                      
+                      return (
+                        <div 
+                          key={p.id}
+                          className={cn(
+                            "rounded-[1.25rem] border-2 transition-all overflow-hidden relative",
+                            isSelected ? "border-primary bg-primary/5 shadow-sm" : "border-muted/10 bg-muted/5 opacity-60"
+                          )}
+                        >
+                          <div className="p-3 space-y-2">
+                            <div className="flex items-center justify-between">
                               <div className="flex items-center gap-2">
-                                <Avatar className="h-7 w-7 border border-white shadow-sm">
-                                  <AvatarImage src={p.avatar} />
-                                  <AvatarFallback className={getAvatarFallbackClasses(headName)}>{getInitials(headName)}</AvatarFallback>
-                                </Avatar>
-                                <Label htmlFor={`reuse-${p.id}`} className="text-xs font-bold text-foreground cursor-pointer">
-                                  {familyDisplayName}
-                                </Label>
+                                <Checkbox 
+                                  id={`reuse-${p.id}`} 
+                                  checked={isSelected} 
+                                  onCheckedChange={() => toggleReuseId(p.id)}
+                                  className="rounded-md h-4 w-4 border-2"
+                                />
+                                <div className="flex items-center gap-2">
+                                  <Avatar className="h-7 w-7 border border-white shadow-sm">
+                                    <AvatarImage src={p.avatar} />
+                                    <AvatarFallback className={getAvatarFallbackClasses(headName)}>{getInitials(headName)}</AvatarFallback>
+                                  </Avatar>
+                                  <Label htmlFor={`reuse-${p.id}`} className="text-xs font-bold text-foreground cursor-pointer">
+                                    {familyDisplayName}
+                                  </Label>
+                                </div>
                               </div>
-                            </div>
-                            <Button 
-                              variant="ghost" 
-                              size="icon" 
-                              className="h-6 w-6 rounded-full hover:bg-destructive/10 hover:text-destructive text-muted-foreground transition-all"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                ignoreReuseGroup(p.id);
-                              }}
-                            >
-                              <X className="h-3 w-3" />
-                            </Button>
-                          </div>
-
-                          <div className="flex flex-wrap gap-1 pl-7">
-                            <Badge variant="outline" className="px-2 py-0.5 rounded-lg bg-white border-muted/20 text-[9px] font-semibold text-foreground/70">
-                              {headName}
-                            </Badge>
-                            {p.familyMembers?.filter((fm: string) => !excluded.includes(fm)).map((fm: string) => (
-                              <Badge 
-                                key={fm} 
-                                variant="outline" 
-                                className="pl-2 pr-1 py-0.5 rounded-lg bg-white border-primary/20 text-[9px] font-medium text-primary flex items-center gap-1"
+                              <Button 
+                                variant="ghost" 
+                                size="icon" 
+                                className="h-6 w-6 rounded-full hover:bg-destructive/10 hover:text-destructive text-muted-foreground transition-all"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  ignoreReuseGroup(p.id);
+                                }}
                               >
-                                {fm}
-                                <X 
-                                  className="h-2.5 w-2.5 cursor-pointer hover:text-destructive" 
+                                <X className="h-3 w-3" />
+                              </Button>
+                            </div>
+
+                            <div className="flex flex-wrap gap-1 pl-7">
+                              <Badge variant="outline" className="px-2 py-0.5 rounded-lg bg-white border-muted/20 text-[9px] font-semibold text-foreground/70">
+                                {headName}
+                              </Badge>
+                              {p.familyMembers?.filter((fm: string) => !excluded.includes(fm)).map((fm: string) => (
+                                <Badge 
+                                  key={fm} 
+                                  variant="outline" 
+                                  className="pl-2 pr-1 py-0.5 rounded-lg bg-white border-primary/20 text-[9px] font-medium text-primary flex items-center gap-1"
+                                >
+                                  {fm}
+                                  <X 
+                                    className="h-2.5 w-2.5 cursor-pointer hover:text-destructive" 
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      toggleReuseFamilyMember(p.id, fm);
+                                    }}
+                                  />
+                                </Badge>
+                              ))}
+                              {excluded.map((fm: string) => (
+                                <Badge 
+                                  key={fm} 
+                                  variant="outline" 
+                                  className="px-2 py-0.5 rounded-lg bg-muted/50 border-muted/20 text-[9px] font-medium text-muted-foreground/40 line-through flex items-center gap-1 cursor-pointer"
                                   onClick={(e) => {
                                     e.stopPropagation();
                                     toggleReuseFamilyMember(p.id, fm);
                                   }}
-                                />
-                              </Badge>
-                            ))}
-                            {excluded.map((fm: string) => (
-                              <Badge 
-                                key={fm} 
-                                variant="outline" 
-                                className="px-2 py-0.5 rounded-lg bg-muted/50 border-muted/20 text-[9px] font-medium text-muted-foreground/40 line-through flex items-center gap-1 cursor-pointer"
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  toggleReuseFamilyMember(p.id, fm);
-                                }}
-                              >
-                                {fm}
-                                <Plus className="h-2.5 w-2.5" />
-                              </Badge>
-                            ))}
+                                >
+                                  {fm}
+                                  <Plus className="h-2.5 w-2.5" />
+                                </Badge>
+                              ))}
+                            </div>
                           </div>
                         </div>
-                      </div>
-                    );
-                  })}
-              </div>
-            </ScrollArea>
+                      );
+                    })}
+                </div>
+              </ScrollArea>
+              <div className="absolute bottom-0 left-0 right-0 h-6 bg-gradient-to-t from-white to-transparent z-10 pointer-events-none opacity-60" />
+            </div>
 
             <div className="grid gap-2 pt-1">
               <Button 

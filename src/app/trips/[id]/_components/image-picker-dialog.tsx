@@ -1,8 +1,7 @@
-
 'use client';
 
 import { useRef, useState, useEffect } from "react";
-import { X, Upload, Loader2, Check, ImageIcon, AlertCircle } from "lucide-react";
+import { X, Upload, Loader2, Check, ImageIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -38,6 +37,16 @@ export function ImagePickerDialog({ isOpen, onOpenChange, currentImage, onSave, 
           variant: "destructive",
           title: "File Not Supported",
           description: "Please select a valid image file (PNG, JPG, or WEBP)."
+        });
+        return;
+      }
+
+      // Check size (Firestore has limits for base64 strings in documents)
+      if (file.size > 800000) {
+        toast({
+          variant: "destructive",
+          title: "File Too Large",
+          description: "Please pick a smaller image or use a preset style."
         });
         return;
       }
