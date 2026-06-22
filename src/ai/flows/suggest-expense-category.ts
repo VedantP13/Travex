@@ -1,7 +1,7 @@
 'use server';
 /**
  * @fileOverview Rebuilt AI categorization "Brain".
- * Implements a "Local Match First" strategy to ensure exact matches never fail.
+ * Implements a "Local First -> AI Semantic -> Robust Bridge" strategy.
  */
 
 import { ai } from '@/ai/genkit';
@@ -23,14 +23,14 @@ export type SuggestExpenseCategoryOutput = z.infer<typeof SuggestExpenseCategory
 
 /**
  * Suggests an expense category. 
- * Logic: Exact Local Match -> Semantic AI Match -> Default Fallback.
+ * Logic: Exact Local Match -> Semantic AI Match -> Synonym Bridge -> Default Fallback.
  */
 export async function suggestExpenseCategory(input: SuggestExpenseCategoryInput): Promise<SuggestExpenseCategoryOutput> {
   const { description, availableCategories } = input;
   const trimmedDesc = description.trim().toLowerCase();
 
   // --- STAGE 1: LOCAL EXACT MATCH ---
-  // This ensures that if you type "Food", it selects "Food" even if the AI is offline.
+  // High-speed check for users typing the category name directly.
   const localMatch = availableCategories.find(c => c.toLowerCase() === trimmedDesc);
   if (localMatch) {
     return { category: localMatch, reasoning: "Local exact match detected." };
@@ -39,14 +39,21 @@ export async function suggestExpenseCategory(input: SuggestExpenseCategoryInput)
   // --- STAGE 2: AI SEMANTIC MATCH ---
   try {
     const { output } = await ai.generate({
-      system: `You are a travel expense classifier. 
-      TASK: Pick the BEST category from the PROVIDED LIST for the given description.
+      model: 'googleai/gemini-1.5-flash',
+      system: `You are a world-class travel expense analyst with advanced cultural and linguistic intelligence.
+      
+      TASK: Pick the BEST category from the provided list for the given description.
       
       RULES:
-      1. USE GLOBAL KNOWLEDGE: "Bhojan" = Food, "Tuk Tuk" = Transport, "Safari" = Sightseeing.
-      2. BE DECISIVE: Only pick "Other" if there is NO reasonable connection.
-      3. EXACT STRING: Return the category EXACTLY as it appears in the list.`,
-      prompt: `LIST: ${availableCategories.join(', ')}\nDESCRIPTION: "${description}"`,
+      1. GLOBAL KNOWLEDGE: Use your knowledge of brands, local dishes, and vehicles.
+         - "Bhojan", "Pizza", "Lunch", "Zomato" -> Food
+         - "Tuk Tuk", "Uber", "Auto", "Fuel", "Tempo Traveller" -> Transport
+         - "Resort", "Hotel", "Airbnb" -> Stay
+         - "Museum", "Safari", "Tickets" -> Sightseeing
+      2. SEMANTIC INTENT: If someone says "Lunch at a hotel", they are likely talking about the MEAL, so pick "Food" over "Stay" unless the amount is huge.
+      3. BE DECISIVE: Only pick "Other" if there is absolutely NO connection.
+      4. EXACT LIST: Try to return a category exactly as it appears in the list.`,
+      prompt: `AVAILABLE CATEGORIES: ${availableCategories.join(', ')}\n\nEXPENSE: "${description}"`,
       output: { schema: SuggestExpenseCategoryOutputSchema },
       config: { temperature: 0.1 } // Strict analytical mode
     });
@@ -54,10 +61,10 @@ export async function suggestExpenseCategory(input: SuggestExpenseCategoryInput)
     if (output?.category) {
       const target = output.category.trim();
       
-      // Exact Match from AI
+      // A. Try Exact Match from AI
       let matched = availableCategories.find(c => c.toLowerCase() === target.toLowerCase());
       
-      // Fuzzy Match from AI (e.g., if AI says "Dining" but list has "Food")
+      // B. Try Fuzzy/Synonym Match from AI
       if (!matched) {
         matched = availableCategories.find(c => {
           const cLow = c.toLowerCase();
@@ -66,16 +73,34 @@ export async function suggestExpenseCategory(input: SuggestExpenseCategoryInput)
         });
       }
 
+      // C. Robust Synonym Bridge (Hardcoded logic for common AI variances)
+      if (!matched) {
+        const synonymMap: Record<string, string> = {
+          'dining': 'Food',
+          'meal': 'Food',
+          'restaurant': 'Food',
+          'cafe': 'Food',
+          'taxi': 'Transport',
+          'commute': 'Transport',
+          'accommodation': 'Stay',
+          'hotel': 'Stay',
+          'tour': 'Sightseeing',
+          'activity': 'Sightseeing'
+        };
+
+        const foundSynonymKey = Object.keys(synonymMap).find(k => target.toLowerCase().includes(k));
+        if (foundSynonymKey) {
+          const standardName = synonymMap[foundSynonymKey];
+          matched = availableCategories.find(c => c.toLowerCase() === standardName.toLowerCase());
+        }
+      }
+
       if (matched) {
         return { category: matched, reasoning: output.reasoning };
       }
     }
   } catch (error: any) {
-    // This will appear in your SERVER terminal. Check it if you still see "Other".
-    console.error('--- AI BRAIN ERROR ---');
-    console.error('Message:', error.message);
-    console.error('Check your API Key in .env');
-    console.error('----------------------');
+    console.error('--- AI BRAIN ERROR ---', error.message);
   }
 
   // --- STAGE 3: FALLBACK ---
