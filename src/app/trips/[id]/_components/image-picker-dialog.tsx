@@ -2,13 +2,14 @@
 'use client';
 
 import { useRef, useState, useEffect } from "react";
-import { X, Upload, Loader2, Check, ImageIcon } from "lucide-react";
+import { X, Upload, Loader2, Check, ImageIcon, AlertCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogClose, DialogFooter } from "@/components/ui/dialog";
 import { PlaceHolderImages } from "@/lib/placeholder-images";
 import { cn } from "@/lib/utils";
+import { useToast } from "@/hooks/use-toast";
 
 interface ImagePickerDialogProps {
   isOpen: boolean;
@@ -19,10 +20,10 @@ interface ImagePickerDialogProps {
 }
 
 export function ImagePickerDialog({ isOpen, onOpenChange, currentImage, onSave, isUploading }: ImagePickerDialogProps) {
+  const { toast } = useToast();
   const imageInputRef = useRef<HTMLInputElement>(null);
   const [stagedCoverImage, setStagedCoverImage] = useState<string>("");
 
-  // Sync staged image when the dialog opens or currentImage changes
   useEffect(() => {
     if (isOpen) {
       setStagedCoverImage(currentImage || "");
@@ -32,9 +33,13 @@ export function ImagePickerDialog({ isOpen, onOpenChange, currentImage, onSave, 
   const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) {
-      // Basic type check
       if (!file.type.startsWith('image/')) {
-        return; // Parent component handles the error toast on save attempt
+        toast({
+          variant: "destructive",
+          title: "File Not Supported",
+          description: "Please select a valid image file (PNG, JPG, or WEBP)."
+        });
+        return;
       }
 
       const reader = new FileReader();

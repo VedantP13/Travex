@@ -179,9 +179,8 @@ export default function TripDetails() {
     if (!id || !firestore) return;
     setIsUpdatingImage(true);
     try {
-      // Basic size check for Base64 (approx 1MB limit for Firestore doc field sanity)
       if (stagedCoverImage.startsWith('data:') && stagedCoverImage.length > 800000) {
-        throw new Error("The image file is too large. Please select a smaller file or a preset style.");
+        throw new Error("File too large. Please select a smaller image or a preset style.");
       }
 
       await updateDoc(doc(firestore, "trips", id as string), { 
@@ -348,11 +347,10 @@ export default function TripDetails() {
   }, [trip, user?.uid, expenses]);
 
   const suggestedPayments = useMemo(() => {
-    // Correct algorithmic approach: Greedy Settlement
     const debtors = groupedStandings
       .filter(s => s.netTotal < -0.01)
       .map(s => ({ name: s.name, avatar: s.avatar, balance: Math.abs(s.netTotal) }))
-      .sort((a, b) => b.balance - a.balance); // Prioritize settling large debts
+      .sort((a, b) => b.balance - a.balance);
       
     const creditors = groupedStandings
       .filter(s => s.netTotal > 0.01)
@@ -362,7 +360,6 @@ export default function TripDetails() {
     const transactions: any[] = [];
     let dIdx = 0, cIdx = 0;
     
-    // Use working copies of balances
     const dList = JSON.parse(JSON.stringify(debtors));
     const cList = JSON.parse(JSON.stringify(creditors));
     

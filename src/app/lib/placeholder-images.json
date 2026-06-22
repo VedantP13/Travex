@@ -4,55 +4,55 @@
     {
       "id": "hero-travel",
       "description": "Aerial view of a coastal city at sunset",
-      "imageUrl": "https://picsum.photos/seed/travel1/1200/600",
+      "imageUrl": "https://picsum.photos/seed/travex-sunset/1200/600",
       "imageHint": "travel sunset coastal"
     },
     {
       "id": "trip-bali",
       "description": "Lush tropical jungle and villa in Bali",
-      "imageUrl": "https://picsum.photos/seed/bali/600/400",
+      "imageUrl": "https://picsum.photos/seed/travex-bali/600/400",
       "imageHint": "bali tropical"
     },
     {
       "id": "trip-paris",
       "description": "Eiffel Tower viewed from a distance",
-      "imageUrl": "https://picsum.photos/seed/paris/600/400",
+      "imageUrl": "https://picsum.photos/seed/travex-paris/600/400",
       "imageHint": "paris eiffel"
     },
     {
       "id": "trip-tokyo",
       "description": "Neon lights of Shinjuku at night",
-      "imageUrl": "https://picsum.photos/seed/tokyo/600/400",
+      "imageUrl": "https://picsum.photos/seed/travex-tokyo/600/400",
       "imageHint": "tokyo city night"
     },
     {
       "id": "trip-rome",
       "description": "The Colosseum under a clear blue sky",
-      "imageUrl": "https://picsum.photos/seed/rome/600/400",
+      "imageUrl": "https://picsum.photos/seed/travex-rome/600/400",
       "imageHint": "rome colosseum"
     },
     {
       "id": "trip-goa",
       "description": "Palm-fringed beach at sunset in Goa",
-      "imageUrl": "https://picsum.photos/seed/goa/600/400",
+      "imageUrl": "https://picsum.photos/seed/travex-goa/600/400",
       "imageHint": "goa beach sea"
     },
     {
       "id": "trip-london",
       "description": "Big Ben and Westminster Bridge",
-      "imageUrl": "https://picsum.photos/seed/london/600/400",
+      "imageUrl": "https://picsum.photos/seed/travex-london/600/400",
       "imageHint": "london bridge bigben"
     },
     {
       "id": "trip-ny",
       "description": "Manhattan skyline at dusk",
-      "imageUrl": "https://picsum.photos/seed/newyork/600/400",
+      "imageUrl": "https://picsum.photos/seed/travex-newyork/600/400",
       "imageHint": "newyork skyline city"
     },
     {
       "id": "trip-singapore",
       "description": "Gardens by the Bay in Singapore",
-      "imageUrl": "https://picsum.photos/seed/singapore/600/400",
+      "imageUrl": "https://picsum.photos/seed/travex-singapore/600/400",
       "imageHint": "singapore marina"
     }
   ]
