@@ -5,7 +5,7 @@ import { suggestExpenseCategory } from "@/ai/flows/suggest-expense-category";
 
 /**
  * The "Hand" mechanism that applies AI thoughts to the UI state.
- * Refined for high reliability and stability.
+ * Fixed to allow dynamic updates as the user retypes descriptions.
  */
 export function useExpenseAICategorization(
   description: string,
@@ -14,6 +14,7 @@ export function useExpenseAICategorization(
 ) {
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const lastAnalyzedInput = useRef("");
+  const lastAISuggestion = useRef<string | null>(null); // Track AI's last action
   const analysisTimer = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
@@ -35,15 +36,24 @@ export function useExpenseAICategorization(
         });
         
         if (result && result.category) {
-          console.log(`[AI Hand] Suggestion for "${query}": ${result.category}`);
+          console.log(`[AI Hand] Brain suggested "${result.category}" for "${query}"`);
           lastAnalyzedInput.current = query;
           
           setFormData(prev => {
-            // Only auto-update if the user hasn't already picked a non-default category
-            // This prevents the AI from fighting the user's manual choice.
-            if (prev.category === 'Other' || prev.category === '' || prev.category === undefined) {
+            const currentCategory = prev.category;
+            
+            // LOGIC: Allow the AI to change the category if:
+            // 1. The current category is default ('Other', empty, or null)
+            // 2. The current category matches our LAST AI suggestion (meaning the user hasn't manually picked something else)
+            const isDefault = !currentCategory || currentCategory === 'Other' || currentCategory === '';
+            const wasSetByAI = currentCategory === lastAISuggestion.current;
+
+            if (isDefault || wasSetByAI) {
+               lastAISuggestion.current = result.category;
                return { ...prev, category: result.category };
             }
+            
+            // If the user manually selected something else, we respect their choice and don't overwrite.
             return prev;
           });
         }
@@ -52,7 +62,7 @@ export function useExpenseAICategorization(
       } finally {
         setIsAnalyzing(false);
       }
-    }, 800); // 800ms debounce ensures a "strong" intent signal before calling the AI
+    }, 600); // Snappier 600ms debounce
 
     return () => {
       if (analysisTimer.current) clearTimeout(analysisTimer.current);
