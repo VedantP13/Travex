@@ -2,7 +2,7 @@
 'use client';
 
 import { useRef, useState, useEffect } from "react";
-import { X, Upload, Loader2, Check } from "lucide-react";
+import { X, Upload, Loader2, Check, ImageIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -20,7 +20,7 @@ interface ImagePickerDialogProps {
 
 export function ImagePickerDialog({ isOpen, onOpenChange, currentImage, onSave, isUploading }: ImagePickerDialogProps) {
   const imageInputRef = useRef<HTMLInputElement>(null);
-  const [stagedCoverImage, setStagedCoverImage] = useState<string>(currentImage || "");
+  const [stagedCoverImage, setStagedCoverImage] = useState<string>("");
 
   // Sync staged image when the dialog opens or currentImage changes
   useEffect(() => {
@@ -53,33 +53,40 @@ export function ImagePickerDialog({ isOpen, onOpenChange, currentImage, onSave, 
         
         <ScrollArea className="max-h-[60vh]">
           <div className="p-6 space-y-6">
-            {stagedCoverImage && (
-              <div className="space-y-2">
-                <Label className="text-[10px] font-black uppercase tracking-widest text-foreground/40 ml-1">Current selection</Label>
-                <div className="h-36 w-full rounded-2xl overflow-hidden shadow-md border-4 border-white relative">
-                  <img src={stagedCoverImage} className="h-full w-full object-cover" alt="Preview" />
-                  <div className="absolute top-2 right-2 bg-primary text-white p-1 rounded-full shadow-lg">
-                    <Check className="h-3 w-3" />
+            <div className="space-y-2">
+              <Label className="text-[10px] font-black uppercase tracking-widest text-foreground/40 ml-1">Current selection</Label>
+              <div className="h-40 w-full rounded-2xl overflow-hidden shadow-md border-4 border-white relative bg-muted/20 flex items-center justify-center">
+                {stagedCoverImage ? (
+                  <>
+                    <img src={stagedCoverImage} className="h-full w-full object-cover animate-in fade-in duration-300" alt="Preview" />
+                    <div className="absolute top-3 right-3 bg-primary text-white p-1.5 rounded-full shadow-lg">
+                      <Check className="h-3.5 w-3.5" />
+                    </div>
+                  </>
+                ) : (
+                  <div className="flex flex-col items-center gap-2 text-muted-foreground/40">
+                    <ImageIcon className="h-8 w-8" />
+                    <span className="text-[10px] font-bold uppercase">No cover selected</span>
                   </div>
-                </div>
+                )}
               </div>
-            )}
+            </div>
 
             <div className="space-y-3">
               <Label className="text-[10px] font-black uppercase tracking-widest text-foreground/40 ml-1">Upload custom</Label>
               <div 
                 onClick={() => imageInputRef.current?.click()}
-                className="h-28 w-full rounded-2xl border-2 border-dashed border-primary/20 bg-white flex flex-col items-center justify-center text-primary cursor-pointer hover:bg-primary/5 transition-all shadow-sm group"
+                className="h-24 w-full rounded-2xl border-2 border-dashed border-primary/20 bg-white flex flex-col items-center justify-center text-primary cursor-pointer hover:bg-primary/5 transition-all shadow-sm group"
               >
-                <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center mb-2 group-hover:scale-110 transition-transform">
-                  <Upload className="h-5 w-5" />
+                <div className="h-9 w-9 rounded-full bg-primary/10 flex items-center justify-center mb-1 group-hover:scale-110 transition-transform">
+                  <Upload className="h-4 w-4" />
                 </div>
-                <span className="text-xs font-bold">Pick from device</span>
+                <span className="text-[10px] font-black uppercase">Pick from device</span>
                 <input type="file" ref={imageInputRef} className="hidden" accept="image/*" onChange={handleImageUpload} />
               </div>
             </div>
 
-            <div className="space-y-3 pb-4">
+            <div className="space-y-3 pb-6">
               <Label className="text-[10px] font-black uppercase tracking-widest text-foreground/40 ml-1">Preset styles</Label>
               {presetImages.length > 0 ? (
                 <div className="grid grid-cols-2 gap-3">
@@ -87,24 +94,26 @@ export function ImagePickerDialog({ isOpen, onOpenChange, currentImage, onSave, 
                      <div 
                        key={img.id}
                        className={cn(
-                         "relative aspect-video rounded-2xl overflow-hidden cursor-pointer group shadow-sm border-2 transition-all",
+                         "relative aspect-[4/3] rounded-2xl overflow-hidden cursor-pointer group shadow-sm border-2 transition-all",
                          stagedCoverImage === img.imageUrl ? "border-primary scale-[1.02] ring-2 ring-primary/20" : "border-transparent opacity-80 hover:opacity-100"
                        )}
                        onClick={() => setStagedCoverImage(img.imageUrl)}
                      >
-                       <img src={img.imageUrl} className="h-full w-full object-cover group-hover:scale-110 transition-transform duration-500" alt={img.description} />
+                       <img src={img.imageUrl} className="h-full w-full object-cover group-hover:scale-110 transition-transform duration-700" alt={img.description} />
                        {stagedCoverImage === img.imageUrl && (
-                         <div className="absolute inset-0 bg-primary/20 flex items-center justify-center">
-                            <Check className="h-6 w-6 text-white drop-shadow-md" />
+                         <div className="absolute inset-0 bg-primary/20 flex items-center justify-center backdrop-blur-[1px]">
+                            <Check className="h-8 w-8 text-white drop-shadow-lg" strokeWidth={3} />
                          </div>
                        )}
                      </div>
                    ))}
                 </div>
               ) : (
-                <p className="text-xs text-center py-8 text-muted-foreground italic bg-muted/20 rounded-2xl font-medium">
-                  Loading preset library...
-                </p>
+                <div className="h-32 w-full rounded-2xl bg-muted/10 border-2 border-dashed border-muted/20 flex items-center justify-center">
+                  <p className="text-[10px] text-muted-foreground font-bold uppercase tracking-widest animate-pulse">
+                    Loading preset library...
+                  </p>
+                </div>
               )}
             </div>
           </div>
@@ -116,7 +125,12 @@ export function ImagePickerDialog({ isOpen, onOpenChange, currentImage, onSave, 
             onClick={() => stagedCoverImage && onSave(stagedCoverImage)}
             disabled={isUploading || !stagedCoverImage || stagedCoverImage === currentImage}
           >
-            {isUploading ? <Loader2 className="h-5 w-5 animate-spin" /> : "Save changes"}
+            {isUploading ? (
+              <div className="flex items-center gap-2">
+                <Loader2 className="h-5 w-5 animate-spin" />
+                Updating...
+              </div>
+            ) : "Save changes"}
           </Button>
           <DialogClose asChild>
             <Button variant="ghost" className="w-full h-12 rounded-xl font-bold text-muted-foreground text-xs hover:bg-muted">Discard changes</Button>
