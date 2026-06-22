@@ -124,7 +124,7 @@ export default function AddExpenseWizard() {
     return Array.from(new Set([...base, ...customOnes]));
   }, [currentTrip?.customCategories]);
 
-  // AI Brain & Hand: Extracted to a clean, isolated custom hook
+  // AI Categorization Hook
   const { isAnalyzing } = useExpenseAICategorization(
     formData.description, 
     categoriesList, 

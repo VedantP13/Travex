@@ -162,7 +162,7 @@ export default function EditExpensePage() {
     return Array.from(new Set([...base, ...customOnes]));
   }, [trip?.customCategories]);
 
-  // AI Brain & Hand: Extracted to a reusable hook for consistency across Add/Edit pages
+  // AI Categorization Hook
   const { isAnalyzing } = useExpenseAICategorization(
     formData.description, 
     categoriesList, 

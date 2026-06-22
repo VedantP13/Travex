@@ -47,8 +47,8 @@ export async function suggestExpenseCategory(input: SuggestExpenseCategoryInput)
       
       ### BRAIN & REASONING RULES:
       1. **Global & Local Context**: Use your deep knowledge of global languages, local cuisines, vehicle types, and regional services.
-         - If it's a local dish, snack, or drink anywhere in the world (e.g., "Pav Bhaji", "Sushi", "Croissant", "Bhojan", "Boba"), map it to "Food".
-         - If it's a vehicle, ride service, or fuel (e.g., "Tuk Tuk", "Auto Rickshaw", "Shinkansen", "Uber", "Petrol", "Tempo Traveller"), map it to "Transport".
+         - If it's a local dish, snack, or drink anywhere in the world (e.g., "Pav Bhaji", "Bhojan", "Sushi", "Croissant", "Boba"), map it to "Food".
+         - If it's a vehicle, ride service, or fuel (e.g., "Tuk Tuk", "Tempo Traveller", "Auto Rickshaw", "Shinkansen", "Uber", "Petrol"), map it to "Transport".
       2. **Semantic Intent**: Focus on the *intent* of the spend. (e.g., "Museum tickets" -> "Sightseeing", "Safari entry" -> "Sightseeing").
       3. **No Inventing**: You MUST pick a string exactly as it appears in the AVAILABLE CATEGORIES list. Never create a new category.
       4. **Be Decisive**: Only select "Other" if the expense is completely obscure and has absolutely zero relation to the existing categories.`,
@@ -68,6 +68,7 @@ export async function suggestExpenseCategory(input: SuggestExpenseCategoryInput)
     }
 
     const target = output.category.trim();
+    console.log(`AI Brain Thinking: "${input.description}" -> Suggestion: "${target}"`);
 
     // 1. Exact/Precise Match (Case-insensitive)
     let matchedCategory = input.availableCategories.find(
@@ -134,7 +135,7 @@ export async function suggestExpenseCategory(input: SuggestExpenseCategoryInput)
     };
   }
 
-  // Final fallback
+  // Final fallback to "Other" or first available
   const fallback = input.availableCategories.find(c => c.toLowerCase() === 'other') || input.availableCategories[0] || "Other";
   
   return {

@@ -36,6 +36,7 @@ export function useExpenseAICategorization(
     const timer = setTimeout(async () => {
       setIsAnalyzing(true);
       lastAnalyzedInput.current = { description: trimmedDesc, categoriesCount };
+      
       try {
         const result = await suggestExpenseCategory({ 
           description: trimmedDesc,
@@ -43,6 +44,7 @@ export function useExpenseAICategorization(
         });
         
         if (result && result.category) {
+          console.log(`AI categorization success: "${trimmedDesc}" -> "${result.category}"`);
           setFormData(prev => ({ ...prev, category: result.category }));
         }
       } catch (e) {
