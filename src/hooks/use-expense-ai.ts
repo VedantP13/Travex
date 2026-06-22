@@ -22,6 +22,13 @@ export function useExpenseAICategorization(
     
     if (analysisTimer.current) clearTimeout(analysisTimer.current);
 
+    // If description is cleared, reset suggestion memory so AI can start fresh
+    if (query === "") {
+      lastAnalyzedInput.current = "";
+      lastAISuggestion.current = null;
+      return;
+    }
+
     // Skip if input is too short or hasn't changed since last analysis
     if (query.length < 2 || query === lastAnalyzedInput.current) return;
 
@@ -35,7 +42,7 @@ export function useExpenseAICategorization(
         });
         
         if (result && result.category) {
-          console.log(`[AI Hand] Suggestion: "${result.category}" for "${query}"`);
+          console.log(`[AI Hand] Suggested: "${result.category}" for "${query}"`);
           lastAnalyzedInput.current = query;
           
           setFormData(prev => {
@@ -43,7 +50,8 @@ export function useExpenseAICategorization(
             
             // LOGIC: Overwrite the category if:
             // 1. It's the first time ('Other' or empty)
-            // 2. The CURRENT category was the one we (the AI) suggested last time
+            // 2. The CURRENT category is one that WE (the AI) suggested previously
+            // This allows dynamic re-typing (e.g. changing "Lunch" to "Taxi") to work reliably.
             const isDefault = !currentCategory || currentCategory === 'Other' || currentCategory === '';
             const wasSetByAI = currentCategory === lastAISuggestion.current;
 
@@ -52,16 +60,16 @@ export function useExpenseAICategorization(
                return { ...prev, category: result.category };
             }
             
-            // If the user manually picked a category, we don't touch it.
+            // If the user manually clicked a category (manual override), we respect their choice.
             return prev;
           });
         }
       } catch (e) {
-        console.warn("[AI Hand] Brain failed to communicate:", e);
+        console.warn("[AI Hand] Failed to categorize:", e);
       } finally {
         setIsAnalyzing(false);
       }
-    }, 600); // 600ms debounce for snappiness
+    }, 600); // 600ms debounce for snappy performance
 
     return () => {
       if (analysisTimer.current) clearTimeout(analysisTimer.current);

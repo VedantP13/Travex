@@ -24,86 +24,88 @@ export type SuggestExpenseCategoryOutput = z.infer<typeof SuggestExpenseCategory
 
 /**
  * Suggests an expense category with deep semantic reasoning.
- * Optimized for travel-specific vocabulary and regional terms (e.g., "Bhojan", "Tuk Tuk").
+ * Uses a hybrid approach: Local Keyword Match -> AI Brain -> Synonym Bridge.
  */
 export async function suggestExpenseCategory(input: SuggestExpenseCategoryInput): Promise<SuggestExpenseCategoryOutput> {
   const { description, availableCategories } = input;
-  const trimmedDesc = description.trim();
+  const query = description.trim().toLowerCase();
 
-  if (trimmedDesc.length < 3) {
-    return { category: "Other", reasoning: "Description too short for analysis." };
+  if (query.length < 2) {
+    return { category: "Other", reasoning: "Description too short." };
   }
 
-  // 1. FAST LOCAL MATCH (Case-insensitive keyword check)
-  const localMatch = availableCategories.find(c => c.toLowerCase() === trimmedDesc.toLowerCase());
-  if (localMatch) {
-    return { category: localMatch, reasoning: "Direct keyword match." };
+  // 1. STRENGTH: INSTANT LOCAL KEYWORD ENGINE
+  // This ensures 100% reliability for obvious travel terms.
+  const localMap: Record<string, string[]> = {
+    'Food': ['food', 'lunch', 'dinner', 'breakfast', 'meal', 'cafe', 'restaurant', 'pizza', 'burger', 'bhojan', 'snacks', 'drinks', 'coffee', 'tea', 'starbucks', 'zomato', 'swiggy'],
+    'Transport': ['transport', 'taxi', 'cab', 'uber', 'ola', 'auto', 'rickshaw', 'tuk tuk', 'bus', 'train', 'shinkansen', 'flight', 'fuel', 'petrol', 'diesel', 'parking', 'toll', 'metro'],
+    'Stay': ['stay', 'hotel', 'resort', 'airbnb', 'hostel', 'homestay', 'villa', 'room', 'accommodation', 'checkout', 'booking'],
+    'Shopping': ['shopping', 'mall', 'market', 'souvenir', 'clothes', 'gift', 'grocery', 'supermarket'],
+    'Sightseeing': ['sightseeing', 'ticket', 'entry', 'museum', 'safari', 'tour', 'guide', 'activity', 'park', 'zoo', 'palace'],
+    'Flights': ['flight', 'airfare', 'indigo', 'vistara', 'airline', 'airport', 'boarding']
+  };
+
+  for (const [category, keywords] of Object.entries(localMap)) {
+    if (keywords.some(k => query.includes(k))) {
+      // Find the exact name in the user's availableCategories (handles casing differences)
+      const matched = availableCategories.find(c => c.toLowerCase() === category.toLowerCase());
+      if (matched) return { category: matched, reasoning: "Instant keyword match." };
+    }
   }
 
-  // 2. AI BRAIN ANALYSIS (Deep Semantic Reasoning)
+  // 2. INTELLIGENCE: AI BRAIN ANALYSIS
+  // For complex or cultural terms (e.g., "Temple donation", "Local market barter")
   try {
     const { output } = await ai.generate({
       model: 'googleai/gemini-1.5-flash',
-      system: `You are an expert travel expense analyst with advanced cultural and linguistic intelligence.
+      system: `You are an expert travel analyst. Map the description to the MOST LOGICAL category from this list: [${availableCategories.join(', ')}].
       
-      TASK: Map the user's expense description to the MOST LOGICAL category from the provided list.
-      
-      SEMANTIC MAPPING RULES:
-      - FOOD: Includes meals (Lunch, Dinner, Breakfast), snacks, drinks, cafes, restaurants, and regional terms like "Bhojan", "Pav Bhaji", "Tiffin".
-      - TRANSPORT: Includes taxis, Uber/Ola, auto-rickshaws, Tuk Tuks, buses, trains, fuel, petrol, tolls, parking, and "Tempo Traveller".
-      - STAY: Includes hotels, resorts, hostels, Airbnb, homestays, villas, and room charges.
-      - SIGHTSEEING: Includes entry tickets, museum fees, safari costs, guided tours, and activities.
-      - SHOPPING: Includes malls, markets, souvenirs, gifts, and clothes.
-      - FLIGHTS: Includes airfare, airline names (Indigo, Vistara), and airport charges.
-      
-      CRITICAL INSTRUCTIONS:
-      1. You MUST pick exactly one string from this list: ${availableCategories.join(', ')}.
-      2. NEVER invent your own category names.
-      3. BE DECISIVE: Only use "Other" if the item is completely unidentifiable. "Taxi" MUST be Transport. "Dinner" MUST be Food.
-      4. AVOID defaulting to "Other" if any category can reasonably fit the intent.`,
-      prompt: `DESCRIPTION TO CATEGORIZE: "${description}"`,
+      RULES:
+      - INTENT FIRST: "Late night pizza" is Food. "Shinkansen to Tokyo" is Transport.
+      - CULTURAL AWARENESS: Understand regional terms (Bhojan, Tuk Tuk, etc).
+      - BE DECISIVE: Only pick "Other" if there is zero logical connection.
+      - OUTPUT: You MUST return a JSON object with a "category" field from the provided list.`,
+      prompt: `DESCRIPTION: "${description}"`,
       output: { schema: SuggestExpenseCategoryOutputSchema },
       config: { temperature: 0.1 }
     });
 
     if (output?.category) {
-      const aiChoice = output.category.trim().toLowerCase();
+      const aiChoice = output.category.trim();
       
       // Stage A: Exact Case-Insensitive Match
-      let matched = availableCategories.find(c => c.toLowerCase() === aiChoice);
+      let matched = availableCategories.find(c => c.toLowerCase() === aiChoice.toLowerCase());
       
-      // Stage B: Fuzzy Containment (handles "Taxi Service" -> "Transport" if category name is in it)
+      // Stage B: Fuzzy/Partial Match
       if (!matched) {
         matched = availableCategories.find(c => 
-          aiChoice.includes(c.toLowerCase()) || c.toLowerCase().includes(aiChoice)
+          aiChoice.toLowerCase().includes(c.toLowerCase()) || c.toLowerCase().includes(aiChoice.toLowerCase())
         );
       }
       
-      // Stage C: Hard Synonym Bridge (Safety net for the Brain's "thoughts")
+      // Stage C: Robust Synonym Bridge
       if (!matched) {
         const synonymMap: Record<string, string> = {
-          'dining': 'Food', 'meal': 'Food', 'restaurant': 'Food', 'cafe': 'Food', 'snacks': 'Food',
-          'taxi': 'Transport', 'auto': 'Transport', 'cab': 'Transport', 'fuel': 'Transport', 'commute': 'Transport',
-          'hotel': 'Stay', 'accommodation': 'Stay', 'hostel': 'Stay', 'room': 'Stay',
-          'tickets': 'Sightseeing', 'tours': 'Sightseeing', 'entry': 'Sightseeing', 'activity': 'Sightseeing'
+          'dining': 'Food', 'meal': 'Food', 'eats': 'Food', 'cafe': 'Food',
+          'taxi': 'Transport', 'commute': 'Transport', 'ride': 'Transport',
+          'hotel': 'Stay', 'accommodation': 'Stay', 'lodging': 'Stay',
+          'tours': 'Sightseeing', 'attraction': 'Sightseeing', 'entry': 'Sightseeing'
         };
         
-        const foundKey = Object.keys(synonymMap).find(s => aiChoice.includes(s));
-        if (foundKey) {
-          const targetName = synonymMap[foundKey];
+        const mappedBase = Object.keys(synonymMap).find(s => aiChoice.toLowerCase().includes(s));
+        if (mappedBase) {
+          const targetName = synonymMap[mappedBase];
           matched = availableCategories.find(c => c.toLowerCase() === targetName.toLowerCase());
         }
       }
 
-      if (matched) {
-        return { category: matched, reasoning: output.reasoning };
-      }
+      if (matched) return { category: matched, reasoning: output.reasoning };
     }
   } catch (error: any) {
-    console.error('[AI Categorization Brain Error]', error.message);
+    console.error('[AI Categorization Error]', error.message);
   }
 
   // 3. FINAL FALLBACK
   const fallback = availableCategories.find(c => c.toLowerCase() === 'other') || availableCategories[0] || "Other";
-  return { category: fallback, reasoning: "AI analysis failed or returned ambiguous result." };
+  return { category: fallback, reasoning: "Fallback selected." };
 }
