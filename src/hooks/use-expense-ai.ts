@@ -5,6 +5,7 @@ import { suggestExpenseCategory } from "@/ai/flows/suggest-expense-category";
 
 /**
  * The "Hand" mechanism that applies AI thoughts to the UI state.
+ * Refined for high reliability and stability.
  */
 export function useExpenseAICategorization(
   description: string,
@@ -12,19 +13,20 @@ export function useExpenseAICategorization(
   setFormData: (update: (prev: any) => any) => void
 ) {
   const [isAnalyzing, setIsAnalyzing] = useState(false);
-  const lastInput = useRef("");
+  const lastAnalyzedInput = useRef("");
+  const analysisTimer = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
     const query = description.trim();
     
-    // Only analyze if the description is significant and has changed
-    if (query.length < 3 || query === lastInput.current) return;
+    // Reset timer if user keeps typing
+    if (analysisTimer.current) clearTimeout(analysisTimer.current);
 
-    const timer = setTimeout(async () => {
+    // Skip if input is too short or hasn't changed since last successful analysis
+    if (query.length < 3 || query === lastAnalyzedInput.current) return;
+
+    analysisTimer.current = setTimeout(async () => {
       setIsAnalyzing(true);
-      lastInput.current = query;
-      
-      console.log(`[AI Brain] Analyzing intent for: "${query}"...`);
       
       try {
         const result = await suggestExpenseCategory({ 
@@ -33,25 +35,28 @@ export function useExpenseAICategorization(
         });
         
         if (result && result.category) {
-          console.log(`[AI Brain] Result: "${query}" -> "${result.category}" (Reason: ${result.reasoning})`);
+          console.log(`[AI Hand] Suggestion for "${query}": ${result.category}`);
+          lastAnalyzedInput.current = query;
           
           setFormData(prev => {
-            // Only update if the user hasn't manually picked a different non-default category
-            // or if the current category is "Other"
-            if (prev.category === 'Other' || prev.category === '') {
+            // Only auto-update if the user hasn't already picked a non-default category
+            // This prevents the AI from fighting the user's manual choice.
+            if (prev.category === 'Other' || prev.category === '' || prev.category === undefined) {
                return { ...prev, category: result.category };
             }
             return prev;
           });
         }
       } catch (e) {
-        console.warn("[AI Brain] Failed to communicate with categorization service:", e);
+        console.warn("[AI Hand] Brain communication failed:", e);
       } finally {
         setIsAnalyzing(false);
       }
-    }, 600); // 600ms debounce for snappier feedback
+    }, 800); // 800ms debounce ensures a "strong" intent signal before calling the AI
 
-    return () => clearTimeout(timer);
+    return () => {
+      if (analysisTimer.current) clearTimeout(analysisTimer.current);
+    };
   }, [description, categoriesList, setFormData]);
 
   return { isAnalyzing };
