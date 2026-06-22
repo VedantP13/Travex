@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useEffect, useMemo, useRef } from "react";
@@ -178,11 +179,36 @@ export default function TripDetails() {
     if (!id || !firestore) return;
     setIsUpdatingImage(true);
     try {
-      await updateDoc(doc(firestore, "trips", id as string), { image: stagedCoverImage, updatedAt: serverTimestamp() });
-      toast({ title: "Cover updated" });
+      // Basic size check for Base64 (approx 1MB limit for Firestore doc field sanity)
+      if (stagedCoverImage.startsWith('data:') && stagedCoverImage.length > 800000) {
+        throw new Error("The image file is too large. Please select a smaller file or a preset style.");
+      }
+
+      await updateDoc(doc(firestore, "trips", id as string), { 
+        image: stagedCoverImage, 
+        updatedAt: serverTimestamp() 
+      });
+      
+      toast({ 
+        title: "Cover updated", 
+        description: "Your trip dashboard has been refreshed." 
+      });
       setIsImagePickerOpen(false);
-    } catch (err) {
-      toast({ title: "Failed to update cover", variant: "destructive" });
+    } catch (err: any) {
+      console.error("Image update failed:", err);
+      let errorMsg = "Could not update trip cover. Please try again.";
+      
+      if (err.message?.includes("too large")) {
+        errorMsg = err.message;
+      } else if (err.code === 'permission-denied') {
+        errorMsg = "You don't have permission to modify this trip.";
+      }
+
+      toast({ 
+        variant: "destructive", 
+        title: "Update failed", 
+        description: errorMsg 
+      });
     } finally {
       setIsUpdatingImage(false);
     }

@@ -32,19 +32,24 @@ export function ImagePickerDialog({ isOpen, onOpenChange, currentImage, onSave, 
   const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) {
+      // Basic type check
+      if (!file.type.startsWith('image/')) {
+        return; // Parent component handles the error toast on save attempt
+      }
+
       const reader = new FileReader();
       reader.onloadend = () => setStagedCoverImage(reader.result as string);
       reader.readAsDataURL(file);
     }
   };
 
-  const presetImages = PlaceHolderImages.filter(img => img.id.startsWith('trip-'));
+  const presetImages = PlaceHolderImages.filter(img => img.id.startsWith('trip-') || img.id.startsWith('hero-'));
 
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-[calc(100vw-40px)] w-full rounded-[2.5rem] p-0 border-none shadow-2xl bg-background overflow-hidden animate-in fade-in zoom-in-95 duration-300">
         <div className="h-24 bg-foreground relative flex items-center justify-center shrink-0">
-          <DialogTitle className="text-xl font-bold text-white relative z-10">Change cover</DialogTitle>
+          <DialogTitle className="text-xl font-bold text-white relative z-10">Change Cover</DialogTitle>
           <DialogDescription className="sr-only">Choose a predefined image or upload your own.</DialogDescription>
           <DialogClose className="absolute right-4 top-4 h-8 w-8 rounded-full flex items-center justify-center bg-white/10 text-white/70 hover:bg-white/20 hover:text-white transition-all z-20">
             <X className="h-5 w-5" />
@@ -54,7 +59,7 @@ export function ImagePickerDialog({ isOpen, onOpenChange, currentImage, onSave, 
         <ScrollArea className="max-h-[60vh]">
           <div className="p-6 space-y-6">
             <div className="space-y-2">
-              <Label className="text-[10px] font-black uppercase tracking-widest text-foreground/40 ml-1">Current selection</Label>
+              <Label className="text-[10px] font-bold text-foreground/40 ml-1">Current Selection</Label>
               <div className="h-40 w-full rounded-2xl overflow-hidden shadow-md border-4 border-white relative bg-muted/20 flex items-center justify-center">
                 {stagedCoverImage ? (
                   <>
@@ -66,14 +71,14 @@ export function ImagePickerDialog({ isOpen, onOpenChange, currentImage, onSave, 
                 ) : (
                   <div className="flex flex-col items-center gap-2 text-muted-foreground/40">
                     <ImageIcon className="h-8 w-8" />
-                    <span className="text-[10px] font-bold uppercase">No cover selected</span>
+                    <span className="text-[10px] font-bold">No cover selected</span>
                   </div>
                 )}
               </div>
             </div>
 
             <div className="space-y-3">
-              <Label className="text-[10px] font-black uppercase tracking-widest text-foreground/40 ml-1">Upload custom</Label>
+              <Label className="text-[10px] font-bold text-foreground/40 ml-1">Upload Custom</Label>
               <div 
                 onClick={() => imageInputRef.current?.click()}
                 className="h-24 w-full rounded-2xl border-2 border-dashed border-primary/20 bg-white flex flex-col items-center justify-center text-primary cursor-pointer hover:bg-primary/5 transition-all shadow-sm group"
@@ -81,13 +86,13 @@ export function ImagePickerDialog({ isOpen, onOpenChange, currentImage, onSave, 
                 <div className="h-9 w-9 rounded-full bg-primary/10 flex items-center justify-center mb-1 group-hover:scale-110 transition-transform">
                   <Upload className="h-4 w-4" />
                 </div>
-                <span className="text-[10px] font-black uppercase">Pick from device</span>
+                <span className="text-[10px] font-bold">Pick from device</span>
                 <input type="file" ref={imageInputRef} className="hidden" accept="image/*" onChange={handleImageUpload} />
               </div>
             </div>
 
             <div className="space-y-3 pb-6">
-              <Label className="text-[10px] font-black uppercase tracking-widest text-foreground/40 ml-1">Preset styles</Label>
+              <Label className="text-[10px] font-bold text-foreground/40 ml-1">Preset Styles</Label>
               {presetImages.length > 0 ? (
                 <div className="grid grid-cols-2 gap-3">
                    {presetImages.map((img) => (
@@ -110,7 +115,7 @@ export function ImagePickerDialog({ isOpen, onOpenChange, currentImage, onSave, 
                 </div>
               ) : (
                 <div className="h-32 w-full rounded-2xl bg-muted/10 border-2 border-dashed border-muted/20 flex items-center justify-center">
-                  <p className="text-[10px] text-muted-foreground font-bold uppercase tracking-widest animate-pulse">
+                  <p className="text-[10px] text-muted-foreground font-bold animate-pulse">
                     Loading preset library...
                   </p>
                 </div>
@@ -130,10 +135,10 @@ export function ImagePickerDialog({ isOpen, onOpenChange, currentImage, onSave, 
                 <Loader2 className="h-5 w-5 animate-spin" />
                 Updating...
               </div>
-            ) : "Save changes"}
+            ) : "Save Changes"}
           </Button>
           <DialogClose asChild>
-            <Button variant="ghost" className="w-full h-12 rounded-xl font-bold text-muted-foreground text-xs hover:bg-muted">Discard changes</Button>
+            <Button variant="ghost" className="w-full h-12 rounded-xl font-bold text-muted-foreground text-xs hover:bg-muted">Discard Changes</Button>
           </DialogClose>
         </DialogFooter>
       </DialogContent>

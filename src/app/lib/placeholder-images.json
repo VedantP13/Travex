@@ -14,12 +14,6 @@
       "imageHint": "bali tropical"
     },
     {
-      "id": "trip-dandeli",
-      "description": "Dense jungle and river landscape in Dandeli",
-      "imageUrl": "https://picsum.photos/seed/dandeli/600/400",
-      "imageHint": "jungle river forest"
-    },
-    {
       "id": "trip-paris",
       "description": "Eiffel Tower viewed from a distance",
       "imageUrl": "https://picsum.photos/seed/paris/600/400",
@@ -60,12 +54,6 @@
       "description": "Gardens by the Bay in Singapore",
       "imageUrl": "https://picsum.photos/seed/singapore/600/400",
       "imageHint": "singapore marina"
-    },
-    {
-      "id": "avatar-1",
-      "description": "Profile picture of a smiling traveler",
-      "imageUrl": "https://picsum.photos/seed/avatar1/150/150",
-      "imageHint": "portrait traveler"
     }
   ]
 }
