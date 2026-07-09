@@ -181,15 +181,6 @@ export function TripBalances({ groupedStandings, suggestedPayments, expenses }: 
             <div className="space-y-3 animate-in fade-in slide-in-from-bottom-2 duration-500">
               <div className="flex justify-between items-center px-1">
                 <h2 className="text-[10px] font-black text-muted-foreground tracking-[0.2em] uppercase">Settlement Plan</h2>
-                <Button 
-                  variant="ghost" 
-                  size="sm" 
-                  className="h-6 text-[9px] font-black text-primary hover:bg-primary/5 px-2 rounded-lg gap-1.5"
-                  onClick={() => setShowSettlementDetail(true)}
-                >
-                  <FileText className="h-3 w-3" />
-                  Detailed View
-                </Button>
               </div>
               <Card className="border-none shadow-xl bg-accent/5 rounded-[2.5rem] overflow-hidden border-2 border-dashed border-accent/20">
                 <CardContent className="p-6 space-y-4">
@@ -227,11 +218,16 @@ export function TripBalances({ groupedStandings, suggestedPayments, expenses }: 
                       </div>
                     </div>
                   ))}
-                  <div className="bg-white/40 p-3 rounded-xl flex items-center gap-2 justify-center">
-                     <Sparkles className="h-3 w-3 text-accent" />
-                     <p className="text-[9px] text-muted-foreground font-bold leading-relaxed">
-                       Generated a simplified plan with the minimal number of transfers.
-                     </p>
+                  
+                  <div className="pt-2">
+                    <Button 
+                      variant="ghost" 
+                      className="w-full h-11 rounded-2xl bg-white/40 hover:bg-white/60 text-[10px] font-black text-primary gap-2 transition-all border border-white/20"
+                      onClick={() => setShowSettlementDetail(true)}
+                    >
+                      <Sparkles className="h-3.5 w-3.5 text-accent" />
+                      Detailed View
+                    </Button>
                   </div>
                 </CardContent>
               </Card>
