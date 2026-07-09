@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useMemo } from "react";
@@ -59,6 +60,18 @@ interface TripBalancesProps {
 export function TripBalances({ groupedStandings, suggestedPayments, expenses }: TripBalancesProps) {
   const [selectedMember, setSelectedMember] = useState<{ id: string, name: string } | null>(null);
   const [showSettlementDetail, setShowSettlementDetail] = useState(false);
+
+  // Participant Map for the Audit View
+  const participantsMap = useMemo(() => {
+    const map: Record<string, { name: string, avatar: string }> = {};
+    groupedStandings.forEach(s => {
+      map[s.id] = { name: s.name, avatar: s.avatar };
+      s.breakdown.forEach((b: any) => {
+        map[b.id] = { name: b.name, avatar: s.avatar };
+      });
+    });
+    return map;
+  }, [groupedStandings]);
 
   // Calculate bill counts per member
   const memberInsights = useMemo(() => {
@@ -558,16 +571,16 @@ export function TripBalances({ groupedStandings, suggestedPayments, expenses }: 
 
               <div className="space-y-4 pt-6 border-t border-muted/20">
                  <h4 className="text-[10px] font-black text-muted-foreground uppercase tracking-widest px-1">2. Optimization</h4>
-                 <p className="text-xs text-muted-foreground leading-relaxed">
-                   Instead of tracking dozens of small debts, we simplify them into the minimal number of direct transfers.
-                 </p>
-                 <div className="bg-muted/30 p-4 rounded-2xl flex items-start gap-4">
-                    <div className="h-8 w-8 rounded-full bg-white flex items-center justify-center shrink-0 shadow-sm">
-                       <ArrowRight className="h-4 w-4 text-accent" />
+                 <div className="bg-muted/30 p-5 rounded-2xl flex items-start gap-4 border border-muted/50">
+                    <div className="h-10 w-10 rounded-2xl bg-white flex items-center justify-center shrink-0 shadow-sm">
+                       <Sparkles className="h-5 w-5 text-accent animate-pulse" />
                     </div>
-                    <p className="text-[11px] text-muted-foreground font-medium leading-normal italic">
-                      "By pooling all debts, we ensure the person who underpaid pays the person who overpaid directly."
-                    </p>
+                    <div className="space-y-1">
+                      <p className="text-[11px] text-foreground font-bold">Why it's simplified</p>
+                      <p className="text-[10px] text-muted-foreground font-medium leading-relaxed italic">
+                        "Instead of moving money back and forth (like Harsh paying Naman for a perfume), we pool everyone's activity. Your payment to Naman settles Harsh's debt for him automatically."
+                      </p>
+                    </div>
                  </div>
               </div>
 
@@ -576,22 +589,61 @@ export function TripBalances({ groupedStandings, suggestedPayments, expenses }: 
                 <p className="text-xs text-muted-foreground leading-relaxed">
                   Real data used to calculate the balances above:
                 </p>
-                <div className="space-y-3">
-                  {auditExpenses.slice(0, 10).map((exp) => (
-                    <div key={exp.id} className="p-3 bg-white border border-muted/20 rounded-2xl shadow-sm space-y-1.5 transition-all hover:border-primary/20">
+                <div className="space-y-4">
+                  {auditExpenses.slice(0, 15).map((exp) => (
+                    <div key={exp.id} className="p-4 bg-white border border-muted/20 rounded-[1.5rem] shadow-sm space-y-4 transition-all hover:border-primary/20 group">
                       <div className="flex justify-between items-start">
-                        <span className="text-[11px] font-bold text-foreground leading-tight truncate pr-4">{exp.description}</span>
-                        <span className="text-[11px] font-black text-foreground">₹{parseFloat(exp.amount).toFixed(0)}</span>
+                        <div className="min-w-0 flex-1">
+                          <span className="text-xs font-bold text-foreground leading-tight truncate block">{exp.description}</span>
+                          <span className="text-[8px] font-bold text-muted-foreground/60 uppercase tracking-widest mt-1 block">
+                            {new Date(exp.date).toLocaleDateString(undefined, { day: 'numeric', month: 'short' })} • {exp.splitType.replace('_', ' ')}
+                          </span>
+                        </div>
+                        <div className="text-right">
+                          <span className="text-sm font-black text-foreground block">₹{parseFloat(exp.amount).toFixed(0)}</span>
+                        </div>
                       </div>
-                      <div className="flex justify-between items-center text-[9px] text-muted-foreground/60 font-bold uppercase tracking-tighter">
-                        <span>Paid by {exp.payerName.split(' ')[0]}</span>
-                        <span className="bg-muted/40 px-1.5 py-0.5 rounded text-[8px]">{exp.splitType.replace('_', ' ')}</span>
+                      
+                      <div className="grid grid-cols-2 gap-2 pt-1">
+                        <div className="flex items-center gap-2">
+                           <div className="h-7 w-7 rounded-full border-2 border-white shadow-sm shrink-0 overflow-hidden ring-1 ring-black/5">
+                              <Avatar className="h-full w-full">
+                                <AvatarImage src={participantsMap[exp.payerId]?.avatar} />
+                                <AvatarFallback className={cn("text-[8px] font-bold", getAvatarFallbackClasses(exp.payerName))}>
+                                  {getInitials(exp.payerName)}
+                                </AvatarFallback>
+                              </Avatar>
+                           </div>
+                           <div className="min-w-0">
+                              <p className="text-[8px] font-black text-muted-foreground/40 uppercase leading-none mb-0.5">Payer</p>
+                              <p className="text-[10px] font-bold text-foreground truncate">{exp.payerName.split(' ')[0]}</p>
+                           </div>
+                        </div>
+
+                        <div className="flex items-center gap-2 justify-end">
+                           <div className="text-right min-w-0">
+                              <p className="text-[8px] font-black text-muted-foreground/40 uppercase leading-none mb-0.5">Participants</p>
+                              <p className="text-[10px] font-bold text-foreground truncate">
+                                {exp.selectedIndividuals?.length === Object.keys(participantsMap).length ? "Everyone" : `${exp.selectedIndividuals?.length} members`}
+                              </p>
+                           </div>
+                           <div className="flex -space-x-1.5 overflow-hidden">
+                              {exp.selectedIndividuals?.slice(0, 3).map((id: string, i: number) => (
+                                <Avatar key={i} className="h-6 w-6 border-2 border-white shadow-sm shrink-0 ring-1 ring-black/5">
+                                  <AvatarImage src={participantsMap[id]?.avatar} />
+                                  <AvatarFallback className={cn("text-[7px] font-bold", getAvatarFallbackClasses(participantsMap[id]?.name || "?"))}>
+                                    {getInitials(participantsMap[id]?.name || "?")}
+                                  </AvatarFallback>
+                                </Avatar>
+                              ))}
+                           </div>
+                        </div>
                       </div>
                     </div>
                   ))}
-                  {auditExpenses.length > 10 && (
+                  {auditExpenses.length > 15 && (
                     <p className="text-[10px] text-center text-muted-foreground/40 font-bold uppercase py-2">
-                      + {auditExpenses.length - 10} more transactions verified
+                      + {auditExpenses.length - 15} more transactions verified
                     </p>
                   )}
                 </div>
