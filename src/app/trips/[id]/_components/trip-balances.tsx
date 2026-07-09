@@ -222,10 +222,9 @@ export function TripBalances({ groupedStandings, suggestedPayments, expenses }: 
                   <div className="pt-2">
                     <Button 
                       variant="ghost" 
-                      className="w-full h-11 rounded-2xl bg-white/40 hover:bg-white/60 text-[10px] font-black text-primary gap-2 transition-all border border-white/20"
+                      className="w-full h-11 rounded-2xl bg-white/40 hover:bg-white/60 text-[10px] font-black text-primary transition-all border border-white/20 uppercase tracking-widest"
                       onClick={() => setShowSettlementDetail(true)}
                     >
-                      <Sparkles className="h-3.5 w-3.5 text-accent" />
                       Detailed View
                     </Button>
                   </div>
@@ -493,7 +492,7 @@ export function TripBalances({ groupedStandings, suggestedPayments, expenses }: 
       </Dialog>
 
       {/* SETTLEMENT LOGIC DETAIL DIALOG */}
-      <Dialog open={showSettlementDetail} onOpenChange={setShowSettlementDetail}>
+      <Dialog open={showSettlementDetail} onOpenChange={(open) => !open && setShowSettlementDetail(null)}>
         <DialogContent className="max-w-[calc(100vw-40px)] w-full rounded-[2.5rem] p-0 border-none shadow-2xl bg-white overflow-hidden animate-in fade-in zoom-in-95 duration-300 [&>button]:hidden">
           <div className="h-36 bg-foreground relative flex flex-col items-center justify-center shrink-0">
              <div className="absolute top-4 right-4">
