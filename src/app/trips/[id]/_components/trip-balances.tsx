@@ -5,23 +5,15 @@ import {
   TrendingDown, 
   TrendingUp, 
   ArrowRight, 
-  TrendingUp as TrendingUpIcon, 
   Activity, 
-  Info,
   Crown,
   Tag,
-  RefreshCw,
-  Users,
   ChevronRight,
   ReceiptText,
-  Clock,
   X,
-  Wallet,
   ArrowDownLeft,
   ArrowUpRight,
   Calculator,
-  FileText,
-  ArrowRightLeft,
   History
 } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
@@ -47,6 +39,7 @@ import {
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { cn } from "@/lib/utils";
 import { getInitials, getAvatarFallbackClasses } from "@/lib/avatar-utils";
+import { Timestamp } from "firebase/firestore";
 
 interface TripBalancesProps {
   groupedStandings: any[];
@@ -69,22 +62,6 @@ export function TripBalances({ groupedStandings, suggestedPayments, expenses }: 
     });
     return map;
   }, [groupedStandings]);
-
-  // Calculate bill counts per member
-  const memberInsights = useMemo(() => {
-    const counts: Record<string, number> = {};
-    expenses.forEach(exp => {
-      if (exp.splitType === 'unsplit') return;
-      const selected = exp.selectedIndividuals || [];
-      // Count participation
-      selected.forEach((id: string) => {
-        counts[id] = (counts[id] || 0) + 1;
-      });
-      // Count as payer
-      counts[exp.payerId] = (counts[exp.payerId] || 0) + 1;
-    });
-    return counts;
-  }, [expenses]);
 
   const insights = useMemo(() => {
     if (!expenses.length) return null;
@@ -264,8 +241,6 @@ export function TripBalances({ groupedStandings, suggestedPayments, expenses }: 
 
                 const statusLabel = isPositive ? "Gets back" : isNegative ? "Needs to pay" : "Settled up";
 
-                const participationCount = memberInsights[standing.id] || 0;
-
                 return (
                   <Card key={standing.id} className={cn(
                     "border-none shadow-sm bg-white rounded-[2.5rem] overflow-hidden transition-all duration-300 hover:shadow-md border",
@@ -281,16 +256,10 @@ export function TripBalances({ groupedStandings, suggestedPayments, expenses }: 
                                 {getInitials(standing.name)}
                               </AvatarFallback>
                             </Avatar>
-                            {standing.isMe && (
-                              <div className="absolute -top-1 -right-1 bg-primary text-white text-[8px] font-black px-1.5 py-0.5 rounded-md border-2 border-white shadow-sm">
-                                ME
-                              </div>
-                            )}
                           </div>
                           <div className="min-w-0">
                             <div className="flex items-center gap-2">
                                <h3 className="font-bold text-base truncate text-foreground">{displayName}</h3>
-                               {standing.isMe && <Badge className="bg-primary/10 text-primary text-[8px] h-4 font-bold border-none">You</Badge>}
                             </div>
                             <div className="flex items-center gap-2 mt-1">
                                <Badge className={cn(
@@ -299,9 +268,6 @@ export function TripBalances({ groupedStandings, suggestedPayments, expenses }: 
                                )}>
                                  {statusLabel}
                                </Badge>
-                               <span className="text-[9px] text-muted-foreground/60 font-bold uppercase tracking-tighter">
-                                 {participationCount} Bills
-                               </span>
                             </div>
                           </div>
                         </div>
