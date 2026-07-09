@@ -270,7 +270,7 @@ export default function TripDetails() {
   };
 
   const groupedStandings = useMemo(() => {
-    if (!trip?.participants || !trip?.netBalances) return [];
+    if (!trip?.participants) return [];
     
     const paidMap: Record<string, number> = {};
     const shareMap: Record<string, number> = {};
@@ -278,6 +278,7 @@ export default function TripDetails() {
     expenses.forEach(exp => {
       if (exp.splitType === 'unsplit') return;
       const amount = parseFloat(exp.amount) || 0;
+      if (isNaN(amount)) return;
       
       paidMap[exp.payerId] = (paidMap[exp.payerId] || 0) + amount;
       

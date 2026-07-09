@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useMemo, useState } from "react";
@@ -135,7 +136,7 @@ export function ExpenseDetailDialog({ expense, trip, onClose, onDelete, onEdit, 
     });
 
     if (expense.splitType === 'equal_person') {
-      const sharePerPerson = amount / selected.length;
+      const sharePerPerson = amount / (selected.length || 1);
       Object.values(familyGroups).forEach((group: any) => {
         group.members.forEach((m: any) => {
           m.share = sharePerPerson;
@@ -144,10 +145,10 @@ export function ExpenseDetailDialog({ expense, trip, onClose, onDelete, onEdit, 
       });
     } else if (expense.splitType === 'equal_family') {
       const numFamilies = Object.keys(familyGroups).length;
-      const sharePerFamily = amount / numFamilies;
+      const sharePerFamily = amount / (numFamilies || 1);
       Object.values(familyGroups).forEach((group: any) => {
         group.totalShare = sharePerFamily;
-        const sharePerMember = sharePerFamily / group.members.length;
+        const sharePerMember = sharePerFamily / (group.members.length || 1);
         group.members.forEach((m: any) => m.share = sharePerMember);
       });
     } else if (expense.splitType === 'custom') {

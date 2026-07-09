@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useMemo } from "react";
@@ -91,18 +92,19 @@ export function TripBalances({ groupedStandings, suggestedPayments, expenses }: 
       const selected = exp.selectedIndividuals || [];
       const isInvolved = selected.includes(mid);
       
+      // ISOLATION RULE: If member is not payer AND not part of the split, they are excluded from this transaction row.
       if (!isPayer && !isInvolved) return;
 
       let shareAmt = 0;
       if (isInvolved) {
         const amount = parseFloat(exp.amount) || 0;
         if (exp.splitType === 'equal_person') {
-          shareAmt = amount / selected.length;
+          shareAmt = amount / (selected.length || 1);
         } else if (exp.splitType === 'equal_family') {
           const families = new Set(selected.map((sid: string) => sid.split('-')[0]));
-          const sharePerFamily = amount / families.size;
+          const sharePerFamily = amount / (families.size || 1);
           const membersInThisFamily = selected.filter((sid: string) => sid.startsWith(mid.split('-')[0]));
-          shareAmt = sharePerFamily / membersInThisFamily.length;
+          shareAmt = sharePerFamily / (membersInThisFamily.length || 1);
         } else if (exp.splitType === 'custom') {
           shareAmt = parseFloat(exp.customAmounts?.[mid]) || 0;
         } else if (exp.splitType === 'just_me') {
@@ -123,6 +125,14 @@ export function TripBalances({ groupedStandings, suggestedPayments, expenses }: 
 
     return history.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
   }, [selectedMember, expenses]);
+
+  const totals = useMemo(() => {
+    return memberHistory.reduce((acc, h) => ({
+      paid: acc.paid + h.paid,
+      share: acc.share + h.share,
+      net: acc.net + h.net
+    }), { paid: 0, share: 0, net: 0 });
+  }, [memberHistory]);
 
   return (
     <div className="mt-6 space-y-6 pb-24">
@@ -293,7 +303,7 @@ export function TripBalances({ groupedStandings, suggestedPayments, expenses }: 
                <div className="bg-primary/5 rounded-2xl p-3 flex flex-col items-center text-center">
                   <Crown className="h-3.5 w-3.5 text-primary mb-1.5" />
                   <p className="text-[8px] font-bold text-muted-foreground uppercase leading-none mb-1">Top Payer</p>
-                  <p className="text-column font-black text-primary truncate w-full">{insights.topPayer}</p>
+                  <p className="text-xs font-black text-primary truncate w-full">{insights.topPayer}</p>
                </div>
                <div className="bg-accent/5 rounded-2xl p-3 flex flex-col items-center text-center">
                   <Tag className="h-3.5 w-3.5 text-accent mb-1.5" />
@@ -366,19 +376,19 @@ export function TripBalances({ groupedStandings, suggestedPayments, expenses }: 
                       <TableRow key={row.id} className="border-muted/10 hover:bg-muted/5">
                         <TableCell className="py-3 px-2">
                            <p className="text-[11px] font-bold text-foreground leading-tight line-clamp-1">{row.description}</p>
-                           <p className="text-[8px] text-muted-foreground font-medium mt-0.5">Payer: {row.payer.split(' ')[0]}</p>
+                           <p className="text-[8px] text-muted-foreground font-medium mt-0.5">By {row.payer.split(' ')[0]}</p>
                         </TableCell>
                         <TableCell className="text-right py-3 px-2 text-[10px] font-medium text-foreground/60">
-                           {row.paid > 0 ? `₹${row.paid.toFixed(0)}` : '—'}
+                           {row.paid > 0 ? `₹${row.paid.toFixed(2)}` : '—'}
                         </TableCell>
                         <TableCell className="text-right py-3 px-2 text-[10px] font-medium text-accent">
-                           {row.share > 0 ? `-₹${row.share.toFixed(0)}` : '—'}
+                           {row.share > 0 ? `-₹${row.share.toFixed(2)}` : '—'}
                         </TableCell>
                         <TableCell className={cn(
                           "text-right py-3 px-2 text-[11px] font-black",
                           row.net > 0.01 ? "text-primary" : row.net < -0.01 ? "text-accent" : "text-muted-foreground/30"
                         )}>
-                          {row.net > 0.01 ? '+' : ''}{row.net.toFixed(0)}
+                          {row.net > 0.01 ? '+' : ''}{row.net.toFixed(2)}
                         </TableCell>
                       </TableRow>
                     ))}
@@ -394,20 +404,23 @@ export function TripBalances({ groupedStandings, suggestedPayments, expenses }: 
           </ScrollArea>
 
           <div className="p-6 bg-muted/5 border-t shrink-0">
-             <div className="flex items-center justify-between mb-6 px-1">
-                <div className="flex items-center gap-2">
-                   <Clock className="h-3.5 w-3.5 text-muted-foreground/40" />
-                   <span className="text-[10px] font-bold text-muted-foreground/60 uppercase">Calculated totals</span>
+             <div className="grid grid-cols-3 gap-3 mb-6 px-1">
+                <div className="text-left">
+                  <p className="text-[8px] font-black text-muted-foreground/40 uppercase">Total Paid</p>
+                  <p className="text-xs font-bold text-foreground">₹{totals.paid.toFixed(2)}</p>
                 </div>
-                <div className="flex gap-4">
-                   <div className="text-right">
-                      <p className="text-[8px] font-black text-muted-foreground/40 uppercase">Paid</p>
-                      <p className="text-xs font-bold text-foreground">₹{memberHistory.reduce((acc, h) => acc + h.paid, 0).toFixed(0)}</p>
-                   </div>
-                   <div className="text-right">
-                      <p className="text-[8px] font-black text-muted-foreground/40 uppercase">Share</p>
-                      <p className="text-xs font-bold text-accent">₹{memberHistory.reduce((acc, h) => acc + h.share, 0).toFixed(0)}</p>
-                   </div>
+                <div className="text-center">
+                  <p className="text-[8px] font-black text-muted-foreground/40 uppercase">Total Share</p>
+                  <p className="text-xs font-bold text-accent">₹{totals.share.toFixed(2)}</p>
+                </div>
+                <div className="text-right">
+                  <p className="text-[8px] font-black text-muted-foreground/40 uppercase">Standing</p>
+                  <p className={cn(
+                    "text-xs font-black",
+                    totals.net > 0.01 ? "text-primary" : totals.net < -0.01 ? "text-accent" : "text-muted-foreground"
+                  )}>
+                    {totals.net > 0.01 ? '+' : ''}₹{totals.net.toFixed(2)}
+                  </p>
                 </div>
              </div>
             <Button 
