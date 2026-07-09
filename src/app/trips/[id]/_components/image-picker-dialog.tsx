@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useRef, useState, useEffect } from "react";
@@ -22,12 +23,54 @@ export function ImagePickerDialog({ isOpen, onOpenChange, currentImage, onSave, 
   const { toast } = useToast();
   const imageInputRef = useRef<HTMLInputElement>(null);
   const [stagedCoverImage, setStagedCoverImage] = useState<string>("");
+  const [isProcessing, setIsProcessing] = useState(false);
 
   useEffect(() => {
     if (isOpen) {
       setStagedCoverImage(currentImage || "");
     }
   }, [isOpen, currentImage]);
+
+  /**
+   * Smart Image Optimizer:
+   * Resizes large images to an optimized 1200px width with 0.7 quality.
+   * This ensures high-res phone photos fit in Firestore (under 1MB) easily.
+   */
+  const optimizeImage = (dataUrl: string): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      const img = new Image();
+      img.src = dataUrl;
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        const MAX_WIDTH = 1200;
+        const MAX_HEIGHT = 800;
+        let width = img.width;
+        let height = img.height;
+
+        if (width > height) {
+          if (width > MAX_WIDTH) {
+            height *= MAX_WIDTH / width;
+            width = MAX_WIDTH;
+          }
+        } else {
+          if (height > MAX_HEIGHT) {
+            width *= MAX_HEIGHT / height;
+            height = MAX_HEIGHT;
+          }
+        }
+
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext('2d');
+        if (!ctx) return reject("Canvas error");
+        ctx.drawImage(img, 0, 0, width, height);
+
+        // JPEG at 0.7 quality offers best balance for Firestore data limits
+        resolve(canvas.toDataURL('image/jpeg', 0.7));
+      };
+      img.onerror = () => reject("Image load error");
+    });
+  };
 
   const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -41,23 +84,26 @@ export function ImagePickerDialog({ isOpen, onOpenChange, currentImage, onSave, 
         return;
       }
 
-      // 800KB soft limit for mobile responsiveness
-      if (file.size > 800000) {
-        toast({
-          variant: "destructive",
-          title: "File Too Large",
-          description: "This image exceeds the mobile limit. Try a smaller file or a preset style."
-        });
-        return;
-      }
-
+      setIsProcessing(true);
       const reader = new FileReader();
-      reader.onloadend = () => {
-        setStagedCoverImage(reader.result as string);
-        toast({
-          title: "Image Selected",
-          description: "Preview updated. Tap 'Save Changes' to apply."
-        });
+      reader.onloadend = async () => {
+        try {
+          const optimized = await optimizeImage(reader.result as string);
+          setStagedCoverImage(optimized);
+          toast({
+            title: "Photo Optimized",
+            description: "Ready to save. We've scaled it for best performance."
+          });
+        } catch (err) {
+          console.error(err);
+          toast({
+            variant: "destructive",
+            title: "Process Failed",
+            description: "Could not process this image. Try a preset style."
+          });
+        } finally {
+          setIsProcessing(false);
+        }
       };
       reader.readAsDataURL(file);
     }
@@ -94,14 +140,22 @@ export function ImagePickerDialog({ isOpen, onOpenChange, currentImage, onSave, 
                     <span className="text-[10px] font-bold">No cover selected</span>
                   </div>
                 )}
+                {(isProcessing || isUploading) && (
+                  <div className="absolute inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-10">
+                    <Loader2 className="h-8 w-8 text-white animate-spin" />
+                  </div>
+                )}
               </div>
             </div>
 
             <div className="space-y-3">
               <Label className="text-[10px] font-bold text-foreground/40 ml-1">Upload Custom</Label>
               <div 
-                onClick={() => imageInputRef.current?.click()}
-                className="h-24 w-full rounded-2xl border-2 border-dashed border-primary/20 bg-white flex flex-col items-center justify-center text-primary cursor-pointer hover:bg-primary/5 transition-all shadow-sm group"
+                onClick={() => !isProcessing && !isUploading && imageInputRef.current?.click()}
+                className={cn(
+                  "h-24 w-full rounded-2xl border-2 border-dashed border-primary/20 bg-white flex flex-col items-center justify-center text-primary cursor-pointer hover:bg-primary/5 transition-all shadow-sm group",
+                  (isProcessing || isUploading) && "opacity-50 cursor-not-allowed"
+                )}
               >
                 <div className="h-9 w-9 rounded-full bg-primary/10 flex items-center justify-center mb-1 group-hover:scale-110 transition-transform">
                   <Upload className="h-4 w-4" />
@@ -109,6 +163,7 @@ export function ImagePickerDialog({ isOpen, onOpenChange, currentImage, onSave, 
                 <span className="text-[10px] font-bold">Pick from device</span>
                 <input type="file" ref={imageInputRef} className="hidden" accept="image/*" onChange={handleImageUpload} />
               </div>
+              <p className="text-[9px] text-muted-foreground italic px-1">Tip: Any photo size is accepted; we'll handle the compression for you.</p>
             </div>
 
             <div className="space-y-3 pb-6">
@@ -122,7 +177,7 @@ export function ImagePickerDialog({ isOpen, onOpenChange, currentImage, onSave, 
                          "relative aspect-[4/3] rounded-2xl overflow-hidden cursor-pointer group shadow-sm border-2 transition-all",
                          stagedCoverImage === img.imageUrl ? "border-primary scale-[1.02] ring-2 ring-primary/20" : "border-transparent opacity-80 hover:opacity-100"
                        )}
-                       onClick={() => setStagedCoverImage(img.imageUrl)}
+                       onClick={() => !isProcessing && !isUploading && setStagedCoverImage(img.imageUrl)}
                      >
                        <img src={img.imageUrl} className="h-full w-full object-cover group-hover:scale-110 transition-transform duration-700" alt={img.description} />
                        {stagedCoverImage === img.imageUrl && (
@@ -151,7 +206,7 @@ export function ImagePickerDialog({ isOpen, onOpenChange, currentImage, onSave, 
           <Button 
             className="w-full h-14 rounded-2xl bg-primary text-white font-bold text-base shadow-lg shadow-primary/20 transition-all active:scale-95"
             onClick={() => stagedCoverImage && onSave(stagedCoverImage)}
-            disabled={isUploading || !stagedCoverImage || stagedCoverImage === currentImage}
+            disabled={isUploading || isProcessing || !stagedCoverImage || stagedCoverImage === currentImage}
           >
             {isUploading ? (
               <div className="flex items-center gap-2">
@@ -161,7 +216,7 @@ export function ImagePickerDialog({ isOpen, onOpenChange, currentImage, onSave, 
             ) : "Save Changes"}
           </Button>
           <DialogClose asChild>
-            <Button variant="ghost" className="w-full h-12 rounded-xl font-bold text-muted-foreground text-xs hover:bg-muted">Discard Changes</Button>
+            <Button variant="ghost" className="w-full h-12 rounded-xl font-bold text-muted-foreground text-xs hover:bg-muted" disabled={isUploading || isProcessing}>Discard Changes</Button>
           </DialogClose>
         </DialogFooter>
       </DialogContent>
