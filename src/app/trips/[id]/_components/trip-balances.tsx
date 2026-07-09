@@ -2,8 +2,6 @@
 
 import { useState, useMemo } from "react";
 import { 
-  TrendingDown, 
-  TrendingUp, 
   ArrowRight, 
   Activity, 
   Crown,
@@ -13,8 +11,7 @@ import {
   X,
   ArrowDownLeft,
   ArrowUpRight,
-  Calculator,
-  History
+  Calculator
 } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -39,7 +36,6 @@ import {
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { cn } from "@/lib/utils";
 import { getInitials, getAvatarFallbackClasses } from "@/lib/avatar-utils";
-import { Timestamp } from "firebase/firestore";
 
 interface TripBalancesProps {
   groupedStandings: any[];
@@ -50,6 +46,18 @@ interface TripBalancesProps {
 export function TripBalances({ groupedStandings, suggestedPayments, expenses }: TripBalancesProps) {
   const [selectedMember, setSelectedMember] = useState<{ id: string, name: string } | null>(null);
   const [showSettlementDetail, setShowSettlementDetail] = useState(false);
+
+  // User specific summary logic
+  const { userToReceive, userToPay } = useMemo(() => {
+    const myStanding = groupedStandings.find(s => s.isMe);
+    if (!myStanding) return { userToReceive: 0, userToPay: 0 };
+    
+    const balance = myStanding.netTotal;
+    return {
+      userToReceive: balance > 0.01 ? balance : 0,
+      userToPay: balance < -0.01 ? Math.abs(balance) : 0
+    };
+  }, [groupedStandings]);
 
   // Participant Map for the Audit View
   const participantsMap = useMemo(() => {
@@ -160,14 +168,14 @@ export function TripBalances({ groupedStandings, suggestedPayments, expenses }: 
                 <ArrowDownLeft className="h-3 w-3" />
                 <span className="text-[9px] font-black uppercase tracking-widest">To Receive</span>
               </div>
-              <p className="text-xl font-black text-primary">₹{groupedStandings.reduce((acc, s) => s.netTotal > 0 ? acc + s.netTotal : acc, 0).toFixed(0)}</p>
+              <p className="text-xl font-black text-primary">₹{userToReceive.toFixed(0)}</p>
             </div>
             <div className="bg-white p-5 rounded-3xl shadow-sm border border-destructive/5">
               <div className="flex items-center gap-1.5 text-accent mb-1">
                 <ArrowUpRight className="h-3 w-3" />
                 <span className="text-[9px] font-black uppercase tracking-widest">To Pay</span>
               </div>
-              <p className="text-xl font-black text-accent">₹{Math.abs(groupedStandings.reduce((acc, s) => s.netTotal < -0.01 ? acc + s.netTotal : acc, 0)).toFixed(0)}</p>
+              <p className="text-xl font-black text-accent">₹{userToPay.toFixed(0)}</p>
             </div>
           </div>
 
@@ -193,9 +201,9 @@ export function TripBalances({ groupedStandings, suggestedPayments, expenses }: 
                         </div>
                       </div>
                       
-                      <div className="flex flex-col items-center gap-1 shrink-0 px-2 group">
+                      <div className="flex flex-col items-center gap-1 shrink-0 px-2">
                          <span className="text-xs font-black text-foreground">₹{p.amount.toFixed(0)}</span>
-                         <ArrowRight className="h-6 w-6 text-accent animate-pulse group-hover:scale-110 transition-transform" strokeWidth={2.5} />
+                         <ArrowRight className="h-6 w-6 text-accent animate-pulse" strokeWidth={2.5} />
                       </div>
 
                       <div className="flex items-center gap-3 min-w-0 flex-1 justify-end text-right">
@@ -361,7 +369,7 @@ export function TripBalances({ groupedStandings, suggestedPayments, expenses }: 
                   <p className="text-[11px] font-black text-accent truncate w-full">{insights.topCategory}</p>
                </div>
                <div className="bg-muted/30 rounded-2xl p-4 flex flex-col items-center text-center">
-                  <ReceiptText className="h-4 w-4 text-muted-foreground/60 mb-2" />
+                  <Calculator className="h-4 w-4 text-muted-foreground/60 mb-2" />
                   <p className="text-[8px] font-black text-muted-foreground uppercase leading-none mb-1">Activity</p>
                   <p className="text-[11px] font-black text-foreground">{insights.totalCount} bills</p>
                </div>
@@ -381,52 +389,52 @@ export function TripBalances({ groupedStandings, suggestedPayments, expenses }: 
       {/* MEMBER AUDIT LOG DIALOG */}
       <Dialog open={!!selectedMember} onOpenChange={(open) => !open && setSelectedMember(null)}>
         <DialogContent className="max-w-[calc(100vw-32px)] w-full rounded-[2.5rem] p-0 border-none shadow-2xl bg-white overflow-hidden animate-in fade-in zoom-in-95 duration-300 [&>button]:hidden">
-          <div className="h-28 bg-foreground relative flex flex-col items-center justify-center shrink-0">
+          <div className="h-24 bg-foreground relative flex flex-col items-center justify-center shrink-0">
              <div className="absolute top-4 right-4">
                 <DialogClose className="h-8 w-8 rounded-full bg-white/10 text-white/70 hover:bg-white/20 transition-all flex items-center justify-center">
                   <X className="h-4 w-4" />
                 </DialogClose>
              </div>
-             <div className="flex items-center gap-4 px-8 w-full">
-                <Avatar className="h-12 w-12 border-2 border-white/20 shadow-lg">
+             <div className="flex items-center gap-4 px-6 w-full">
+                <Avatar className="h-10 w-10 border-2 border-white/20 shadow-lg">
                   <AvatarFallback className={getAvatarFallbackClasses(selectedMember?.name || "")}>
                     {getInitials(selectedMember?.name || "")}
                   </AvatarFallback>
                 </Avatar>
                 <div className="min-w-0">
-                  <DialogTitle className="text-xl font-bold text-white truncate">{selectedMember?.name}</DialogTitle>
-                  <DialogDescription className="text-[10px] font-black text-white/40 uppercase tracking-[0.2em]">Transaction Log</DialogDescription>
+                  <DialogTitle className="text-lg font-bold text-white truncate">{selectedMember?.name}</DialogTitle>
+                  <DialogDescription className="text-[9px] font-black text-white/40 uppercase tracking-[0.2em]">Transaction Log</DialogDescription>
                 </div>
              </div>
           </div>
 
           <ScrollArea className="max-h-[60vh]">
-            <div className="p-4 sm:p-6">
+            <div className="p-4 sm:p-5">
               {memberHistory.length > 0 ? (
                 <Table>
                   <TableHeader>
                     <TableRow className="hover:bg-transparent border-muted/20">
-                      <TableHead className="text-[9px] font-black uppercase tracking-tighter h-8 text-muted-foreground">Expense</TableHead>
-                      <TableHead className="text-[9px] font-black uppercase tracking-tighter h-8 text-right text-muted-foreground">Paid</TableHead>
-                      <TableHead className="text-[9px] font-black uppercase tracking-tighter h-8 text-right text-muted-foreground">Share</TableHead>
-                      <TableHead className="text-[9px] font-black uppercase tracking-tighter h-8 text-right text-muted-foreground">Net</TableHead>
+                      <TableHead className="text-[8px] font-black uppercase tracking-tighter h-8 text-muted-foreground px-1">Expense</TableHead>
+                      <TableHead className="text-[8px] font-black uppercase tracking-tighter h-8 text-right text-muted-foreground px-1">Paid</TableHead>
+                      <TableHead className="text-[8px] font-black uppercase tracking-tighter h-8 text-right text-muted-foreground px-1">Share</TableHead>
+                      <TableHead className="text-[8px] font-black uppercase tracking-tighter h-8 text-right text-muted-foreground px-1">Net</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
                     {memberHistory.map((row) => (
                       <TableRow key={row.id} className="border-muted/10 hover:bg-muted/5">
-                        <TableCell className="py-3 px-2">
-                           <p className="text-[11px] font-bold text-foreground leading-tight line-clamp-1">{row.description}</p>
-                           <p className="text-[8px] text-muted-foreground font-bold mt-0.5 uppercase tracking-tighter">By {row.payer.split(' ')[0]}</p>
+                        <TableCell className="py-2 px-1">
+                           <p className="text-[10px] font-bold text-foreground leading-tight line-clamp-1">{row.description}</p>
+                           <p className="text-[7px] text-muted-foreground font-bold mt-0.5 uppercase tracking-tighter">By {row.payer.split(' ')[0]}</p>
                         </TableCell>
-                        <TableCell className="text-right py-3 px-2 text-[10px] font-bold text-foreground/40">
+                        <TableCell className="text-right py-2 px-1 text-[9px] font-bold text-foreground/40">
                            {row.paid > 0 ? `₹${row.paid.toFixed(0)}` : '—'}
                         </TableCell>
-                        <TableCell className="text-right py-3 px-2 text-[10px] font-bold text-accent/60">
+                        <TableCell className="text-right py-2 px-1 text-[9px] font-bold text-accent/60">
                            {row.share > 0 ? `-₹${row.share.toFixed(0)}` : '—'}
                         </TableCell>
                         <TableCell className={cn(
-                          "text-right py-3 px-2 text-[11px] font-black",
+                          "text-right py-2 px-1 text-[10px] font-black",
                           row.net > 0.01 ? "text-primary" : row.net < -0.01 ? "text-accent" : "text-muted-foreground/20"
                         )}>
                           {row.net > 0.01 ? '+' : ''}{row.net.toFixed(0)}
@@ -444,20 +452,20 @@ export function TripBalances({ groupedStandings, suggestedPayments, expenses }: 
             </div>
           </ScrollArea>
 
-          <div className="p-6 bg-muted/5 border-t shrink-0">
-             <div className="grid grid-cols-3 gap-3 mb-6 px-1">
+          <div className="p-5 bg-muted/5 border-t shrink-0">
+             <div className="grid grid-cols-3 gap-2 mb-4 px-1">
                 <div className="text-left">
-                  <p className="text-[8px] font-black text-muted-foreground/40 uppercase">Total Paid</p>
-                  <p className="text-sm font-black text-foreground">₹{totals.paid.toFixed(0)}</p>
+                  <p className="text-[7px] font-black text-muted-foreground/40 uppercase">Total Paid</p>
+                  <p className="text-xs font-black text-foreground">₹{totals.paid.toFixed(0)}</p>
                 </div>
                 <div className="text-center">
-                  <p className="text-[8px] font-black text-muted-foreground/40 uppercase">Total Share</p>
-                  <p className="text-sm font-black text-accent">₹{totals.share.toFixed(0)}</p>
+                  <p className="text-[7px] font-black text-muted-foreground/40 uppercase">Total Share</p>
+                  <p className="text-xs font-black text-accent">₹{totals.share.toFixed(0)}</p>
                 </div>
                 <div className="text-right">
-                  <p className="text-[8px] font-black text-muted-foreground/40 uppercase">Standing</p>
+                  <p className="text-[7px] font-black text-muted-foreground/40 uppercase">Standing</p>
                   <p className={cn(
-                    "text-sm font-black",
+                    "text-xs font-black",
                     totals.net > 0.01 ? "text-primary" : totals.net < -0.01 ? "text-accent" : "text-muted-foreground"
                   )}>
                     {totals.net > 0.01 ? '+' : ''}₹{totals.net.toFixed(0)}
@@ -465,7 +473,7 @@ export function TripBalances({ groupedStandings, suggestedPayments, expenses }: 
                 </div>
              </div>
             <Button 
-              className="w-full h-14 rounded-2xl bg-primary text-white font-bold text-base shadow-lg shadow-primary/20 transition-all active:scale-95"
+              className="w-full h-12 rounded-2xl bg-primary text-white font-bold text-sm shadow-lg shadow-primary/20 transition-all active:scale-95"
               onClick={() => setSelectedMember(null)}
             >
               Close Ledger
@@ -477,50 +485,50 @@ export function TripBalances({ groupedStandings, suggestedPayments, expenses }: 
       {/* SETTLEMENT LOGIC DETAIL DIALOG */}
       <Dialog open={showSettlementDetail} onOpenChange={(open) => !open && setShowSettlementDetail(null)}>
         <DialogContent className="max-w-[calc(100vw-32px)] w-full rounded-[2.5rem] p-0 border-none shadow-2xl bg-white overflow-hidden animate-in fade-in zoom-in-95 duration-300 [&>button]:hidden">
-          <div className="h-24 bg-foreground relative flex flex-col items-center justify-center shrink-0">
+          <div className="h-20 bg-foreground relative flex flex-col items-center justify-center shrink-0">
              <div className="absolute top-4 right-4">
-                <DialogClose className="h-8 w-8 rounded-full bg-white/10 text-white/70 hover:bg-white/20 transition-all flex items-center justify-center">
-                  <X className="h-4 w-4" />
+                <DialogClose className="h-7 w-7 rounded-full bg-white/10 text-white/70 hover:bg-white/20 transition-all flex items-center justify-center">
+                  <X className="h-3.5 w-3.5" />
                 </DialogClose>
              </div>
              <div className="flex flex-col items-center text-center">
-                <DialogTitle className="text-lg font-bold text-white leading-none">How it's calculated</DialogTitle>
-                <DialogDescription className="text-[9px] font-black text-white/40 uppercase tracking-[0.2em] mt-1.5">Settlement Logic</DialogDescription>
+                <DialogTitle className="text-base font-bold text-white leading-none">How it's calculated</DialogTitle>
+                <DialogDescription className="text-[8px] font-black text-white/40 uppercase tracking-[0.2em] mt-1">Settlement Logic</DialogDescription>
              </div>
           </div>
 
-          <ScrollArea className="max-h-[65vh]">
-            <div className="p-5 sm:p-6 space-y-6">
-              <div className="space-y-4">
-                 <h4 className="text-[10px] font-black text-muted-foreground uppercase tracking-widest px-1">1. The Ledger</h4>
-                 <p className="text-[11px] text-muted-foreground leading-relaxed">
+          <ScrollArea className="max-h-[60vh]">
+            <div className="p-4 sm:p-6 space-y-5">
+              <div className="space-y-3">
+                 <h4 className="text-[9px] font-black text-muted-foreground uppercase tracking-widest px-1">1. The Ledger</h4>
+                 <p className="text-[10px] text-muted-foreground leading-relaxed">
                    We calculate the <span className="font-bold text-foreground">Net Standings</span> by subtracting total share from total paid for every member.
                  </p>
                  
-                 <div className="grid grid-cols-1 gap-3 pt-1">
-                    <div className="space-y-2">
-                        <h4 className="text-[9px] font-black text-accent uppercase tracking-wider px-1">Debtors</h4>
+                 <div className="grid grid-cols-1 gap-2 pt-1">
+                    <div className="space-y-1.5">
+                        <h4 className="text-[8px] font-black text-accent uppercase tracking-wider px-1">Debtors</h4>
                         <div className="grid gap-2">
                           {groupedStandings.filter(s => s.netTotal < -0.01).map(s => (
-                            <div key={s.id} className="bg-accent/5 p-3 rounded-xl space-y-1 border border-accent/10">
-                                <span className="text-[10px] font-bold truncate block text-foreground">{s.name}</span>
+                            <div key={s.id} className="bg-accent/5 p-2.5 rounded-xl space-y-1 border border-accent/10">
+                                <span className="text-[9px] font-bold truncate block text-foreground">{s.name}</span>
                                 <div className="flex justify-between items-baseline">
-                                  <span className="text-[8px] text-muted-foreground font-medium">Paid ₹{s.totalPaid.toFixed(0)} • Share ₹{s.totalShare.toFixed(0)}</span>
-                                  <span className="text-[10px] font-black text-accent">₹{Math.abs(s.netTotal).toFixed(0)}</span>
+                                  <span className="text-[7px] text-muted-foreground font-medium uppercase tracking-tight">Paid ₹{s.totalPaid.toFixed(0)} • Share ₹{s.totalShare.toFixed(0)}</span>
+                                  <span className="text-[9px] font-black text-accent">₹{Math.abs(s.netTotal).toFixed(0)}</span>
                                 </div>
                             </div>
                           ))}
                         </div>
                     </div>
-                    <div className="space-y-2">
-                        <h4 className="text-[9px] font-black text-primary uppercase tracking-wider px-1">Creditors</h4>
+                    <div className="space-y-1.5 pt-2">
+                        <h4 className="text-[8px] font-black text-primary uppercase tracking-wider px-1">Creditors</h4>
                         <div className="grid gap-2">
                           {groupedStandings.filter(s => s.netTotal > 0.01).map(s => (
-                            <div key={s.id} className="bg-primary/5 p-3 rounded-xl space-y-1 border border-primary/10">
-                                <span className="text-[10px] font-bold truncate block text-foreground">{s.name}</span>
+                            <div key={s.id} className="bg-primary/5 p-2.5 rounded-xl space-y-1 border border-primary/10">
+                                <span className="text-[9px] font-bold truncate block text-foreground">{s.name}</span>
                                 <div className="flex justify-between items-baseline">
-                                  <span className="text-[8px] text-muted-foreground font-medium">Paid ₹{s.totalPaid.toFixed(0)} • Share ₹{s.totalShare.toFixed(0)}</span>
-                                  <span className="text-[10px] font-black text-primary">₹{s.netTotal.toFixed(0)}</span>
+                                  <span className="text-[7px] text-muted-foreground font-medium uppercase tracking-tight">Paid ₹{s.totalPaid.toFixed(0)} • Share ₹{s.totalShare.toFixed(0)}</span>
+                                  <span className="text-[9px] font-black text-primary">₹{s.netTotal.toFixed(0)}</span>
                                 </div>
                             </div>
                           ))}
@@ -529,35 +537,35 @@ export function TripBalances({ groupedStandings, suggestedPayments, expenses }: 
                  </div>
               </div>
 
-              <div className="space-y-4 pt-6 border-t border-muted/20">
-                 <h4 className="text-[10px] font-black text-muted-foreground uppercase tracking-widest px-1">2. Optimization</h4>
+              <div className="space-y-3 pt-4 border-t border-muted/20">
+                 <h4 className="text-[9px] font-black text-muted-foreground uppercase tracking-widest px-1">2. Optimization</h4>
                  <div className="bg-muted/30 p-4 rounded-2xl border border-muted/50">
                     <div className="space-y-1">
-                      <p className="text-[11px] text-foreground font-bold uppercase tracking-tight">Debt Simplification</p>
-                      <p className="text-[10px] text-muted-foreground font-medium leading-relaxed">
+                      <p className="text-[10px] text-foreground font-bold uppercase tracking-tight">Debt Simplification</p>
+                      <p className="text-[9px] text-muted-foreground font-medium leading-relaxed">
                         Instead of multiple back-and-forth payments between individuals, we pool everyone's activity. This settlement plan ensures all debts are resolved with the minimum number of transfers possible.
                       </p>
                     </div>
                  </div>
               </div>
 
-              <div className="space-y-4 pt-6 border-t border-muted/20">
-                <h4 className="text-[10px] font-black text-muted-foreground uppercase tracking-widest px-1">3. Verification Audit</h4>
-                <p className="text-[11px] text-muted-foreground leading-relaxed px-1">
+              <div className="space-y-3 pt-4 border-t border-muted/20">
+                <h4 className="text-[9px] font-black text-muted-foreground uppercase tracking-widest px-1">3. Verification Audit</h4>
+                <p className="text-[10px] text-muted-foreground leading-relaxed px-1">
                   Real data used to calculate the balances above:
                 </p>
-                <div className="space-y-3">
+                <div className="space-y-2">
                   {auditExpenses.slice(0, 15).map((exp) => (
-                    <div key={exp.id} className="p-3 bg-white border border-muted/30 rounded-[1.25rem] shadow-sm space-y-3 transition-all hover:border-primary/20 group">
+                    <div key={exp.id} className="p-3 bg-white border border-muted/10 rounded-[1.25rem] shadow-sm space-y-3 transition-all hover:border-primary/20 group">
                       <div className="flex justify-between items-start">
                         <div className="min-w-0 flex-1">
-                          <span className="text-[11px] font-bold text-foreground leading-tight truncate block">{exp.description}</span>
-                          <span className="text-[8px] font-bold text-muted-foreground/60 uppercase tracking-widest mt-1 block">
+                          <span className="text-[10px] font-bold text-foreground leading-tight truncate block">{exp.description}</span>
+                          <span className="text-[7px] font-bold text-muted-foreground/60 uppercase tracking-widest mt-1 block">
                             {new Date(exp.date).toLocaleDateString(undefined, { day: 'numeric', month: 'short' })} • {exp.splitType.replace('_', ' ')}
                           </span>
                         </div>
                         <div className="text-right">
-                          <span className="text-[11px] font-black text-foreground block">₹{parseFloat(exp.amount).toFixed(0)}</span>
+                          <span className="text-[10px] font-black text-foreground block">₹{parseFloat(exp.amount).toFixed(0)}</span>
                         </div>
                       </div>
                       
@@ -572,7 +580,7 @@ export function TripBalances({ groupedStandings, suggestedPayments, expenses }: 
                               </Avatar>
                            </div>
                            <div className="min-w-0">
-                              <p className="text-[10px] font-bold text-foreground truncate">{exp.payerName.split(' ')[0]}</p>
+                              <p className="text-[9px] font-bold text-foreground truncate">{exp.payerName.split(' ')[0]}</p>
                            </div>
                         </div>
 
@@ -592,7 +600,7 @@ export function TripBalances({ groupedStandings, suggestedPayments, expenses }: 
                     </div>
                   ))}
                   {auditExpenses.length > 15 && (
-                    <p className="text-[9px] text-center text-muted-foreground/40 font-bold uppercase py-2">
+                    <p className="text-[8px] text-center text-muted-foreground/40 font-bold uppercase py-2">
                       + {auditExpenses.length - 15} more transactions verified
                     </p>
                   )}
@@ -601,9 +609,9 @@ export function TripBalances({ groupedStandings, suggestedPayments, expenses }: 
             </div>
           </ScrollArea>
 
-          <div className="p-6 bg-muted/5 border-t">
+          <div className="p-5 bg-muted/5 border-t">
              <Button 
-               className="w-full h-12 rounded-2xl bg-primary text-white font-bold text-sm shadow-lg shadow-primary/20 active:scale-95 transition-all"
+               className="w-full h-11 rounded-2xl bg-primary text-white font-bold text-sm shadow-lg shadow-primary/20 active:scale-95 transition-all"
                onClick={() => setShowSettlementDetail(false)}
              >
                Got it
