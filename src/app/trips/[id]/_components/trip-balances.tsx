@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState, useMemo } from "react";
@@ -591,7 +590,7 @@ export function TripBalances({ groupedStandings, suggestedPayments, expenses }: 
                 </p>
                 <div className="space-y-4">
                   {auditExpenses.slice(0, 15).map((exp) => (
-                    <div key={exp.id} className="p-4 bg-white border border-muted/20 rounded-[1.5rem] shadow-sm space-y-4 transition-all hover:border-primary/20 group">
+                    <div key={exp.id} className="p-4 bg-white border border-muted/30 rounded-[1.5rem] shadow-sm space-y-4 transition-all hover:border-primary/20 group">
                       <div className="flex justify-between items-start">
                         <div className="min-w-0 flex-1">
                           <span className="text-xs font-bold text-foreground leading-tight truncate block">{exp.description}</span>
