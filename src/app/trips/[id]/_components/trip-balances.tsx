@@ -23,7 +23,8 @@ import {
   Calculator,
   FileText,
   Sparkles,
-  ArrowRightLeft
+  ArrowRightLeft,
+  History
 } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -155,6 +156,12 @@ export function TripBalances({ groupedStandings, suggestedPayments, expenses }: 
       net: acc.net + h.net
     }), { paid: 0, share: 0, net: 0 });
   }, [memberHistory]);
+
+  const auditExpenses = useMemo(() => {
+    return [...expenses]
+      .filter(e => e.splitType !== 'unsplit')
+      .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+  }, [expenses]);
 
   return (
     <div className="mt-6 space-y-6 pb-24">
@@ -509,13 +516,12 @@ export function TripBalances({ groupedStandings, suggestedPayments, expenses }: 
              </div>
           </div>
 
-          <ScrollArea className="max-h-[60vh]">
+          <ScrollArea className="max-h-[70vh]">
             <div className="p-8 space-y-8">
               <div className="space-y-4">
                  <h4 className="text-[10px] font-black text-muted-foreground uppercase tracking-widest px-1">1. The Ledger</h4>
                  <p className="text-xs text-muted-foreground leading-relaxed">
-                   We start by calculating the <span className="font-bold text-foreground">Net Standings</span> for every member: 
-                   Total amount paid minus their total share of expenses.
+                   We calculate the <span className="font-bold text-foreground">Net Standings</span> by subtracting total share from total paid for every member.
                  </p>
                  
                  <div className="grid grid-cols-2 gap-4 pt-2">
@@ -523,24 +529,28 @@ export function TripBalances({ groupedStandings, suggestedPayments, expenses }: 
                         <h4 className="text-[9px] font-black text-accent uppercase tracking-wider">Debtors</h4>
                         <div className="space-y-2">
                           {groupedStandings.filter(s => s.netTotal < -0.01).map(s => (
-                            <div key={s.id} className="bg-accent/5 p-2.5 rounded-xl flex justify-between items-center border border-accent/10">
-                                <span className="text-[10px] font-bold truncate pr-1 text-foreground">{s.name.split(' ')[0]}</span>
-                                <span className="text-[10px] font-black text-accent">₹{Math.abs(s.netTotal).toFixed(0)}</span>
+                            <div key={s.id} className="bg-accent/5 p-3 rounded-xl space-y-1 border border-accent/10">
+                                <span className="text-[10px] font-bold truncate block text-foreground">{s.name}</span>
+                                <div className="flex justify-between items-baseline">
+                                  <span className="text-[8px] text-muted-foreground font-medium">Paid ₹{s.totalPaid.toFixed(0)} • Share ₹{s.totalShare.toFixed(0)}</span>
+                                  <span className="text-[10px] font-black text-accent">₹{Math.abs(s.netTotal).toFixed(0)}</span>
+                                </div>
                             </div>
                           ))}
-                          {groupedStandings.filter(s => s.netTotal < -0.01).length === 0 && <p className="text-[9px] text-muted-foreground italic">None</p>}
                         </div>
                     </div>
                     <div className="space-y-3">
                         <h4 className="text-[9px] font-black text-primary uppercase tracking-wider">Creditors</h4>
                         <div className="space-y-2">
                           {groupedStandings.filter(s => s.netTotal > 0.01).map(s => (
-                            <div key={s.id} className="bg-primary/5 p-2.5 rounded-xl flex justify-between items-center border border-primary/10">
-                                <span className="text-[10px] font-bold truncate pr-1 text-foreground">{s.name.split(' ')[0]}</span>
-                                <span className="text-[10px] font-black text-primary">₹{s.netTotal.toFixed(0)}</span>
+                            <div key={s.id} className="bg-primary/5 p-3 rounded-xl space-y-1 border border-primary/10">
+                                <span className="text-[10px] font-bold truncate block text-foreground">{s.name}</span>
+                                <div className="flex justify-between items-baseline">
+                                  <span className="text-[8px] text-muted-foreground font-medium">Paid ₹{s.totalPaid.toFixed(0)} • Share ₹{s.totalShare.toFixed(0)}</span>
+                                  <span className="text-[10px] font-black text-primary">₹{s.netTotal.toFixed(0)}</span>
+                                </div>
                             </div>
                           ))}
-                          {groupedStandings.filter(s => s.netTotal > 0.01).length === 0 && <p className="text-[9px] text-muted-foreground italic">None</p>}
                         </div>
                     </div>
                  </div>
@@ -549,23 +559,42 @@ export function TripBalances({ groupedStandings, suggestedPayments, expenses }: 
               <div className="space-y-4 pt-6 border-t border-muted/20">
                  <h4 className="text-[10px] font-black text-muted-foreground uppercase tracking-widest px-1">2. Optimization</h4>
                  <p className="text-xs text-muted-foreground leading-relaxed">
-                   Instead of everyone paying for every bill, we use a <span className="font-bold text-foreground">greedy algorithm</span> that pairs the biggest Debtors with the biggest Creditors.
+                   Instead of tracking dozens of small debts, we simplify them into the minimal number of direct transfers.
                  </p>
                  <div className="bg-muted/30 p-4 rounded-2xl flex items-start gap-4">
-                    <div className="h-8 w-8 rounded-full bg-white flex items-center justify-center shrink-0">
+                    <div className="h-8 w-8 rounded-full bg-white flex items-center justify-center shrink-0 shadow-sm">
                        <ArrowRight className="h-4 w-4 text-accent" />
                     </div>
                     <p className="text-[11px] text-muted-foreground font-medium leading-normal italic">
-                      "By pooling all debts, we minimize the total number of transfers needed to bring everyone back to zero."
+                      "By pooling all debts, we ensure the person who underpaid pays the person who overpaid directly."
                     </p>
                  </div>
               </div>
 
-              <div className="space-y-4 pt-6 border-t border-muted/20 pb-4">
-                 <h4 className="text-[10px] font-black text-muted-foreground uppercase tracking-widest px-1">3. The Result</h4>
-                 <p className="text-xs text-muted-foreground leading-relaxed">
-                   The <span className="font-bold text-foreground">Settlement Plan</span> on your dashboard is the final result of this simplification.
-                 </p>
+              <div className="space-y-4 pt-6 border-t border-muted/20">
+                <h4 className="text-[10px] font-black text-muted-foreground uppercase tracking-widest px-1">3. Verification Audit</h4>
+                <p className="text-xs text-muted-foreground leading-relaxed">
+                  Real data used to calculate the balances above:
+                </p>
+                <div className="space-y-3">
+                  {auditExpenses.slice(0, 10).map((exp) => (
+                    <div key={exp.id} className="p-3 bg-white border border-muted/20 rounded-2xl shadow-sm space-y-1.5 transition-all hover:border-primary/20">
+                      <div className="flex justify-between items-start">
+                        <span className="text-[11px] font-bold text-foreground leading-tight truncate pr-4">{exp.description}</span>
+                        <span className="text-[11px] font-black text-foreground">₹{parseFloat(exp.amount).toFixed(0)}</span>
+                      </div>
+                      <div className="flex justify-between items-center text-[9px] text-muted-foreground/60 font-bold uppercase tracking-tighter">
+                        <span>Paid by {exp.payerName.split(' ')[0]}</span>
+                        <span className="bg-muted/40 px-1.5 py-0.5 rounded text-[8px]">{exp.splitType.replace('_', ' ')}</span>
+                      </div>
+                    </div>
+                  ))}
+                  {auditExpenses.length > 10 && (
+                    <p className="text-[10px] text-center text-muted-foreground/40 font-bold uppercase py-2">
+                      + {auditExpenses.length - 10} more transactions verified
+                    </p>
+                  )}
+                </div>
               </div>
             </div>
           </ScrollArea>
