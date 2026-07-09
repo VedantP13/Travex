@@ -100,7 +100,6 @@ export function TripBalances({ groupedStandings, suggestedPayments, expenses }: 
         if (exp.splitType === 'equal_person') {
           shareAmt = amount / (selected.length || 1);
         } else if (exp.splitType === 'equal_family') {
-          // Fixed: Use precise ID segment matching to prevent prefix logic bleed
           const targetParentId = mid.split('-')[0];
           const families = new Set(selected.map((sid: string) => sid.split('-')[0]));
           const sharePerFamily = amount / (families.size || 1);
@@ -208,10 +207,18 @@ export function TripBalances({ groupedStandings, suggestedPayments, expenses }: 
                 ? (standing.isSolo ? "You" : "Your family") 
                 : (standing.isSolo ? standing.name : `${standing.name}'s family`);
 
+              // Perspective-Correct Labeling
+              const statusLabel = standing.isMe
+                ? (isPositive ? "Owed to you" : isNegative ? "You owe" : "Perfectly settled")
+                : (isPositive ? "They are owed" : isNegative ? "They owe" : "Perfectly settled");
+
               return (
-                <Card key={standing.id} className="border-none shadow-sm bg-white rounded-[2rem] overflow-hidden group hover:shadow-md transition-shadow border border-muted/20">
+                <Card key={standing.id} className={cn(
+                  "border-none shadow-sm bg-white rounded-[2rem] overflow-hidden group hover:shadow-md transition-shadow border",
+                  standing.isMe ? "border-primary/20 bg-primary/[0.02]" : "border-muted/20"
+                )}>
                   <CardContent className="p-0">
-                    <div className="p-5 flex items-center justify-between bg-white">
+                    <div className="p-5 flex items-center justify-between">
                       <div className="flex items-center gap-4">
                         <Avatar className="h-14 w-14 border-2 border-white shadow-md shrink-0">
                           <AvatarImage src={standing.avatar} className="object-cover" />
@@ -220,13 +227,16 @@ export function TripBalances({ groupedStandings, suggestedPayments, expenses }: 
                           </AvatarFallback>
                         </Avatar>
                         <div className="min-w-0">
-                          <h3 className="font-bold text-base truncate text-foreground">{displayName}</h3>
+                          <div className="flex items-center gap-2">
+                             <h3 className="font-bold text-base truncate text-foreground">{displayName}</h3>
+                             {standing.isMe && <Badge className="bg-primary/10 text-primary text-[8px] h-4 font-bold border-none">You</Badge>}
+                          </div>
                           <p className={cn(
                             "text-[10px] font-extrabold uppercase tracking-widest mt-0.5 flex items-center gap-1",
                             isPositive ? "text-primary" : isNegative ? "text-accent" : "text-muted-foreground"
                           )}>
                             {isPositive ? <TrendingDown className="h-3 w-3" /> : isNegative ? <TrendingUpIcon className="h-3 w-3" /> : null}
-                            {isPositive ? 'Owed to you' : isNegative ? 'Your debt' : 'Perfectly settled'}
+                            {statusLabel}
                           </p>
                         </div>
                       </div>
@@ -323,7 +333,7 @@ export function TripBalances({ groupedStandings, suggestedPayments, expenses }: 
             <div className="flex items-start gap-3">
               <Info className="h-4 w-4 text-muted-foreground mt-0.5 shrink-0" />
               <p className="text-[11px] text-muted-foreground leading-relaxed font-medium">
-                Calculations are based on <strong>Total Paid</strong> (physical spend) minus <strong>Total Share</strong> (cost split). This matches the standard finance tracking in your trip exports.
+                Calculations are based on <strong>Total Paid</strong> minus <strong>Total Share</strong>. Positive means they are owed, negative means they owe.
               </p>
             </div>
           </div>
