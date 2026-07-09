@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState, useEffect, useMemo, useRef } from "react";
@@ -290,7 +289,8 @@ export default function TripDetails() {
         const families = new Set(selected.map(sid => sid.split('-')[0]));
         const sharePerFamily = amount / (families.size || 1);
         families.forEach(fid => {
-           const membersInFamily = selected.filter(sid => sid.startsWith(fid));
+           // Fixed: Strict check on family ID part to prevent prefix matching bugs
+           const membersInFamily = selected.filter(sid => sid.split('-')[0] === fid);
            const sharePerMember = sharePerFamily / (membersInFamily.length || 1);
            membersInFamily.forEach(mid => shareMap[mid] = (shareMap[mid] || 0) + sharePerMember);
         });

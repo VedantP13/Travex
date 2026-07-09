@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState, useMemo } from "react";
@@ -101,9 +100,11 @@ export function TripBalances({ groupedStandings, suggestedPayments, expenses }: 
         if (exp.splitType === 'equal_person') {
           shareAmt = amount / (selected.length || 1);
         } else if (exp.splitType === 'equal_family') {
+          // Fixed: Use precise ID segment matching to prevent prefix logic bleed
+          const targetParentId = mid.split('-')[0];
           const families = new Set(selected.map((sid: string) => sid.split('-')[0]));
           const sharePerFamily = amount / (families.size || 1);
-          const membersInThisFamily = selected.filter((sid: string) => sid.startsWith(mid.split('-')[0]));
+          const membersInThisFamily = selected.filter((sid: string) => sid.split('-')[0] === targetParentId);
           shareAmt = sharePerFamily / (membersInThisFamily.length || 1);
         } else if (exp.splitType === 'custom') {
           shareAmt = parseFloat(exp.customAmounts?.[mid]) || 0;
