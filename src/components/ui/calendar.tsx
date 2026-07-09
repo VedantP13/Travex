@@ -1,4 +1,3 @@
-
 "use client"
 
 import * as React from "react"
@@ -28,21 +27,21 @@ function Calendar({
         nav: "flex items-center",
         button_previous: cn(
           buttonVariants({ variant: "ghost" }),
-          "h-8 w-8 bg-muted/30 p-0 rounded-full opacity-60 hover:opacity-100 hover:bg-muted/50 absolute left-0 top-1/2 -translate-y-1/2 transition-all"
+          "h-8 w-8 bg-muted/30 p-0 rounded-full opacity-60 hover:opacity-100 hover:bg-muted/50 absolute left-0 top-1/2 -translate-y-1/2 transition-all z-10"
         ),
         button_next: cn(
           buttonVariants({ variant: "ghost" }),
-          "h-8 w-8 bg-muted/30 p-0 rounded-full opacity-60 hover:opacity-100 hover:bg-muted/50 absolute right-0 top-1/2 -translate-y-1/2 transition-all"
+          "h-8 w-8 bg-muted/30 p-0 rounded-full opacity-60 hover:opacity-100 hover:bg-muted/50 absolute right-0 top-1/2 -translate-y-1/2 transition-all z-10"
         ),
         month_grid: "w-full border-collapse space-y-1",
         weekdays: "flex justify-between mb-2",
         weekday:
-          "text-muted-foreground/60 rounded-md w-9 font-bold text-[0.7rem] uppercase tracking-wider",
+          "text-muted-foreground/60 rounded-md w-10 font-bold text-[0.7rem] uppercase tracking-wider text-center",
         week: "flex w-full mt-1 justify-between",
-        day: "h-9 w-9 text-center text-sm p-0 relative [&:has([aria-selected].day-range-end)]:rounded-r-2xl [&:has([aria-selected].day-outside)]:bg-accent/50 [&:has([aria-selected])]:bg-accent first:[&:has([aria-selected])]:rounded-l-2xl last:[&:has([aria-selected])]:rounded-r-2xl focus-within:relative focus-within:z-20",
+        day: "h-10 w-10 text-center text-sm p-0 relative flex items-center justify-center",
         day_button: cn(
           buttonVariants({ variant: "ghost" }),
-          "h-9 w-9 p-0 font-medium aria-selected:opacity-100 rounded-2xl hover:bg-muted/50 transition-all"
+          "h-10 w-10 p-0 font-medium aria-selected:opacity-100 rounded-xl hover:bg-muted/50 transition-all select-none touch-manipulation"
         ),
         range_end: "day-range-end",
         selected:
