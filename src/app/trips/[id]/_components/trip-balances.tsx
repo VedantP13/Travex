@@ -21,7 +21,9 @@ import {
   ArrowUpRight,
   ArrowRightCircle,
   Calculator,
-  FileText
+  FileText,
+  Sparkles,
+  ArrowRightLeft
 } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -186,37 +188,37 @@ export function TripBalances({ groupedStandings, suggestedPayments, expenses }: 
                   onClick={() => setShowSettlementDetail(true)}
                 >
                   <FileText className="h-3 w-3" />
-                  Detailed view
+                  Detailed View
                 </Button>
               </div>
               <Card className="border-none shadow-xl bg-accent/5 rounded-[2.5rem] overflow-hidden border-2 border-dashed border-accent/20">
                 <CardContent className="p-6 space-y-4">
                   {suggestedPayments.map((p, idx) => (
-                    <div key={idx} className="flex items-center justify-between gap-4 bg-white/80 backdrop-blur-sm p-3.5 rounded-2xl border border-white shadow-sm group transition-all hover:shadow-md">
-                      <div className="flex items-center gap-2.5 min-w-0 flex-1">
-                        <Avatar className="h-9 w-9 border shadow-sm shrink-0">
+                    <div key={idx} className="flex items-center justify-between gap-4 bg-white/80 backdrop-blur-sm p-4 rounded-2xl border border-white shadow-sm group transition-all hover:shadow-md">
+                      <div className="flex items-center gap-3 min-w-0 flex-1">
+                        <Avatar className="h-10 w-10 border-2 border-white shadow-sm shrink-0">
                           <AvatarImage src={p.fromAvatar} className="object-cover" />
                           <AvatarFallback className={getAvatarFallbackClasses(p.from)}>
                             {getInitials(p.from)}
                           </AvatarFallback>
                         </Avatar>
                         <div className="min-w-0">
-                          <p className="text-[11px] font-bold truncate text-foreground">{p.from.split(' ')[0]}</p>
-                          <p className="text-[8px] font-black text-accent/60 uppercase tracking-tighter">Pays</p>
+                          <p className="text-[11px] font-black truncate text-foreground">{p.from.split(' ')[0]}</p>
+                          <p className="text-[8px] font-bold text-accent/60 uppercase tracking-tighter">Pays</p>
                         </div>
                       </div>
                       
-                      <div className="flex flex-col items-center gap-0.5 shrink-0 px-2">
+                      <div className="flex flex-col items-center gap-1 shrink-0 px-2 group">
                          <span className="text-xs font-black text-foreground">₹{p.amount.toFixed(0)}</span>
-                         <ArrowRightCircle className="h-5 w-5 text-accent animate-pulse" strokeWidth={2.5} />
+                         <ArrowRightCircle className="h-6 w-6 text-accent animate-pulse group-hover:scale-110 transition-transform" strokeWidth={2.5} />
                       </div>
 
-                      <div className="flex items-center gap-2.5 min-w-0 flex-1 justify-end text-right">
+                      <div className="flex items-center gap-3 min-w-0 flex-1 justify-end text-right">
                         <div className="min-w-0">
-                          <p className="text-[11px] font-bold truncate text-foreground">{p.to.split(' ')[0]}</p>
-                          <p className="text-[8px] font-black text-primary/60 uppercase tracking-tighter">Receives</p>
+                          <p className="text-[11px] font-black truncate text-foreground">{p.to.split(' ')[0]}</p>
+                          <p className="text-[8px] font-bold text-primary/60 uppercase tracking-tighter">Receives</p>
                         </div>
-                        <Avatar className="h-9 w-9 border shadow-sm shrink-0">
+                        <Avatar className="h-10 w-10 border-2 border-white shadow-sm shrink-0">
                           <AvatarImage src={p.toAvatar} className="object-cover" />
                           <AvatarFallback className={getAvatarFallbackClasses(p.to)}>
                             {getInitials(p.to)}
@@ -225,9 +227,10 @@ export function TripBalances({ groupedStandings, suggestedPayments, expenses }: 
                       </div>
                     </div>
                   ))}
-                  <div className="bg-white/40 p-3 rounded-xl">
-                     <p className="text-[9px] text-center text-muted-foreground font-bold leading-relaxed">
-                       Following this guide is the fastest way to bring everyone's balance back to zero.
+                  <div className="bg-white/40 p-3 rounded-xl flex items-center gap-2 justify-center">
+                     <Sparkles className="h-3 w-3 text-accent" />
+                     <p className="text-[9px] text-muted-foreground font-bold leading-relaxed">
+                       Generated a simplified plan with the minimal number of transfers.
                      </p>
                   </div>
                 </CardContent>
@@ -247,10 +250,7 @@ export function TripBalances({ groupedStandings, suggestedPayments, expenses }: 
                   ? (standing.isSolo ? "You" : "Your family") 
                   : (standing.isSolo ? standing.name : `${standing.name}'s family`);
 
-                // Perspective-correct labeling
-                const statusLabel = standing.isMe 
-                  ? (isPositive ? "Owed to you" : isNegative ? "You owe" : "Settled up")
-                  : (isPositive ? "They are owed" : isNegative ? "They owe" : "Settled up");
+                const statusLabel = isPositive ? "Gets back" : isNegative ? "Needs to pay" : "Settled up";
 
                 const participationCount = memberInsights[standing.id] || 0;
 
@@ -389,17 +389,6 @@ export function TripBalances({ groupedStandings, suggestedPayments, expenses }: 
                </div>
             </div>
           )}
-
-          <div className="mt-8 bg-muted/20 rounded-[2rem] p-6 border border-dashed border-muted/50">
-            <div className="flex items-start gap-4">
-              <div className="h-8 w-8 rounded-xl bg-white flex items-center justify-center shrink-0 shadow-sm">
-                <Info className="h-4 w-4 text-muted-foreground" />
-              </div>
-              <p className="text-[11px] text-muted-foreground leading-relaxed font-bold">
-                Standing is calculated as <strong className="text-foreground">Total Paid</strong> minus <strong className="text-foreground">Total Spent</strong>. A green balance means you spent less than you covered, and an orange balance means you need to settle your share.
-              </p>
-            </div>
-          </div>
         </div>
       ) : (
         <div className="text-center py-20 bg-white rounded-[2.5rem] border-2 border-dashed border-muted/50 px-10">
@@ -510,59 +499,77 @@ export function TripBalances({ groupedStandings, suggestedPayments, expenses }: 
       {/* SETTLEMENT LOGIC DETAIL DIALOG */}
       <Dialog open={showSettlementDetail} onOpenChange={setShowSettlementDetail}>
         <DialogContent className="max-w-[calc(100vw-40px)] w-full rounded-[2.5rem] p-0 border-none shadow-2xl bg-white overflow-hidden animate-in fade-in zoom-in-95 duration-300 [&>button]:hidden">
-          <div className="h-32 bg-foreground relative flex flex-col items-center justify-center shrink-0">
+          <div className="h-36 bg-foreground relative flex flex-col items-center justify-center shrink-0">
              <div className="absolute top-4 right-4">
                 <DialogClose className="h-8 w-8 rounded-full bg-white/10 text-white/70 hover:bg-white/20 transition-all flex items-center justify-center">
                   <X className="h-4 w-4" />
                 </DialogClose>
              </div>
              <div className="flex flex-col items-center text-center">
-                <Calculator className="h-8 w-8 text-accent mb-2" />
+                <div className="h-12 w-12 rounded-2xl bg-accent/20 flex items-center justify-center mb-3">
+                  <ArrowRightLeft className="h-6 w-6 text-accent" />
+                </div>
                 <DialogTitle className="text-xl font-bold text-white">How it's calculated</DialogTitle>
                 <DialogDescription className="text-[10px] font-black text-white/40 uppercase tracking-[0.2em]">Settlement Logic</DialogDescription>
              </div>
           </div>
 
           <ScrollArea className="max-h-[60vh]">
-            <div className="p-6 space-y-8">
+            <div className="p-8 space-y-8">
               <div className="space-y-4">
                  <h4 className="text-[10px] font-black text-muted-foreground uppercase tracking-widest px-1">1. The Ledger</h4>
                  <p className="text-xs text-muted-foreground leading-relaxed">
                    We start by calculating the <span className="font-bold text-foreground">Net Standings</span> for every member: 
                    Total amount paid minus their total share of expenses.
                  </p>
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                 <div className="space-y-3">
-                    <h4 className="text-[9px] font-black text-accent uppercase tracking-wider">Debtors</h4>
-                    <div className="space-y-2">
-                       {groupedStandings.filter(s => s.netTotal < -0.01).map(s => (
-                         <div key={s.id} className="bg-accent/5 p-2 rounded-xl flex justify-between items-center border border-accent/10">
-                            <span className="text-[10px] font-bold truncate pr-1">{s.name.split(' ')[0]}</span>
-                            <span className="text-[10px] font-black text-accent">₹{Math.abs(s.netTotal).toFixed(0)}</span>
-                         </div>
-                       ))}
+                 
+                 <div className="grid grid-cols-2 gap-4 pt-2">
+                    <div className="space-y-3">
+                        <h4 className="text-[9px] font-black text-accent uppercase tracking-wider">Debtors</h4>
+                        <div className="space-y-2">
+                          {groupedStandings.filter(s => s.netTotal < -0.01).map(s => (
+                            <div key={s.id} className="bg-accent/5 p-2.5 rounded-xl flex justify-between items-center border border-accent/10">
+                                <span className="text-[10px] font-bold truncate pr-1 text-foreground">{s.name.split(' ')[0]}</span>
+                                <span className="text-[10px] font-black text-accent">₹{Math.abs(s.netTotal).toFixed(0)}</span>
+                            </div>
+                          ))}
+                          {groupedStandings.filter(s => s.netTotal < -0.01).length === 0 && <p className="text-[9px] text-muted-foreground italic">None</p>}
+                        </div>
+                    </div>
+                    <div className="space-y-3">
+                        <h4 className="text-[9px] font-black text-primary uppercase tracking-wider">Creditors</h4>
+                        <div className="space-y-2">
+                          {groupedStandings.filter(s => s.netTotal > 0.01).map(s => (
+                            <div key={s.id} className="bg-primary/5 p-2.5 rounded-xl flex justify-between items-center border border-primary/10">
+                                <span className="text-[10px] font-bold truncate pr-1 text-foreground">{s.name.split(' ')[0]}</span>
+                                <span className="text-[10px] font-black text-primary">₹{s.netTotal.toFixed(0)}</span>
+                            </div>
+                          ))}
+                          {groupedStandings.filter(s => s.netTotal > 0.01).length === 0 && <p className="text-[9px] text-muted-foreground italic">None</p>}
+                        </div>
                     </div>
                  </div>
-                 <div className="space-y-3">
-                    <h4 className="text-[9px] font-black text-primary uppercase tracking-wider">Creditors</h4>
-                    <div className="space-y-2">
-                       {groupedStandings.filter(s => s.netTotal > 0.01).map(s => (
-                         <div key={s.id} className="bg-primary/5 p-2 rounded-xl flex justify-between items-center border border-primary/10">
-                            <span className="text-[10px] font-bold truncate pr-1">{s.name.split(' ')[0]}</span>
-                            <span className="text-[10px] font-black text-primary">₹{s.netTotal.toFixed(0)}</span>
-                         </div>
-                       ))}
-                    </div>
-                 </div>
               </div>
 
-              <div className="space-y-4 pt-4 border-t border-muted/20">
+              <div className="space-y-4 pt-6 border-t border-muted/20">
                  <h4 className="text-[10px] font-black text-muted-foreground uppercase tracking-widest px-1">2. Optimization</h4>
                  <p className="text-xs text-muted-foreground leading-relaxed">
-                   The app uses a greedy algorithm to pair the person who owes the most with the person who is owed the most.
-                   This <span className="font-bold text-foreground">minimizes the total number of transfers</span> needed to settle the trip.
+                   Instead of everyone paying for every bill, we use a <span className="font-bold text-foreground">greedy algorithm</span> that pairs the biggest Debtors with the biggest Creditors.
+                 </p>
+                 <div className="bg-muted/30 p-4 rounded-2xl flex items-start gap-4">
+                    <div className="h-8 w-8 rounded-full bg-white flex items-center justify-center shrink-0">
+                       <ArrowRight className="h-4 w-4 text-accent" />
+                    </div>
+                    <p className="text-[11px] text-muted-foreground font-medium leading-normal italic">
+                      "By pooling all debts, we minimize the total number of transfers needed to bring everyone back to zero."
+                    </p>
+                 </div>
+              </div>
+
+              <div className="space-y-4 pt-6 border-t border-muted/20 pb-4">
+                 <h4 className="text-[10px] font-black text-muted-foreground uppercase tracking-widest px-1">3. The Result</h4>
+                 <p className="text-xs text-muted-foreground leading-relaxed">
+                   The <span className="font-bold text-foreground">Settlement Plan</span> on your dashboard is the final result of this simplification.
                  </p>
               </div>
             </div>
@@ -570,7 +577,7 @@ export function TripBalances({ groupedStandings, suggestedPayments, expenses }: 
 
           <div className="p-6 bg-muted/5 border-t">
              <Button 
-               className="w-full h-14 rounded-2xl bg-primary text-white font-bold text-base shadow-lg shadow-primary/20"
+               className="w-full h-14 rounded-2xl bg-primary text-white font-bold text-base shadow-lg shadow-primary/20 active:scale-95 transition-all"
                onClick={() => setShowSettlementDetail(false)}
              >
                Got it
