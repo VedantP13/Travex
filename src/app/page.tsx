@@ -12,7 +12,7 @@ import { AnimatedCompass } from "@/components/animated-compass";
 import { useTrips } from "@/context/trips-context";
 import { useUser, useFirestore } from "@/firebase";
 import { useEffect, useState, useMemo } from "react";
-import { doc, onSnapshot, getDoc, setDoc, serverTimestamp } from "firebase/firestore";
+import { doc, onSnapshot, getDoc, setDoc, serverTimestamp, Timestamp } from "firebase/firestore";
 import { getTripImage } from "@/lib/image-utils";
 import { getInitials, getAvatarFallbackClasses } from "@/lib/avatar-utils";
 import { OnboardingDialog } from "@/components/onboarding-dialog";
@@ -49,17 +49,15 @@ export default function Home() {
     }
   }, []);
 
-  // Optimized Profile Sync & Fetching
+  // Profile Sync & Fetching
   useEffect(() => {
     if (!user?.uid || !firestore) return;
 
-    // 1. Setup real-time listener for profile
     const unsub = onSnapshot(doc(firestore, "users", user.uid), (snap) => {
       if (snap.exists()) {
         const data = snap.data();
         setFirestoreProfile(data);
       } else {
-        // 2. Initial sync if profile doesn't exist yet
         const isGoogleUser = user.providerData.some(p => p.providerId === 'google.com');
         const initialProfile: any = {
           displayName: user.displayName || (user.isAnonymous ? "Guest Explorer" : "Explorer"),
@@ -69,7 +67,6 @@ export default function Home() {
           updatedAt: serverTimestamp(),
         };
         
-        // Only set photoURL from Auth for Google users if it's the very first time
         if (isGoogleUser && user.photoURL) {
           initialProfile.photoURL = user.photoURL;
         }
@@ -82,12 +79,10 @@ export default function Home() {
     return () => unsub();
   }, [user?.uid, firestore, user?.displayName, user?.email, user?.isAnonymous, user?.providerData]);
 
-  // Onboarding Logic: Only trigger if truly a first-time experience
+  // Onboarding Logic: Trigger if no trips, no saved family, and never interacted before
   useEffect(() => {
     if (!loading && trips.length === 0 && firestoreProfile && !onboardingComplete) {
       const hasFamily = firestoreProfile.familyMembers && firestoreProfile.familyMembers.length > 0;
-      
-      // If they don't have family set up and no trips, and haven't interacted before
       if (!hasFamily) {
         setShowOnboarding(true);
       }
@@ -133,12 +128,17 @@ export default function Home() {
     return new Date(activeTrip.endDate) < today;
   }, [activeTrip]);
 
-  // CRITICAL: Prioritize Firestore Profile photo to avoid Auth limits and sync loops
   const displayPhoto = firestoreProfile?.photoURL || user?.photoURL || "";
   const welcomeName = firestoreProfile?.displayName || user?.displayName || (user?.isAnonymous ? 'Guest' : 'Explorer');
   const greetingName = welcomeName.split(' ')[0];
   
   const hasFamily = firestoreProfile?.familyMembers && firestoreProfile.familyMembers.length > 0;
+
+  const handleDismissOnboarding = () => {
+    setOnboardingComplete(true);
+    localStorage.setItem('travex_onboarding_interacted', 'true');
+    setShowOnboarding(false);
+  };
 
   return (
     <div className="max-w-md mx-auto min-h-screen flex flex-col bg-background pb-56">
@@ -276,7 +276,6 @@ export default function Home() {
               </Link>
             </>
           ) : (
-            // Phase 1 Launchpad UI: Show prominent CTA if onboarding is complete or family exists
             (hasFamily || onboardingComplete) ? (
               <Card className="col-span-12 border-none shadow-xl rounded-[2.5rem] bg-primary overflow-hidden relative">
                 <CardContent className="p-10 flex flex-col items-center text-center space-y-8 relative z-10">
@@ -419,7 +418,6 @@ export default function Home() {
                 </Link>
               );
             }) : (
-              // Phase 1 Footer logic: Encouragement footer for launchpad
               (hasFamily || onboardingComplete) ? (
                 <div className="text-center py-10 opacity-30 select-none animate-in fade-in duration-1000">
                    <PlaneTakeoff className="h-10 w-10 mx-auto mb-3 text-muted-foreground" />
@@ -449,14 +447,10 @@ export default function Home() {
         onOpenChange={(open) => {
           setShowOnboarding(open);
           if (!open) {
-            setOnboardingComplete(true);
-            localStorage.setItem('travex_onboarding_interacted', 'true');
+            handleDismissOnboarding();
           }
         }}
-        onComplete={() => {
-          setOnboardingComplete(true);
-          localStorage.setItem('travex_onboarding_interacted', 'true');
-        }}
+        onComplete={handleDismissOnboarding}
       />
 
       <BottomNav />

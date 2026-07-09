@@ -1,4 +1,3 @@
-
 'use client';
 
 import { initializeApp, getApps, FirebaseApp } from "firebase/app";
@@ -7,14 +6,12 @@ import {
   Firestore, 
   initializeFirestore, 
   persistentLocalCache, 
-  persistentMultipleTabManager 
+  persistentSingleTabManager 
 } from "firebase/firestore";
 import { getAuth, Auth } from "firebase/auth";
 
 /**
  * Firebase configuration object.
- * When deploying to App Hosting, ensure these NEXT_PUBLIC_ variables 
- * are set in your App Hosting dashboard secrets or environment variables.
  */
 const firebaseConfig = {
   apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
@@ -42,17 +39,16 @@ export function getFirestoreInstance(app?: FirebaseApp): Firestore {
   
   if (firestoreInstance) return firestoreInstance;
 
-  // Initialize Firestore with local persistence enabled.
-  // This allows the app to store data locally in IndexedDB, enabling
-  // full functionality (reading and adding expenses) while traveling offline.
+  // Initialize Firestore with single-tab local persistence.
+  // This resolves the "Failed to obtain primary lease" errors common in dev environments
+  // while still allowing the app to store data locally for offline travel use.
   try {
     firestoreInstance = initializeFirestore(currentApp, {
       localCache: persistentLocalCache({
-        tabManager: persistentMultipleTabManager()
+        tabManager: persistentSingleTabManager()
       })
     });
   } catch (e) {
-    // Fallback to standard initialization if already initialized
     firestoreInstance = getFirestore(currentApp);
   }
 
