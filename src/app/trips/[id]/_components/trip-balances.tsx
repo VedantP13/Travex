@@ -19,7 +19,6 @@ import {
   Wallet,
   ArrowDownLeft,
   ArrowUpRight,
-  ArrowRightCircle,
   Calculator,
   FileText,
   ArrowRightLeft,
@@ -219,7 +218,7 @@ export function TripBalances({ groupedStandings, suggestedPayments, expenses }: 
                       
                       <div className="flex flex-col items-center gap-1 shrink-0 px-2 group">
                          <span className="text-xs font-black text-foreground">₹{p.amount.toFixed(0)}</span>
-                         <ArrowRightCircle className="h-6 w-6 text-accent animate-pulse group-hover:scale-110 transition-transform" strokeWidth={2.5} />
+                         <ArrowRight className="h-6 w-6 text-accent animate-pulse group-hover:scale-110 transition-transform" strokeWidth={2.5} />
                       </div>
 
                       <div className="flex items-center gap-3 min-w-0 flex-1 justify-end text-right">
@@ -512,18 +511,15 @@ export function TripBalances({ groupedStandings, suggestedPayments, expenses }: 
       {/* SETTLEMENT LOGIC DETAIL DIALOG */}
       <Dialog open={showSettlementDetail} onOpenChange={(open) => !open && setShowSettlementDetail(null)}>
         <DialogContent className="max-w-[calc(100vw-32px)] w-full rounded-[2.5rem] p-0 border-none shadow-2xl bg-white overflow-hidden animate-in fade-in zoom-in-95 duration-300 [&>button]:hidden">
-          <div className="h-28 bg-foreground relative flex flex-col items-center justify-center shrink-0">
+          <div className="h-24 bg-foreground relative flex flex-col items-center justify-center shrink-0">
              <div className="absolute top-4 right-4">
                 <DialogClose className="h-8 w-8 rounded-full bg-white/10 text-white/70 hover:bg-white/20 transition-all flex items-center justify-center">
                   <X className="h-4 w-4" />
                 </DialogClose>
              </div>
              <div className="flex flex-col items-center text-center">
-                <div className="h-10 w-10 rounded-2xl bg-accent/20 flex items-center justify-center mb-2">
-                  <ArrowRightLeft className="h-5 w-5 text-accent" />
-                </div>
-                <DialogTitle className="text-lg font-bold text-white">How it's calculated</DialogTitle>
-                <DialogDescription className="text-[9px] font-black text-white/40 uppercase tracking-[0.2em]">Settlement Logic</DialogDescription>
+                <DialogTitle className="text-lg font-bold text-white leading-none">How it's calculated</DialogTitle>
+                <DialogDescription className="text-[9px] font-black text-white/40 uppercase tracking-[0.2em] mt-1.5">Settlement Logic</DialogDescription>
              </div>
           </div>
 
@@ -573,7 +569,7 @@ export function TripBalances({ groupedStandings, suggestedPayments, expenses }: 
                     <div className="space-y-1">
                       <p className="text-[11px] text-foreground font-bold uppercase tracking-tight">Debt Simplification</p>
                       <p className="text-[10px] text-muted-foreground font-medium leading-relaxed">
-                        Instead of multiple back-and-forth payments between individuals, we pool everyone's activity to minimize transfers.
+                        Instead of multiple back-and-forth payments between individuals, we pool everyone's activity. This settlement plan ensures all debts are resolved with the minimum number of transfers possible.
                       </p>
                     </div>
                  </div>
@@ -581,6 +577,9 @@ export function TripBalances({ groupedStandings, suggestedPayments, expenses }: 
 
               <div className="space-y-4 pt-6 border-t border-muted/20">
                 <h4 className="text-[10px] font-black text-muted-foreground uppercase tracking-widest px-1">3. Verification Audit</h4>
+                <p className="text-[11px] text-muted-foreground leading-relaxed px-1">
+                  Real data used to calculate the balances above:
+                </p>
                 <div className="space-y-3">
                   {auditExpenses.slice(0, 15).map((exp) => (
                     <div key={exp.id} className="p-3 bg-white border border-muted/30 rounded-[1.25rem] shadow-sm space-y-3 transition-all hover:border-primary/20 group">
