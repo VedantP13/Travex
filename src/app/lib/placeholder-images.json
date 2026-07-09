@@ -1,59 +1,52 @@
-
 {
   "placeholderImages": [
     {
       "id": "trip-bali",
-      "description": "Lush tropical jungle and villa in Bali",
-      "imageUrl": "https://picsum.photos/seed/bali-tropical/600/400",
+      "description": "Tropical paradise in Bali",
+      "imageUrl": "https://picsum.photos/seed/bali-trip-style/600/400",
       "imageHint": "bali tropical"
     },
     {
       "id": "trip-paris",
-      "description": "Eiffel Tower viewed from a distance",
-      "imageUrl": "https://picsum.photos/seed/paris-eiffel/600/400",
-      "imageHint": "paris eiffel"
+      "description": "Elegant city vibes in Paris",
+      "imageUrl": "https://picsum.photos/seed/paris-trip-style/600/400",
+      "imageHint": "paris city"
     },
     {
       "id": "trip-tokyo",
-      "description": "Neon lights of Shinjuku at night",
-      "imageUrl": "https://picsum.photos/seed/tokyo-city-night/600/400",
-      "imageHint": "tokyo city night"
+      "description": "Neon nights in Tokyo",
+      "imageUrl": "https://picsum.photos/seed/tokyo-trip-style/600/400",
+      "imageHint": "tokyo neon"
     },
     {
       "id": "trip-rome",
-      "description": "The Colosseum under a clear blue sky",
-      "imageUrl": "https://picsum.photos/seed/rome-colosseum/600/400",
-      "imageHint": "rome colosseum"
+      "description": "Historic monuments in Rome",
+      "imageUrl": "https://picsum.photos/seed/rome-trip-style/600/400",
+      "imageHint": "rome history"
     },
     {
       "id": "trip-goa",
-      "description": "Palm-fringed beach at sunset in Goa",
-      "imageUrl": "https://picsum.photos/seed/goa-beach-sea/600/400",
-      "imageHint": "goa beach sea"
+      "description": "Golden beaches of Goa",
+      "imageUrl": "https://picsum.photos/seed/goa-trip-style/600/400",
+      "imageHint": "goa beach"
     },
     {
-      "id": "trip-london",
-      "description": "Big Ben and Westminster Bridge",
-      "imageUrl": "https://picsum.photos/seed/london-bridge-bigben/600/400",
-      "imageHint": "london bridge"
+      "id": "trip-mountain",
+      "description": "Majestic snowy peaks",
+      "imageUrl": "https://picsum.photos/seed/mountain-trip-style/600/400",
+      "imageHint": "mountain snow"
     },
     {
-      "id": "trip-ny",
-      "description": "Manhattan skyline at dusk",
-      "imageUrl": "https://picsum.photos/seed/newyork-skyline-city/600/400",
-      "imageHint": "new york"
+      "id": "trip-forest",
+      "description": "Lush evergreen forest",
+      "imageUrl": "https://picsum.photos/seed/forest-trip-style/600/400",
+      "imageHint": "forest green"
     },
     {
-      "id": "trip-singapore",
-      "description": "Gardens by the Bay in Singapore",
-      "imageUrl": "https://picsum.photos/seed/singapore-marina/600/400",
-      "imageHint": "singapore"
-    },
-    {
-      "id": "hero-travel",
-      "description": "Aerial view of a coastal city at sunset",
-      "imageUrl": "https://picsum.photos/seed/travel-sunset-coastal/1200/600",
-      "imageHint": "travel sunset"
+      "id": "trip-desert",
+      "description": "Endless desert dunes",
+      "imageUrl": "https://picsum.photos/seed/desert-trip-style/600/400",
+      "imageHint": "desert sand"
     }
   ]
 }

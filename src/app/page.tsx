@@ -39,6 +39,16 @@ export default function Home() {
     return () => clearInterval(interval);
   }, []);
 
+  // Check if onboarding was already shown or dismissed in this browser
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const wasShown = localStorage.getItem('travex_onboarding_interacted') === 'true';
+      if (wasShown) {
+        setOnboardingComplete(true);
+      }
+    }
+  }, []);
+
   // Optimized Profile Sync & Fetching
   useEffect(() => {
     if (!user?.uid || !firestore) return;
@@ -72,12 +82,12 @@ export default function Home() {
     return () => unsub();
   }, [user?.uid, firestore, user?.displayName, user?.email, user?.isAnonymous, user?.providerData]);
 
-  // Persistent Onboarding Logic: Show dialog if no trips AND no family members
+  // Onboarding Logic: Only trigger if truly a first-time experience
   useEffect(() => {
     if (!loading && trips.length === 0 && firestoreProfile && !onboardingComplete) {
       const hasFamily = firestoreProfile.familyMembers && firestoreProfile.familyMembers.length > 0;
       
-      // If they don't have family set up and no trips, show the dialog to prompt setup
+      // If they don't have family set up and no trips, and haven't interacted before
       if (!hasFamily) {
         setShowOnboarding(true);
       }
@@ -438,9 +448,15 @@ export default function Home() {
         isOpen={showOnboarding} 
         onOpenChange={(open) => {
           setShowOnboarding(open);
-          if (!open) setOnboardingComplete(true); // Treat dismissal as completion to show the Launchpad card
+          if (!open) {
+            setOnboardingComplete(true);
+            localStorage.setItem('travex_onboarding_interacted', 'true');
+          }
         }}
-        onComplete={() => setOnboardingComplete(true)}
+        onComplete={() => {
+          setOnboardingComplete(true);
+          localStorage.setItem('travex_onboarding_interacted', 'true');
+        }}
       />
 
       <BottomNav />
