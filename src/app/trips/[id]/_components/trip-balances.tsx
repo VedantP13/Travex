@@ -321,7 +321,7 @@ export function TripBalances({ groupedStandings, suggestedPayments, expenses }: 
                            </div>
                            <div className="space-y-1.5">
                               <div className="flex justify-between items-center text-[8px] font-black text-muted-foreground uppercase tracking-widest">
-                                 <span>Spent</span>
+                                 <span>Share</span>
                                  <span>₹{standing.totalShare.toFixed(0)}</span>
                               </div>
                               <div className="h-1 w-full bg-muted/40 rounded-full overflow-hidden">
@@ -346,7 +346,7 @@ export function TripBalances({ groupedStandings, suggestedPayments, expenses }: 
                                 <div className="min-w-0">
                                   <span className="font-bold text-[11px] text-foreground block truncate group-hover:text-primary transition-colors">{b.name}</span>
                                   <p className="text-[8px] text-muted-foreground/60 font-black uppercase tracking-tighter">
-                                    P ₹{b.paid.toFixed(0)} • S ₹{b.share.toFixed(0)}
+                                    Paid ₹{b.paid.toFixed(0)} • Share ₹{b.share.toFixed(0)}
                                   </p>
                                 </div>
                                 <div className="flex items-center gap-2">
@@ -473,7 +473,7 @@ export function TripBalances({ groupedStandings, suggestedPayments, expenses }: 
                   <p className="text-sm font-black text-foreground">₹{totals.paid.toFixed(0)}</p>
                 </div>
                 <div className="text-center">
-                  <p className="text-[8px] font-black text-muted-foreground/40 uppercase">Total Spent</p>
+                  <p className="text-[8px] font-black text-muted-foreground/40 uppercase">Total Share</p>
                   <p className="text-sm font-black text-accent">₹{totals.share.toFixed(0)}</p>
                 </div>
                 <div className="text-right">
