@@ -541,14 +541,14 @@ export default function EditExpensePage() {
   }
 
   return (
-    <div className="max-w-md mx-auto min-h-screen bg-background flex flex-col">
-      <header className="px-safe-pad py-6 flex items-center justify-between border-b bg-white sticky top-0 z-10">
+    <div className="max-w-md mx-auto h-[100dvh] bg-background flex flex-col overflow-hidden">
+      <header className="px-safe-pad py-6 flex items-center justify-between border-b bg-white shrink-0">
         <Button variant="ghost" size="icon" onClick={step === 1 ? () => router.back() : () => setStep(1)}><ChevronLeft className="h-6 w-6" /></Button>
         <div className="flex gap-2">{[1, 2].map(s => <div key={s} className={cn("h-1.5 w-12 rounded-full transition-all duration-300", s <= step ? 'bg-primary' : 'bg-muted')} />)}</div>
         <Button variant="ghost" size="icon" onClick={() => router.push(`/trips/${tripId}`)}><X className="h-6 w-6" /></Button>
       </header>
 
-      <main className="flex-1 px-safe-pad py-8 overflow-y-auto pb-32">
+      <main className="flex-1 px-safe-pad py-8 overflow-y-auto">
         {step === 1 ? (
           <div className="space-y-8 animate-in fade-in slide-in-from-right-4 duration-300">
             <div className="p-3 bg-accent/5 rounded-2xl border-2 border-dashed border-accent/20 flex items-center justify-center gap-3 mx-2">
@@ -722,7 +722,7 @@ export default function EditExpensePage() {
         )}
       </main>
 
-      <footer className="p-safe-pad border-t bg-white fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-md z-20 shadow-[0_-4px_25px_rgba(0,0,0,0.05)]">
+      <footer className="px-safe-pad py-6 border-t bg-white shrink-0">
          {step === 1 ? (
             <Button className="w-full h-14 rounded-2xl text-base font-bold shadow-lg shadow-primary/20 gap-2 transition-all active:scale-95" onClick={() => setStep(2)}>Choose splitting <ChevronRight className="h-5 w-5" /></Button>
          ) : (
