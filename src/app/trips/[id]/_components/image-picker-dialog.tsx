@@ -33,7 +33,6 @@ export function ImagePickerDialog({ isOpen, onOpenChange, currentImage, onSave, 
   const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) {
-      // 1. Check file type
       if (!file.type.startsWith('image/')) {
         toast({
           variant: "destructive",
@@ -43,7 +42,6 @@ export function ImagePickerDialog({ isOpen, onOpenChange, currentImage, onSave, 
         return;
       }
 
-      // 2. Check file size (Firestore base64 strings should stay under 800KB for safety)
       if (file.size > 800000) {
         toast({
           variant: "destructive",

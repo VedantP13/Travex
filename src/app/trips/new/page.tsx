@@ -774,11 +774,8 @@ export default function CreateTrip() {
             </div>
 
             <div className="relative">
-              {/* Fade Overlays */}
-              <div className="absolute top-0 left-0 right-0 h-10 bg-gradient-to-b from-white via-white/80 to-transparent z-20 pointer-events-none" />
-              
               <ScrollArea className="h-[300px] w-full pr-4 -mx-2 px-2 scrollbar-thin">
-                <div className="space-y-3 py-10">
+                <div className="space-y-3 py-4">
                   {lastTrip?.participants
                     ?.filter((p: any) => p.userId !== user?.uid && !ignoredReuseIds.has(p.id))
                     ?.map((p: any) => {
@@ -868,8 +865,9 @@ export default function CreateTrip() {
                     })}
                 </div>
               </ScrollArea>
-
-              <div className="absolute bottom-0 left-0 right-0 h-10 bg-gradient-to-t from-white via-white/80 to-transparent z-20 pointer-events-none" />
+              {/* Fade cues */}
+              <div className="absolute top-0 left-0 right-0 h-6 bg-gradient-to-b from-white to-transparent pointer-events-none z-10" />
+              <div className="absolute bottom-0 left-0 right-0 h-6 bg-gradient-to-t from-white to-transparent pointer-events-none z-10" />
             </div>
 
             <div className="grid gap-2 pt-1">
