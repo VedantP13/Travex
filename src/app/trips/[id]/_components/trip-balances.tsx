@@ -22,7 +22,6 @@ import {
   ArrowRightCircle,
   Calculator,
   FileText,
-  Sparkles,
   ArrowRightLeft,
   History
 } from "lucide-react";
@@ -570,14 +569,11 @@ export function TripBalances({ groupedStandings, suggestedPayments, expenses }: 
 
               <div className="space-y-4 pt-6 border-t border-muted/20">
                  <h4 className="text-[10px] font-black text-muted-foreground uppercase tracking-widest px-1">2. Optimization</h4>
-                 <div className="bg-muted/30 p-5 rounded-2xl flex items-start gap-4 border border-muted/50">
-                    <div className="h-10 w-10 rounded-2xl bg-white flex items-center justify-center shrink-0 shadow-sm">
-                       <Sparkles className="h-5 w-5 text-accent animate-pulse" />
-                    </div>
+                 <div className="bg-muted/30 p-5 rounded-2xl border border-muted/50">
                     <div className="space-y-1">
-                      <p className="text-[11px] text-foreground font-bold">Why it's simplified</p>
-                      <p className="text-[10px] text-muted-foreground font-medium leading-relaxed italic">
-                        "Instead of moving money back and forth (like Harsh paying Naman for a perfume), we pool everyone's activity. Your payment to Naman settles Harsh's debt for him automatically."
+                      <p className="text-[11px] text-foreground font-bold uppercase tracking-tight">Debt Simplification</p>
+                      <p className="text-[10px] text-muted-foreground font-medium leading-relaxed">
+                        Instead of multiple back-and-forth payments between individuals, we pool everyone's activity. This settlement plan ensures all debts are resolved with the minimum number of transfers possible.
                       </p>
                     </div>
                  </div>
