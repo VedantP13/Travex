@@ -511,34 +511,34 @@ export function TripBalances({ groupedStandings, suggestedPayments, expenses }: 
 
       {/* SETTLEMENT LOGIC DETAIL DIALOG */}
       <Dialog open={showSettlementDetail} onOpenChange={(open) => !open && setShowSettlementDetail(null)}>
-        <DialogContent className="max-w-[calc(100vw-40px)] w-full rounded-[2.5rem] p-0 border-none shadow-2xl bg-white overflow-hidden animate-in fade-in zoom-in-95 duration-300 [&>button]:hidden">
-          <div className="h-36 bg-foreground relative flex flex-col items-center justify-center shrink-0">
+        <DialogContent className="max-w-[calc(100vw-32px)] w-full rounded-[2.5rem] p-0 border-none shadow-2xl bg-white overflow-hidden animate-in fade-in zoom-in-95 duration-300 [&>button]:hidden">
+          <div className="h-28 bg-foreground relative flex flex-col items-center justify-center shrink-0">
              <div className="absolute top-4 right-4">
                 <DialogClose className="h-8 w-8 rounded-full bg-white/10 text-white/70 hover:bg-white/20 transition-all flex items-center justify-center">
                   <X className="h-4 w-4" />
                 </DialogClose>
              </div>
              <div className="flex flex-col items-center text-center">
-                <div className="h-12 w-12 rounded-2xl bg-accent/20 flex items-center justify-center mb-3">
-                  <ArrowRightLeft className="h-6 w-6 text-accent" />
+                <div className="h-10 w-10 rounded-2xl bg-accent/20 flex items-center justify-center mb-2">
+                  <ArrowRightLeft className="h-5 w-5 text-accent" />
                 </div>
-                <DialogTitle className="text-xl font-bold text-white">How it's calculated</DialogTitle>
-                <DialogDescription className="text-[10px] font-black text-white/40 uppercase tracking-[0.2em]">Settlement Logic</DialogDescription>
+                <DialogTitle className="text-lg font-bold text-white">How it's calculated</DialogTitle>
+                <DialogDescription className="text-[9px] font-black text-white/40 uppercase tracking-[0.2em]">Settlement Logic</DialogDescription>
              </div>
           </div>
 
-          <ScrollArea className="max-h-[70vh]">
-            <div className="p-8 space-y-8">
+          <ScrollArea className="max-h-[65vh]">
+            <div className="p-5 sm:p-6 space-y-6">
               <div className="space-y-4">
                  <h4 className="text-[10px] font-black text-muted-foreground uppercase tracking-widest px-1">1. The Ledger</h4>
-                 <p className="text-xs text-muted-foreground leading-relaxed">
+                 <p className="text-[11px] text-muted-foreground leading-relaxed">
                    We calculate the <span className="font-bold text-foreground">Net Standings</span> by subtracting total share from total paid for every member.
                  </p>
                  
-                 <div className="grid grid-cols-2 gap-4 pt-2">
-                    <div className="space-y-3">
-                        <h4 className="text-[9px] font-black text-accent uppercase tracking-wider">Debtors</h4>
-                        <div className="space-y-2">
+                 <div className="grid grid-cols-1 gap-3 pt-1">
+                    <div className="space-y-2">
+                        <h4 className="text-[9px] font-black text-accent uppercase tracking-wider px-1">Debtors</h4>
+                        <div className="grid gap-2">
                           {groupedStandings.filter(s => s.netTotal < -0.01).map(s => (
                             <div key={s.id} className="bg-accent/5 p-3 rounded-xl space-y-1 border border-accent/10">
                                 <span className="text-[10px] font-bold truncate block text-foreground">{s.name}</span>
@@ -550,9 +550,9 @@ export function TripBalances({ groupedStandings, suggestedPayments, expenses }: 
                           ))}
                         </div>
                     </div>
-                    <div className="space-y-3">
-                        <h4 className="text-[9px] font-black text-primary uppercase tracking-wider">Creditors</h4>
-                        <div className="space-y-2">
+                    <div className="space-y-2">
+                        <h4 className="text-[9px] font-black text-primary uppercase tracking-wider px-1">Creditors</h4>
+                        <div className="grid gap-2">
                           {groupedStandings.filter(s => s.netTotal > 0.01).map(s => (
                             <div key={s.id} className="bg-primary/5 p-3 rounded-xl space-y-1 border border-primary/10">
                                 <span className="text-[10px] font-bold truncate block text-foreground">{s.name}</span>
@@ -569,11 +569,11 @@ export function TripBalances({ groupedStandings, suggestedPayments, expenses }: 
 
               <div className="space-y-4 pt-6 border-t border-muted/20">
                  <h4 className="text-[10px] font-black text-muted-foreground uppercase tracking-widest px-1">2. Optimization</h4>
-                 <div className="bg-muted/30 p-5 rounded-2xl border border-muted/50">
+                 <div className="bg-muted/30 p-4 rounded-2xl border border-muted/50">
                     <div className="space-y-1">
                       <p className="text-[11px] text-foreground font-bold uppercase tracking-tight">Debt Simplification</p>
                       <p className="text-[10px] text-muted-foreground font-medium leading-relaxed">
-                        Instead of multiple back-and-forth payments between individuals, we pool everyone's activity. This settlement plan ensures all debts are resolved with the minimum number of transfers possible.
+                        Instead of multiple back-and-forth payments between individuals, we pool everyone's activity to minimize transfers.
                       </p>
                     </div>
                  </div>
@@ -581,27 +581,24 @@ export function TripBalances({ groupedStandings, suggestedPayments, expenses }: 
 
               <div className="space-y-4 pt-6 border-t border-muted/20">
                 <h4 className="text-[10px] font-black text-muted-foreground uppercase tracking-widest px-1">3. Verification Audit</h4>
-                <p className="text-xs text-muted-foreground leading-relaxed">
-                  Real data used to calculate the balances above:
-                </p>
-                <div className="space-y-4">
+                <div className="space-y-3">
                   {auditExpenses.slice(0, 15).map((exp) => (
-                    <div key={exp.id} className="p-4 bg-white border border-muted/30 rounded-[1.5rem] shadow-sm space-y-4 transition-all hover:border-primary/20 group">
+                    <div key={exp.id} className="p-3 bg-white border border-muted/30 rounded-[1.25rem] shadow-sm space-y-3 transition-all hover:border-primary/20 group">
                       <div className="flex justify-between items-start">
                         <div className="min-w-0 flex-1">
-                          <span className="text-xs font-bold text-foreground leading-tight truncate block">{exp.description}</span>
+                          <span className="text-[11px] font-bold text-foreground leading-tight truncate block">{exp.description}</span>
                           <span className="text-[8px] font-bold text-muted-foreground/60 uppercase tracking-widest mt-1 block">
                             {new Date(exp.date).toLocaleDateString(undefined, { day: 'numeric', month: 'short' })} • {exp.splitType.replace('_', ' ')}
                           </span>
                         </div>
                         <div className="text-right">
-                          <span className="text-sm font-black text-foreground block">₹{parseFloat(exp.amount).toFixed(0)}</span>
+                          <span className="text-[11px] font-black text-foreground block">₹{parseFloat(exp.amount).toFixed(0)}</span>
                         </div>
                       </div>
                       
-                      <div className="grid grid-cols-2 gap-2 pt-1">
+                      <div className="grid grid-cols-2 gap-2 pt-1 border-t border-muted/5">
                         <div className="flex items-center gap-2">
-                           <div className="h-7 w-7 rounded-full border-2 border-white shadow-sm shrink-0 overflow-hidden ring-1 ring-black/5">
+                           <div className="h-6 w-6 rounded-full border border-white shadow-sm shrink-0 overflow-hidden ring-1 ring-black/5">
                               <Avatar className="h-full w-full">
                                 <AvatarImage src={participantsMap[exp.payerId]?.avatar} />
                                 <AvatarFallback className={cn("text-[8px] font-bold", getAvatarFallbackClasses(exp.payerName))}>
@@ -610,21 +607,14 @@ export function TripBalances({ groupedStandings, suggestedPayments, expenses }: 
                               </Avatar>
                            </div>
                            <div className="min-w-0">
-                              <p className="text-[8px] font-black text-muted-foreground/40 uppercase leading-none mb-0.5">Payer</p>
                               <p className="text-[10px] font-bold text-foreground truncate">{exp.payerName.split(' ')[0]}</p>
                            </div>
                         </div>
 
                         <div className="flex items-center gap-2 justify-end">
-                           <div className="text-right min-w-0">
-                              <p className="text-[8px] font-black text-muted-foreground/40 uppercase leading-none mb-0.5">Participants</p>
-                              <p className="text-[10px] font-bold text-foreground truncate">
-                                {exp.selectedIndividuals?.length === Object.keys(participantsMap).length ? "Everyone" : `${exp.selectedIndividuals?.length} members`}
-                              </p>
-                           </div>
                            <div className="flex -space-x-1.5 overflow-hidden">
                               {exp.selectedIndividuals?.slice(0, 3).map((id: string, i: number) => (
-                                <Avatar key={i} className="h-6 w-6 border-2 border-white shadow-sm shrink-0 ring-1 ring-black/5">
+                                <Avatar key={i} className="h-5 w-5 border border-white shadow-sm shrink-0 ring-1 ring-black/5">
                                   <AvatarImage src={participantsMap[id]?.avatar} />
                                   <AvatarFallback className={cn("text-[7px] font-bold", getAvatarFallbackClasses(participantsMap[id]?.name || "?"))}>
                                     {getInitials(participantsMap[id]?.name || "?")}
@@ -637,7 +627,7 @@ export function TripBalances({ groupedStandings, suggestedPayments, expenses }: 
                     </div>
                   ))}
                   {auditExpenses.length > 15 && (
-                    <p className="text-[10px] text-center text-muted-foreground/40 font-bold uppercase py-2">
+                    <p className="text-[9px] text-center text-muted-foreground/40 font-bold uppercase py-2">
                       + {auditExpenses.length - 15} more transactions verified
                     </p>
                   )}
@@ -648,7 +638,7 @@ export function TripBalances({ groupedStandings, suggestedPayments, expenses }: 
 
           <div className="p-6 bg-muted/5 border-t">
              <Button 
-               className="w-full h-14 rounded-2xl bg-primary text-white font-bold text-base shadow-lg shadow-primary/20 active:scale-95 transition-all"
+               className="w-full h-12 rounded-2xl bg-primary text-white font-bold text-sm shadow-lg shadow-primary/20 active:scale-95 transition-all"
                onClick={() => setShowSettlementDetail(false)}
              >
                Got it
