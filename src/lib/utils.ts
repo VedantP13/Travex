@@ -17,8 +17,8 @@ export function formatAmount(amount: number): string {
     return (amount / 100000).toFixed(1).replace(/\.0$/, '') + 'L';
   }
   
-  // Lowered threshold to 1,000 to make it "shorter" for high-level summaries
-  if (absAmount >= 1000) {
+  // Threshold set to 10,000 to keep recognizing thousands clearly
+  if (absAmount >= 10000) {
     return (amount / 1000).toFixed(1).replace(/\.0$/, '') + 'k';
   }
 
