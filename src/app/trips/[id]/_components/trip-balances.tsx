@@ -326,7 +326,7 @@ export function TripBalances({ groupedStandings, suggestedPayments, expenses }: 
                             return (
                               <div 
                                 key={idx} 
-                                className="flex justify-between items-center bg-white/60 p-3 rounded-2xl border border-muted/10 active:scale-[0.98] transition-all cursor-pointer group hover:border-primary/20"
+                                className="flex justify-between items-center bg-white/60 p-3 rounded-2xl border border-muted/20 shadow-sm active:scale-[0.98] transition-all cursor-pointer group hover:border-primary/20 hover:shadow-md"
                                 onClick={() => setSelectedMember({ id: b.id, name: b.name })}
                               >
                                 <div className="min-w-0">
@@ -342,7 +342,7 @@ export function TripBalances({ groupedStandings, suggestedPayments, expenses }: 
                                   )}>
                                     {bPos ? '+' : bNeg ? '-' : ''}₹{Math.abs(b.balance).toFixed(0)}
                                   </span>
-                                  <ChevronRight className="h-3 w-3 text-muted-foreground/20 group-hover:text-primary/40 transition-colors" />
+                                  <ChevronRight className="h-3 w-3 text-muted-foreground/40 group-hover:text-primary/60 transition-colors" />
                                 </div>
                               </div>
                             );
@@ -556,7 +556,7 @@ export function TripBalances({ groupedStandings, suggestedPayments, expenses }: 
                 </p>
                 <div className="space-y-2">
                   {auditExpenses.slice(0, 15).map((exp) => (
-                    <div key={exp.id} className="p-3 bg-white border border-muted/10 rounded-[1.25rem] shadow-sm space-y-3 transition-all hover:border-primary/20 group">
+                    <div key={exp.id} className="p-3 bg-white border border-muted-foreground/10 rounded-[1.25rem] shadow-sm space-y-3 transition-all hover:border-primary/20 group">
                       <div className="flex justify-between items-start">
                         <div className="min-w-0 flex-1">
                           <span className="text-[10px] font-bold text-foreground leading-tight truncate block">{exp.description}</span>
