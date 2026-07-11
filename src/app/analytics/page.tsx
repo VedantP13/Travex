@@ -35,7 +35,7 @@ import {
   SelectValue 
 } from "@/components/ui/select";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { cn } from "@/lib/utils";
+import { cn, formatAmount } from "@/lib/utils";
 import { 
   PieChart, 
   Pie, 
@@ -396,7 +396,7 @@ export default function AnalyticsPage() {
                     <span className="text-[9px] font-black uppercase tracking-wider opacity-60">Total spent</span>
                   </div>
                   <p className="text-2xl font-black tracking-tight text-foreground leading-none">
-                    ₹{displayTotal.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 0 })}
+                    ₹{formatAmount(displayTotal)}
                   </p>
                   <p className="text-[9px] text-muted-foreground mt-2 font-bold uppercase">
                     {selectedView === 'global' ? 'Lifetime budget' : 'Utilized'}
@@ -419,7 +419,7 @@ export default function AnalyticsPage() {
                     <span className="text-[9px] font-black uppercase tracking-wider opacity-60">Net Standing</span>
                   </div>
                   <p className="text-2xl font-black tracking-tight text-foreground leading-none">
-                    ₹{Math.abs(displayBalance).toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 0 })}
+                    ₹{formatAmount(Math.abs(displayBalance))}
                   </p>
                   <p className="text-[9px] text-muted-foreground mt-2 font-bold uppercase">
                     {displayBalance >= 0 ? 'Owed to you' : 'You owe'}
@@ -448,7 +448,7 @@ export default function AnalyticsPage() {
                       </div>
                       <div className="min-w-0">
                          <p className="text-[8px] font-black uppercase text-accent/60 tracking-wider">Highest spend</p>
-                         <p className="text-xs font-bold text-accent truncate">₹{globalStats.maxTrip.amount.toLocaleString()}</p>
+                         <p className="text-xs font-bold text-accent truncate">₹{formatAmount(globalStats.maxTrip.amount)}</p>
                       </div>
                    </CardContent>
                 </Card>
@@ -469,7 +469,7 @@ export default function AnalyticsPage() {
                   <div className="bg-white/50 border border-muted/20 p-3 rounded-2xl flex flex-col items-center justify-center text-center">
                     <Calculator className="h-4 w-4 text-muted-foreground mb-1" />
                     <p className="text-sm font-black leading-none">
-                      ₹{(tripStats.totalSpent / (tripStats.billsCount || 1)).toFixed(0)}
+                      ₹{formatAmount(tripStats.totalSpent / (tripStats.billsCount || 1))}
                     </p>
                     <p className="text-[8px] font-bold text-muted-foreground uppercase mt-1 whitespace-nowrap">Avg. Bill</p>
                   </div>
@@ -483,7 +483,7 @@ export default function AnalyticsPage() {
                         </div>
                         <div className="min-w-0">
                           <p className="text-[8px] font-black uppercase text-accent/60 tracking-wider">Peak Spend</p>
-                          <p className="text-xs font-bold text-accent truncate">₹{tripStats.highestBill.toLocaleString()}</p>
+                          <p className="text-xs font-bold text-accent truncate">₹{formatAmount(tripStats.highestBill)}</p>
                           <p className="text-[7px] text-accent/40 font-medium leading-none mt-0.5">Highest single bill</p>
                         </div>
                     </CardContent>
@@ -595,7 +595,7 @@ export default function AnalyticsPage() {
                                <p className="text-xs font-black text-primary">
                                  {selectedView === 'global' 
                                    ? `${item.count} ${item.count === 1 ? 'Trip' : 'Trips'}` 
-                                   : `₹${item.amount.toLocaleString()}`}
+                                   : `₹${formatAmount(item.amount)}`}
                                </p>
                                <p className="text-[8px] font-bold text-muted-foreground uppercase tracking-widest">
                                  {selectedView === 'global' ? 'Shared' : 'Spent'}
@@ -648,7 +648,7 @@ export default function AnalyticsPage() {
                               position="top" 
                               offset={8}
                               style={{ fill: '#112240', fontSize: 9, fontWeight: 900 }}
-                              formatter={(val: number) => `₹${val.toLocaleString()}`}
+                              formatter={(val: number) => `₹${formatAmount(val)}`}
                             />
                           </Bar>
                         </BarChart>
@@ -685,7 +685,7 @@ export default function AnalyticsPage() {
                                 position="top" 
                                 offset={8}
                                 style={{ fill: '#112240', fontSize: 9, fontWeight: 900 }}
-                                formatter={(val: number) => `₹${val.toLocaleString()}`}
+                                formatter={(val: number) => `₹${formatAmount(val)}`}
                             />
                             </Bar>
                           </BarChart>

@@ -34,7 +34,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { cn } from "@/lib/utils";
+import { cn, formatAmount } from "@/lib/utils";
 import { getInitials, getAvatarFallbackClasses } from "@/lib/avatar-utils";
 
 interface TripBalancesProps {
@@ -168,14 +168,14 @@ export function TripBalances({ groupedStandings, suggestedPayments, expenses }: 
                 <ArrowDownLeft className="h-3 w-3" />
                 <span className="text-[9px] font-black uppercase tracking-widest">To Receive</span>
               </div>
-              <p className="text-xl font-black text-primary">₹{userToReceive.toFixed(0)}</p>
+              <p className="text-xl font-black text-primary">₹{formatAmount(userToReceive)}</p>
             </div>
             <div className="bg-white p-5 rounded-3xl shadow-sm border border-destructive/5">
               <div className="flex items-center gap-1.5 text-accent mb-1">
                 <ArrowUpRight className="h-3 w-3" />
                 <span className="text-[9px] font-black uppercase tracking-widest">To Pay</span>
               </div>
-              <p className="text-xl font-black text-accent">₹{userToPay.toFixed(0)}</p>
+              <p className="text-xl font-black text-accent">₹{formatAmount(userToPay)}</p>
             </div>
           </div>
 
@@ -203,7 +203,7 @@ export function TripBalances({ groupedStandings, suggestedPayments, expenses }: 
                       
                       <div className="flex flex-col items-center gap-1 shrink-0 px-2">
                          <span className="text-xs font-black text-foreground">₹{p.amount.toFixed(0)}</span>
-                         <ArrowRight className="h-6 w-6 text-accent animate-pulse" strokeWidth={2.5} />
+                         <ArrowRight className="h-6 w-6 text-accent" strokeWidth={2.5} />
                       </div>
 
                       <div className="flex items-center gap-3 min-w-0 flex-1 justify-end text-right">

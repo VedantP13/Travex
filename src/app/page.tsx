@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { cn } from "@/lib/utils";
+import { cn, formatAmount } from "@/lib/utils";
 import { BottomNav } from "@/components/bottom-nav";
 import { AnimatedCompass } from "@/components/animated-compass";
 import { useTrips } from "@/context/trips-context";
@@ -177,14 +177,14 @@ export default function Home() {
               <p className="text-[10px] font-medium text-white/40 mb-1">You owe</p>
               <div className="flex items-baseline font-bold text-xl tracking-tight text-white">
                 <span className="font-bold">₹</span>
-                <span className="font-bold">{totalOwe.toFixed(2)}</span>
+                <span className="font-bold">{formatAmount(totalOwe)}</span>
               </div>
             </div>
             <div className="bg-accent/10 backdrop-blur-md p-5 rounded-3xl border border-accent/20">
               <p className="text-[10px] font-medium text-accent/60 mb-1">Owed to you</p>
               <div className="flex items-baseline font-bold text-xl tracking-tight text-accent">
                 <span className="font-bold">₹</span>
-                <span className="font-bold">{totalOwed.toFixed(2)}</span>
+                <span className="font-bold">{formatAmount(totalOwed)}</span>
               </div>
             </div>
           </div>
@@ -243,9 +243,9 @@ export default function Home() {
                   
                   <div className="space-y-0.5 mt-1">
                     <p className={cn("text-[9px] font-bold uppercase tracking-tight", isPastDue ? "text-white/60" : "text-white/40")}>Total spent</p>
-                    <div className="flex items-baseline font-bold text-2xl tracking-tight leading-none">
+                    <div className="flex items-baseline font-bold text-2xl tracking-tight leading-none text-white">
                       <span className="font-bold">₹</span>
-                      <span className="font-bold">{(activeTrip.totalSpent || 0).toFixed(2)}</span>
+                      <span className="font-bold">{formatAmount(activeTrip.totalSpent || 0)}</span>
                     </div>
                   </div>
                 </div>
@@ -399,7 +399,7 @@ export default function Home() {
                         <p className="text-[9px] text-muted-foreground font-bold uppercase tracking-widest mb-0.5">Total spent</p>
                         <p className="text-base font-bold text-foreground">
                           <span className="font-bold">₹</span>
-                          <span className="font-bold">{(trip.totalSpent || 0).toFixed(2)}</span>
+                          <span className="font-bold">{formatAmount(trip.totalSpent || 0)}</span>
                         </p>
                       </div>
                       <div className="text-right">
@@ -410,7 +410,7 @@ export default function Home() {
                         )}>
                           {balance < -0.01 ? "-" : balance > 0.01 ? "+" : ""}
                           <span className="font-bold">₹</span>
-                          <span className="font-bold">{Math.abs(balance).toFixed(2)}</span>
+                          <span className="font-bold">{formatAmount(Math.abs(balance))}</span>
                         </p>
                       </div>
                     </div>

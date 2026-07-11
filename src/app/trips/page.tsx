@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
-import { cn } from "@/lib/utils";
+import { cn, formatAmount } from "@/lib/utils";
 import { BottomNav } from "@/components/bottom-nav";
 import { AnimatedCompass } from "@/components/animated-compass";
 import { useTrips } from "@/context/trips-context";
@@ -150,7 +150,7 @@ export default function AllTripsPage() {
                         <p className="text-[10px] text-muted-foreground font-bold mb-1 uppercase tracking-wider">Total spent</p>
                         <p className="text-base font-bold text-foreground">
                           <span className="font-bold">₹</span>
-                          <span className="font-bold">{(trip.totalSpent || 0).toFixed(2)}</span>
+                          <span className="font-bold">{formatAmount(trip.totalSpent || 0)}</span>
                         </p>
                       </div>
                       <div className="text-right">
@@ -161,7 +161,7 @@ export default function AllTripsPage() {
                         )}>
                           {balance < -0.01 ? "-" : balance > 0.01 ? "+" : ""}
                           <span className="font-bold">₹</span>
-                          <span className="font-bold">{Math.abs(balance).toFixed(2)}</span>
+                          <span className="font-bold">{formatAmount(Math.abs(balance))}</span>
                         </p>
                       </div>
                     </div>
