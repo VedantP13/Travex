@@ -34,7 +34,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { cn, formatAmount } from "@/lib/utils";
+import { cn } from "@/lib/utils";
 import { getInitials, getAvatarFallbackClasses } from "@/lib/avatar-utils";
 
 interface TripBalancesProps {
@@ -168,14 +168,14 @@ export function TripBalances({ groupedStandings, suggestedPayments, expenses }: 
                 <ArrowDownLeft className="h-3 w-3" />
                 <span className="text-[9px] font-black uppercase tracking-widest">To Receive</span>
               </div>
-              <p className="text-xl font-black text-primary">₹{formatAmount(userToReceive)}</p>
+              <p className="text-xl font-black text-primary">₹{userToReceive.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</p>
             </div>
             <div className="bg-white p-5 rounded-3xl shadow-sm border border-destructive/5">
               <div className="flex items-center gap-1.5 text-accent mb-1">
                 <ArrowUpRight className="h-3 w-3" />
                 <span className="text-[9px] font-black uppercase tracking-widest">To Pay</span>
               </div>
-              <p className="text-xl font-black text-accent">₹{formatAmount(userToPay)}</p>
+              <p className="text-xl font-black text-accent">₹{userToPay.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</p>
             </div>
           </div>
 
@@ -203,7 +203,7 @@ export function TripBalances({ groupedStandings, suggestedPayments, expenses }: 
                       
                       <div className="flex flex-col items-center gap-1 shrink-0 px-2">
                          <span className="text-xs font-black text-foreground">₹{p.amount.toFixed(0)}</span>
-                         <ArrowRight className="h-6 w-6 text-accent" strokeWidth={2.5} />
+                         <ArrowRight className="h-5 w-5 text-accent" strokeWidth={2.5} />
                       </div>
 
                       <div className="flex items-center gap-3 min-w-0 flex-1 justify-end text-right">
@@ -285,7 +285,7 @@ export function TripBalances({ groupedStandings, suggestedPayments, expenses }: 
                             "text-2xl font-black tracking-tighter leading-none",
                             isPositive ? "text-primary" : isZero ? "text-muted-foreground/30" : "text-foreground"
                           )}>
-                            {isZero ? '₹0' : `₹${Math.abs(standing.netTotal).toFixed(0)}`}
+                            {isZero ? '₹0' : `₹${Math.abs(standing.netTotal).toFixed(2)}`}
                           </p>
                           <p className="text-[9px] font-bold text-muted-foreground uppercase mt-1">Standing</p>
                         </div>
@@ -296,7 +296,7 @@ export function TripBalances({ groupedStandings, suggestedPayments, expenses }: 
                            <div className="space-y-1.5">
                               <div className="flex justify-between items-center text-[8px] font-black text-muted-foreground uppercase tracking-widest">
                                  <span>Paid</span>
-                                 <span>₹{standing.totalPaid.toFixed(0)}</span>
+                                 <span>₹{standing.totalPaid.toFixed(2)}</span>
                               </div>
                               <div className="h-1 w-full bg-muted/40 rounded-full overflow-hidden">
                                  <div 
@@ -308,7 +308,7 @@ export function TripBalances({ groupedStandings, suggestedPayments, expenses }: 
                            <div className="space-y-1.5">
                               <div className="flex justify-between items-center text-[8px] font-black text-muted-foreground uppercase tracking-widest">
                                  <span>Share</span>
-                                 <span>₹{standing.totalShare.toFixed(0)}</span>
+                                 <span>₹{standing.totalShare.toFixed(2)}</span>
                               </div>
                               <div className="h-1 w-full bg-muted/40 rounded-full overflow-hidden">
                                  <div 
@@ -332,7 +332,7 @@ export function TripBalances({ groupedStandings, suggestedPayments, expenses }: 
                                 <div className="min-w-0">
                                   <span className="font-bold text-[11px] text-foreground block truncate group-hover:text-primary transition-colors">{b.name}</span>
                                   <p className="text-[8px] text-muted-foreground/60 font-black uppercase tracking-tighter">
-                                    Paid ₹{b.paid.toFixed(0)} • Share ₹{b.share.toFixed(0)}
+                                    Paid ₹{b.paid.toFixed(2)} • Share ₹{b.share.toFixed(2)}
                                   </p>
                                 </div>
                                 <div className="flex items-center gap-2">
@@ -340,7 +340,7 @@ export function TripBalances({ groupedStandings, suggestedPayments, expenses }: 
                                     "font-black text-[11px]",
                                     bPos ? "text-primary" : bNeg ? "text-accent" : "text-muted-foreground/30"
                                   )}>
-                                    {bPos ? '+' : bNeg ? '-' : ''}₹{Math.abs(b.balance).toFixed(0)}
+                                    {bPos ? '+' : bNeg ? '-' : ''}₹{Math.abs(b.balance).toFixed(2)}
                                   </span>
                                   <ChevronRight className="h-3 w-3 text-muted-foreground/40 group-hover:text-primary/60 transition-colors" />
                                 </div>
@@ -391,7 +391,7 @@ export function TripBalances({ groupedStandings, suggestedPayments, expenses }: 
         <DialogContent className="max-w-[calc(100vw-32px)] w-full rounded-[2.5rem] p-0 border-none shadow-2xl bg-white overflow-hidden animate-in fade-in zoom-in-95 duration-300 [&>button]:hidden">
           <div className="h-24 bg-foreground relative flex flex-col items-center justify-center shrink-0">
              <div className="absolute top-4 right-4">
-                <DialogClose className="h-8 w-8 rounded-full bg-white/10 text-white/70 hover:bg-white/20 transition-all flex items-center justify-center">
+                <DialogClose className="h-7 w-7 rounded-full bg-white/10 text-white/70 hover:bg-white/20 transition-all flex items-center justify-center">
                   <X className="h-4 w-4" />
                 </DialogClose>
              </div>
@@ -428,16 +428,16 @@ export function TripBalances({ groupedStandings, suggestedPayments, expenses }: 
                            <p className="text-[7px] text-muted-foreground font-bold mt-0.5 uppercase tracking-tighter">By {row.payer.split(' ')[0]}</p>
                         </TableCell>
                         <TableCell className="text-right py-2 px-1 text-[9px] font-bold text-foreground/40">
-                           {row.paid > 0 ? `₹${row.paid.toFixed(0)}` : '—'}
+                           {row.paid > 0 ? `₹${row.paid.toFixed(2)}` : '—'}
                         </TableCell>
                         <TableCell className="text-right py-2 px-1 text-[9px] font-bold text-accent/60">
-                           {row.share > 0 ? `-₹${row.share.toFixed(0)}` : '—'}
+                           {row.share > 0 ? `-₹${row.share.toFixed(2)}` : '—'}
                         </TableCell>
                         <TableCell className={cn(
                           "text-right py-2 px-1 text-[10px] font-black",
                           row.net > 0.01 ? "text-primary" : row.net < -0.01 ? "text-accent" : "text-muted-foreground/20"
                         )}>
-                          {row.net > 0.01 ? '+' : ''}{row.net.toFixed(0)}
+                          {row.net > 0.01 ? '+' : ''}{row.net.toFixed(2)}
                         </TableCell>
                       </TableRow>
                     ))}
@@ -456,11 +456,11 @@ export function TripBalances({ groupedStandings, suggestedPayments, expenses }: 
              <div className="grid grid-cols-3 gap-2 mb-4 px-1">
                 <div className="text-left">
                   <p className="text-[7px] font-black text-muted-foreground/40 uppercase">Total Paid</p>
-                  <p className="text-xs font-black text-foreground">₹{totals.paid.toFixed(0)}</p>
+                  <p className="text-xs font-black text-foreground">₹{totals.paid.toFixed(2)}</p>
                 </div>
                 <div className="text-center">
                   <p className="text-[7px] font-black text-muted-foreground/40 uppercase">Total Share</p>
-                  <p className="text-xs font-black text-accent">₹{totals.share.toFixed(0)}</p>
+                  <p className="text-xs font-black text-accent">₹{totals.share.toFixed(2)}</p>
                 </div>
                 <div className="text-right">
                   <p className="text-[7px] font-black text-muted-foreground/40 uppercase">Standing</p>
@@ -468,7 +468,7 @@ export function TripBalances({ groupedStandings, suggestedPayments, expenses }: 
                     "text-xs font-black",
                     totals.net > 0.01 ? "text-primary" : totals.net < -0.01 ? "text-accent" : "text-muted-foreground"
                   )}>
-                    {totals.net > 0.01 ? '+' : ''}₹{totals.net.toFixed(0)}
+                    {totals.net > 0.01 ? '+' : ''}₹{totals.net.toFixed(2)}
                   </p>
                 </div>
              </div>
@@ -488,7 +488,7 @@ export function TripBalances({ groupedStandings, suggestedPayments, expenses }: 
           <div className="h-20 bg-foreground relative flex flex-col items-center justify-center shrink-0">
              <div className="absolute top-4 right-4">
                 <DialogClose className="h-7 w-7 rounded-full bg-white/10 text-white/70 hover:bg-white/20 transition-all flex items-center justify-center">
-                  <X className="h-3.5 w-3.5" />
+                  <X className="h-4 w-4" />
                 </DialogClose>
              </div>
              <div className="flex flex-col items-center text-center">
@@ -513,8 +513,8 @@ export function TripBalances({ groupedStandings, suggestedPayments, expenses }: 
                             <div key={s.id} className="bg-accent/5 p-2.5 rounded-xl space-y-1 border border-accent/10">
                                 <span className="text-[9px] font-bold truncate block text-foreground">{s.name}</span>
                                 <div className="flex justify-between items-baseline">
-                                  <span className="text-[7px] text-muted-foreground font-medium uppercase tracking-tight">Paid ₹{s.totalPaid.toFixed(0)} • Share ₹{s.totalShare.toFixed(0)}</span>
-                                  <span className="text-[9px] font-black text-accent">₹{Math.abs(s.netTotal).toFixed(0)}</span>
+                                  <span className="text-[7px] text-muted-foreground font-medium uppercase tracking-tight">Paid ₹{s.totalPaid.toFixed(2)} • Share ₹{s.totalShare.toFixed(2)}</span>
+                                  <span className="text-[9px] font-black text-accent">₹{Math.abs(s.netTotal).toFixed(2)}</span>
                                 </div>
                             </div>
                           ))}
@@ -527,8 +527,8 @@ export function TripBalances({ groupedStandings, suggestedPayments, expenses }: 
                             <div key={s.id} className="bg-primary/5 p-2.5 rounded-xl space-y-1 border border-primary/10">
                                 <span className="text-[9px] font-bold truncate block text-foreground">{s.name}</span>
                                 <div className="flex justify-between items-baseline">
-                                  <span className="text-[7px] text-muted-foreground font-medium uppercase tracking-tight">Paid ₹{s.totalPaid.toFixed(0)} • Share ₹{s.totalShare.toFixed(0)}</span>
-                                  <span className="text-[9px] font-black text-primary">₹{s.netTotal.toFixed(0)}</span>
+                                  <span className="text-[7px] text-muted-foreground font-medium uppercase tracking-tight">Paid ₹{s.totalPaid.toFixed(2)} • Share ₹{s.totalShare.toFixed(2)}</span>
+                                  <span className="text-[9px] font-black text-primary">₹{s.netTotal.toFixed(2)}</span>
                                 </div>
                             </div>
                           ))}
@@ -565,7 +565,7 @@ export function TripBalances({ groupedStandings, suggestedPayments, expenses }: 
                           </span>
                         </div>
                         <div className="text-right">
-                          <span className="text-[10px] font-black text-foreground block">₹{parseFloat(exp.amount).toFixed(0)}</span>
+                          <span className="text-[10px] font-black text-foreground block">₹{parseFloat(exp.amount).toFixed(2)}</span>
                         </div>
                       </div>
                       
