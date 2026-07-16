@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useEffect, useState } from 'react';
@@ -138,17 +137,17 @@ export default function LoginPage() {
             <Image 
               src="/travex logo.png" 
               alt="Travex Logo" 
-              width={110} 
-              height={110} 
+              width={130} 
+              height={130} 
               priority
               className="drop-shadow-[0_20px_50px_rgba(245,166,35,0.2)]"
             />
           </div>
           <div className="space-y-2">
-            <h1 className="text-5xl font-black tracking-tighter text-accent">
+            <h1 className="text-6xl font-black tracking-tighter text-accent">
               Travex
             </h1>
-            <p className="text-muted-foreground font-medium text-xs sm:text-sm opacity-60">
+            <p className="text-muted-foreground font-medium text-sm sm:text-base opacity-60">
               Smart splitting for modern explorers.
             </p>
           </div>
