@@ -150,7 +150,7 @@ export default function LoginPage() {
             />
           </div>
           <div className="space-y-2">
-            <h1 className="text-5xl font-black tracking-tighter text-white">Travex</h1>
+            <h1 className="text-5xl font-black tracking-tighter text-accent">Travex</h1>
             <p className="text-muted-foreground font-medium text-base opacity-70">
               Smart splitting for modern explorers.
             </p>
