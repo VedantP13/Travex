@@ -4,6 +4,7 @@ import { MetadataRoute } from 'next'
 /**
  * PWA Manifest file to make the app installable and identify it as a 
  * standalone travel companion.
+ * Updated to use the new brand logo asset.
  */
 export default function manifest(): MetadataRoute.Manifest {
   return {
