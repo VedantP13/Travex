@@ -941,7 +941,7 @@ export default function CreateTrip() {
                   className="w-full h-10 rounded-xl font-semibold text-muted-foreground text-xs hover:bg-muted"
                   onClick={() => {
                     setNudgeTrip(null);
-                    setHasInteractedWithNoun(true);
+                    setHasInteractedWithNudge(true);
                   }}
                 >
                   Keep journey active & start new trip <ChevronRight className="h-3 w-3 ml-1" />
