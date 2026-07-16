@@ -8,7 +8,6 @@ import { useAuth, useUser, useFirestore } from '@/firebase';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Loader2 } from 'lucide-react';
-import { AnimatedCompass } from '@/components/animated-compass';
 import { useToast } from '@/hooks/use-toast';
 import { doc, setDoc, serverTimestamp } from 'firebase/firestore';
 import Image from 'next/image';
@@ -136,22 +135,22 @@ export default function LoginPage() {
 
   return (
     <div className="max-w-md mx-auto min-h-screen flex flex-col bg-foreground text-background p-6 justify-center overflow-hidden">
-      <div className="flex flex-col items-center text-center space-y-12">
+      <div className="flex flex-col items-center text-center space-y-14">
         {/* Brand Identity */}
-        <div className="flex flex-col items-center space-y-4 animate-in fade-in zoom-in duration-1000 slide-in-from-top-4">
+        <div className="flex flex-col items-center space-y-6 animate-in fade-in zoom-in duration-1000 slide-in-from-top-4">
           <div className="relative transition-transform hover:scale-105 duration-700">
             <Image 
               src="/travex logo.png" 
               alt="Travex Logo" 
-              width={140} 
-              height={140} 
+              width={160} 
+              height={160} 
               priority
-              className="drop-shadow-[0_20px_50px_rgba(245,166,35,0.2)]"
+              className="drop-shadow-[0_25px_60px_rgba(245,166,35,0.25)]"
             />
           </div>
-          <div className="space-y-2">
-            <h1 className="text-5xl font-black tracking-tighter text-accent">
-              Trave<span className="text-primary">x</span>
+          <div className="space-y-3">
+            <h1 className="text-6xl font-black tracking-tighter text-accent">
+              Travex
             </h1>
             <p className="text-muted-foreground font-medium text-base opacity-70">
               Smart splitting for modern explorers.
@@ -160,20 +159,20 @@ export default function LoginPage() {
         </div>
 
         {/* Login Card */}
-        <Card className="w-full bg-white/5 border-white/10 backdrop-blur-xl rounded-[3rem] p-4 shadow-[0_32px_64px_-12px_rgba(0,0,0,0.4)] animate-in fade-in slide-in-from-bottom-8 duration-1000 delay-200">
-          <CardContent className="p-8 space-y-8">
-            <div className="space-y-2">
-              <h2 className="text-2xl font-bold text-white tracking-tight">Welcome aboard</h2>
-              <p className="text-sm text-muted-foreground leading-relaxed font-medium">
+        <Card className="w-full bg-white/5 border-white/10 backdrop-blur-2xl rounded-[3.5rem] p-2 shadow-[0_40px_80px_-15px_rgba(0,0,0,0.5)] animate-in fade-in slide-in-from-bottom-8 duration-1000 delay-200">
+          <CardContent className="p-10 space-y-10">
+            <div className="space-y-3">
+              <h2 className="text-3xl font-bold text-background tracking-tight">Welcome aboard</h2>
+              <p className="text-sm text-muted-foreground leading-relaxed font-medium px-4">
                 Connect with your travel buddies and start splitting expenses effortlessly.
               </p>
             </div>
             
-            <div className="space-y-4 pt-2">
+            <div className="space-y-5 pt-2">
               <Button 
                 onClick={handleGoogleLogin}
                 disabled={isLoggingIn}
-                className="w-full h-16 rounded-[1.5rem] bg-background text-foreground hover:bg-background/90 text-lg font-black shadow-xl flex items-center justify-center gap-4 transition-all active:scale-95 group"
+                className="w-full h-16 rounded-3xl bg-background text-foreground hover:bg-background/90 text-lg font-black shadow-xl flex items-center justify-center gap-4 transition-all active:scale-95 group border-none"
               >
                 {isLoggingIn ? (
                   <Loader2 className="h-6 w-6 animate-spin text-primary" />
@@ -189,7 +188,7 @@ export default function LoginPage() {
                 variant="ghost"
                 onClick={handleGuestLogin}
                 disabled={isLoggingIn}
-                className="w-full h-14 rounded-2xl text-muted-foreground hover:text-white hover:bg-white/5 text-sm font-bold tracking-tight transition-all"
+                className="w-full h-14 rounded-2xl text-muted-foreground hover:text-background hover:bg-white/5 text-sm font-bold tracking-tight transition-all"
               >
                 Continue as Guest
               </Button>
