@@ -130,51 +130,51 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="max-w-md mx-auto h-[100dvh] flex flex-col bg-foreground text-background p-6 justify-center overflow-hidden">
-      <div className="flex flex-col items-center text-center space-y-8 sm:space-y-12">
+    <div className="max-w-md mx-auto h-[100dvh] flex flex-col bg-foreground text-background p-6 items-center justify-center overflow-hidden">
+      <div className="w-full space-y-12">
         {/* Brand Identity */}
-        <div className="flex flex-col items-center space-y-4 animate-in fade-in zoom-in duration-1000 slide-in-from-top-4">
+        <div className="flex flex-col items-center text-center space-y-6 animate-in fade-in zoom-in duration-1000">
           <div className="relative transition-transform hover:scale-105 duration-700">
             <Image 
               src="/travex logo.png" 
               alt="Travex Logo" 
-              width={140} 
-              height={140} 
+              width={110} 
+              height={110} 
               priority
-              className="drop-shadow-[0_25px_60px_rgba(245,166,35,0.25)] sm:w-[160px] sm:h-[160px]"
+              className="drop-shadow-[0_20px_50px_rgba(245,166,35,0.2)]"
             />
           </div>
           <div className="space-y-2">
-            <h1 className="text-5xl sm:text-6xl font-black tracking-tighter text-accent">
+            <h1 className="text-5xl font-black tracking-tighter text-accent">
               Travex
             </h1>
-            <p className="text-muted-foreground font-medium text-sm sm:text-base opacity-70">
+            <p className="text-muted-foreground font-medium text-xs sm:text-sm opacity-60">
               Smart splitting for modern explorers.
             </p>
           </div>
         </div>
 
         {/* Login Card */}
-        <Card className="w-full bg-white/5 border-white/10 backdrop-blur-2xl rounded-[2.5rem] sm:rounded-[3.5rem] p-0 shadow-[0_40px_80px_-15px_rgba(0,0,0,0.5)] animate-in fade-in slide-in-from-bottom-8 duration-1000 delay-200">
-          <CardContent className="p-6 sm:p-10 space-y-6 sm:space-y-10">
-            <div className="space-y-2">
-              <h2 className="text-2xl sm:text-3xl font-bold text-background tracking-tight">Welcome aboard</h2>
-              <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed font-medium px-4">
+        <Card className="w-full bg-white/5 border-white/10 backdrop-blur-3xl rounded-[3rem] p-0 shadow-[0_40px_80px_-15px_rgba(0,0,0,0.4)] animate-in fade-in slide-in-from-bottom-8 duration-1000 delay-200">
+          <CardContent className="p-8 py-10 space-y-10">
+            <div className="space-y-3">
+              <h2 className="text-3xl font-bold text-background tracking-tight text-center">Welcome aboard</h2>
+              <p className="text-[13px] text-muted-foreground leading-relaxed font-medium text-center px-4 opacity-70">
                 Connect with your travel buddies and start splitting expenses effortlessly.
               </p>
             </div>
             
-            <div className="space-y-4 pt-2">
+            <div className="space-y-4">
               <Button 
                 onClick={handleGoogleLogin}
                 disabled={isLoggingIn}
-                className="w-full h-14 sm:h-16 rounded-2xl sm:rounded-3xl bg-background text-foreground hover:bg-background/90 text-base sm:text-lg font-black shadow-xl flex items-center justify-center gap-4 transition-all active:scale-95 group border-none"
+                className="w-full h-16 rounded-2xl bg-background text-foreground hover:bg-background/90 text-base font-black shadow-xl flex items-center justify-center gap-4 transition-all active:scale-95 group border-none"
               >
                 {isLoggingIn ? (
                   <Loader2 className="h-6 w-6 animate-spin text-primary" />
                 ) : (
                   <>
-                    <Image src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" width={24} height={24} alt="Google" className="group-hover:scale-110 transition-transform" />
+                    <Image src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" width={20} height={20} alt="Google" className="group-hover:scale-110 transition-transform" />
                     Sign in with Google
                   </>
                 )}
@@ -184,7 +184,7 @@ export default function LoginPage() {
                 variant="ghost"
                 onClick={handleGuestLogin}
                 disabled={isLoggingIn}
-                className="w-full h-12 rounded-xl text-muted-foreground hover:text-background hover:bg-white/5 text-xs sm:text-sm font-bold tracking-tight transition-all"
+                className="w-full h-10 rounded-xl text-muted-foreground hover:text-background hover:bg-white/5 text-xs font-bold tracking-tight transition-all"
               >
                 Continue as Guest
               </Button>
