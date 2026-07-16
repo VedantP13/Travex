@@ -34,7 +34,6 @@ export default function LoginPage() {
     const provider = new GoogleAuthProvider();
     try {
       let result;
-      // CRITICAL: linkWithPopup preserves the UID, so all guest trips stay with the user
       if (auth.currentUser?.isAnonymous) {
         result = await linkWithPopup(auth.currentUser, provider);
       } else {
@@ -45,13 +44,11 @@ export default function LoginPage() {
       const googleInfo = userInstance.providerData.find(p => p.providerId === 'google.com');
 
       if (googleInfo) {
-        // Update the Auth Profile
         await updateProfile(userInstance, {
           displayName: googleInfo.displayName,
           photoURL: googleInfo.photoURL
         });
 
-        // Sync to Firestore immediately so data is consistent across the app
         if (firestore) {
           const userDocRef = doc(firestore, "users", userInstance.uid);
           await setDoc(userDocRef, {
@@ -59,7 +56,7 @@ export default function LoginPage() {
             searchName: (googleInfo.displayName || "").toLowerCase(),
             photoURL: googleInfo.photoURL,
             email: (googleInfo.email || "").toLowerCase(),
-            isAnonymous: false, // Transitioned!
+            isAnonymous: false,
             updatedAt: serverTimestamp(),
           }, { merge: true });
         }
@@ -103,7 +100,6 @@ export default function LoginPage() {
         displayName: randomName
       });
 
-      // Initial sync for guest profile
       if (firestore) {
         await setDoc(doc(firestore, "users", result.user.uid), {
           displayName: randomName,
@@ -127,52 +123,52 @@ export default function LoginPage() {
 
   if (loading || (user && !loading && !user.isAnonymous)) {
     return (
-      <div className="max-w-md mx-auto min-h-screen flex flex-col items-center justify-center bg-background gap-4">
+      <div className="max-w-md mx-auto min-h-[100dvh] flex flex-col items-center justify-center bg-background gap-4">
         <Image src="/travex logo.png" alt="Travex Logo" width={64} height={64} priority />
       </div>
     );
   }
 
   return (
-    <div className="max-w-md mx-auto min-h-screen flex flex-col bg-foreground text-background p-6 justify-center overflow-hidden">
-      <div className="flex flex-col items-center text-center space-y-14">
+    <div className="max-w-md mx-auto h-[100dvh] flex flex-col bg-foreground text-background p-6 justify-center overflow-hidden">
+      <div className="flex flex-col items-center text-center space-y-8 sm:space-y-12">
         {/* Brand Identity */}
-        <div className="flex flex-col items-center space-y-6 animate-in fade-in zoom-in duration-1000 slide-in-from-top-4">
+        <div className="flex flex-col items-center space-y-4 animate-in fade-in zoom-in duration-1000 slide-in-from-top-4">
           <div className="relative transition-transform hover:scale-105 duration-700">
             <Image 
               src="/travex logo.png" 
               alt="Travex Logo" 
-              width={160} 
-              height={160} 
+              width={140} 
+              height={140} 
               priority
-              className="drop-shadow-[0_25px_60px_rgba(245,166,35,0.25)]"
+              className="drop-shadow-[0_25px_60px_rgba(245,166,35,0.25)] sm:w-[160px] sm:h-[160px]"
             />
           </div>
-          <div className="space-y-3">
-            <h1 className="text-6xl font-black tracking-tighter text-accent">
+          <div className="space-y-2">
+            <h1 className="text-5xl sm:text-6xl font-black tracking-tighter text-accent">
               Travex
             </h1>
-            <p className="text-muted-foreground font-medium text-base opacity-70">
+            <p className="text-muted-foreground font-medium text-sm sm:text-base opacity-70">
               Smart splitting for modern explorers.
             </p>
           </div>
         </div>
 
         {/* Login Card */}
-        <Card className="w-full bg-white/5 border-white/10 backdrop-blur-2xl rounded-[3.5rem] p-2 shadow-[0_40px_80px_-15px_rgba(0,0,0,0.5)] animate-in fade-in slide-in-from-bottom-8 duration-1000 delay-200">
-          <CardContent className="p-10 space-y-10">
-            <div className="space-y-3">
-              <h2 className="text-3xl font-bold text-background tracking-tight">Welcome aboard</h2>
-              <p className="text-sm text-muted-foreground leading-relaxed font-medium px-4">
+        <Card className="w-full bg-white/5 border-white/10 backdrop-blur-2xl rounded-[2.5rem] sm:rounded-[3.5rem] p-0 shadow-[0_40px_80px_-15px_rgba(0,0,0,0.5)] animate-in fade-in slide-in-from-bottom-8 duration-1000 delay-200">
+          <CardContent className="p-6 sm:p-10 space-y-6 sm:space-y-10">
+            <div className="space-y-2">
+              <h2 className="text-2xl sm:text-3xl font-bold text-background tracking-tight">Welcome aboard</h2>
+              <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed font-medium px-4">
                 Connect with your travel buddies and start splitting expenses effortlessly.
               </p>
             </div>
             
-            <div className="space-y-5 pt-2">
+            <div className="space-y-4 pt-2">
               <Button 
                 onClick={handleGoogleLogin}
                 disabled={isLoggingIn}
-                className="w-full h-16 rounded-3xl bg-background text-foreground hover:bg-background/90 text-lg font-black shadow-xl flex items-center justify-center gap-4 transition-all active:scale-95 group border-none"
+                className="w-full h-14 sm:h-16 rounded-2xl sm:rounded-3xl bg-background text-foreground hover:bg-background/90 text-base sm:text-lg font-black shadow-xl flex items-center justify-center gap-4 transition-all active:scale-95 group border-none"
               >
                 {isLoggingIn ? (
                   <Loader2 className="h-6 w-6 animate-spin text-primary" />
@@ -188,7 +184,7 @@ export default function LoginPage() {
                 variant="ghost"
                 onClick={handleGuestLogin}
                 disabled={isLoggingIn}
-                className="w-full h-14 rounded-2xl text-muted-foreground hover:text-background hover:bg-white/5 text-sm font-bold tracking-tight transition-all"
+                className="w-full h-12 rounded-xl text-muted-foreground hover:text-background hover:bg-white/5 text-xs sm:text-sm font-bold tracking-tight transition-all"
               >
                 Continue as Guest
               </Button>
