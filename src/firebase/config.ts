@@ -28,6 +28,12 @@ let firestoreInstance: Firestore | undefined;
 
 export function getFirebaseApp(): FirebaseApp {
   if (getApps().length > 0) return getApps()[0];
+  
+  // Guard against missing config during SSR or initial setup
+  if (!firebaseConfig.apiKey) {
+    console.warn("Firebase API Key is missing. Check your environment variables.");
+  }
+
   if (!appInstance) {
     appInstance = initializeApp(firebaseConfig);
   }
@@ -39,16 +45,19 @@ export function getFirestoreInstance(app?: FirebaseApp): Firestore {
   
   if (firestoreInstance) return firestoreInstance;
 
-  // Initialize Firestore with single-tab local persistence.
-  // This resolves the "Failed to obtain primary lease" errors common in dev environments
-  // while still allowing the app to store data locally for offline travel use.
-  try {
-    firestoreInstance = initializeFirestore(currentApp, {
-      localCache: persistentLocalCache({
-        tabManager: persistentSingleTabManager()
-      })
-    });
-  } catch (e) {
+  // Persistence only works in the browser (client-side)
+  if (typeof window !== 'undefined') {
+    try {
+      firestoreInstance = initializeFirestore(currentApp, {
+        localCache: persistentLocalCache({
+          tabManager: persistentSingleTabManager()
+        })
+      });
+    } catch (e) {
+      firestoreInstance = getFirestore(currentApp);
+    }
+  } else {
+    // Standard initialization for Server-Side Rendering pass
     firestoreInstance = getFirestore(currentApp);
   }
 

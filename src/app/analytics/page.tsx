@@ -86,6 +86,12 @@ export default function AnalyticsPage() {
   const [tripExpenses, setTripExpenses] = useState<any[]>([]);
   const [isExpensesLoading, setIsExpensesLoading] = useState(false);
   const [globalCategoryData, setGlobalCategoryData] = useState<any[]>([]);
+  const [isMounted, setIsMounted] = useState(false);
+
+  // Hydration guard to prevent Recharts/SSR issues
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
 
   // Fetch expenses for the selected trip
   useEffect(() => {
@@ -327,6 +333,14 @@ export default function AnalyticsPage() {
       return { socialInsights: insights, maxVal };
     }
   }, [selectedView, trips, tripExpenses, user?.uid, selectedTrip]);
+
+  if (!isMounted) {
+    return (
+      <div className="max-w-md mx-auto min-h-screen bg-background flex items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    );
+  }
 
   const displayTotal = selectedView === 'global' ? globalStats.totalSpent : (tripStats?.totalSpent || 0);
   const displayBalance = selectedView === 'global' ? globalStats.netStanding : (tripStats?.netStanding || 0);
