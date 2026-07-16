@@ -1,7 +1,8 @@
+
 'use client';
 
 import { useState } from "react";
-import { X, Plus, Sparkles, ChevronRight, Loader2 } from "lucide-react";
+import { X, Plus, ChevronRight, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -9,6 +10,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Di
 import { useFirestore, useUser } from "@/firebase";
 import { doc, updateDoc, serverTimestamp } from "firebase/firestore";
 import { useToast } from "@/hooks/use-toast";
+import Image from "next/image";
 
 interface OnboardingDialogProps {
   isOpen: boolean;
@@ -69,8 +71,14 @@ export function OnboardingDialog({ isOpen, onOpenChange, onComplete }: Onboardin
             </svg>
           </div>
           <div className="relative z-10 flex flex-col items-center text-center px-6">
-            <div className="h-16 w-16 rounded-full bg-accent/20 flex items-center justify-center mb-4">
-              {/* Prepared space for manual logo placement */}
+            <div className="mb-4 animate-bounce">
+              <Image 
+                src="/travex logo.png" 
+                alt="Travex Logo" 
+                width={80} 
+                height={80} 
+                className="drop-shadow-xl"
+              />
             </div>
             <h2 className="text-xl font-bold text-white tracking-tight leading-tight">Welcome to Travex</h2>
           </div>

@@ -1,7 +1,8 @@
+
 "use client";
 
 import Link from "next/link";
-import { Plus, ChevronRight, Compass, MapPinPlus, Users, Calendar, AlertCircle, Sparkles, PlaneTakeoff } from "lucide-react";
+import { Plus, ChevronRight, MapPinPlus, AlertCircle, PlaneTakeoff, Calendar } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -12,10 +13,11 @@ import { AnimatedCompass } from "@/components/animated-compass";
 import { useTrips } from "@/context/trips-context";
 import { useUser, useFirestore } from "@/firebase";
 import { useEffect, useState, useMemo } from "react";
-import { doc, onSnapshot, getDoc, setDoc, serverTimestamp, Timestamp } from "firebase/firestore";
+import { doc, onSnapshot, setDoc, serverTimestamp, Timestamp } from "firebase/firestore";
 import { getTripImage } from "@/lib/image-utils";
 import { getInitials, getAvatarFallbackClasses } from "@/lib/avatar-utils";
 import { OnboardingDialog } from "@/components/onboarding-dialog";
+import Image from "next/image";
 
 export default function Home() {
   const { trips, loading, error } = useTrips();
@@ -145,8 +147,15 @@ export default function Home() {
       <header className="px-safe-pad pt-6 pb-6 bg-foreground text-background rounded-b-[2.5rem] shadow-2xl shadow-black/10">
         <div className="flex justify-between items-center mb-5">
           <div className="flex items-center gap-4">
-            <div className="h-11 w-11 bg-accent rounded-2xl flex items-center justify-center shadow-xl shadow-accent/20 transition-transform hover:scale-105">
-              <Compass className="h-6 w-6 text-foreground" />
+            <div className="shrink-0 transition-transform hover:scale-105">
+              <Image 
+                src="/travex logo.png" 
+                alt="Travex Logo" 
+                width={48} 
+                height={48} 
+                priority
+                className="drop-shadow-lg"
+              />
             </div>
             <div>
               <p className="text-[10px] text-background/60 font-medium tracking-tight">{greetingPrefix}</p>

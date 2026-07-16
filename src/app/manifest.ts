@@ -16,13 +16,13 @@ export default function manifest(): MetadataRoute.Manifest {
     theme_color: '#0B6E82',
     icons: [
       {
-        src: 'https://picsum.photos/seed/travex192/192/192',
+        src: '/travex logo.png',
         sizes: '192x192',
         type: 'image/png',
         purpose: 'maskable',
       },
       {
-        src: 'https://picsum.photos/seed/travex512/512/512',
+        src: '/travex logo.png',
         sizes: '512x512',
         type: 'image/png',
         purpose: 'any',

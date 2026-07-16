@@ -7,10 +7,11 @@ import { GoogleAuthProvider, signInWithPopup, signInAnonymously, linkWithPopup, 
 import { useAuth, useUser, useFirestore } from '@/firebase';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
-import { Compass, Loader2 } from 'lucide-react';
+import { Loader2 } from 'lucide-react';
 import { AnimatedCompass } from '@/components/animated-compass';
 import { useToast } from '@/hooks/use-toast';
 import { doc, setDoc, serverTimestamp } from 'firebase/firestore';
+import Image from 'next/image';
 
 const GUEST_ADJECTIVES = ["Brave", "Curious", "Vibrant", "Nomadic", "Infinite", "Wild", "Bold", "Swift", "Epic", "Hidden"];
 const GUEST_NOUNS = ["Wanderer", "Voyager", "Nomad", "Pathfinder", "Scout", "Roamer", "Adventurer", "Explorer", "Seeker", "Trekker"];
@@ -136,8 +137,15 @@ export default function LoginPage() {
   return (
     <div className="max-w-md mx-auto min-h-screen flex flex-col bg-foreground text-background p-safe-pad justify-center">
       <div className="flex flex-col items-center text-center space-y-8">
-        <div className="h-24 w-24 bg-accent rounded-[2.5rem] flex items-center justify-center shadow-2xl shadow-accent/20">
-          <Compass className="h-12 w-12 text-foreground" />
+        <div className="mb-2 animate-in zoom-in-95 duration-700">
+          <Image 
+            src="/travex logo.png" 
+            alt="Travex Logo" 
+            width={120} 
+            height={120} 
+            priority
+            className="drop-shadow-2xl"
+          />
         </div>
         
         <div className="space-y-2">
