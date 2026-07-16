@@ -55,7 +55,7 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
-import { format } from "date-fns";
+import { format, parseISO } from "date-fns";
 import { getInitials, getAvatarFallbackClasses } from "@/lib/avatar-utils";
 import { useExpenseAICategorization } from "@/hooks/use-expense-ai";
 
@@ -113,7 +113,7 @@ export default function AddExpenseWizard() {
     selectedIndividuals: [] as string[],
     customAmounts: {} as Record<string, string>,
     isItemized: false,
-    date: new Date().toISOString().split('T')[0],
+    date: format(new Date(), 'yyyy-MM-dd'),
     paymentType: "",
     category: "Other"
   });
@@ -695,6 +695,8 @@ export default function AddExpenseWizard() {
     );
   }
 
+  const calendarSelectedDate = formData.date ? parseISO(formData.date) : undefined;
+
   return (
     <div className="max-w-md mx-auto min-h-screen bg-background flex flex-col">
       <header className="px-safe-pad py-6 flex items-center justify-between border-b bg-white sticky top-0 z-10">
@@ -823,18 +825,18 @@ export default function AddExpenseWizard() {
                         >
                           <CalendarIcon className={cn(
                             "mr-4 h-4 w-4 transition-all",
-                            formData.date ? "text-foreground stroke-[2px]" : "text-muted-foreground/60"
+                            formData.date ? "text-foreground stroke-[2px]" : "text-muted-foreground/40"
                           )} />
-                          {formData.date ? format(new Date(formData.date), "d MMM yyyy") : "Date"}
+                          {formData.date ? format(parseISO(formData.date), "d MMM yyyy") : "Date"}
                         </Button>
                       </PopoverTrigger>
                       <PopoverContent className="w-auto p-0 rounded-[2rem] border-none shadow-2xl overflow-hidden max-w-[calc(100vw-40px)]" align="start">
                         <Calendar
                           mode="single"
-                          selected={formData.date ? new Date(formData.date) : undefined}
+                          selected={calendarSelectedDate}
                           onSelect={(d) => {
                             if (d) {
-                              setFormData(prev => ({ ...prev, date: d.toISOString().split('T')[0] }));
+                              setFormData(prev => ({ ...prev, date: format(d, 'yyyy-MM-dd') }));
                               setIsCalendarOpen(false);
                             }
                           }}

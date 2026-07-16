@@ -22,16 +22,16 @@ function Calendar({
       classNames={{
         months: "flex flex-col sm:flex-row space-y-4 sm:space-x-4 sm:space-y-0",
         month: "space-y-4",
-        month_caption: "flex justify-center relative items-center h-10 mb-2",
+        month_caption: "flex justify-center relative items-center h-12 mb-2",
         caption_label: "text-sm font-bold tracking-tight",
         nav: "flex items-center",
         button_previous: cn(
           buttonVariants({ variant: "ghost" }),
-          "h-8 w-8 bg-muted/30 p-0 rounded-full opacity-60 hover:opacity-100 hover:bg-muted/50 absolute left-0 top-1/2 -translate-y-1/2 transition-all z-10"
+          "h-9 w-9 bg-muted/30 p-0 rounded-full opacity-60 hover:opacity-100 hover:bg-muted/50 absolute left-0 top-1/2 -translate-y-1/2 transition-all z-10"
         ),
         button_next: cn(
           buttonVariants({ variant: "ghost" }),
-          "h-8 w-8 bg-muted/30 p-0 rounded-full opacity-60 hover:opacity-100 hover:bg-muted/50 absolute right-0 top-1/2 -translate-y-1/2 transition-all z-10"
+          "h-9 w-9 bg-muted/30 p-0 rounded-full opacity-60 hover:opacity-100 hover:bg-muted/50 absolute right-0 top-1/2 -translate-y-1/2 transition-all z-10"
         ),
         month_grid: "w-full border-collapse space-y-1",
         weekdays: "flex justify-between mb-2",
@@ -41,7 +41,7 @@ function Calendar({
         day: "h-10 w-10 text-center text-sm p-0 relative flex items-center justify-center",
         day_button: cn(
           buttonVariants({ variant: "ghost" }),
-          "h-10 w-10 p-0 font-medium aria-selected:opacity-100 rounded-xl hover:bg-muted/50 transition-all select-none touch-manipulation"
+          "h-10 w-10 p-0 font-medium aria-selected:opacity-100 rounded-xl hover:bg-muted/50 transition-all select-none touch-manipulation active:scale-95"
         ),
         range_end: "day-range-end",
         selected:

@@ -48,7 +48,7 @@ import { FirestorePermissionError } from "@/firebase/errors";
 import { cn } from "@/lib/utils";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
-import { format } from "date-fns";
+import { format, parseISO } from "date-fns";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { getInitials, getAvatarFallbackClasses } from "@/lib/avatar-utils";
 import { useExpenseAICategorization } from "@/hooks/use-expense-ai";
@@ -540,6 +540,8 @@ export default function EditExpensePage() {
     );
   }
 
+  const calendarSelectedDate = formData.date ? parseISO(formData.date) : undefined;
+
   return (
     <div className="max-w-md mx-auto h-[100dvh] bg-background flex flex-col overflow-hidden">
       <header className="px-safe-pad py-6 flex items-center justify-between border-b bg-white shrink-0">
@@ -598,15 +600,15 @@ export default function EditExpensePage() {
                       <PopoverTrigger asChild>
                         <Button variant="outline" className="h-14 justify-start font-medium rounded-2xl border-none shadow-sm bg-white hover:bg-muted/50 transition-all">
                           <CalendarIcon className={cn("mr-3 h-4 w-4 transition-all", formData.date ? "text-foreground stroke-[2px]" : "text-muted-foreground/60")} /> 
-                          {formData.date ? format(new Date(formData.date), "d MMM yyyy") : "Date"}
+                          {formData.date ? format(parseISO(formData.date), "d MMM yyyy") : "Date"}
                         </Button>
                       </PopoverTrigger>
                       <PopoverContent className="w-auto p-0 rounded-[2rem] border-none shadow-2xl overflow-hidden" align="start">
-                        <Calendar mode="single" selected={formData.date ? new Date(formData.date) : undefined} onSelect={(d) => { if (d) { setFormData(prev => ({ ...prev, date: d.toISOString().split('T')[0] })); setIsCalendarOpen(false); } }} disabled={{ after: new Date() }} initialFocus />
+                        <Calendar mode="single" selected={calendarSelectedDate} onSelect={(d) => { if (d) { setFormData(prev => ({ ...prev, date: format(d, 'yyyy-MM-dd') })); setIsCalendarOpen(false); } }} disabled={{ after: new Date() }} initialFocus />
                       </PopoverContent>
                    </Popover>
                    <Select value={formData.paymentType} onValueChange={val => setFormData(prev => ({ ...prev, paymentType: val }))}>
-                     <SelectTrigger className={cn("h-14 rounded-2xl shadow-sm bg-white border-none focus:ring-primary font-medium", formData.paymentType ? "text-foreground [&_svg]:text-foreground [&_svg]:stroke-[2px]" : "text-muted-foreground/60 [&_svg]:text-muted-foreground/40")}>
+                     <SelectTrigger className={cn("h-14 rounded-2xl shadow-sm bg-white border-none focus-ring-primary font-medium", formData.paymentType ? "text-foreground [&_svg]:text-foreground [&_svg]:stroke-[2px]" : "text-muted-foreground/60 [&_svg]:text-muted-foreground/40")}>
                        <div className="flex items-center gap-2">
                          {!formData.paymentType && <CreditCard className="h-4 w-4" />}
                          <SelectValue placeholder="Method" />
