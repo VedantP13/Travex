@@ -129,7 +129,7 @@ export default function LoginPage() {
   if (loading || (user && !loading && !user.isAnonymous)) {
     return (
       <div className="max-w-md mx-auto min-h-screen flex flex-col items-center justify-center bg-background gap-4">
-        <AnimatedCompass className="h-12 w-12 text-primary" />
+        <Image src="/travex logo.png" alt="Travex Logo" width={64} height={64} priority />
       </div>
     );
   }
@@ -150,7 +150,9 @@ export default function LoginPage() {
             />
           </div>
           <div className="space-y-2">
-            <h1 className="text-5xl font-black tracking-tighter text-accent">Travex</h1>
+            <h1 className="text-5xl font-black tracking-tighter text-accent">
+              Trave<span className="text-primary">x</span>
+            </h1>
             <p className="text-muted-foreground font-medium text-base opacity-70">
               Smart splitting for modern explorers.
             </p>
@@ -171,10 +173,10 @@ export default function LoginPage() {
               <Button 
                 onClick={handleGoogleLogin}
                 disabled={isLoggingIn}
-                className="w-full h-16 rounded-[1.5rem] bg-white text-foreground hover:bg-slate-50 text-lg font-black shadow-xl flex items-center justify-center gap-4 transition-all active:scale-95 group"
+                className="w-full h-16 rounded-[1.5rem] bg-background text-foreground hover:bg-background/90 text-lg font-black shadow-xl flex items-center justify-center gap-4 transition-all active:scale-95 group"
               >
                 {isLoggingIn ? (
-                  <Loader2 className="h-6 w-6 animate-spin" />
+                  <Loader2 className="h-6 w-6 animate-spin text-primary" />
                 ) : (
                   <>
                     <Image src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" width={24} height={24} alt="Google" className="group-hover:scale-110 transition-transform" />
