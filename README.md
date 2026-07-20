@@ -1,37 +1,46 @@
-
 # Travex: Smart Travel Expenses
 
-Travex is officially **LIVE** on the new project: `travexapp`.
+## Overview
+Travex is an intelligent expense capture and splitting application designed for modern travelers. It simplifies the process of tracking group costs, managing shared balances, and organizing trip logistics through a combination of automated workflows and AI-driven insights.
 
-## 🎊 Launch Status: SUCCESS
-The first rollout has been completed. The application is now served from your new production environment.
+## Project Status
+The application is live in the production environment associated with the `travexapp` project. All core modules including authentication, trip management, and financial analytics are operational.
 
-### 🛡️ Recent Updates & Fixes
-- **Smart Friend Search**: Optimized "Search as you type" with prefix matching and Trip Companion prioritization.
-- **Guest Personas**: Unique travel-inspired identities (e.g., "Nomadic Voyager") assigned to guest accounts.
-- **Improved UI**: Enhanced visual hierarchy for expenses and responsive dialogs for cover image changes.
-- **Friend Notifications**: Visual indicator for pending friend requests.
+## Core Capabilities
+### Advanced Search and Discovery
+The application features an optimized search engine for finding friends and travel companions. It utilizes prefix matching and prioritizes existing trip participants to ensure high relevance in results.
 
-### 🚀 Git Sync Instructions
-If you encounter a `fatal: Need to specify how to reconcile divergent branches` error when pulling, it means your local changes and the remote branch have diverged. 
+### Guest Identity Management
+Unauthenticated users are assigned unique, travel-inspired identities (e.g., "Nomadic Voyager"). This allows for an immediate, high-fidelity experience while encouraging eventual account security through Google integration.
 
-To resolve this, I've added a helper script. Run this in your terminal:
+### AI-Enhanced Workflows
+- **Categorization**: Transactions are automatically mapped to logical categories using semantic analysis of descriptions.
+- **Visualization Hints**: Trip names are analyzed to suggest relevant visual themes and destination imagery.
+
+### Financial Intelligence
+The platform provides a comprehensive ledger system that calculates net standings, suggests optimized settlement plans, and offers detailed spending analytics through interactive charts.
+
+## Synchronization and Development
+### Branch Reconciliation
+To resolve divergent Git branches and ensure your local environment matches the remote repository, utilize the integrated sync utility:
 ```bash
 npm run sync
 ```
-This will configure Git to use the standard merge strategy and pull the latest changes from `main`.
+This script configures the standard merge strategy and pulls the latest updates from the main branch.
 
-### 🛡️ Custom Design & Logic Lock
-- The "New Trip" and "Add Expense" pages contain **custom SVG assets** and high-fidelity dialog styling.
-- **Agent Note**: Do not modify the Dialog components or SVG paths.
-- **Logic Rule**: The "Secure your adventure" guest prompt is strictly scoped to the **New Trip** flow (`src/app/trips/new/page.tsx`).
+## Technical Architecture
+- **Framework**: Next.js 15 (App Router)
+- **Interface**: React with ShadCN UI components and Tailwind CSS
+- **Data Layer**: Firebase Firestore with persistent local caching
+- **Security**: Firebase Auth with Google and Anonymous providers
+- **Intelligence**: Genkit leveraging Google Gemini models
 
-### 🚀 Firebase Hosting
-- **The Solution**: Use the `.hosted.app` URL provided in the **App Hosting** tab of your Firebase Console.
+## Deployment
+The application is served via Firebase App Hosting. For the latest production URL, refer to the App Hosting tab within the Firebase Console for the `travexapp` project.
 
-## Tech Stack
-- **Framework:** Next.js 15 (App Router)
-- **Styling:** Tailwind CSS & ShadCN UI
-- **Database:** Firebase Firestore
-- **Authentication:** Firebase Auth
-- **AI:** Genkit (Google Gemini)
+## Development Constraints
+### Visual Assets
+The "New Trip" and "Add Expense" interfaces contain custom SVG assets and specific high-fidelity styling. Developers should avoid manual modifications to the Dialog components or path data to preserve the established visual language.
+
+### Logic Scope
+The "Secure your adventure" conversion prompt for guest users is strictly scoped to the primary trip creation workflow located in `src/app/trips/new/page.tsx`.
